@@ -194,7 +194,10 @@ vi.mock("@/store/TabStoreProvider.js", () => ({
   }),
 }));
 
-vi.mock("@/WorkspaceHeader.js", () => ({
+// 个人定制（侧面板左置）：WorkspaceShellLayout 现在也复用本模块的
+// resolveTopOverlayLeadingPaddingClass，mock 需保留真实纯函数，只替换组件实现。
+vi.mock("@/WorkspaceHeader.js", async (importOriginal) => ({
+  ...(await importOriginal<Record<string, unknown>>()),
   WorkspaceHeader: ({ variant }: { variant?: string }) =>
     createElement("header", {
       "data-testid": "workspace-header",

@@ -141,7 +141,8 @@ const CONVERSATION_AUTO_COLLAPSE_SIDEBAR_WIDTH_PX = 360;
 const CONVERSATION_AUTO_COLLAPSE_RESIZE_IDLE_MS = 300;
 // 性能修复：ResizablePanelGroup 收到深相等的新 panelIds 数组，
 // 会跟随 chat streaming render 重算布局上下文；固定数组语义上不会随消息变化。
-const WORKSPACE_BODY_PANEL_IDS = ["conversation-column", "browser"];
+// 个人定制：browser（文件/代码侧面板）已移到左侧，DOM 顺序与 ID 列表保持一致。
+const WORKSPACE_BODY_PANEL_IDS = ["browser", "conversation-column"];
 const WORKSPACE_CONVERSATION_PANEL_IDS = ["conversation", "terminal"];
 
 type WebRemoteNavigationDragSession = {
@@ -1841,6 +1842,13 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
           : null
       }
       fullViewSlotRef={options.mobileOverlay ? undefined : setFullViewSlotElement}
+      // 个人定制：面板在左侧，侧栏收起时标签栏需为 mac 红绿灯/浮层按钮留白（规则与完整视图同源）。
+      paneLeadingInsetClassName={resolveTopOverlayLeadingPaddingClass({
+        isSidebarVisible,
+        isMacDesktop,
+        isMacFullscreen,
+        hasUpdateReady: hasUpdateStatusButton,
+      })}
       sidePaneState={sidePaneState}
       recentClosedSidePaneTabs={recentClosedSidePaneTabs}
       isBrowserOpen={isBrowserOpen}
@@ -2345,7 +2353,7 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
             )}
           />
         ) : null}
-        {/* 右侧主工作区：上方 header，下面左侧会话+终端，右侧共享 browser/code-viewer 槽位 */}
+        {/* 右侧主工作区：上方 header，下面左侧 browser/code-viewer 侧面板（个人定制：VS Code 布局），右侧会话+终端 */}
         <div
           data-panel=""
           id="content"
@@ -2374,6 +2382,10 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
               isFullView && "relative",
             )}
           >
+            {/* 个人定制：把文件管理/代码查看器侧面板移到左侧（VS Code 布局：文件在左、对话在右）。
+                Bugfix 原注释保留：Browser Guest Host 必须与主视图路由解耦，避免 automations/plugin
+                切换时卸载 Guest；截图请求期间由上层临时展开真实面板承载可合成的 WebContents。 */}
+            {sidePanePanel}
             <ResizablePanel
               id="conversation-column"
               minSize={isWebRemoteControlShell ? "0px" : "35%"}
@@ -2725,9 +2737,6 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
                 </ResizablePanelGroup>
               </SidePaneFullViewConversationHost>
             </ResizablePanel>
-            {/* Bugfix：Browser Guest Host 必须与主视图路由解耦，避免 automations/plugin
-                    切换时卸载 Guest；截图请求期间由上层临时展开真实面板承载可合成的 WebContents。 */}
-            {sidePanePanel}
           </ResizablePanelGroup>
         </div>
         <ScopedErrorBoundary

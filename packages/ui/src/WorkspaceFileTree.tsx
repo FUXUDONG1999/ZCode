@@ -1,7 +1,7 @@
 import { usePanelRef } from "react-resizable-panels";
 import { logger } from "@/logger.js";
 import { useEffect, useLayoutEffect, useRef, useState, type ComponentProps } from "react";
-import { FolderOpenIcon, PanelRightCloseIcon, PanelRightOpenIcon } from "lucide-react";
+import { FolderOpenIcon, PanelLeftCloseIcon, PanelLeftOpenIcon } from "lucide-react";
 import { PreviewPane } from "@/PreviewPane.js";
 import { WorkspaceFileTree } from "@/workspace-file-tree/WorkspaceFileTree.js";
 import { Button } from "@/components/ui/button.js";
@@ -19,7 +19,8 @@ import {
 } from "@/components/ui/resizable.js";
 
 export { WorkspaceFileTree };
-const FILE_MANAGER_PANEL_IDS = ["preview", "directory"];
+// 个人定制：目录树移到左侧（VS Code 布局：文件树在左、内容预览在右），DOM 顺序与 ID 列表保持一致。
+const FILE_MANAGER_PANEL_IDS = ["directory", "preview"];
 
 type FileManagerPaneProps = Omit<ComponentProps<typeof PreviewPane>, "source"> & {
   source: CodeViewerSource | null;
@@ -124,9 +125,9 @@ export function FileManagerPane({
               aria-expanded={showNavigation}
             >
               {showNavigation ? (
-                <PanelRightCloseIcon className="size-4" />
+                <PanelLeftCloseIcon className="size-4" />
               ) : (
-                <PanelRightOpenIcon className="size-4" />
+                <PanelLeftOpenIcon className="size-4" />
               )}
             </Button>
           </div>
@@ -138,32 +139,7 @@ export function FileManagerPane({
         disabled={!showNavigation || isNarrow || mobileOverlay}
         className="min-h-0 flex-1"
       >
-        <ResizablePanel
-          id="preview"
-          panelRef={previewPanelRef}
-          collapsible
-          collapsedSize="0px"
-          minSize="160px"
-          className="min-h-0 min-w-0"
-        >
-          {source ? (
-            <PreviewPane {...previewProps} source={source} headerContainer={headerContainer} />
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-ui-base text-foreground-subtle">
-              <FolderOpenIcon className="size-6" />
-              <span>{intl.formatMessage({ id: "fileManager.empty" })}</span>
-            </div>
-          )}
-        </ResizablePanel>
-        <ResizableHandle
-          aria-label={intl.formatMessage({ id: "fileManager.resizeNavigation" })}
-          className={cn(
-            WORKSPACE_VERTICAL_RESIZE_HANDLE_CLASS_NAME,
-            // 边框与拖拽高亮共用热区中线，避免目录边框与 resize 指示线左右错位。
-            "before:pointer-events-none before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2 before:bg-border before:content-[''] after:left-1/2 after:-translate-x-1/2",
-            (!showNavigation || isNarrow || mobileOverlay) && "hidden",
-          )}
-        />
+        {/* 个人定制：目录树在左（VS Code 布局），内容预览在右。 */}
         <ResizablePanel
           id="directory"
           panelRef={directoryPanelRef}
@@ -184,6 +160,32 @@ export function FileManagerPane({
               onOpenBrowserUrl={previewProps.onOpenBrowserUrl}
             />
           ) : null}
+        </ResizablePanel>
+        <ResizableHandle
+          aria-label={intl.formatMessage({ id: "fileManager.resizeNavigation" })}
+          className={cn(
+            WORKSPACE_VERTICAL_RESIZE_HANDLE_CLASS_NAME,
+            // 边框与拖拽高亮共用热区中线，避免目录边框与 resize 指示线左右错位。
+            "before:pointer-events-none before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2 before:bg-border before:content-[''] after:left-1/2 after:-translate-x-1/2",
+            (!showNavigation || isNarrow || mobileOverlay) && "hidden",
+          )}
+        />
+        <ResizablePanel
+          id="preview"
+          panelRef={previewPanelRef}
+          collapsible
+          collapsedSize="0px"
+          minSize="160px"
+          className="min-h-0 min-w-0"
+        >
+          {source ? (
+            <PreviewPane {...previewProps} source={source} headerContainer={headerContainer} />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-3 p-4 text-ui-base text-foreground-subtle">
+              <FolderOpenIcon className="size-6" />
+              <span>{intl.formatMessage({ id: "fileManager.empty" })}</span>
+            </div>
+          )}
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
