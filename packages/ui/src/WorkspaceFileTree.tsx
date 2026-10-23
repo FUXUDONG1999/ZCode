@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/resizable.js";
 
 export { WorkspaceFileTree };
+// 个人定制：目录树移到左侧（VS Code 布局：文件树在左、内容预览在右），DOM 顺序与 ID 列表保持一致。
 const FILE_MANAGER_PANEL_IDS = ["directory", "preview"];
 
 type FileManagerPaneProps = Omit<ComponentProps<typeof PreviewPane>, "source"> & {
@@ -143,6 +144,7 @@ export function FileManagerPane({
         disabled={!showNavigation || isNarrow || mobileOverlay}
         className="min-h-0 flex-1"
       >
+        {/* 个人定制：目录树在左（VS Code 布局），内容预览在右。 */}
         <ResizablePanel
           id="directory"
           panelRef={directoryPanelRef}

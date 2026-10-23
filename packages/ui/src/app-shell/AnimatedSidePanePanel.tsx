@@ -373,6 +373,7 @@ export function AnimatedSidePanePanel({
   fullViewToggle,
   fullView = null,
   fullViewSlotRef,
+  paneLeadingInsetClassName,
   mobileOverlay = false,
   mobileStacked = false,
 }: {
@@ -380,6 +381,11 @@ export function AnimatedSidePanePanel({
   frameClassName?: string;
   captionControlsStyle?: CSSProperties;
   showWindowControls?: boolean;
+  /**
+   * 个人定制：面板移到左侧后，侧栏收起时 mac 红绿灯会压到面板标签栏左上角。
+   * 普通视图沿用完整视图的 leading inset 规则（与 WorkspaceHeader 同源），为浮层按钮组留白。
+   */
+  paneLeadingInsetClassName?: string | false;
   onCloseSidePane?: () => void;
   toggleSidePaneShortcutLabel?: string;
   /** 桌面端「进入 / 退出完整视图」按钮；缺省不渲染（Web、手机远控）。 */
@@ -1055,6 +1061,7 @@ export function AnimatedSidePanePanel({
                   className={cn(
                     "flex justify-start w-full rounded-none p-0 border-0 border-b border-border/50 bg-transparent shadow-none !h-12 overflow-hidden",
                     fullView?.leadingInsetClassName,
+                    !fullView && paneLeadingInsetClassName,
                     // 独立面板将标签栏移至窗口顶部，需补充窗口拖拽区域；标签和按钮仍处理自身交互。
                     isDesktop &&
                       !mobileOverlay &&
@@ -1521,7 +1528,8 @@ export function AnimatedSidePanePanel({
           ref={panelElementRef}
           aria-hidden={!isVisible}
           className={cn(
-            "h-full w-full min-w-0 border-l border-border bg-background transition-opacity duration-200 ease-out",
+            // 个人定制：侧面板移到左侧后，与对话区的接缝在右侧，边框从 border-l 换成 border-r。
+            "h-full w-full min-w-0 border-r border-border bg-background transition-opacity duration-200 ease-out",
             isVisible || isScreenshotSurfaceActive
               ? "opacity-100"
               : "pointer-events-none opacity-0",
