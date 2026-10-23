@@ -2777,7 +2777,7 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
 
         {isWebRemoteControlShell && isWebRemoteControlTaskSwitching ? (
           <div
-            className="absolute inset-0 z-40 flex items-center justify-center bg-background/90"
+            className="absolute inset-0 z-40 flex items-center justify-center bg-background/72 backdrop-blur-[1px]"
             aria-live="polite"
             aria-busy="true"
           >

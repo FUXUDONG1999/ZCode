@@ -415,7 +415,7 @@ export function ChatPromptEditor({
         )}
       >
         {draggingOverlayHint ? (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-accent/70">
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-accent/55 backdrop-blur-sm">
             <div className="flex items-center gap-2 rounded-full border border-border bg-accent px-4 py-2 text-ui-base text-foreground shadow-sm">
               <Hand className="size-4 text-foreground" />
               <span>{draggingOverlayHint}</span>

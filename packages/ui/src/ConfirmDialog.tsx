@@ -131,7 +131,7 @@ export function ConfirmDialogHost() {
         }}
         showCloseButton={false}
         overlayClassName={
-          compact ? "bg-black/40" : undefined
+          compact ? "bg-black/20 supports-backdrop-filter:backdrop-blur-[2px]" : undefined
         }
         className={cn(
           "gap-5 rounded-2xl border-none bg-popover/98 p-5 ring-border shadow-2xl",

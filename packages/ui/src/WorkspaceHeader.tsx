@@ -166,7 +166,7 @@ export function WorkspaceHeader({
     >
       {variant === "draft" && draftDropTargetController?.active ? (
         <div
-          className="absolute inset-0 z-40 bg-accent/70 pointer-events-auto [app-region:no-drag]"
+          className="absolute inset-0 z-40 bg-accent/55 backdrop-blur-sm pointer-events-auto [app-region:no-drag]"
           data-testid="new-task-draft-drop-mask"
           onDragOver={draftDropTargetController.onDragOver}
           onDragLeave={draftDropTargetController.onDragLeave}

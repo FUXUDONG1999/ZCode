@@ -36,7 +36,7 @@ export function AutomationSwitchToggle({
     >
       <span
         className={cn(
-          "absolute inline-block size-3.5 rounded-full shadow transition-[left,box-shadow] duration-200",
+          "absolute inline-block size-3.5 rounded-full shadow transition-all duration-200",
           checked
             ? color === "blue"
               ? "bg-foreground-inverse"
