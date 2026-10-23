@@ -674,6 +674,7 @@ export function SettingsPage({
   }, [selectedUsageCodingPlanSource, usageActiveTab, usageCodingPlanSources]);
   const setNewUserOnboardingOpen = useZCodeStore((state) => state.setNewUserOnboardingOpen);
   // 「通用」页「打开引导」打开职业引导；迁移向导只从数据同步页「迁移」进入。
+  // 个人定制适配：原定制移除的是旧欢迎引导入口；上游已重构为职业引导新功能，此处跟随上游保留。
   const openOccupationOnboarding = () => setNewUserOnboardingOpen(true);
   const requestMigrationDialog = useZCodeStore((state) => state.requestOnboardingDialog);
   const setActiveSettingsSection = useCallback(
@@ -1657,6 +1658,8 @@ export function SettingsPage({
                     );
                   })}
                 </div>
+
+                {/* 个人定制：移除设置侧边栏「引导」入口；onboarding 对话框与状态逻辑保留。 */}
               </nav>
 
               <div className="max-lg:hidden">
