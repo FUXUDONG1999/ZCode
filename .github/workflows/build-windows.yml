@@ -1,0 +1,53 @@
+# 个人定制分支的 Windows 持续构建：推送到 personal/myagent 或手动触发时，
+# 在 GitHub 托管的 Windows runner 上打包 MyAgent x64 安装包并上传 artifact。
+# 版本与 mise.toml 保持一致（node 24.14.0 / pnpm 10.33.2）。
+name: build-windows
+
+on:
+  push:
+    branches: [personal/myagent]
+    paths-ignore:
+      - "docs/**"
+      - "**/*.md"
+  workflow_dispatch:
+
+concurrency:
+  group: build-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-win-x64:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    env:
+      ZCODE_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.14.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Windows x64 package
+        run: pnpm --filter @zcode/desktop bundle -- --os win --arch x64
+
+      - name: Upload installer artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyAgent-win-x64
+          path: |
+            packages/desktop/dist/*.exe
+            packages/desktop/dist/*.exe.blockmap
+          if-no-files-found: error
+          retention-days: 30
