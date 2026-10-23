@@ -101,7 +101,7 @@ function describeDevice(
   const single = device.onlineConnections.length === 1 ? device.onlineConnections[0] : undefined;
   const version = single?.meta.version?.trim();
   const parts = online
-    ? [platform, version ? `ZCode ${version}` : undefined]
+    ? [platform, version ? `MyAgent ${version}` : undefined]
     : [platform, copy.offline];
   const filtered = parts.filter((part): part is string => Boolean(part));
   if (filtered.length === 0) filtered.push(online ? copy.online : copy.offline);

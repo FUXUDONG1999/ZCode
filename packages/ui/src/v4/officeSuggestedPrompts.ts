@@ -343,7 +343,7 @@ export const officeSuggestedPrompts: RecommendedPrompt[] = [
     plugin: {
       stableId: "zcode-guide@zcode-plugins-official",
       label: {
-        cn: "ZCode 使用指南",
+        cn: "MyAgent 使用指南",
         en: "zcode-guide",
       },
     },
