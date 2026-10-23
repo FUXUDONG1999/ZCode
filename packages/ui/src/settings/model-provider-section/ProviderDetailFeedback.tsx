@@ -110,7 +110,7 @@ export function ProviderDetailFeedbackBoundary({ children }: { children: ReactNo
               role={item.state === "failure" ? "alert" : "status"}
               data-provider-detail-feedback-state={item.state}
               className={cn(
-                "pointer-events-auto flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 py-2.5 backdrop-blur-sm",
+                "pointer-events-auto flex min-h-11 w-full items-center gap-3 rounded-xl border px-3 py-2.5",
                 item.state === "success" &&
                   (item.successEmphasis
                     ? "border-success/30 bg-success/10 text-success shadow-md"

@@ -487,7 +487,7 @@ const ArtifactPresentation = memo(function ArtifactPresentation({
           // data-share-preview-button 是测试断言用的结构性标记：语义锁定不依赖 Tailwind 类字符串。
           <div
             data-share-preview-button="true"
-            className="flex h-7 shrink-0 items-center overflow-hidden rounded-lg border border-border bg-input transition-all hover:border-border-hover"
+            className="flex h-7 shrink-0 items-center overflow-hidden rounded-lg border border-border bg-input transition-colors hover:border-border-hover"
           >
             <button
               type="button"

@@ -267,7 +267,7 @@ export const Attachment = ({
           variant === "inline" && [
             "flex h-8 select-none items-center gap-0.5",
             "overflow-hidden rounded-md border border-border p-1 pr-2.5",
-            "font-medium text-ui-base transition-all",
+            "font-medium text-ui-base transition-colors",
             "bg-background",
             "[--attachment-bg:var(--color-background)]",
           ],
@@ -358,7 +358,7 @@ export const AttachmentPreview = ({
       {mediaCategory === "video" && variant === "grid" ? (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 m-auto flex size-7 items-center justify-center rounded-full bg-black/55 text-white shadow-sm backdrop-blur-sm"
+          className="pointer-events-none absolute inset-0 m-auto flex size-7 items-center justify-center rounded-full bg-black/55 text-white shadow-sm sm"
           data-attachment-video-play-overlay="true"
         >
           <PlayIcon className="size-4 translate-x-px fill-current" />
@@ -496,7 +496,7 @@ export const AttachmentRemove = ({
       className={cn(
         variant === "grid" && [
           "absolute top-2 right-2 size-6 rounded-full p-0",
-          "bg-background/80 backdrop-blur-sm",
+          "bg-background",
           "opacity-0 transition-opacity group-hover:opacity-100",
           "hover:bg-background",
           "[&>svg]:size-3",

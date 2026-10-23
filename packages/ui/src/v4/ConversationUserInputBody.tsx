@@ -133,7 +133,7 @@ export function ConversationUserInputBody({
             aria-expanded={expanded}
             title={toggleLabel}
             onClick={() => setExpanded((current) => !current)}
-            className="rounded-full bg-background shadow-sm backdrop-blur-sm transition-colors"
+            className="rounded-full bg-background shadow-sm transition-colors"
           >
             {expanded ? (
               <ChevronUpIcon aria-hidden="true" className="size-4" />

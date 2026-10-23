@@ -110,7 +110,7 @@ const ChatPaneShell = memo(function ChatPaneShell({
           aria-hidden="true"
           data-v4-pane-inactive-overlay="true"
           style={INACTIVE_PANE_OVERLAY_STYLE}
-          className="pointer-events-none absolute inset-0 z-30 rounded-md transition-[background-color,backdrop-filter]"
+          className="pointer-events-none absolute inset-0 z-30 rounded-md transition-[background-color]"
         />
       ) : null}
       {children}

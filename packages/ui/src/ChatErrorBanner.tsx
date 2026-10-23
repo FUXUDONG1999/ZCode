@@ -267,7 +267,7 @@ export function ChatErrorBanner({
         data-testid={TID_CHAT_ERROR_BANNER}
         data-error-code={error.code}
         className={cn(
-          "w-full flex flex-wrap items-center gap-2 rounded-xl bg-surface backdrop-blur-md border border-border px-3 py-2",
+          "w-full flex flex-wrap items-center gap-2 rounded-xl bg-surface border border-border px-3 py-2",
         )}
       >
         <div className="flex min-w-0 flex-1 items-center gap-2 text-ui-base text-foreground">

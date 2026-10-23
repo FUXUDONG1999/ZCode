@@ -391,7 +391,7 @@ export function DirectoryBrowser({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/50"
       onClick={(e) => e.target === e.currentTarget && onCancel()}
       onKeyDown={handleKeyDown}
     >
