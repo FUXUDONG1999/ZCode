@@ -138,12 +138,12 @@ function isLinuxDesktopWindow() {
 
 function buildDesktopWindowVisualOptions() {
   if (process.platform === "darwin") {
+    // 个人定制：去掉 under-window vibrancy 毛玻璃材质（mac 流畅度的主要结构性开销），
+    // 窗口改为纯 renderer 绘制；如观感异常可恢复 vibrancy/visualEffectState 两行。
     return {
       backgroundColor: "#00000000",
       titleBarStyle: "hidden" as const,
       trafficLightPosition: MACOS_TRAFFIC_LIGHT_BASE_POSITION,
-      vibrancy: "under-window" as const,
-      visualEffectState: "active" as const,
     };
   }
 
