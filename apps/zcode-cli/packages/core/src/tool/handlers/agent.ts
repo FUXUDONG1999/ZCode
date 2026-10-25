@@ -105,6 +105,8 @@ function buildAgentProviderDescription(
     // 原因：主代理缺少明确的委派触发条件时，模型默认在主上下文逐文件串行检索；
     // 给出「超过 3 次查询的宽泛调研用 Explore」的量化阈值，让大范围探索隔离在子代理上下文。
     "- For broad codebase exploration or research that will take more than 3 queries, use subagent_type=Explore — it sweeps many files in its own context and returns the conclusion, not the file dumps. Otherwise search directly with Grep/Glob.",
+    // 对标 Claude Code：独立子代理在同一轮发出可并发执行，不必逐个等待。
+    "- When you launch multiple independent agents, send all of the Agent calls in a single message so they run concurrently instead of waiting for each to finish.",
     "",
     "- The agent's final report is not shown to the user — relay what matters.",
     "- Use SendMessage with the agent's ID to continue a previously spawned agent with its context intact; a new Agent call starts fresh.",
