@@ -531,6 +531,8 @@ describe("tool contract declarations", () => {
         "- Command output is displayed to you, not reliably to the user.",
         "- `timeout` is in milliseconds: default 120000, max 600000 for a foreground command.",
         "- `run_in_background` runs the command detached: it keeps running across turns and re-invokes you when it exits. No `&` needed.",
+        // 2026-10-25：独立命令同轮打包指引（见 00-tool-change-chain.md）。
+        "- Issue independent commands (e.g. `git status`, `git log`, and `git diff` during an investigation) as multiple tool calls in the same response rather than one per turn — each extra round trip adds visible latency for the user.",
         "",
         "# Git",
         "- Interactive flags (`-i`, e.g. `git rebase -i`, `git add -i`) are not supported in this environment.",
@@ -1175,6 +1177,8 @@ describe("tool contract declarations", () => {
         "- Command output is displayed to you, not reliably to the user.",
         "- `timeout` is in milliseconds: default 120000, max 600000 for a foreground command.",
         "- `run_in_background` runs the command detached: it keeps running across turns and re-invokes you when it exits. No `&` needed.",
+        // 2026-10-25：独立命令同轮打包指引（见 00-tool-change-chain.md）。
+        "- Issue independent commands (e.g. `git status`, `git log`, and `git diff` during an investigation) as multiple tool calls in the same response rather than one per turn — each extra round trip adds visible latency for the user.",
         "",
         "# Git",
         "- Interactive flags (`-i`, e.g. `git rebase -i`, `git add -i`) are not supported in this environment.",

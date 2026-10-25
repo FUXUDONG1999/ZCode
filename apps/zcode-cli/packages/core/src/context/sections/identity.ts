@@ -35,7 +35,10 @@ export function buildHarnessBlock(midConversationSystem = true): string {
     " - Text you output outside of tool use is displayed to the user as Github-flavored markdown in a terminal.",
     " - Tools run behind a user-selected permission mode; a denied call means the user declined it \u2014 adjust, don't retry verbatim.",
     ` - ${deliveryNotice} Hooks may intercept tool calls; treat hook output as user feedback.`,
-    " - Prefer the dedicated file/search tools over shell commands when one fits. Independent tool calls can run in parallel in one response.",
+    // 原因：实测同任务下模型每轮只发一个只读命令，比对照 harness 多出整轮思考开销；
+    // 把「可以并行」升级为「必须同轮打包」的指令性表述，减少模型往返次数。
+    // 措辞约束：workflow actor 身份逐字复用本块，且其契约禁止出现 "read-only" 字样。
+    " - Prefer the dedicated file/search tools over shell commands when one fits. If you intend to call multiple tools and there are no dependencies between the calls, make all of the independent calls in the same response — batch independent commands and file reads in one turn instead of issuing them one at a time.",
     " - Reference code as `file_path:line_number` \u2014 it's clickable.",
   ].join("\n");
 }

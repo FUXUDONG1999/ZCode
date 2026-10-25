@@ -170,7 +170,14 @@ The stable prompt must include guidance equivalent to:
 - Mid-conversation system turns are system-controlled updates rather than
   function results; hook feedback is treated as user feedback.
 - Dedicated file/search tools should be preferred over shell commands when they
-  fit; independent tool calls can run in parallel.
+  fit; independent tool calls must be batched in the same response when there
+  are no dependencies between them. 2026-10-25 wording upgrade: the old
+  "can run in parallel" permission-style bullet became an explicit
+  same-response batching instruction (independent commands and file reads go
+  in one turn), and the Bash tool description reinforces it for independent
+  commands such as `git status`/`git log`/`git diff`. Motivation: measured
+  same-task comparison showed one-tool-per-turn behavior cost two extra model
+  round trips versus the reference harness.
 - Code references should use clickable `file_path:line_number` formatting.
 - Existing code style, naming, idiom, and comment density should guide edits.
 - Risky or shared-system actions require explicit user confirmation.
