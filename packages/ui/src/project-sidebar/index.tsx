@@ -227,7 +227,8 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
               data-project-sidebar-panel="navigation"
               className="absolute inset-0 flex min-h-0 flex-col"
             >
-              {/* 原因：顶层新建显式传 null 会抹掉当前项目；省略归属，让 Root 与快捷键共用继承路径。 */}
+              {/* 2026-10-24 裁决：顶层新建省略归属，由 Root 入口对无对象请求显式注入未归类，
+                  不继承当前会话或草稿的项目；需要项目的任务走项目行新建或草稿项目菜单。 */}
               <ProjectSidebarNavigation props={props} onCreate={() => props.onCreateTask()} />
               <div
                 data-testid="sidebar-task-list-region"

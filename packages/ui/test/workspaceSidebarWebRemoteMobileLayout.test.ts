@@ -212,10 +212,11 @@ describe("virtual-project sidebar on desktop and mobile", () => {
     fireEvent.click(plugins);
     expect(onOpenPluginStore).toHaveBeenCalledOnce();
   });
-  it("inherits current organization at the top entry and keeps section new-task unclassified", () => {
+  it("keeps the top entry request-less for Root unclassified injection and section new-task explicit", () => {
     const onCreateTask = vi.fn();
     render(createElement(Sidebar, props({ onCreateTask })));
     fireEvent.click(screen.getByText("New task"));
+    // 2026-10-24 裁决：顶层新建省略归属，由 Root 入口注入未归类，不继承当前项目。
     expect(onCreateTask).toHaveBeenNthCalledWith(1);
     fireEvent.click(screen.getByTestId("virtual-project-new-task"));
     expect(onCreateTask).toHaveBeenNthCalledWith(2, { projectId: null, taskGroupId: null });

@@ -408,7 +408,34 @@ it.each(["desktop-continuous", "web-remote-replayable"] as const)(
 );
 
 it.each(["desktop-continuous", "web-remote-replayable"] as const)(
-  "D3 %s inherits the current session project by exact task identity",
+  "D3 %s 全局新建不继承当前会话项目，显式落未归类草稿",
+  async (mode) => {
+    useZCodeSessionStore.getState().setActiveTaskId("/old", "session");
+    const open = vi.fn(async () => {});
+    const { result, prepareSession, readTree, addTab } = fixture(mode, undefined, open);
+    readTree.mockResolvedValueOnce({
+      tasks: [{ taskId: "session", workspacePath: "/old", projectId: "current" }],
+    });
+    await act(async () => {
+      await result.current.handleCreateTask();
+    });
+    expect(readTree).not.toHaveBeenCalled();
+    if (mode === "desktop-continuous") {
+      expect(prepareSession).toHaveBeenCalledWith({
+        draftId: expect.any(String),
+        reuseDraft: false,
+      });
+      expect(addTab).toHaveBeenCalledWith("/managed/1", { workspacePurpose: "conversation" });
+      expect(useZCodeSessionStore.getState().getWorkspaceState("/managed/1").draftProjectId).toBeNull();
+    } else {
+      expect(open).toHaveBeenCalledWith(expect.objectContaining({ projectId: null }));
+      expect(prepareSession).not.toHaveBeenCalled();
+    }
+  },
+);
+
+it.each(["desktop-continuous", "web-remote-replayable"] as const)(
+  "D3 %s 对象请求省略归属时仍按完整任务身份继承项目",
   async (mode) => {
     useZCodeSessionStore.getState().setActiveTaskId("/old", "session");
     const open = vi.fn(async () => {});
@@ -420,18 +447,18 @@ it.each(["desktop-continuous", "web-remote-replayable"] as const)(
       ],
     });
     await act(async () => {
-      await result.current.handleCreateTask();
+      await result.current.handleCreateTask({ initialPrompt: "$creator " });
     });
     if (mode === "desktop-continuous") {
       expect(prepareSession).toHaveBeenCalledWith({ projectId: "current" });
     } else {
-      expect(open).toHaveBeenCalledWith({ projectId: "current" });
+      expect(open).toHaveBeenCalledWith(expect.objectContaining({ projectId: "current" }));
       expect(prepareSession).not.toHaveBeenCalled();
     }
   },
 );
 
-it("D3 inherits draft project without reading task history; explicit null opts out", async () => {
+it("D3 全局新建不继承草稿项目；对象请求省略归属仍继承草稿项目", async () => {
   useZCodeSessionStore
     .getState()
     .startDraft("/old", undefined, undefined, { projectId: "draft-project" });
@@ -439,15 +466,16 @@ it("D3 inherits draft project without reading task history; explicit null opts o
   await act(async () => {
     await result.current.handleCreateTask();
   });
-  expect(prepareSession).toHaveBeenLastCalledWith({ projectId: "draft-project" });
-  expect(readTree).not.toHaveBeenCalled();
-  await act(async () => {
-    await result.current.handleCreateTask({ projectId: null });
-  });
   expect(prepareSession).toHaveBeenLastCalledWith({
     draftId: expect.any(String),
     reuseDraft: false,
   });
+  expect(readTree).not.toHaveBeenCalled();
+  await act(async () => {
+    await result.current.handleCreateTask({ initialPrompt: "keep directory capabilities" });
+  });
+  expect(prepareSession).toHaveBeenLastCalledWith({ projectId: "draft-project" });
+  expect(readTree).not.toHaveBeenCalled();
 });
 
 it("D3 discards project lookup after the user selects another session", async () => {
@@ -462,7 +490,8 @@ it("D3 discards project lookup after the user selects another session", async ()
   );
   let pending!: Promise<void>;
   await act(async () => {
-    pending = result.current.handleCreateTask();
+    // 对象请求省略归属才走归属解析；解析期间切换会话必须丢弃迟到结果。
+    pending = result.current.handleCreateTask({ initialPrompt: "workflow" });
   });
   act(() => useZCodeSessionStore.getState().setActiveTaskId("/old", "other"));
   await act(async () => {
