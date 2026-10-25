@@ -196,21 +196,18 @@ describe("virtual-project sidebar on desktop and mobile", () => {
     await waitFor(() => expect(screen.queryByText("common.loading")).toBeNull());
     expect(fixture.sourceManagement).not.toHaveBeenCalled();
   });
-  it("keeps plugin navigation immediately after automations and calls the selected destination", () => {
-    const onOpenPluginStore = vi.fn();
+  it("个人定制导航已移除自动化与插件入口，保留新建任务", () => {
+    // 原因：personal/myagent 移除了「自动化」「插件市场」侧栏入口（ProjectSidebarNavigation），
+    // 旧断言仍期待两个入口存在导致 pre-push 失败；改为断言入口不存在且新建任务保留。
     render(
       createElement(
         Sidebar,
-        props({ isDesktop: true, onOpenAutomations: vi.fn(), onOpenPluginStore }),
+        props({ isDesktop: true, onOpenAutomations: vi.fn(), onOpenPluginStore: vi.fn() }),
       ),
     );
-    const scheduled = screen.getByText("workspace.openScheduledSettings");
-    const plugins = screen.getByText("workspace.openPluginsSettings");
-    expect(
-      scheduled.compareDocumentPosition(plugins) & Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBeTruthy();
-    fireEvent.click(plugins);
-    expect(onOpenPluginStore).toHaveBeenCalledOnce();
+    expect(screen.queryByText("workspace.openScheduledSettings")).toBeNull();
+    expect(screen.queryByText("workspace.openPluginsSettings")).toBeNull();
+    expect(screen.getByText("New task")).toBeTruthy();
   });
   it("keeps the top entry request-less for Root unclassified injection and section new-task explicit", () => {
     const onCreateTask = vi.fn();
