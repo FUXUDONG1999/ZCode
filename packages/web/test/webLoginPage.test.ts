@@ -8,7 +8,8 @@ describe("手机远控登录页", () => {
   it.each(["zh-CN", "en-US"] as const)("%s 页头显示品牌与本地化登录标题", (lang) => {
     document.documentElement.lang = lang;
     const html = renderToStaticMarkup(createElement(WebLoginPage, { onLogin: () => {} }));
-    expect(html).toContain("ZCode");
+    // 品牌已从 ZCode 改为 MyAgent（webAuthLocale 的 brand 字段），断言跟随现值。
+    expect(html).toContain("MyAgent");
     expect(html).toContain(
       lang === "zh-CN" ? "登录后继续使用 Web 远程控制" : "Sign In To Continue",
     );
