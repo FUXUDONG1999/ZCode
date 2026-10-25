@@ -80,7 +80,9 @@ export function WorkspaceHeaderActionSection({
           useWindowsCaptionSpacing={useWindowsCaptionSpacing}
         />
       ) : null}
-      {showWindowControls && !isSidePaneOpen ? <DesktopWindowControls /> : null}
+      {/* 个人定制：侧面板在左、会话列在右，头部始终是窗口最右侧；
+          窗口按钮不再让位给侧面板标签栏，保证 — □ ✕ 固定在窗口右上角。 */}
+      {showWindowControls ? <DesktopWindowControls /> : null}
     </div>
   );
 }
