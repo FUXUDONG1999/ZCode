@@ -241,7 +241,8 @@ export function WorkspaceHeader({
           onToggleSidePane={onToggleSidePane}
           toggleSidePaneShortcutLabel={toggleSidePaneShortcutLabel}
           simplifyForNarrowRemote={simplifyForNarrowRemote}
-          hideHelpMenu={false}
+          // 个人定制：右上角不再显示帮助按钮，帮助入口保留在设置页。
+          hideHelpMenu
           showWindowControls={usesInlineWindowControls}
           // 面板操作按钮沿用 macOS 紧凑样式，Windows/Linux 窗控跟随最右侧 Header。
           onSelectedEditorChange={setSelectedEditor}
