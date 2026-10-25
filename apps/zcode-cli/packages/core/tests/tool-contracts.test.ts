@@ -447,6 +447,8 @@ describe("tool contract declarations", () => {
         "- IMPORTANT: Avoid using this tool to run `find`, `grep`, `cat`, `head`, `tail`, `sed`, `awk`, or `echo` commands, unless explicitly instructed or after you have verified that a dedicated tool cannot accomplish your task. Instead, use the appropriate dedicated tool as this will provide a much better experience for the user.",
         "- `timeout` is in milliseconds: default 120000, max 600000.",
         "- `run_in_background` runs the command detached: it keeps running across turns and re-invokes you when it exits. No `&` needed.",
+        // 2026-10-25：独立命令同轮打包指引（见 00-tool-change-chain.md）。
+        "- Issue independent commands (e.g. `git status`, `git log`, and `git diff` during an investigation) as multiple tool calls in the same response rather than one per turn — each extra round trip adds visible latency for the user.",
         "",
         "# Git",
         "- Interactive flags (`-i`, e.g. `git rebase -i`, `git add -i`) are not supported in this environment.",
@@ -1058,6 +1060,8 @@ describe("tool contract declarations", () => {
         "- IMPORTANT: Avoid using this tool to run `cat`, `head`, `tail`, `sed`, `awk`, or `echo` commands, unless explicitly instructed or after you have verified that a dedicated tool cannot accomplish your task. Instead, use the appropriate dedicated tool as this will provide a much better experience for the user.",
         "- `timeout` is in milliseconds: default 120000, max 600000.",
         "- `run_in_background` runs the command detached: it keeps running across turns and re-invokes you when it exits. No `&` needed.",
+        // 2026-10-25：独立命令同轮打包指引（见 00-tool-change-chain.md）。
+        "- Issue independent commands (e.g. `git status`, `git log`, and `git diff` during an investigation) as multiple tool calls in the same response rather than one per turn — each extra round trip adds visible latency for the user.",
         "",
         "# Git",
         "- Interactive flags (`-i`, e.g. `git rebase -i`, `git add -i`) are not supported in this environment.",

@@ -285,7 +285,10 @@ describe("ContextBuilder meta user context", () => {
     expect(stableBody).toContain("mid-conversation system turns");
     expect(stableBody).toContain("Hooks may intercept tool calls");
     expect(stableBody).toContain("Prefer the dedicated file/search tools");
-    expect(stableBody).toContain("Independent tool calls can run in parallel");
+    // 2026-10-25：并行指引从「可以并行」升级为「独立调用必须同轮打包」。
+    expect(stableBody).toContain(
+      "make all of the independent calls in the same response",
+    );
     expect(stableBody).toContain("Reference code as `file_path:line_number`");
     expect(stableBody).not.toContain("match local style, naming, patterns, and comment density");
     expect(stableBody).not.toContain("For actions that are hard to reverse");

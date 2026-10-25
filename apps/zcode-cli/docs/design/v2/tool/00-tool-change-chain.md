@@ -1,5 +1,15 @@
 # Tool Change Chain Spec
 
+## Bash 描述同轮打包指引（2026-10-25）
+
+调查类任务中模型逐轮单发独立只读命令（git status/log/diff 各占一轮），每条命令多付一次
+模型往返。本次只在 `createBashProviderDescription` 增加一条指引：相互独立的命令在同一轮
+以多个 tool call 打包发出；`# Harness` 稳定块同步把「可并行」升级为「必须同轮打包」
+（见 [system-prompt-contract](../loop/system-prompt-contract.md)）。不改 schema、执行、
+调度、权限与结果格式；并行执行能力沿用 scheduler 现有 read-only 分组。回归以
+`context-builder.test.ts` 的 Harness 断言与 bash 描述快照为准；实测验收为同任务模型
+往返次数下降（基线 7 轮，对照 harness 5 轮）。
+
 ## Bash 临时输出路径隔离
 
 主应用及 workflow 子运行时装配 tmp 父目录 → execution adapter 实际准备具名输出文件 →
