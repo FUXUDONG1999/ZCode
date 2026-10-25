@@ -273,7 +273,7 @@ export function useRootWorkspaceActions({
             );
           })());
       try {
-        // 在第一次 await 前捕获活动任务/草稿；快捷键和侧栏新建共用同一组织意图。
+        // 在第一次 await 前捕获活动任务/草稿；对象请求与分组继承共用同一组织意图。
         const requestOptions = typeof request === "string" ? { provider: request } : { ...request };
         if (
           requestOptions.taskGroupId === undefined &&
@@ -292,6 +292,16 @@ export function useRootWorkspaceActions({
                   member.workspaceKey === (activeWorkspaceIdentity?.trim() || activeWorkspacePath),
               )?.groupId ?? null)
             : (draftGroupId ?? null);
+        }
+        // 2026-10-24 裁决：全局入口（左上角、Cmd/Ctrl+N、菜单、收起态浮层）不携带对象请求，
+        // 显式注入未归类归属，不再继承当前会话或草稿的项目；远程上下文同样落本地未归类草稿。
+        // 带对象请求的入口（插件试用、技能创建、跨项目工作流）依赖当前目录能力，
+        // 省略归属时仍走下方继承解析。分组 placement 继承在上方已完成，不受注入影响。
+        if (
+          requestOptions.projectId === undefined &&
+          (typeof request !== "object" || request === null)
+        ) {
+          requestOptions.projectId = null;
         }
         request = requestOptions;
         let projectId =
@@ -319,7 +329,8 @@ export function useRootWorkspaceActions({
           }),
         );
         if (!hasExplicitProject && newTaskTarget) {
-          // 原因：仅远程继承项目会让本地快捷键落入未归类。按任务完整身份读取归属，不能由 cwd 猜项目。
+          // 原因：对象请求省略归属时按任务完整身份读取归属，不能由 cwd 猜项目；
+          // 远程 Host 不允许无项目会话，继承不到项目必须显式报错。
           if (newTaskTarget.workspaceIdentity) {
             hostId =
               remoteHostIdFromWorkspaceIdentity(newTaskTarget.workspaceIdentity) ?? undefined;
