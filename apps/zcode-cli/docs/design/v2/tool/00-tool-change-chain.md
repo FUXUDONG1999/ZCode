@@ -161,6 +161,16 @@ services 三处），否则执行轮会隐藏它，旧 Host 的三项 denylist �
 `docs/automation-edit-status.md`（仓库根目录）。测试覆盖 handler 身份来源、无身份拒绝、可见性矩阵、
 executor 透传、ToolSearch 目录与 bootstrap 协议请求。
 
+## 读取/检索/委派分层指引（2026-10-25）
+
+复杂分析任务实测显示主代理把大文件整体灌入上下文、逐轮串行检索。本次只改三处 provider
+description 文案，不改 schema、执行与调度：Read 的「建议读全文件」改为条件式（任务围绕该
+文件时全读；只需局部时 offset/limit）；Grep 增加「先 files_with_matches 定位、再对少量
+命中切 content」的分层；Agent 的 When to use 段给出量化委派阈值（超过 3 次查询的宽泛
+调研用 subagent_type=Explore，隔离在子代理上下文只回结论）。Explore 代理 profile 沿用
+上游 Claude Code 原文，不重复新增 session_guidance 段。回归以 tool-contracts 的 Read
+bullet、Grep 精确模板断言为准；实测验收为复杂分析任务的模型往返与上下文增长双降。
+
 ## Bash 描述同轮打包指引（2026-10-25）
 
 调查类任务中模型逐轮单发独立只读命令（git status/log/diff 各占一轮），每条命令多付一次

@@ -21,6 +21,7 @@ const DIRECT_BRANCH_REFERENCE_SEARCH_DESCRIPTIONS = {
 - Full regex syntax (e.g. "log.*Error", "function\\s+\\w+"). Ripgrep, not grep — escape literal braces (\`interface\\{\\}\`).
 - Filter with \`glob\` (e.g. "**/*.tsx") or \`type\` (e.g. "js", "py", "rust").
 - \`output_mode\`: "content" (matching lines), "files_with_matches" (paths only, default), or "count".
+- Locate first, then zoom in: start with "files_with_matches" to find candidate files, then rerun with "content" (narrowed by \`glob\`/\`type\`) on the few hits — don't pull matching lines for the whole repo up front.
 - \`multiline: true\` for patterns that span lines.`,
 } as const;
 
@@ -89,7 +90,8 @@ const SOURCE_DERIVED_READ_SHORT_DESCRIPTION = [
   "",
   "- `file_path` must be an absolute path.",
   "- Reads up to 2000 lines by default.",
-  "- When you already know which part of the file you need, only read that part. This can be important for larger files.",
+  // 2026-10-25：全文件推荐改为条件式（任务围绕该文件时全读，否则 offset/limit 节选）。
+  "- You can optionally specify a line offset and limit to read only part of a file. Read the whole file when the task centers on that file (small file, config, or a single-module edit); when you only need a specific section of a large file, use offset and limit instead of loading all of it.",
   "- Results are returned using cat -n format, with line numbers starting at 1",
   "- Reads images (PNG, JPG, …) and presents them visually.",
   // video 输入一期新增能力行：Read 支持读取视频作为模型输入。

@@ -102,6 +102,9 @@ function buildAgentProviderDescription(
     "## When to use",
     "",
     "Reach for this when the task matches an available agent type, when you have independent work to run in parallel, or when answering would mean reading across several files — delegate it and you keep the conclusion, not the file dumps. For a single-fact lookup where you already know the file, symbol, or value, search directly. Once you've delegated a search, don't also run it yourself — wait for the result.",
+    // 原因：主代理缺少明确的委派触发条件时，模型默认在主上下文逐文件串行检索；
+    // 给出「超过 3 次查询的宽泛调研用 Explore」的量化阈值，让大范围探索隔离在子代理上下文。
+    "- For broad codebase exploration or research that will take more than 3 queries, use subagent_type=Explore — it sweeps many files in its own context and returns the conclusion, not the file dumps. Otherwise search directly with Grep/Glob.",
     "",
     "- The agent's final report is not shown to the user — relay what matters.",
     "- Use SendMessage with the agent's ID to continue a previously spawned agent with its context intact; a new Agent call starts fresh.",

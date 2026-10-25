@@ -70,7 +70,10 @@ const READ_PROVIDER_DESCRIPTION = [
   "",
   "- `file_path` must be an absolute path.",
   `- Reads up to ${READ_DEFAULT_MAX_LINES} lines by default.`,
-  "- When you already know which part of the file you need, only read that part. This can be important for larger files.",
+  // 原因：原「建议不传 offset/limit 读全文件」让调查型任务把大文件整体灌入主上下文，
+  // 之后每轮 prefill 都为无用部分付费，过早触发 compact 反而丢失精确性。
+  // 改为条件式：任务围绕该文件时全读；只需要的局部时用 offset/limit。
+  "- You can optionally specify a line offset and limit to read only part of a file. Read the whole file when the task centers on that file (small file, config, or a single-module edit); when you only need a specific section of a large file, use offset and limit instead of loading all of it.",
   "- Results are returned using cat -n format, with line numbers starting at 1",
   "- Reads images (PNG, JPG, …) and presents them visually.",
   "- Reads videos (MP4, MOV, WEBM, …) and presents them as video input (subject to ZCode's video input limit).",
