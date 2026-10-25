@@ -877,7 +877,10 @@ export function AnimatedSidePanePanel({
           onToggleSidePane={onCloseSidePane}
           shortcutLabel={toggleSidePaneShortcutLabel}
         />
-        {showWindowControls ? <DesktopWindowControls /> : null}
+        {/* 个人定制：面板常驻左侧后，普通视图下标签栏不再位于窗口最右侧，
+            窗口按钮由右侧会话列的 WorkspaceHeader 承担；仅完整视图铺满整行、
+            头部不渲染时，标签栏仍是事实上的标题栏，需要保留窗口按钮。 */}
+        {showWindowControls && fullView ? <DesktopWindowControls /> : null}
       </div>
     ) : null;
   const openTabLauncher = (
