@@ -152,12 +152,33 @@ describe("Rewards website embedded integration", () => {
         .click();
     }
   });
-  it("REF-02/03/04: 菜单打开隔离网页，主题不重载、语言路由切换、关闭", async () => {
+  it("REF-02/03/04: 营销 Banner 打开隔离网页，主题不重载、语言路由切换、关闭", async () => {
     const origin = process.env.ZCODE_CODING_PLAN_UPGRADE_MOCK_BASE_URL;
     if (!origin) throw new Error("Missing isolated App fixture");
+    const assets = (await (await fetch(`${origin}/__e2e/marketing/assets`)).json()) as Record<
+      string,
+      { src: string; sha256: string }
+    >;
     await fetch(`${origin}/__e2e/marketing/reset`, {
       method: "POST",
-      body: JSON.stringify({ popup: false, banner: false }),
+      body: JSON.stringify({
+        deliveries: [
+          marketingDeliverySchema.parse({
+            campaign_id: "rewards-banner-entry",
+            resource_position: "banner",
+            priority: 90,
+            banner: {
+              background: { type: "image", image: { default: assets.image } },
+              buttons: [
+                {
+                  text: { format: "plaintext", content: "Open rewards" },
+                  action: { type: "navigate", args: { page: "rewards" } },
+                },
+              ],
+            },
+          }),
+        ],
+      }),
     });
     await browser.reloadSession();
     await waitForDefaultWorkspaceReady();
@@ -188,23 +209,11 @@ describe("Rewards website embedded integration", () => {
           });
         });
     });
-    await $(`[data-testid="${TID_LOGIN_TRIGGER}"]`).click();
-    const entry = $('[data-testid="rewards-menu-item"]');
-    await entry.waitForDisplayed();
-    expect(await entry.$("svg.lucide-gift").isExisting()).toBe(true);
-    expect(await entry.getText()).toMatch(/^(邀请好友\s*奖励|Refer a friend\s*Rewards)$/);
-    expect(await entry.$('[data-testid="rewards-reward-badge"]').isExisting()).toBe(true);
-    // 截图只写入运行器提供的产物目录，避免系统临时目录破坏跨平台隔离。
-    if (process.env.ZCODE_E2E_ARTIFACT_DIR)
-      await browser.saveScreenshot(
-        join(process.env.ZCODE_E2E_ARTIFACT_DIR, "rewards-reward-menu.png"),
-      );
-    const order = await browser.execute(() => {
-      const entry = document.querySelector('[data-testid="rewards-menu-item"]');
-      return entry?.previousElementSibling?.getAttribute("data-testid");
-    });
-    expect(order).toBe("sidebar-coding-plan-upgrade-button");
-    await entry.click();
+    const bannerButton = $('[data-testid="marketing-banner"]').$(
+      'button[aria-label="Open rewards"]',
+    );
+    await bannerButton.waitForDisplayed({ timeout: 30000 });
+    await bannerButton.click();
     await $('[data-testid="rewards-webview"]').waitForDisplayed();
     await assertOverlayWindowControls('[data-testid="rewards-surface"]');
     await browser.waitUntil(
@@ -339,8 +348,7 @@ describe("Rewards website embedded integration", () => {
       .$('button[aria-label="Close"],button[aria-label="关闭"]')
       .click();
     await $('[data-testid="rewards-surface"]').waitForExist({ reverse: true });
-    await $(`[data-testid="${TID_LOGIN_TRIGGER}"]`).click();
-    await $('[data-testid="rewards-menu-item"]').click();
+    await bannerButton.click();
     await browser.waitUntil(
       async () => (await guestValue(`window.zcodeBridge?.getAuthState()?.status`)) === "ready",
     );
