@@ -175,15 +175,15 @@ export function createOfficeServer({
     .min(1)
     .max(1200)
     .describe(
-      `Document anchor: <workspace-relative path>#<location>, e.g. ${EXAMPLE_ANCHORS}. Omit #<location> for the whole document.`,
+      `Document anchor: <path>#<location>, e.g. ${EXAMPLE_ANCHORS}; the path is workspace-relative or absolute. Omit #<location> for the whole document.`,
     );
 
   register(
     "open_document",
     {
-      description: `Open a ${EXTENSIONS_OR} file from the workspace in the ${TITLE} viewer panel, which the user sees. Optionally jump to a location. Returns the document's outline and how to address locations in it. Use this when the user wants to view, review or discuss ${FILE_NOUN}.`,
+      description: `Open a ${EXTENSIONS_OR} file from the workspace or an absolute path in the ${TITLE} viewer panel, which the user sees. Optionally jump to a location. Returns the document's outline and how to address locations in it. Use this when the user wants to view, review or discuss ${FILE_NOUN}.`,
       input: {
-        path: z.string().min(1).max(1000).describe("Workspace-relative path of the file."),
+        path: z.string().min(1).max(1000).describe("Path of the file: workspace-relative or absolute."),
         at: z
           .string()
           .max(300)
@@ -234,7 +234,7 @@ export function createOfficeServer({
     {
       description: `Find text (case-insensitive) in a document you are discussing with the user in the ${TITLE} panel. Open the document with open_document first. Returns matching locations as anchors with a snippet each; pass them to read_document or show_in_viewer. To search or extract ${FILES_NOUN} outside the panel, use the ${SKILL_NAMES} skill instead.`,
       input: {
-        path: z.string().min(1).max(1000).describe("Workspace-relative path of the file."),
+        path: z.string().min(1).max(1000).describe("Path of the file: workspace-relative or absolute."),
         query: z.string().min(1).max(200),
         limit: z.number().int().min(1).max(100).optional(),
       },
