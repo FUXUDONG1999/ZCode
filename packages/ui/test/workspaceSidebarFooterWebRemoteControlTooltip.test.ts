@@ -223,10 +223,6 @@ describe("WorkspaceSidebarFooter web remote control tooltip", () => {
 
     const html = renderToStaticMarkup(
       createElement(WorkspaceSidebarFooter, {
-        theme: "dark",
-        localeMenuValue: "zh-CN",
-        onLocaleChange: () => {},
-        onThemeChange: () => {},
         onSettingsButtonClick: () => {},
         user: {
           id: "user-zai-domain",
@@ -384,17 +380,13 @@ describe("WorkspaceSidebarFooter web remote control tooltip", () => {
   it("does not wrap the remote control trigger in a second tooltip", () => {
     const html = renderToStaticMarkup(
       createElement(WorkspaceSidebarFooter, {
-        theme: "dark",
-        localeMenuValue: "zh-CN",
-        onLocaleChange: () => {},
-        onThemeChange: () => {},
         onSettingsButtonClick: () => {},
         workspacePath: "/tmp/project",
-        isDesktop: true,
       }),
     );
 
-    expect(html).toContain('data-testid="web-remote-control-trigger"');
+    // 个人定制：侧边栏「手机远程控制」触发按钮已移除，footer 不再渲染该入口。
+    expect(html).not.toContain('data-testid="web-remote-control-trigger"');
     expect(html).not.toContain('data-tooltip-title="webRemoteControl.trigger"');
   });
 });
