@@ -40,6 +40,8 @@ const EXPECTED_COMMUNICATION_PROMPT = [
   "",
   "Match the response to the question: a simple question gets a direct answer in prose, not headers and sections. Use tables only for short enumerable facts, with explanations in the surrounding prose rather than the cells. Calibrate to the user \u2014 a bit tighter for an expert, more explanatory for someone newer.",
   "",
+  "Write mathematical expressions as LaTeX \u2014 inline math in `$...$`, standalone equations in a `$$...$$` block \u2014 because the chat UI typesets those delimiters. Never wrap formulas in a plain or `text` code block or approximate them with Unicode symbols and caret notation; use LaTeX commands such as `\\in`, `\\leq`, `x^{\\top}` so they render as real math.",
+  "",
   DEFAULT_COMMUNICATION_PROMPT,
   "Only write a code comment to state a constraint the code itself can't show \u2014 never to say where it came from, what the next line does, or why your change is correct; that's you talking to the reviewer, not the next reader, and it's noise the moment the PR merges.",
 ].join("\n");
@@ -72,7 +74,10 @@ function memoryFixture(
   name: "main-memory-default-index.md" | "main-memory-index.md" | "main-memory-semantic-recall.md",
 ): string {
   const content = readFileSync(new URL(`./fixtures/memory/${name}`, import.meta.url), "utf8");
-  return content.endsWith("\n") ? content.slice(0, -1) : content;
+  // Windows autocrlf 检出会把 fixture 变成 CRLF，而 builder 输出统一按 \n 组装，
+  // 冻结逐字比对会因此误报；读取时归一化为 LF，保证测试跨平台一致。
+  const normalized = content.replace(/\r\n/g, "\n");
+  return normalized.endsWith("\n") ? normalized.slice(0, -1) : normalized;
 }
 
 describe("ContextBuilder meta user context", () => {
@@ -329,6 +334,31 @@ describe("ContextBuilder meta user context", () => {
     expect(dynamicSystem).not.toContain("# Function Result Clearing");
     expect(dynamicSystem).not.toContain("# Summarize Tool Results");
     expect(dynamicSystem).not.toContain("# Session Guidance");
+  });
+
+  it("emits LaTeX math formatting guidance inside the communication section", () => {
+    const result = createContextBuilder({
+      workingDirectory: "/workspace",
+      envInfo: {
+        cwd: "/workspace",
+        platform: "linux",
+        shell: "bash",
+        osVersion: "Linux 6.6.0",
+        nodeVersion: "v24.14.0",
+      },
+    }).build();
+
+    const dynamicSystem = String(result.systemMessages[2]?.content ?? "");
+    expect(dynamicSystem).toMatch(/^\n\n# Communicating with the user/);
+    // 数学规范锚点：$/$$ LaTeX、禁止 text 代码块与 Unicode 伪数学
+    expect(dynamicSystem).toContain("inline math in `$...$`");
+    expect(dynamicSystem).toContain("standalone equations in a `$$...$$` block");
+    expect(dynamicSystem).toContain("Never wrap formulas in a plain or `text` code block");
+    expect(dynamicSystem).toContain("Unicode symbols and caret notation");
+    // 规范属于沟通段，必须出现在 # Environment 之前
+    expect(dynamicSystem.indexOf("inline math in `$...$`")).toBeLessThan(
+      dynamicSystem.indexOf("# Environment"),
+    );
   });
 
   it("uses customSystemPrompt as a custom prompt without default system sections", () => {

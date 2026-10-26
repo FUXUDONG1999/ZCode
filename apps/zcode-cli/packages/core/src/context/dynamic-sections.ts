@@ -17,6 +17,11 @@ const COMMUNICATION_PROMPTS = {
       "Being readable and being concise are different things, and readable matters more. If the user has to reread your summary or ask you to explain, any time saved by brevity is gone. The way to keep output short is to be selective about what you include (drop details that don't change what the reader would do next), not to compress the writing into fragments, abbreviations, arrow chains like `A \u2192 B \u2192 fails`, or jargon. What you do include, write in complete sentences with the technical terms spelled out. Don't make the reader cross-reference labels or numbering you invented earlier; say what you mean in place.",
       "",
       "Match the response to the question: a simple question gets a direct answer in prose, not headers and sections. Use tables only for short enumerable facts, with explanations in the surrounding prose rather than the cells. Calibrate to the user \u2014 a bit tighter for an expert, more explanatory for someone newer.",
+      "",
+      // 数学公式必须走 $/$$ LaTeX：客户端用 KaTeX 排版（packages/ui 的 @streamdown/math）。
+      // 模型若把公式装进 text 代码块并用 Unicode 伪符号（如 x ∈ S、x^T），
+      // 渲染端只能按等宽代码卡片展示，字号小且无法排版；规范见 system-prompt-contract.md。
+      "Write mathematical expressions as LaTeX \u2014 inline math in `$...$`, standalone equations in a `$$...$$` block \u2014 because the chat UI typesets those delimiters. Never wrap formulas in a plain or `text` code block or approximate them with Unicode symbols and caret notation; use LaTeX commands such as `\\in`, `\\leq`, `x^{\\top}` so they render as real math.",
     ].join("\n"),
     afterDefault:
       "Only write a code comment to state a constraint the code itself can't show \u2014 never to say where it came from, what the next line does, or why your change is correct; that's you talking to the reviewer, not the next reader, and it's noise the moment the PR merges.",
