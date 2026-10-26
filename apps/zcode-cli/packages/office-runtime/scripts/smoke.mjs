@@ -21,7 +21,10 @@ await cp(join(here, "fixtures"), join(workspace, "docs"), {
   recursive: true,
   filter: (path) => !path.endsWith(".py"),
 });
-await symlink("/etc/hosts", join(workspace, "docs/escape.pdf")).catch(() => undefined);
+// 个人定制后不再阻断工作区外路径：准备一份工作区外样张，验证绝对路径与符号链接跟随。
+const outsideDir = await mkdtemp(join(tmpdir(), `${name}-outside-`));
+await cp(join(here, "fixtures", "paper.pdf"), join(outsideDir, "paper.pdf"));
+await symlink(join(outsideDir, "paper.pdf"), join(workspace, "docs/escape.pdf")).catch(() => undefined);
 
 const client = new Client({ name: `${name}-smoke`, version: "1" });
 const call = (name, args = {}) => client.callTool({ name, arguments: args });
@@ -157,13 +160,12 @@ try {
   const sample = fixtures[sampleKind];
   assert.equal(
     await failCode("open_document", { path: `../outside.${sampleKind}` }),
-    "path_outside_workspace",
+    "not_found",
   );
-  if (has("pdf"))
-    assert.equal(
-      await failCode("open_document", { path: "docs/escape.pdf" }),
-      "path_outside_workspace",
-    );
+  if (has("pdf")) {
+    await ok("open_document", { path: join(outsideDir, "paper.pdf") });
+    await ok("open_document", { path: "docs/escape.pdf" });
+  }
   assert.equal(
     await failCode("open_document", { path: sample.replace(/[^/.]+\./, "missing.") }),
     "not_found",

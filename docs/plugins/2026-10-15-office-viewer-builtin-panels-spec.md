@@ -58,6 +58,10 @@ office-runtime/scripts/build.mjs（插件名取自 .zcode-plugin/plugin.json）
 - 版本与资产一致性：bootstrap `plugins.test.ts`、`build-sea.test.mjs`、desktop `runtime-asset-scripts.test.ts`、server `remoteDeploy.test.ts`。
 - 待补：在 ZCode 桌面端（含远程工作区）实际打开四种面板；e2e 不覆盖 Electron 沙箱本身。
 
+## 4.1 工作区外路径访问（2026-10-26）
+
+个人定制：`open_document` / `read_document` / `search_document` 不再硬阻断工作区外路径。与内置 Read/Write 工具的 `resolveWorkspacePath`（当前版本有意不硬阻断工作区外路径）对齐，路径能否执行由宿主权限模式决定；office-runtime 保留类型、存在性、大小与解压上限校验。`list_documents` 仍只列工作区内文件；面板系统选择器导入（`.zcode/document-imports` 副本）流程不变。smoke 覆盖：工作区外绝对路径与工作区内符号链接指向外部文件均可打开，不存在的越界路径按 `not_found` 报错。
+
 ## 5. 本地文件与窗口恢复（2026-10-16）
 
 - 空状态为标题、描述、打开文件按钮与格式说明。按钮调用系统文件选择器，支持工作区外文件；取消不改变页面。

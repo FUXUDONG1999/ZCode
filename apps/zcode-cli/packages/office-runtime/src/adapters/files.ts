@@ -39,7 +39,10 @@ export interface LoadedFile {
 }
 
 export interface WorkspaceFiles {
-  /** Normalise a user or model path to a workspace-relative one; throws outside the workspace. */
+  /**
+   * Normalise a user or model path for opening: workspace-relative display path plus the
+   * absolute read target. Absolute paths outside the workspace resolve normally.
+   */
   resolve(input: string): Promise<{ path: string; absolute: string; kind: DocKind }>;
   load(input: string): Promise<LoadedFile>;
   /** Cheap change check: size + mtime, without reading the file. */
@@ -69,8 +72,8 @@ export function createWorkspaceFiles(workspace: string): WorkspaceFiles {
       throw new OfficeError("invalid_path", "A document path is required.");
     const base = await root();
     const target = resolve(base, input.trim());
-    if (!inside(base, target) && target !== base)
-      throw new OfficeError("path_outside_workspace", `Path is outside this workspace: ${input}`);
+    // 个人定制：与内置 Read/Write 工具对齐，不再硬阻断工作区外路径——能否访问由宿主
+    // 权限模式决定，这里只保留类型、存在性与大小校验；列表仍限定在工作区内。
     const kind = kindOf(target);
     if (!kind)
       throw new OfficeError(
@@ -85,8 +88,6 @@ export function createWorkspaceFiles(workspace: string): WorkspaceFiles {
         throw new OfficeError("not_found", `File not found: ${toPosix(relative(base, target))}`);
       throw error;
     }
-    if (!inside(base, actual))
-      throw new OfficeError("path_outside_workspace", "The path links outside this workspace.");
     return { path: toPosix(relative(base, target)), absolute: actual, kind };
   }
 
