@@ -4,6 +4,14 @@ import { estimateTokens } from "./utils.js";
 const COMMUNICATION_PROMPT =
   "Write code that reads like the surrounding code: match its comment density, naming, and idiom.";
 
+// 数学公式必须走 $/$$ LaTeX：客户端用 KaTeX 排版（packages/ui 的 @streamdown/math）。
+// 模型若把公式装进 text 代码块并用 Unicode 伪符号（如 x ∈ S、x^T），
+// 渲染端只能按等宽代码卡片展示，字号小且无法排版；规范见 system-prompt-contract.md。
+// 个人定制适配：上游已把「# Communicating with the user」长段精简为一行 COMMUNICATION_PROMPT，
+// 本规则不再依赖被删除的长段，改为独立条目并入 Dynamic Behavior，语义与验收锚点不变。
+const LATEX_MATH_PROMPT =
+  "Write mathematical expressions as LaTeX \u2014 inline math in `$...$`, standalone equations in a `$$...$$` block \u2014 because the chat UI typesets those delimiters. Never wrap formulas in a plain or `text` code block or approximate them with Unicode symbols and caret notation; use LaTeX commands such as `\\in`, `\\leq`, `x^{\\top}` so they render as real math.";
+
 const PRONOUNS_PROMPT =
   "When you use a pronoun for someone — the user or anyone else you mention — and their pronouns haven't been stated, use they/them. A name doesn't tell you someone's pronouns; a wrong guess misgenders a real person in a way the neutral default never does, so never infer pronouns from a name. This applies to all user-visible text, including visible thinking.";
 
@@ -59,7 +67,9 @@ export function buildDynamicBehaviorSection(): ContextSection {
   return createDynamicSection(
     "Dynamic Behavior",
     "dynamic_behavior",
-    [COMMUNICATION_PROMPT, PRONOUNS_PROMPT, ACTION_CAUTION_PROMPT].join("\n\n"),
+    [COMMUNICATION_PROMPT, LATEX_MATH_PROMPT, PRONOUNS_PROMPT, ACTION_CAUTION_PROMPT].join(
+      "\n\n",
+    ),
   );
 }
 

@@ -29,7 +29,11 @@ const DEFAULT_COMMUNICATION_PROMPT =
   "Write code that reads like the surrounding code: match its comment density, naming, and idiom.";
 
 const EXPECTED_PRONOUNS_PROMPT =
-  "When you use a pronoun for someone — the user or anyone else you mention — and their pronouns haven't been stated, use they/them. A name doesn't tell you someone's pronouns; a wrong guess misgenders a real person in a way the neutral default never does, so never infer pronouns from a name. This applies to all user-visible text, including visible thinking.";
+  "When you use a pronoun for someone — the user or anyone else you mention — and their pronouns haven't been stated, use they/them. A name doesn't tell you someone's pronouns; a wrong guess misgenders a real person in a way that the neutral default never does, so never infer pronouns from a name. This applies to all user-visible text, including visible thinking.";
+
+// 个人定制：LaTeX 数学规范并入精简后的 Dynamic Behavior 段（上游已移除 Communicating 长段）。
+const EXPECTED_LATEX_MATH_PROMPT =
+  "Write mathematical expressions as LaTeX \u2014 inline math in `$...$`, standalone equations in a `$$...$$` block \u2014 because the chat UI typesets those delimiters. Never wrap formulas in a plain or `text` code block or approximate them with Unicode symbols and caret notation; use LaTeX commands such as `\\in`, `\\leq`, `x^{\\top}` so they render as real math.";
 
 const DEFAULT_CONTEXT_MANAGEMENT_PROMPT = [
   "# Context management",
@@ -74,7 +78,10 @@ function memoryFixture(
   name: "main-memory-default-index.md" | "main-memory-index.md" | "main-memory-semantic-recall.md",
 ): string {
   const content = readFileSync(new URL(`./fixtures/memory/${name}`, import.meta.url), "utf8");
-  return content.endsWith("\n") ? content.slice(0, -1) : content;
+  // Windows autocrlf 检出会把 fixture 变成 CRLF，而 builder 输出统一按 \n 组装，
+  // 冻结逐字比对会因此误报；读取时归一化为 LF，保证测试跨平台一致。
+  const normalized = content.replace(/\r\n/g, "\n");
+  return normalized.endsWith("\n") ? normalized.slice(0, -1) : normalized;
 }
 
 describe("ContextBuilder meta user context", () => {
@@ -125,13 +132,13 @@ describe("ContextBuilder meta user context", () => {
     const dynamicSystem = String(result.systemMessages[2]?.content ?? "");
     expect(dynamicSystem.startsWith(`\n\n${DEFAULT_COMMUNICATION_PROMPT}`)).toBe(true);
     expect(dynamicSystem).toContain(
-      `${DEFAULT_COMMUNICATION_PROMPT}\n\n${EXPECTED_PRONOUNS_PROMPT}\n\nFor actions that are hard to reverse or outward-facing`,
+      `${DEFAULT_COMMUNICATION_PROMPT}\n\n${EXPECTED_LATEX_MATH_PROMPT}\n\n${EXPECTED_PRONOUNS_PROMPT}\n\nFor actions that are hard to reverse or outward-facing`,
     );
     expect(dynamicSystem.split(DEFAULT_COMMUNICATION_PROMPT)).toHaveLength(2);
     expect(dynamicSystem.split(EXPECTED_PRONOUNS_PROMPT)).toHaveLength(2);
     const behavior = result.sections.find((section) => section.source === "dynamic_behavior");
     expect(behavior?.content).toBe(
-      `${DEFAULT_COMMUNICATION_PROMPT}\n\n${EXPECTED_PRONOUNS_PROMPT}\n\n${EXPECTED_ACTION_CAUTION_PROMPT}`,
+      `${DEFAULT_COMMUNICATION_PROMPT}\n\n${EXPECTED_LATEX_MATH_PROMPT}\n\n${EXPECTED_PRONOUNS_PROMPT}\n\n${EXPECTED_ACTION_CAUTION_PROMPT}`,
     );
     expect(dynamicSystem).not.toContain("# Communicating with the user");
     expect(dynamicSystem).not.toContain("Only write a code comment");
@@ -348,6 +355,33 @@ describe("ContextBuilder meta user context", () => {
     expect(dynamicSystem).not.toContain("# Function Result Clearing");
     expect(dynamicSystem).not.toContain("# Summarize Tool Results");
     expect(dynamicSystem).not.toContain("# Session Guidance");
+  });
+
+  it("emits LaTeX math formatting guidance inside the dynamic behavior section", () => {
+    const result = createContextBuilder({
+      workingDirectory: "/workspace",
+      envInfo: {
+        cwd: "/workspace",
+        platform: "linux",
+        shell: "bash",
+        osVersion: "Linux 6.6.0",
+        nodeVersion: "v24.14.0",
+      },
+    }).build();
+
+    const dynamicSystem = String(result.systemMessages[2]?.content ?? "");
+    // 个人定制适配：上游已精简「# Communicating with the user」长段，
+    // LaTeX 规范改为并入 Dynamic Behavior 段，锚点断言保持不变。
+    expect(dynamicSystem).toContain(EXPECTED_LATEX_MATH_PROMPT);
+    // 数学规范锚点：$/$$ LaTeX、禁止 text 代码块与 Unicode 伪数学
+    expect(dynamicSystem).toContain("inline math in `$...$`");
+    expect(dynamicSystem).toContain("standalone equations in a `$$...$$` block");
+    expect(dynamicSystem).toContain("Never wrap formulas in a plain or `text` code block");
+    expect(dynamicSystem).toContain("Unicode symbols and caret notation");
+    // 规范属于沟通段，必须出现在 # Environment 之前
+    expect(dynamicSystem.indexOf("inline math in `$...$`")).toBeLessThan(
+      dynamicSystem.indexOf("# Environment"),
+    );
   });
 
   it("uses customSystemPrompt as a custom prompt without default system sections", () => {

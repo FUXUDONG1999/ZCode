@@ -179,6 +179,11 @@ The stable prompt must include guidance equivalent to:
   same-task comparison showed one-tool-per-turn behavior cost two extra model
   round trips versus the reference harness.
 - Code references should use clickable `file_path:line_number` formatting.
+- Mathematical notation is written as LaTeX: `$...$` for inline expressions and
+  `$$...$$` for standalone equations. Formulas must not be wrapped in plain or
+  `text` code blocks or approximated with Unicode math symbols and caret
+  notation; chat clients typeset `$`/`$$` math via KaTeX, while fenced code
+  blocks render as monospace code cards.
 - Existing code style, naming, idiom, and comment density should guide edits.
 - Risky or shared-system actions require explicit user confirmation.
 - External publishing may be cached or indexed and needs care.
@@ -302,6 +307,11 @@ Required Explore prompt behavior:
   child prompt nor Main's full custom-system override suppresses them.
 - OpenAI-compatible serialization concatenates leading system blocks with an
   empty separator and does not inspect or repair their contents.
+- Provider-visible dynamic `system[2]` contains the LaTeX math formatting
+  guidance (`$...$` inline, `$$...$$` display, no plain/text code-block
+  formulas, no Unicode pseudo-math) as an entry of the slimmed Dynamic Behavior
+  section (the long `# Communicating with the user` block was removed upstream;
+  the personal rule survived as a standalone bullet).
 - Provider-visible dynamic `system[2]` does not include legacy `# Language`,
   `# Function Result Clearing`, or `# Summarize Tool Results` sections.
 - Dynamic `session_guidance` is emitted in provider-visible `system[2]` only
