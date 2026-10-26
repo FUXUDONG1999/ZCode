@@ -183,3 +183,48 @@ function createExecutionFixture() {
   });
   return { executor, fetch };
 }
+
+it("keyword query matching only resident tools returns direct-call hints", async () => {
+  const registry = createToolRegistry();
+  registry.register(toolSearchToolEntry);
+  const executor = createToolExecutor({
+    emitEvent: async () => {},
+    registry,
+    permissionService: new PermissionService(defaultPermissionConfig),
+    sessionId: createSessionId("search-resident"),
+    turnId: createTurnId("turn"),
+  });
+  const toolSearch: ToolSearchExecutionContext = {
+    enabled: true,
+    mode: "local",
+    discovered: new Set(),
+    // 复现实测事故形态：Read/Edit 是常驻工具（deferred: false），只有 WebFetch 延迟。
+    catalog: [
+      { name: "Read", deferred: false },
+      { name: "Edit", deferred: false },
+      { name: "WebFetch", deferred: true },
+    ],
+  };
+  const regexQuery = await executor.execute(
+    { id: "regex", name: "ToolSearch", input: { query: "^Read$" } },
+    { toolSearch },
+  );
+  expect(regexQuery).toMatchObject({
+    success: true,
+    output: { matches: [], resident_matches: ["Read"] },
+  });
+  expect(String(regexQuery.modelContent)).toContain("already loaded (resident)");
+  expect(String(regexQuery.modelContent)).toContain("Read");
+  const partialQuery = await executor.execute(
+    { id: "partial", name: "ToolSearch", input: { query: "rea" } },
+    { toolSearch },
+  );
+  expect(partialQuery).toMatchObject({ success: true, output: { matches: [], resident_matches: ["Read"] } });
+  const noMatch = await executor.execute(
+    { id: "nothing", name: "ToolSearch", input: { query: "nonexistent-tool-name" } },
+    { toolSearch },
+  );
+  expect(noMatch.modelContent).toBe("No matching deferred tools found");
+  expect(JSON.stringify(noMatch)).not.toContain("resident_matches");
+});
+

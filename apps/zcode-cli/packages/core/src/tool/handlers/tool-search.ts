@@ -8,7 +8,7 @@ import {
   ToolSearchOutputSchema,
 } from "@zcode/contracts";
 import type { ToolEntry } from "../types.js";
-import { searchTools } from "../search/search.js";
+import { searchResidentTools, searchTools } from "../search/search.js";
 
 const MAX_SEARCH_RESULT_BYTES = 100_000;
 const SEARCH_TIMEOUT_MS = 10_000;
@@ -41,17 +41,23 @@ export const toolSearchToolEntry: ToolEntry = {
       throw new Error("ToolSearch is not enabled for this request.");
     const { query, max_results } = ToolSearchInputSchema.parse(input);
     const catalog = context.toolSearch.catalog;
+    const matches = searchTools(query, catalog, max_results);
+    const residentMatches = matches.length === 0 ? searchResidentTools(query, catalog, max_results) : [];
     return {
       query,
-      matches: searchTools(query, catalog, max_results),
+      matches,
+      ...(residentMatches.length > 0 ? { resident_matches: residentMatches } : {}),
       total_deferred_tools: catalog.filter((tool) => tool.deferred).length,
     };
   },
   formatModelContent: (output) => {
-    const { matches } = ToolSearchOutputSchema.parse(output);
-    return matches.length > 0
-      ? matches.map((toolName) => ({ type: "tool_reference" as const, toolName }))
-      : NO_MATCHING_TOOLS_MESSAGE;
+    const { matches, resident_matches } = ToolSearchOutputSchema.parse(output);
+    if (matches.length > 0)
+      return matches.map((toolName) => ({ type: "tool_reference" as const, toolName }));
+    // 个人定制：未命中 deferred 但常驻工具命中时，回填直调提示，避免模型误判工具缺失。
+    if (resident_matches && resident_matches.length > 0)
+      return `No matching deferred tools found. These tools are already loaded (resident) — call them directly without searching: ${resident_matches.join(", ")}`;
+    return NO_MATCHING_TOOLS_MESSAGE;
   },
   permission: {
     permission: "tool.search",

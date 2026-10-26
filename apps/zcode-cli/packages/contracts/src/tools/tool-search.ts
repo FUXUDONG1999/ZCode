@@ -55,6 +55,9 @@ export const ToolSearchInputSchema = z.object({
 });
 export const ToolSearchOutputSchema = z.object({
   matches: z.array(z.string()),
+  // 关键词搜索只覆盖 deferred 工具；命中为空时回填与查询匹配的常驻工具名，
+  // 提示模型直接调用，避免继续搜索或误报"没有该工具"。
+  resident_matches: z.array(z.string()).optional(),
   query: z.string(),
   total_deferred_tools: z.number(),
 });

@@ -105,3 +105,28 @@ export function searchTools(
     .slice(0, maxResults)
     .map((tool) => tool.name);
 }
+
+// 原因：关键词路径只搜 deferred 工具，查询撞上常驻工具（实测 GLM 用 "^Read$" 搜 Read）
+// 会返回空，模型据此误报"没有该工具"并继续无效搜索。no-match 回执里改用查询原文
+// 对常驻工具名做正则/子串匹配，命中即提示直接调用。
+export function searchResidentTools(
+  query: string,
+  catalog: readonly ToolSearchCandidate[],
+  maxResults = TOOL_SEARCH_DEFAULT_RESULTS,
+): string[] {
+  const text = query.trim();
+  if (text.length === 0) return [];
+  let matchesName: (name: string) => boolean;
+  try {
+    const pattern = new RegExp(text, "i");
+    matchesName = (name) => pattern.test(name);
+  } catch {
+    const lowered = text.toLowerCase();
+    matchesName = (name) => name.toLowerCase().includes(lowered);
+  }
+  return catalog
+    .filter((tool) => !tool.deferred)
+    .filter((tool) => matchesName(tool.name) || tool.aliases?.some(matchesName))
+    .map((tool) => tool.name)
+    .slice(0, maxResults);
+}
