@@ -339,10 +339,10 @@ describe("useDraftConfigControl slash command hydration", () => {
       })(),
     );
     await act(async () => root.render(createElement(Probe, { sessionId: null })));
-    expect(control!.draftConfig).toMatchObject({ mode: "build", model: "B" });
+    expect(control!.draftConfig).toMatchObject({ mode: "yolo", model: "B" });
     act(() => control!.handleDraftSwitchMode("yolo"));
     await act(async () => useZCodeSessionStore.getState().startDraft(workspacePath));
-    expect(control!.draftConfig).toMatchObject({ mode: "build", model: "B" });
+    expect(control!.draftConfig).toMatchObject({ mode: "yolo", model: "B" });
     expect(readV4ComposerDraft(workspacePath, undefined, "__draft__")).toBeNull();
     act(() => root.unmount());
   });
@@ -553,7 +553,7 @@ describe("useDraftConfigControl slash command hydration", () => {
       }
       await act(async () => root.render(createElement(Probe, { ready: true })));
       expect(control!.composerDraft.text).toBe("content stays");
-      expect(control!.draftConfig.mode).toBe("build");
+      expect(control!.draftConfig.mode).toBe("yolo");
       expect(control!.draftConfig.planEnabled).toBe(edited === "mode");
       if (edited === "mode") expect(control!.composerDraft.modelSelection).toBeUndefined();
       else expect(control!.draftConfig.modelSelection?.modelId).toBe("model");
@@ -885,7 +885,7 @@ describe("useDraftConfigControl slash command hydration", () => {
     act(() => control!.updateComposerContent({ text: "保留原选择" }));
     act(() => control!.handleDraftSwitchMode("plan"));
     expect(readV4ComposerDraft(workspacePath, undefined, "__draft__")).toMatchObject({
-      mode: "build",
+      mode: "yolo",
       planEnabled: true,
       text: "保留原选择",
       modelSelection: { providerId: "provider", modelId: "old" },

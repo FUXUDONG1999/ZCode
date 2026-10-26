@@ -379,7 +379,7 @@ export function useDraftConfigControl(params: {
         mode: mode.success ? mode.data : current.mode,
         modelSelection: next.modelSelection,
         // 导入等待目录期间的显式选择也是有效选择，不能再被默认初始化覆盖。
-        ...(current.mode ? {} : { mode: mode.success ? mode.data : "build" }),
+        ...(current.mode ? {} : { mode: mode.success ? mode.data : "yolo" }),
       }));
     },
     [updateComposerDraft],
@@ -609,7 +609,7 @@ export function useDraftConfigControl(params: {
       if (mode === "plan" || mode === "plan-off") {
         updateComposerDraft((current) => ({
           ...current,
-          mode: current.mode === "plan" ? "build" : (current.mode ?? "build"),
+          mode: current.mode === "plan" ? "yolo" : (current.mode ?? "yolo"),
           planEnabled: mode === "plan",
         }));
         return;
