@@ -5,15 +5,12 @@
 Windows/Linux 的奖励页及其登录入口必须保留顶部窗口按钮，关闭网页与关闭窗口是独立操作。
 `marketing-touch-rewards.test.ts` 打开奖励及登录后断言窗控可见且不被遮挡；macOS 沿用原生红绿灯。
 
-奖励中心（Rewards）菜单入口使用 Lucide `Gift` 礼物盒图标，保持 `size-4`、继承文字颜色；账户头像的 `User` 图标不变。
+> 个人定制（2026-10-26）：账户头像菜单已移除「邀请好友 [奖励]」入口，Rewards Provider、内嵌网页与营销触达（Banner / 弹窗 navigate）能力保留；下文对菜单入口的历史描述仅对应当年验收时点的行为。
 
-奖励中心入口仅在现有 user 登录状态非空时显示；未登录或退出登录后整行不渲染。桌面和 Web 共用同一条件，不新增登录状态副本。
 
 营销 navigate 的 page=rewards 共用 RewardsProvider。网页仅接受 /{cn|en}/rewards；旧 page=referrals 与旧 /{cn|en}/referrals 均拒绝。Provider 唯一持有登录后续接的尝试 ID，取消/失败/替换即丢弃，成功且用户就绪后仅打开一次，独立于营销实例的账号切换重建。详见 marketing-touch-actions.md。
 
-菜单入口保留「邀请好友 [奖励] / Refer a friend [Rewards]」，内嵌页面标题为「奖励中心 / Rewards」。入口文案与标题使用独立的 rewards i18n key。菜单宽度适配中英文内容，保留明暗主题与移动端支持。页面内真正的邀请好友、邀请链接、邀请记录仍使用 referral/invite 语义。
-
-左下角头像菜单在升级下方显示「邀请好友 [奖励]」。窗口级 Rewards Provider 唯一持有打开状态，不依赖套餐库存，不更改任务、模型或设置导航。App 与 website 共用 URL/bridge 契约；邀请数据和奖励由服务端拥有，网页当前静态样例不算业务完成。Coding Plan 购买完成、渠道与主题原协议保持兼容。
+内嵌页面标题为「奖励中心 / Rewards」，标题使用独立的 rewards i18n key。窗口级 Rewards Provider 唯一持有打开状态，不依赖套餐库存，不更改任务、模型或设置导航。App 与 website 共用 URL/bridge 契约；邀请数据和奖励由服务端拥有，网页当前静态样例不算业务完成。Coding Plan 购买完成、渠道与主题原协议保持兼容。
 
 ## 2026-09-15 Rewards 切换验证
 
