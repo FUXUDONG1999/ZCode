@@ -116,8 +116,148 @@ describe("editors", () => {
     const editorIds = getEditorDefsForCurrentPlatform().map((editor) => editor.id);
 
     expect(editorIds).toEqual(
-      expect.arrayContaining(["explorer", "vscode", "trae", "idea", "pycharm"]),
+      expect.arrayContaining([
+        "explorer",
+        "vscode",
+        "trae",
+        "idea",
+        "idea-ce",
+        "webstorm",
+        "pycharm",
+        "goland",
+        "phpstorm",
+        "rider",
+        "clion",
+        "rubymine",
+        "datagrip",
+      ]),
     );
+  });
+
+  async function importEditorsWithWindowsDirectoryMocks(
+    directories: Map<string, Array<string | { name: string }>>,
+    existingPaths: string[],
+  ) {
+    setProcessPlatform("win32");
+    const existingPathSet = new Set(existingPaths);
+    const toEntry = (entry: string | { name: string }) =>
+      typeof entry === "string" ? { name: entry, isDirectory: () => true } : entry;
+
+    vi.doMock("node:fs", async () => {
+      const actual = await vi.importActual<typeof import("node:fs")>("node:fs");
+      return {
+        ...actual,
+        existsSync: vi.fn((path: string) => existingPathSet.has(path)),
+        readdirSync: vi.fn((path: string) => {
+          const entries = directories.get(path);
+          if (!entries) {
+            throw Object.assign(new Error(`ENOENT: ${path}`), { code: "ENOENT" });
+          }
+          return entries.map(toEntry);
+        }),
+      };
+    });
+
+    return import("../src/main/editors.js");
+  }
+
+  function withWindowsProgramEnv<T>(run: () => Promise<T>): Promise<T> {
+    const saved = {
+      LOCALAPPDATA: process.env.LOCALAPPDATA,
+      ProgramFiles: process.env.ProgramFiles,
+      "ProgramFiles(x86)": process.env["ProgramFiles(x86)"],
+      SystemDrive: process.env.SystemDrive,
+    };
+    process.env.LOCALAPPDATA = "C:\\Users\\test\\AppData\\Local";
+    process.env.ProgramFiles = "C:\\Program Files";
+    process.env["ProgramFiles(x86)"] = "C:\\Program Files (x86)";
+    process.env.SystemDrive = "C:";
+    return run().finally(() => {
+      for (const [key, value] of Object.entries(saved)) {
+        if (value === undefined) {
+          delete process.env[key];
+        } else {
+          process.env[key] = value;
+        }
+      }
+    });
+  }
+
+  it("Windows 应识别 Toolbox 2.x 直接装在 Programs 根目录下的 JetBrains IDE", async () => {
+    const toolboxDir = "C:\\Users\\test\\AppData\\Local\\Programs\\IntelliJ IDEA Ultimate";
+    await withWindowsProgramEnv(async () => {
+      const { getEditorDefsForCurrentPlatform, resolveEditorDefAppPath } =
+        await importEditorsWithWindowsDirectoryMocks(
+          new Map([["C:\\Users\\test\\AppData\\Local\\Programs", ["IntelliJ IDEA Ultimate"]]]),
+          [`${toolboxDir}\\bin\\idea64.exe`],
+        );
+
+      const ideaDef = getEditorDefsForCurrentPlatform().find((editor) => editor.id === "idea");
+      const ideaCeDef = getEditorDefsForCurrentPlatform().find((editor) => editor.id === "idea-ce");
+
+      expect(ideaDef ? resolveEditorDefAppPath(ideaDef) : null).toBe(
+        `${toolboxDir}\\bin\\idea64.exe`,
+      );
+      expect(ideaCeDef ? resolveEditorDefAppPath(ideaCeDef) : null).toBeNull();
+    });
+  });
+
+  it("Windows 应把 IntelliJ IDEA 社区版识别为独立入口而不是 Ultimate", async () => {
+    const communityDir = "C:\\Users\\test\\AppData\\Local\\Programs\\IntelliJ IDEA Community Edition";
+    await withWindowsProgramEnv(async () => {
+      const { getEditorDefsForCurrentPlatform, resolveEditorDefAppPath } =
+        await importEditorsWithWindowsDirectoryMocks(
+          new Map([
+            ["C:\\Users\\test\\AppData\\Local\\Programs", ["IntelliJ IDEA Community Edition"]],
+          ]),
+          [`${communityDir}\\bin\\idea64.exe`],
+        );
+
+      const ideaDef = getEditorDefsForCurrentPlatform().find((editor) => editor.id === "idea");
+      const ideaCeDef = getEditorDefsForCurrentPlatform().find((editor) => editor.id === "idea-ce");
+
+      expect(ideaDef ? resolveEditorDefAppPath(ideaDef) : null).toBeNull();
+      expect(ideaCeDef ? resolveEditorDefAppPath(ideaCeDef) : null).toBe(
+        `${communityDir}\\bin\\idea64.exe`,
+      );
+    });
+  });
+
+  it("Windows 应按年份目录检测本机安装的 Visual Studio devenv", async () => {
+    // VS 磁盘目录使用内部版本号（VS 2026 = "18"），需要映射回营销年份名。
+    const devenv2026Path =
+      "C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\Common7\\IDE\\devenv.exe";
+    const devenv2022FromInternalPath =
+      "C:\\Program Files\\Microsoft Visual Studio\\17\\Community\\Common7\\IDE\\devenv.exe";
+    const devenv2022FromYearPath =
+      "C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\Professional\\Common7\\IDE\\devenv.exe";
+    await withWindowsProgramEnv(async () => {
+      const { getEditorDefsForCurrentPlatform, resolveEditorDefAppPath } =
+        await importEditorsWithWindowsDirectoryMocks(
+          new Map([
+            ["C:\\Program Files\\Microsoft Visual Studio", ["18", "17"]],
+            ["C:\\Program Files (x86)\\Microsoft Visual Studio", ["2022"]],
+            ["C:\\Program Files\\Microsoft Visual Studio\\18", ["Enterprise"]],
+            ["C:\\Program Files\\Microsoft Visual Studio\\17", ["Community"]],
+            ["C:\\Program Files (x86)\\Microsoft Visual Studio\\2022", ["Professional"]],
+          ]),
+          [devenv2026Path, devenv2022FromInternalPath, devenv2022FromYearPath],
+        );
+
+      const defs = getEditorDefsForCurrentPlatform();
+      const vs2026Def = defs.find((editor) => editor.id === "visual-studio-2026");
+      const vs2022Defs = defs.filter((editor) => editor.id === "visual-studio-2022");
+
+      expect(vs2026Def).toEqual(
+        expect.objectContaining({ id: "visual-studio-2026", name: "Visual Studio 2026" }),
+      );
+      expect(vs2026Def ? resolveEditorDefAppPath(vs2026Def) : null).toBe(devenv2026Path);
+      // "17"（内部版本号）与 "2022"（年份目录）指向同一年份版本，只登记一个入口。
+      expect(vs2022Defs.length).toBe(1);
+      expect(vs2022Defs[0] ? resolveEditorDefAppPath(vs2022Defs[0]) : null).toBe(
+        devenv2022FromInternalPath,
+      );
+    });
   });
 
   it("Windows requires PATH shims to resolve to a real app exe before showing gui editors", async () => {
