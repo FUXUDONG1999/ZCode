@@ -12,6 +12,7 @@ import process from "node:process";
 import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { collectRuntimeModuleClosureEntries } from "./runtime-dependency-closure.mjs";
+import { RENDERER_ONLY_EXCLUDED_PACKAGES } from "./renderer-only-package-exclusions.mjs";
 import { resolveDesktopProductIdentity } from "./desktop-product-identity.mjs";
 import {
   findDesktopNativePackageViolations,
@@ -76,7 +77,9 @@ const archBuilderFlagMap = {
 };
 
 const artifactExtensionsByOs = {
-  mac: [".dmg", ".zip"],
+  // mac 只产出 dmg（electron-builder.config.js 的 mac.target 不再包含 zip），
+  // 自动更新链路在本分支不发布更新源，无需 zip 产物。
+  mac: [".dmg"],
   win: [".exe"],
   linux: [".AppImage", ".deb", ".rpm", ".pkg.tar.zst"],
 };
@@ -661,6 +664,20 @@ function verifyPackagedRuntimeDependencies(os, arch) {
   );
   const asarEntries = asarEntriesWithPackState.map((entry) => entry.path);
 
+  // files 排除模式依赖 electron-builder 对 pnpm 布局的路径归一化；若某包实际仍被打进
+  // app.asar（模式未命中），排除目标就静默失效、体积回退。这里机械校验排除确实生效。
+  const leakedExcludedPackages = RENDERER_ONLY_EXCLUDED_PACKAGES.filter((packageName) => {
+    const moduleRoot = `/node_modules/${packageName}`;
+    return asarEntries.some(
+      (entry) => entry === moduleRoot || entry.startsWith(`${moduleRoot}/`),
+    );
+  });
+  if (leakedExcludedPackages.length > 0) {
+    throw new Error(
+      `以下 renderer-only 依赖未被 files 排除规则裁剪，请检查 electron-builder.config.js: ${leakedExcludedPackages.join(", ")}`,
+    );
+  }
+
   const targetPlatformKey = `${os === "mac" ? "darwin" : os === "win" ? "win32" : os}-${arch}`;
   const nativePackageViolations = findDesktopNativePackageViolations(
     asarEntriesWithPackState,
@@ -737,7 +754,10 @@ async function main() {
   }
 
   if (!skipBuild) {
-    run(pnpmCommand, ["build"], buildEnv);
+    // desktop 的 build 脚本自身会再跑一次 prepare:runtime-assets；bundle 入口在上方已
+    // 显式准备过运行时资产，这里直接进纯编译阶段，避免同一轮打包把 agent CLI 和全部
+    // 官方插件编译重复执行两遍（本地热态实测每次约 1 分钟，CI 冷环境代价更大）。
+    run(pnpmCommand, ["build:no-runtime-assets"], buildEnv);
   }
 
   await runTimedAsync("bundle:electron-builder", () =>

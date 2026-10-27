@@ -18,6 +18,11 @@ import {
 import { cleanupPackagedSourcemaps } from "./scripts/packaged-sourcemap-cleanup.mjs";
 import { getTargetPlatform } from "./scripts/target-platform.mjs";
 import {
+  RENDERER_ONLY_EXCLUDED_PACKAGES,
+  createRendererOnlyPackageExclusionPatterns,
+  findRendererOnlyExclusionRuntimeConflicts,
+} from "./scripts/renderer-only-package-exclusions.mjs";
+import {
   resolveDesktopArtifactSuffix,
   resolveDesktopProductIdentity,
 } from "./scripts/desktop-product-identity.mjs";
@@ -320,6 +325,17 @@ function resolveMissingRuntimeModules(appAsarPath) {
     REQUIRED_ASAR_RUNTIME_MODULES,
     runtimeModuleLookupRoots,
   );
+  // renderer-only 排除名单一旦与运行时必需依赖闭包相交，安装包会"能打出但启动即崩"。
+  // 闭包按 package.json 递归展开，这里能同时拦住直接命中和传递依赖命中。
+  const exclusionConflicts = findRendererOnlyExclusionRuntimeConflicts(
+    RENDERER_ONLY_EXCLUDED_PACKAGES,
+    runtimeModules.map((entry) => entry.moduleName),
+  );
+  if (exclusionConflicts.length > 0) {
+    throw new Error(
+      `renderer-only 排除名单与运行时必需依赖闭包冲突，请从排除名单移除: ${exclusionConflicts.join(", ")}`,
+    );
+  }
   const resolvableRuntimeModules = runtimeModules.filter((entry) => {
     if (!entry.sourceModulePath) {
       // 不同平台/安装布局下，部分运行时依赖可能被裁剪或未落到本次打包工作区。
@@ -605,6 +621,10 @@ export default {
     "!node_modules/@zcode/**",
     "!node_modules/react/**",
     "!node_modules/react-dom/**",
+    // 纯前端依赖已由 vite/tsup 静态打进 out/，asar 内的 node_modules 副本是死重。
+    // 名单与逐包证据见 renderer-only-package-exclusions.mjs；
+    // 与运行时必需依赖闭包的冲突由 afterPack 机械校验，产物阶段由 bundle.mjs 复核生效。
+    ...createRendererOnlyPackageExclusionPatterns(),
   ],
   asarUnpack: [
     // node-pty 的 target prebuild 还包含 spawn-helper / winpty-agent.exe 等辅助可执行文件，
@@ -815,7 +835,10 @@ export default {
     },
   ],
   mac: {
-    target: ["dmg", "zip"],
+    // zip 目标只为 electron-updater 的 macOS 自动更新链路存在（MacUpdater 只认 zip，不认 dmg）。
+    // 本分支 CI 只把产物作为 artifact 上传供手动下载，不发布更新源；同时出 zip 会把
+    // mac 产物体积和打包时长近乎翻倍，因此仅保留 dmg。若未来接回 mac 自动更新发布，需恢复 zip。
+    target: ["dmg"],
     category: "public.app-category.developer-tools",
     artifactName: buildDesktopArtifactName("mac"),
     extendInfo: {

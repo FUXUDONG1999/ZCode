@@ -24,8 +24,31 @@ jobs:
     timeout-minutes: 90
     env:
       ZCODE_ENV: production
+      # Electron 运行时 zip 与 electron-builder 二进制（NSIS/winCodeSign 等）默认落在
+      # 用户缓存目录，GitHub runner 每轮清空导致重复下载 100MB+，且美国机房访问镜像慢、
+      # 下载抖动还会触发 bundle.mjs 的整轮重试。统一指到 workspace 内固定路径并配合
+      # actions/cache 持久化，第二轮起完全免下载。
+      ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache
+      ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-builder-cache
+      # agent CLI 构建走 turbo 缓存（Windows E2E 分片 CI 已默认同模式），
+      # CLI 与插件源码未变时 prepare:agent-bundle 的编译接近瞬时。
+      TURBO_CACHE_DIR: ${{ github.workspace }}/.turbo-cache
+      ZCODE_DESKTOP_AGENT_BUILD_MODE: turbo
     steps:
       - uses: actions/checkout@v4
+
+      - name: Restore download and build caches
+        uses: actions/cache@v4
+        with:
+          # lockfile 变化（Electron/electron-builder/turbo 版本变更）时换新 key，
+          # restore-keys 允许回退复用旧缓存；各缓存内部按版本再分目录，陈旧条目无害。
+          path: |
+            .electron-cache
+            .electron-builder-cache
+            .turbo-cache
+          key: desktop-build-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            desktop-build-cache-${{ runner.os }}-
 
       - uses: pnpm/action-setup@v4
         with:
@@ -57,8 +80,25 @@ jobs:
     timeout-minutes: 90
     env:
       ZCODE_ENV: production
+      # 与 Windows job 同一套下载缓存策略：Electron 运行时 zip、dmg-builder 等
+      # electron-builder 二进制每轮免下载；agent CLI 构建命中 turbo 缓存。
+      ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache
+      ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-builder-cache
+      TURBO_CACHE_DIR: ${{ github.workspace }}/.turbo-cache
+      ZCODE_DESKTOP_AGENT_BUILD_MODE: turbo
     steps:
       - uses: actions/checkout@v4
+
+      - name: Restore download and build caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            .electron-cache
+            .electron-builder-cache
+            .turbo-cache
+          key: desktop-build-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            desktop-build-cache-${{ runner.os }}-
 
       - uses: pnpm/action-setup@v4
         with:
@@ -82,7 +122,5 @@ jobs:
           path: |
             packages/desktop/dist/*.dmg
             packages/desktop/dist/*.dmg.blockmap
-            packages/desktop/dist/*.zip
-            packages/desktop/dist/*.zip.blockmap
           if-no-files-found: error
           retention-days: 30
