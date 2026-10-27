@@ -1,5 +1,6 @@
-# 个人定制分支的 Windows 持续构建：推送到 personal/myagent 或手动触发时，
-# 在 GitHub 托管的 Windows runner 上打包 MyAgent x64 安装包并上传 artifact。
+# 个人定制分支的持续构建：推送到 personal/myagent 或手动触发时，
+# 在 GitHub 托管 runner 上打包 MyAgent 安装包并发布到 GitHub Release（CDN 分发、
+# 永久链接，替代 30 天过期且下载较慢的 Actions artifact）。
 # 版本与 mise.toml 保持一致（node 24.14.0 / pnpm 10.33.2）。
 name: build-desktop
 
@@ -16,7 +17,8 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  # 发布 GitHub Release 需要写权限；仅本仓库内容，不提权其他 scope。
+  contents: write
 
 jobs:
   build-win-x64:
@@ -65,15 +67,23 @@ jobs:
       - name: Build Windows x64 package
         run: pnpm --filter @zcode/desktop bundle -- --os win --arch x64
 
-      - name: Upload installer artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: MyAgent-win-x64
-          path: |
-            packages/desktop/dist/*.exe
-            packages/desktop/dist/*.exe.blockmap
-          if-no-files-found: error
-          retention-days: 30
+      - name: Publish installer to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          # win/mac 两个 job 并行发布同一个 release，首次 create 可能撞车：
+          # view 已存在或 create 成功即继续；撞车方下一轮 view 会命中，重试兜网络抖动。
+          for i in 1 2 3 4 5; do
+            gh release view "$TAG" --repo "$GITHUB_REPOSITORY" && break
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "MyAgent Build #${{ github.run_number }}" \
+              --notes "CI build from ${{ github.ref_name }} @ ${{ github.sha }}." \
+              --latest && break
+            sleep 10
+          done
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" \
+            packages/desktop/dist/*.exe packages/desktop/dist/*.exe.blockmap --clobber
 
   build-mac-arm64:
     runs-on: macos-latest
@@ -115,12 +125,19 @@ jobs:
       - name: Build mac arm64 package
         run: pnpm --filter @zcode/desktop bundle -- --os mac --arch arm64
 
-      - name: Upload installer artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: MyAgent-mac-arm64
-          path: |
-            packages/desktop/dist/*.dmg
-            packages/desktop/dist/*.dmg.blockmap
-          if-no-files-found: error
-          retention-days: 30
+      - name: Publish installer to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          # 与 Windows job 相同的撞车重试策略，两个 job 各自上传本平台产物。
+          for i in 1 2 3 4 5; do
+            gh release view "$TAG" --repo "$GITHUB_REPOSITORY" && break
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --title "MyAgent Build #${{ github.run_number }}" \
+              --notes "CI build from ${{ github.ref_name }} @ ${{ github.sha }}." \
+              --latest && break
+            sleep 10
+          done
+          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" \
+            packages/desktop/dist/*.dmg packages/desktop/dist/*.dmg.blockmap --clobber
