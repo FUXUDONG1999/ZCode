@@ -1,10 +1,11 @@
 import type { ZCodeAppLogoProps } from "@/components/mobile-ui/contract.js";
 import { cn } from "@/components/lib/utils.js";
-import appLogoUrl from "@/assets/provider-icons/logo-zai.svg";
+import appLogoUrl from "@/assets/app-logo.svg";
 
 /**
- * 桌面端标题栏左上角同款应用 logo（圆角方块 + Z 字形，自带底色，深浅主题通用）。
+ * 桌面端标题栏左上角同款应用 logo（靛蓝-紫渐变圆角方块 + 白色 A 字标，自带底色，深浅主题通用）。
  * 装饰性图片：调用方负责在旁边给出可读的品牌文字，避免屏幕阅读器重复朗读。
+ * 注意：Z.ai OAuth 提供商图标仍用 provider-icons/logo-zai.svg，两者不可混用。
  */
 export function ZCodeAppLogo({ className }: ZCodeAppLogoProps) {
   return (

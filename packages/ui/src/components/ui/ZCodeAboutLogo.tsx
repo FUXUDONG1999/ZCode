@@ -12,15 +12,9 @@ export function ZCodeAboutLogo({ className }: { className?: string }) {
       aria-hidden="true"
       focusable="false"
     >
-      <path
-        fill="currentColor"
-        d="M134.4 0.130152L116.48 25.6022C113.665 29.5699 109.054 32.0019 104.064 32.0019H6.3999V0C6.3999 0.130149 134.4 0.130152 134.4 0.130152Z"
-      />
-      <path fill="currentColor" d="M256 0.130127L102.401 217.732H0L153.599 0.130127H256Z" />
-      <path
-        fill="currentColor"
-        d="M121.601 217.732L139.65 192.134C142.465 188.166 147.076 185.734 152.067 185.734H249.604V217.736H121.601V217.732Z"
-      />
+      <path fill="currentColor" d="M100 0L0 218L56 218L128 49.2L128 0Z" />
+      <path fill="currentColor" d="M128 0L156 0L256 218L200 218L128 49.2Z" />
+      <path fill="currentColor" d="M91 136L165 136L179.6 170L76.4 170Z" />
     </svg>
   );
 }
@@ -54,8 +48,9 @@ export function ZCodeWordmarkLogo({ className }: { className?: string }) {
         fill="currentColor"
       />
       <path
-        d="M3.48423 12.1225V1.16174H43.3351L19.3084 41.4481H40.7219V51.9734H0L23.6637 12.1225H3.48423Z"
         fill="currentColor"
+        fill-rule="evenodd"
+        d="M16.7 1.16L26.7 1.16L43.4 51.97L0 51.97ZM21.7 21.5L18 32.9L25.4 32.9ZM15.4 40.8L11.7 51.97L31.7 51.97L28 40.8Z"
       />
     </svg>
   );
