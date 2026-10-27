@@ -28,6 +28,7 @@ afterEach(() => {
   }
   vi.doUnmock("node:child_process");
   vi.doUnmock("node:fs");
+  vi.doUnmock("node:os");
   vi.doUnmock("../src/main/fileApplications.js");
   vi.restoreAllMocks();
   vi.resetModules();
@@ -258,6 +259,87 @@ describe("editors", () => {
         devenv2022FromInternalPath,
       );
     });
+  });
+
+  const MAC_FAKE_HOME = "C:\\Users\\mac-test";
+
+  async function importEditorsWithMacDirectoryMocks(
+    directories: Map<string, Array<string>>,
+    existingPaths: string[],
+  ) {
+    setProcessPlatform("darwin");
+    const existingPathSet = new Set(existingPaths);
+    const toEntry = (entry: string) => ({ name: entry, isDirectory: () => true });
+
+    vi.doMock("node:os", async () => {
+      const actual = await vi.importActual<typeof import("node:os")>("node:os");
+      return { ...actual, homedir: () => MAC_FAKE_HOME };
+    });
+
+    vi.doMock("node:fs", async () => {
+      const actual = await vi.importActual<typeof import("node:fs")>("node:fs");
+      return {
+        ...actual,
+        existsSync: vi.fn((path: string) => existingPathSet.has(path)),
+        readdirSync: vi.fn((path: string) => {
+          const entries = directories.get(path);
+          if (!entries) {
+            throw Object.assign(new Error(`ENOENT: ${path}`), { code: "ENOENT" });
+          }
+          return entries.map(toEntry);
+        }),
+      };
+    });
+
+    return import("../src/main/editors.js");
+  }
+
+  it("macOS 应识别 Toolbox 2.x 装在 ~/Applications 下的 JetBrains IDE(含 edition 后缀)", async () => {
+    const toolboxApp = `${MAC_FAKE_HOME}\\Applications\\IntelliJ IDEA Ultimate.app`;
+    const { getEditorDefsForCurrentPlatform, resolveEditorDefAppPath } =
+      await importEditorsWithMacDirectoryMocks(
+        new Map([[`${MAC_FAKE_HOME}\\Applications`, ["IntelliJ IDEA Ultimate.app"]]]),
+        [toolboxApp],
+      );
+
+    const defs = getEditorDefsForCurrentPlatform();
+    const ideaDef = defs.find((editor) => editor.id === "idea");
+    const ideaCeDef = defs.find((editor) => editor.id === "idea-ce");
+
+    expect(ideaDef ? resolveEditorDefAppPath(ideaDef) : null).toBe(toolboxApp);
+    expect(ideaCeDef ? resolveEditorDefAppPath(ideaCeDef) : null).toBeNull();
+    // RustRover 与 Windows 侧同步补齐。
+    expect(defs.find((editor) => editor.id === "rustrover")).toEqual(
+      expect.objectContaining({ id: "rustrover", name: "RustRover" }),
+    );
+  });
+
+  it("macOS 应把 Toolbox 的 IntelliJ IDEA 社区版识别为独立入口而不是 Ultimate", async () => {
+    const communityApp = `${MAC_FAKE_HOME}\\Applications\\IntelliJ IDEA Community Edition.app`;
+    const { getEditorDefsForCurrentPlatform, resolveEditorDefAppPath } =
+      await importEditorsWithMacDirectoryMocks(
+        new Map([[`${MAC_FAKE_HOME}\\Applications`, ["IntelliJ IDEA Community Edition.app"]]]),
+        [communityApp],
+      );
+
+    const defs = getEditorDefsForCurrentPlatform();
+    const ideaDef = defs.find((editor) => editor.id === "idea");
+    const ideaCeDef = defs.find((editor) => editor.id === "idea-ce");
+
+    expect(ideaDef ? resolveEditorDefAppPath(ideaDef) : null).toBeNull();
+    expect(ideaCeDef ? resolveEditorDefAppPath(ideaCeDef) : null).toBe(communityApp);
+  });
+
+  it("macOS 应识别 Toolbox 1.x 符号链接壳下的 JetBrains IDE", async () => {
+    const legacyApp = `${MAC_FAKE_HOME}\\Applications\\JetBrains Toolbox\\WebStorm.app`;
+    const { getEditorDefsForCurrentPlatform, resolveEditorDefAppPath } =
+      await importEditorsWithMacDirectoryMocks(
+        new Map([[`${MAC_FAKE_HOME}\\Applications\\JetBrains Toolbox`, ["WebStorm.app"]]]),
+        [legacyApp],
+      );
+
+    const webstormDef = getEditorDefsForCurrentPlatform().find((editor) => editor.id === "webstorm");
+    expect(webstormDef ? resolveEditorDefAppPath(webstormDef) : null).toBe(legacyApp);
   });
 
   it("Windows requires PATH shims to resolve to a real app exe before showing gui editors", async () => {

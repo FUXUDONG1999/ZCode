@@ -16,6 +16,7 @@ import {
 } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
+import { homedir } from "node:os";
 import { join, win32 as pathWin32 } from "node:path";
 import { app, nativeImage } from "electron";
 import type { EditorInfo } from "@zcode/shared";
@@ -65,6 +66,56 @@ interface ParsedIcnsPngCandidate {
   image: Buffer;
 }
 
+interface MacToolboxAppScanOptions {
+  /** 目录名命中前缀后，再排除匹配该正则的 .app（用于区分 Ultimate / Community）。 */
+  excludeNamePattern?: RegExp;
+}
+
+/**
+ * 扫描 macOS 上 JetBrains Toolbox 的安装位置，按产品名前缀匹配。
+ * Toolbox 2.x（现行版本，官方定为固定路径）直接装到 ~/Applications，
+ * 且产品名可能带 edition 后缀（IntelliJ IDEA Ultimate.app / PyCharm Professional.app），
+ * 因此前缀匹配而不是写死完整路径；Toolbox 1.x（已停更）在 ~/Applications/JetBrains Toolbox
+ * 下留符号链接壳，一并覆盖。静态白名单只查 /Applications，Toolbox 安装的 IDE 全部漏检。
+ */
+function findMacToolboxAppCandidates(
+  appNamePrefix: string,
+  options: MacToolboxAppScanOptions = {},
+): string[] {
+  const userApplicationsRoot = join(homedir(), "Applications");
+  const roots = [userApplicationsRoot, join(userApplicationsRoot, "JetBrains Toolbox")];
+  const candidates: string[] = [];
+
+  for (const root of roots) {
+    try {
+      const entries = readdirSync(root, { withFileTypes: true })
+        .filter(
+          (entry) =>
+            entry.isDirectory() &&
+            entry.name.toLowerCase().startsWith(appNamePrefix.toLowerCase()) &&
+            !(options.excludeNamePattern && options.excludeNamePattern.test(entry.name)),
+        )
+        .map((entry) => entry.name)
+        .sort((left, right) => right.localeCompare(left));
+
+      for (const entry of entries) {
+        candidates.push(join(root, entry));
+      }
+    } catch {
+      // ~/Applications 不存在（未用 Toolbox 安装）是正常情况。
+    }
+  }
+
+  return candidates;
+}
+
+/** JetBrains 产品目录名带 Ultimate/Professional 等版本后缀时按产品前缀匹配。 */
+function macJetBrainsAppCandidates(productName: string, excludeNamePattern?: RegExp): string[] {
+  return excludeNamePattern
+    ? findMacToolboxAppCandidates(productName, { excludeNamePattern })
+    : findMacToolboxAppCandidates(productName);
+}
+
 const MAC_EDITOR_DEFS: EditorDef[] = [
   // 代码编辑器
   {
@@ -93,27 +144,89 @@ const MAC_EDITOR_DEFS: EditorDef[] = [
   },
   { id: "codebuddy", name: "CodeBuddy", appPath: "/Applications/CodeBuddy.app", command: null },
   { id: "qoder", name: "Qoder", appPath: "/Applications/Qoder.app", command: null },
-  // JetBrains 系列
+  // JetBrains 系列。Toolbox 安装位置由 macJetBrainsAppCandidates 按产品前缀补齐。
   {
     id: "idea",
     name: "IntelliJ IDEA",
     appPath: "/Applications/IntelliJ IDEA.app",
+    // Community/CE 有独立入口（idea-ce），Ultimate 的 Toolbox 目录名不含这些标记。
+    appPathCandidates: macJetBrainsAppCandidates("IntelliJ IDEA", /community|(^|\s)ce\.app$/i),
     command: "idea",
   },
   {
     id: "idea-ce",
     name: "IntelliJ IDEA CE",
     appPath: "/Applications/IntelliJ IDEA CE.app",
+    appPathCandidates: [
+      "/Applications/IntelliJ IDEA Community Edition.app",
+      ...macJetBrainsAppCandidates("IntelliJ IDEA Community"),
+      ...macJetBrainsAppCandidates("IntelliJ IDEA CE"),
+    ],
     command: "idea",
   },
-  { id: "webstorm", name: "WebStorm", appPath: "/Applications/WebStorm.app", command: "webstorm" },
-  { id: "pycharm", name: "PyCharm", appPath: "/Applications/PyCharm.app", command: "pycharm" },
-  { id: "goland", name: "GoLand", appPath: "/Applications/GoLand.app", command: "goland" },
-  { id: "phpstorm", name: "PhpStorm", appPath: "/Applications/PhpStorm.app", command: "phpstorm" },
-  { id: "rider", name: "Rider", appPath: "/Applications/Rider.app", command: "rider" },
-  { id: "clion", name: "CLion", appPath: "/Applications/CLion.app", command: "clion" },
-  { id: "rubymine", name: "RubyMine", appPath: "/Applications/RubyMine.app", command: "rubymine" },
-  { id: "datagrip", name: "DataGrip", appPath: "/Applications/DataGrip.app", command: "datagrip" },
+  {
+    id: "webstorm",
+    name: "WebStorm",
+    appPath: "/Applications/WebStorm.app",
+    appPathCandidates: macJetBrainsAppCandidates("WebStorm"),
+    command: "webstorm",
+  },
+  {
+    id: "pycharm",
+    name: "PyCharm",
+    appPath: "/Applications/PyCharm.app",
+    appPathCandidates: macJetBrainsAppCandidates("PyCharm"),
+    command: "pycharm",
+  },
+  {
+    id: "goland",
+    name: "GoLand",
+    appPath: "/Applications/GoLand.app",
+    appPathCandidates: macJetBrainsAppCandidates("GoLand"),
+    command: "goland",
+  },
+  {
+    id: "phpstorm",
+    name: "PhpStorm",
+    appPath: "/Applications/PhpStorm.app",
+    appPathCandidates: macJetBrainsAppCandidates("PhpStorm"),
+    command: "phpstorm",
+  },
+  {
+    id: "rider",
+    name: "Rider",
+    appPath: "/Applications/Rider.app",
+    appPathCandidates: macJetBrainsAppCandidates("Rider"),
+    command: "rider",
+  },
+  {
+    id: "clion",
+    name: "CLion",
+    appPath: "/Applications/CLion.app",
+    appPathCandidates: macJetBrainsAppCandidates("CLion"),
+    command: "clion",
+  },
+  {
+    id: "rubymine",
+    name: "RubyMine",
+    appPath: "/Applications/RubyMine.app",
+    appPathCandidates: macJetBrainsAppCandidates("RubyMine"),
+    command: "rubymine",
+  },
+  {
+    id: "datagrip",
+    name: "DataGrip",
+    appPath: "/Applications/DataGrip.app",
+    appPathCandidates: macJetBrainsAppCandidates("DataGrip"),
+    command: "datagrip",
+  },
+  {
+    id: "rustrover",
+    name: "RustRover",
+    appPath: "/Applications/RustRover.app",
+    appPathCandidates: macJetBrainsAppCandidates("RustRover"),
+    command: "rustrover",
+  },
   // 终端（macOS 新版系统 Terminal 在 /System/Applications 下）
   {
     id: "terminal",
