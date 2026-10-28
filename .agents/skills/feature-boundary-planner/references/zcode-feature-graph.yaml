@@ -364,6 +364,7 @@ nodes:
         symbol: "createHelpAppConfigReader"
       - file: "packages/desktop/src/main/desktopHelpConfig.ts"
         symbol: "createDesktopHelpConfigReader"
+      - file: "packages/desktop/src/main/desktopHelpConfig.ts"
         symbol: "resolveWebHelpConfig"
   - id: "capability.subagent-computer-use-boundary"
     kind: "capability"
