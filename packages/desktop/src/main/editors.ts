@@ -136,12 +136,6 @@ const MAC_EDITOR_DEFS: EditorDef[] = [
   { id: "cursor", name: "Cursor", appPath: "/Applications/Cursor.app", command: "cursor" },
   { id: "trae", name: "Trae", appPath: "/Applications/Trae.app", command: null },
   { id: "zed", name: "Zed", appPath: "/Applications/Zed.app", command: "zed" },
-  {
-    id: "sublime",
-    name: "Sublime Text",
-    appPath: "/Applications/Sublime Text.app",
-    command: "subl",
-  },
   { id: "codebuddy", name: "CodeBuddy", appPath: "/Applications/CodeBuddy.app", command: null },
   { id: "qoder", name: "Qoder", appPath: "/Applications/Qoder.app", command: null },
   // JetBrains 系列。Toolbox 安装位置由 macJetBrainsAppCandidates 按产品前缀补齐。
@@ -227,15 +221,7 @@ const MAC_EDITOR_DEFS: EditorDef[] = [
     appPathCandidates: macJetBrainsAppCandidates("RustRover"),
     command: "rustrover",
   },
-  // 终端（macOS 新版系统 Terminal 在 /System/Applications 下）
-  {
-    id: "terminal",
-    name: "Terminal",
-    appPath: "/System/Applications/Utilities/Terminal.app",
-    command: null,
-  },
-  { id: "iterm2", name: "iTerm", appPath: "/Applications/iTerm.app", command: null },
-  { id: "ghostty", name: "Ghostty", appPath: "/Applications/Ghostty.app", command: null },
+  // 终端
   { id: "warp", name: "Warp", appPath: "/Applications/Warp.app", command: null },
   // 文件管理器
   {

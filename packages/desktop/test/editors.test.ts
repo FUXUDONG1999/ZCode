@@ -110,6 +110,18 @@ describe("editors", () => {
     );
   });
 
+  it("macOS 不再登记 Sublime Text 与 Terminal/iTerm/Ghostty 入口", async () => {
+    setProcessPlatform("darwin");
+
+    const { getEditorDefsForCurrentPlatform } = await import("../src/main/editors.js");
+    const editorIds = getEditorDefsForCurrentPlatform().map((editor) => editor.id);
+
+    expect(editorIds).not.toContain("sublime");
+    expect(editorIds).not.toContain("terminal");
+    expect(editorIds).not.toContain("iterm2");
+    expect(editorIds).not.toContain("ghostty");
+  });
+
   it("Windows 应把常见 IDE 纳入 workspace 顶部打开菜单候选", async () => {
     setProcessPlatform("win32");
 
