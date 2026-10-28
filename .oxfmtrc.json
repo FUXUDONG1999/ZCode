@@ -3,6 +3,7 @@
   "ignorePatterns": [
     ".gitlab/**/*.yml",
     "docs/electron/docs/fiddles/**/*.html",
+    "apps/zcode-cli/packages/node-repl-host/dist-types/**",
     "packages/zcode-cua/**",
     "packages/desktop/src/renderer/src/plugin-sandbox/genUiTweakRuntime.js",
     "apps/zcode-cli/packages/visualize-plugin/skills/visualize/assets/**",
