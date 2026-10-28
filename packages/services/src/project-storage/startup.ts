@@ -43,6 +43,7 @@ export async function prepareTasksIndexStorage(
   await mkdir(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
   let failure: unknown;
+  let closeFailure: unknown;
   let migration: DatabaseMigrationFacts | undefined;
   try {
     db.exec("PRAGMA busy_timeout = 25");
@@ -96,9 +97,11 @@ export async function prepareTasksIndexStorage(
     try {
       db.close();
     } catch (error) {
-      if (!failure) throw error;
+      closeFailure = error;
     }
   }
+  // close 失败仅在无首因时上抛；finally 内只收集错误，不吞也不覆盖首因。
+  if (!failure && closeFailure) throw closeFailure;
   markTasksStorageMigrated(path);
   const repos = [
     new TaskIndexRepo(settings, undefined, path, LOCK_WAIT_MS),
@@ -113,7 +116,6 @@ export async function prepareTasksIndexStorage(
     preparationFailure = error;
     throw error;
   } finally {
-    let closeFailure: unknown;
     for (const repo of repos) {
       try {
         repo.close({ throwOnError: true });
@@ -121,8 +123,9 @@ export async function prepareTasksIndexStorage(
         closeFailure ??= error;
       }
     }
-    if (!preparationFailure && closeFailure) throw closeFailure;
   }
+  // close 失败仅在准备无首因时上抛；finally 内只收集错误，不吞也不覆盖首因。
+  if (!preparationFailure && closeFailure) throw closeFailure;
   markTasksStoragePrepared(path);
   report("ready", migration);
 }

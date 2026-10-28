@@ -43,7 +43,6 @@ import {
   net,
   protocol,
   session,
-  shell,
   webContents,
 } from "electron";
 import { randomUUID } from "node:crypto";
@@ -65,9 +64,6 @@ import {
   getZCodeDataRootDir,
   normalizeRuntimeProcessEnv,
   setDataBaseDir,
-  migrateApplicationStorage,
-  resolveDefaultZCodeAgentCommand,
-  startupStorage,
 } from "@zcode/services/node";
 import {
   desktopMenuMessageIds,

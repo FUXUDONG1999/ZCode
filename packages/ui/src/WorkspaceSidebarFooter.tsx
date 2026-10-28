@@ -67,7 +67,6 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
   user,
   workspacePath,
   workspaceIdentity,
-  activeTaskId,
   banner,
   className,
 }: {

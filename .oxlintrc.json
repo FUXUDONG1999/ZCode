@@ -7,6 +7,17 @@
   },
   "overrides": [
     {
+      // 文件名校验刻意匹配控制字符（NUL/C0 区间）做合法性检查与清洗，非坏味道；
+      // 规则只对这两个文件关闭，其余代码仍受 no-control-regex 约束。
+      "files": [
+        "packages/shared/src/zcode-protocol-v4/transport.ts",
+        "packages/ui/src/plugin-ui/domain/pluginUiDownloadFile.ts"
+      ],
+      "rules": {
+        "no-control-regex": "off"
+      }
+    },
+    {
       // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
       "files": [
         "packages/desktop/scripts/node-pty-rebuild.mjs",
@@ -104,36 +115,28 @@
     },
     {
       // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "apps/zcode-cli/packages/dynamic-workflow/tests/lowering/expected/holes.js"
-      ],
+      "files": ["apps/zcode-cli/packages/dynamic-workflow/tests/lowering/expected/holes.js"],
       "rules": {
         "no-eval": "off"
       }
     },
     {
       // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/rpc/src/ipc.ts"
-      ],
+      "files": ["packages/rpc/src/ipc.ts"],
       "rules": {
         "no-this-alias": "off"
       }
     },
     {
       // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/services/src/project-storage/startup.ts"
-      ],
+      "files": ["packages/services/src/project-storage/startup.ts"],
       "rules": {
         "no-unsafe-finally": "off"
       }
     },
     {
       // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/services/src/zcode-agent/zcodeTaskIndexSyncer.ts"
-      ],
+      "files": ["packages/services/src/zcode-agent/zcodeTaskIndexSyncer.ts"],
       "rules": {
         "no-unused-vars": "off",
         "no-useless-spread": "off"
@@ -150,9 +153,7 @@
     },
     {
       // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/ui/src/settings/RemotePluginSyncDialog.tsx"
-      ],
+      "files": ["packages/ui/src/settings/RemotePluginSyncDialog.tsx"],
       "rules": {
         "no-useless-fallback-in-spread": "off"
       }

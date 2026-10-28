@@ -115,9 +115,14 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
       mobileActiveTaskKey,
       onPin: pin,
     }),
-    [props.isWebRemoteControl, props.workspacePath, props.workspaceIdentity, mobileActiveTaskKey, pin],
+    [
+      props.isWebRemoteControl,
+      props.workspacePath,
+      props.workspaceIdentity,
+      mobileActiveTaskKey,
+      pin,
+    ],
   );
-  const msg = (id: string) => intl.formatMessage({ id: `project.${id}` });
   const start = async (projectId?: string, hostId?: string, taskGroupId?: string | null) => {
     const activeTaskId = useZCodeSessionStore
       .getState()
