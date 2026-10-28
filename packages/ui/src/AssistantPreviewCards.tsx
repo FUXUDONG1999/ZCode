@@ -8,7 +8,6 @@ import {
   type AssistantPreviewCardFileStatService,
   type AssistantPreviewCardsAutoOpenRequest,
   getAssistantPreviewCardFilePath,
-  shouldOpenAssistantHtmlInBrowser,
 } from "@/lib/assistantPreviewCards.js";
 import {
   getAssistantPreviewCardsValidationSignature,
@@ -81,21 +80,12 @@ interface AssistantPreviewCardsProps {
   compactForRemoteControl?: boolean;
 }
 
-export function shouldRenderAssistantPreviewCardAsFile(
-  card: AssistantPreviewCard,
-  scope: {
-    workspaceIdentity?: string;
-    workspaceRemoteSessionId?: string;
-    compactForRemoteControl?: boolean;
-  },
-): boolean {
+export function shouldRenderAssistantPreviewCardAsFile(card: AssistantPreviewCard): boolean {
   const filePath = getAssistantPreviewCardFilePath(card);
-  return (
-    card.type !== "website" ||
-    (card.url.startsWith("file://") &&
-      filePath !== null &&
-      !shouldOpenAssistantHtmlInBrowser({ path: filePath, ...scope }))
-  );
+    // file:// HTML 卡片之前对本地 workspace 直开内置浏览器，但 webview 无法从应用页
+    // 加载本地 file:// 资源，点击后一直空屏。现在统一按文件卡打开，落到侧边预览
+    // 面板的沙箱渲染；localhost 预览卡仍是真正的 web 服务，继续走浏览器链路。
+    return card.type !== "website" || (card.url.startsWith("file://") && filePath !== null);
 }
 
 export function useAssistantPreviewCardValidation(
@@ -192,7 +182,6 @@ export function AssistantPreviewCards({
   onOpenCodeViewer,
   autoOpenPptxKey,
   onAutoOpenPptx,
-  compactForRemoteControl,
 }: AssistantPreviewCardsProps) {
   const { intl } = useZCodeIntl();
   const { visibleCards, settled } = useAssistantPreviewCardValidation(cards, {
@@ -242,7 +231,6 @@ export function AssistantPreviewCards({
           onOpenBrowserUrl={onOpenBrowserUrl}
           onOpenFileLink={onOpenFileLink}
           onOpenCodeViewer={onOpenCodeViewer}
-          compactForRemoteControl={compactForRemoteControl}
         />
       ))}
     </div>
@@ -259,7 +247,6 @@ function AssistantPreviewCardRow({
   onOpenBrowserUrl,
   onOpenFileLink,
   onOpenCodeViewer,
-  compactForRemoteControl,
 }: {
   card: AssistantPreviewCard;
   animationDelayMs: number;
@@ -270,15 +257,10 @@ function AssistantPreviewCardRow({
   onOpenBrowserUrl?: (url: string) => void;
   onOpenFileLink?: (target: MessageFileLinkTarget) => void;
   onOpenCodeViewer?: (source: CodeViewerSource) => void;
-  compactForRemoteControl?: boolean;
 }) {
   const { intl } = useZCodeIntl();
   const filePath = getAssistantPreviewCardFilePath(card);
-  const renderAsFile = shouldRenderAssistantPreviewCardAsFile(card, {
-    workspaceIdentity,
-    workspaceRemoteSessionId,
-    compactForRemoteControl,
-  });
+    const renderAsFile = shouldRenderAssistantPreviewCardAsFile(card);
   const descriptor = filePath ? resolveFileDisplayDescriptor(filePath) : null;
   const fileSource =
     renderAsFile && filePath

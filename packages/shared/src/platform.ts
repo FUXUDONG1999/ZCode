@@ -267,6 +267,12 @@ export interface OpenInEditorOptions {
   remoteTarget?: OpenInEditorRemoteTarget;
   workspaceIdentity?: string;
   pathKind?: "file" | "directory";
+    /**
+     * 文件链接 `path:line` 后缀解析出的定位行列；仅在编辑器 CLI 支持定位参数时生效
+     * （VS Code `--goto`、JetBrains `--line`），其余编辑器忽略并按普通路径打开。
+     */
+    line?: number;
+    column?: number;
 }
 
 export interface CreateTempTextAttachmentRequest {

@@ -267,12 +267,21 @@ export function OpenSplitButton({
       return;
     }
     persistLastSelectedEditorId(editor.id);
+        const previewSource = target.previewSource;
+        // 链接行号只在编辑器 CLI 支持定位参数时生效（VS Code --goto / JetBrains --line）。
+        const revealLine =
+            previewSource?.type === "file" &&
+            Number.isInteger(previewSource.revealLine) &&
+            (previewSource.revealLine as number) > 0
+                ? (previewSource.revealLine as number)
+                : undefined;
     // 返回失败和 IPC 拒绝都必须有可见反馈，不能只写日志后静默结束。
     void platform
       .openInEditor(editor.id, target.path, {
         pathKind: "file",
         remoteTarget: openInEditorRemoteTarget,
-        workspaceIdentity: target.previewSource?.workspaceIdentity,
+                workspaceIdentity: previewSource?.workspaceIdentity,
+                ...(revealLine !== undefined ? { line: revealLine } : {}),
       })
       .then((result) => {
         if (!result.success) throw new Error(result.error ?? "unknown-error");

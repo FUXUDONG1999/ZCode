@@ -224,6 +224,15 @@ function isSvgFilePath(path?: string): boolean {
   return path?.toLowerCase().endsWith(".svg") ?? false;
 }
 
+function isHtmlFilePath(path?: string): boolean {
+    if (!path) {
+        return false;
+    }
+
+    const normalizedPath = path.toLowerCase();
+    return normalizedPath.endsWith(".html") || normalizedPath.endsWith(".htm");
+}
+
 function getFileImageMediaType(path?: string): string | null {
   const mediaType = inferImageMediaType(path);
   return mediaType && mediaType !== "image/svg+xml" ? mediaType : null;
@@ -374,6 +383,7 @@ function isPlainCodeSource(source: CodeViewerSource | null): boolean {
     return (
       !isMarkdownFilePath(source.path) &&
       !isSvgFilePath(source.path) &&
+            !isHtmlFilePath(source.path) &&
       !getFileImageMediaType(source.path) &&
       // PDF、Office 和 PPTX 走专用只读预览，没有源码视图，也不该出现自动换行开关。
       !isPdfPreviewPath(source.path) &&
@@ -396,6 +406,7 @@ export function getPreviewPaneDisplayOptions(
   viewModes: {
     markdownViewMode?: "preview" | "code";
     svgViewMode?: "preview" | "code";
+        htmlViewMode?: "preview" | "code";
   } = {},
 ) {
   const canToggleMarkdownView =
@@ -404,16 +415,21 @@ export function getPreviewPaneDisplayOptions(
   const canToggleSvgView =
     source !== null &&
     (isSvgSource(source) || (source.type === "file" && isSvgFilePath(source.path)));
+    const canToggleHtmlView =
+        source !== null && source.type === "file" && isHtmlFilePath(source.path);
   const canToggleCodeWrap =
     isPlainCodeSource(source) ||
     (canToggleMarkdownView && viewModes.markdownViewMode === "code") ||
-    (canToggleSvgView && viewModes.svgViewMode === "code");
+        (canToggleSvgView && viewModes.svgViewMode === "code") ||
+        (canToggleHtmlView && viewModes.htmlViewMode === "code");
 
   return {
     canToggleCodeWrap,
     canToggleMarkdownView,
     canToggleSvgView,
-    hasMoreMenu: canToggleMarkdownView || canToggleSvgView || canToggleCodeWrap,
+        canToggleHtmlView,
+        hasMoreMenu:
+            canToggleMarkdownView || canToggleSvgView || canToggleHtmlView || canToggleCodeWrap,
   };
 }
 
@@ -543,7 +559,9 @@ export function PreviewPane({
   const loadImageDownloadSource = useCallback(async () => {
     if (!sourceFilePath) throw new Error("Image source path is unavailable");
     // SVG 文本预览按 UTF-8 解码；下载必须从同一来源 Host 读取原字节，保留其他编码及 XML 声明。
-    const original = await fileService.readMediaPreview({ path: sourceFilePath });
+        const original = await fileService.readMediaPreview({
+            path: sourceFilePath,
+        });
     return `data:${original.mediaType};base64,${original.dataBase64}`;
   }, [fileService, sourceFilePath]);
   const [filePreview, setFilePreview] = useState<FileTextSlice | null>(null);
@@ -575,6 +593,7 @@ export function PreviewPane({
   const [error, setError] = useState<string | null>(null);
   const [markdownViewMode, setMarkdownViewMode] = useState<"preview" | "code">("preview");
   const [svgViewMode, setSvgViewMode] = useState<"preview" | "code">("preview");
+    const [htmlViewMode, setHtmlViewMode] = useState<"preview" | "code">("preview");
   const [wrapLongLinesOverride, setWrapLongLinesOverride] = useState<boolean | null>(null);
   const [breadcrumbMaskState, setBreadcrumbMaskState] = useState<BreadcrumbMaskState>("none");
   const breadcrumbScrollRef = useRef<HTMLDivElement | null>(null);
@@ -651,11 +670,17 @@ export function PreviewPane({
       getPreviewPaneDisplayOptions(source, {
         markdownViewMode,
         svgViewMode,
+                htmlViewMode,
       }),
-    [markdownViewMode, source, svgViewMode],
+        [htmlViewMode, markdownViewMode, source, svgViewMode],
   );
-  const { canToggleCodeWrap, canToggleMarkdownView, canToggleSvgView, hasMoreMenu } =
-    displayOptions;
+    const {
+        canToggleCodeWrap,
+        canToggleMarkdownView,
+        canToggleSvgView,
+        canToggleHtmlView,
+        hasMoreMenu,
+    } = displayOptions;
   const codeCommentLabels = useMemo(
     () => ({
       addComment: intl.formatMessage({ id: "codeViewer.comment.add" }),
@@ -693,6 +718,7 @@ export function PreviewPane({
         ? "preview"
         : "code",
     );
+        setHtmlViewMode(source.type === "file" && isHtmlFilePath(source.path) ? "preview" : "code");
     setWrapLongLinesOverride(null);
   }, [source]);
 
@@ -1398,7 +1424,9 @@ export function PreviewPane({
         setError(
           resolvePptxPreviewReadErrorMessage(previewError, {
             sourcePath: path,
-            fileMissingMessage: intl.formatMessage({ id: "codeViewer.fileMissing" }),
+                        fileMissingMessage: intl.formatMessage({
+                            id: "codeViewer.fileMissing",
+                        }),
             legacyFileTooLargeMessage: intl.formatMessage({
               id: "codeViewer.pptx.legacyFileTooLarge",
             }),
@@ -1466,6 +1494,9 @@ export function PreviewPane({
   if (!source) {
     return null;
   }
+
+  // 个人定制适配：原 handleOpenInEditor（含行号定位）随上游把「用编辑器打开」移出
+  // PreviewPane 而废弃；行号参数已由 message.tsx / OpenSplitButton 的调用点传递。
 
   const handleOpenDiffFilePreview = () => {
     if (!diffFilePreviewSource) {
@@ -1719,6 +1750,7 @@ export function PreviewPane({
             }
             markdownViewMode={markdownViewMode}
             svgViewMode={svgViewMode}
+                        htmlViewMode={htmlViewMode}
             wrapLongLines={wrapLongLines}
             codeComments={codeComments}
             enableCodeLineSelection={canCreateCodeComment}

@@ -92,8 +92,7 @@ import { toast } from "@/components/ui/toast.js";
 import { getGitDirtyFileCount } from "@/git-branch-switcher/display.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { useBaseWorkspaceServices } from "@/hooks/useWorkspaceServices.js";
-import { getPathLeaf, toFileUrl } from "@/lib/path.js";
-import { shouldOpenAssistantHtmlInBrowser } from "@/lib/assistantPreviewCards.js";
+import { getPathLeaf } from "@/lib/path.js";
 import { setWorkspaceSidebarResizeActive } from "@/lib/workspaceSidebarResizeState.js";
 import { buildTaskWorkspaceKey } from "@/lib/taskQueryCache.js";
 import {
@@ -1867,21 +1866,16 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
           path: target.path,
         });
         if (fileStat.type === "file") {
-          if (
-            shouldOpenAssistantHtmlInBrowser({
-              path: target.path,
-              workspaceIdentity: target.workspaceIdentity,
-              workspaceRemoteSessionId: target.workspaceRemoteSessionId,
-              compactForRemoteControl: isWebRemoteControlShell,
-            })
-          ) {
-            handleOpenBrowserUrl(toFileUrl(target.path));
-            return;
-          }
+                    // HTML 之前对本地 workspace 直开内置浏览器 file:// URL，但 webview 受
+                    // webSecurity 限制无法从应用页加载本地文件，用户点击后一直黑屏。
+                    // 现在与 markdown/svg 一律交给预览面板：HTML 由侧边面板的沙箱 iframe 渲染。
           handleOpenCodeViewer({
             type: "file",
             title: getPathLeaf(target.path),
             path: target.path,
+                        ...(Number.isInteger(target.lineNumber) && (target.lineNumber as number) > 0
+                            ? { revealLine: target.lineNumber as number }
+                            : {}),
             workspacePath: target.workspacePath,
             workspaceIdentity: target.workspaceIdentity,
             workspaceRemoteSessionId: target.workspaceRemoteSessionId,
@@ -1953,10 +1947,8 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
     [
       findFileLinkOwnerWorkspace,
       baseServices.fileService,
-      handleOpenBrowserUrl,
       handleOpenCodeViewer,
       intl,
-      isWebRemoteControlShell,
       openFileTreeRequest,
       services.fileService,
       workspaceReadOnlyReason,

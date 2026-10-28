@@ -401,6 +401,9 @@ export interface MessageFileLinkTarget {
   label: string;
   /** 仅用于显式尾随斜杠的目录展示提示；打开第三方应用前必须重新 stat。 */
   pathKind?: NonNullable<OpenInEditorOptions["pathKind"]>;
+    /** 链接里 `path:line(:column)` 后缀解析出的定位信息；供预览面板滚动和第三方编辑器 goto 使用。 */
+    lineNumber?: number | null;
+    columnNumber?: number | null;
   relativePath?: string;
   workspacePath?: string;
   workspaceIdentity?: string;
@@ -953,10 +956,16 @@ export function buildMessageFileLinkTarget(input: {
   const pathKind = isExplicitDirectoryMarkdownLink(input.path, input.href)
     ? ("directory" as const)
     : undefined;
+    // `src/app.ts:123` 里的行号在 resolveMarkdownFileLink 阶段只用于拆路径，
+    // 此前在这里被丢弃，导致点击链接只能打开文件、无法定位到行。这里从原始 href
+    // 重新解析一次行/列，随 target 传给预览面板与第三方编辑器。
+    const { lineNumber, columnNumber } = parseMarkdownFileLinkTarget(input.href);
   return {
     path: input.path,
     label: input.label,
     pathKind,
+        lineNumber,
+        columnNumber,
     relativePath: input.workspacePath
       ? getWorkspaceFileRelativePath(input.workspacePath, input.path)
       : input.label,
@@ -990,6 +999,13 @@ export async function openMessageFileLinkInEditor({
     pathKind: fileStat.type,
     remoteTarget,
     workspaceIdentity: fileLink.workspaceIdentity,
+        // 链接行号只在编辑器 CLI 支持定位参数时生效（VS Code --goto / JetBrains --line），其余忽略。
+        ...(Number.isInteger(fileLink.lineNumber) && (fileLink.lineNumber as number) > 0
+            ? { line: fileLink.lineNumber as number }
+            : {}),
+        ...(Number.isInteger(fileLink.columnNumber) && (fileLink.columnNumber as number) > 0
+            ? { column: fileLink.columnNumber as number }
+            : {}),
   });
 }
 
@@ -1554,6 +1570,9 @@ export const MessageResponse = memo(
                     type: "file",
                     title: getPathLeaf(fileLink.path),
                     path: fileLink.path,
+                                        ...(fileLink.lineNumber && fileLink.lineNumber > 0
+                                            ? { revealLine: fileLink.lineNumber }
+                                            : {}),
                     workspacePath,
                     workspaceIdentity,
                     workspaceRemoteSessionId,
