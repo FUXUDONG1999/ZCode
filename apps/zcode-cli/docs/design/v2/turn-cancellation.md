@@ -40,12 +40,13 @@ TUI:
 - When the normal prompt input is empty, `Ctrl-C` is protected against
   accidental exits. When no local prompt owns the key and no copyable OpenTUI
   text selection exists, the first press only shows `Press Ctrl-C again to
-  exit.` and arms a short confirmation window. A second consecutive `Ctrl-C`
+exit.` and arms a short confirmation window. A second consecutive `Ctrl-C`
   inside that window aborts active work and closes the fullscreen TUI. Any
   non-`Ctrl-C` key, draft-clearing `Ctrl-C`, or confirmation timeout clears the
   pending exit.
 
 ZCode app-server:
+
 - `session/cancel` aborts the active prompt controller for that ZCode app-server session.
 - Repeated cancel notifications are idempotent.
 - Cancelling a missing or idle session is a no-op.
@@ -107,7 +108,7 @@ Required coverage:
 - TUI `Ctrl-C` with a non-empty normal prompt draft clears the draft and draft
   attachments without closing or aborting active output.
 - TUI first `Ctrl-C` with an empty normal prompt input shows `Press Ctrl-C again
-  to exit.` without closing; a second consecutive `Ctrl-C` exits.
+to exit.` without closing; a second consecutive `Ctrl-C` exits.
 - Core abort during model wait emits `turn_cancelled`.
 - Core abort after a model emits tool calls does not schedule tools.
 - Core abort reaches per-tool `AbortSignal` and subprocess adapters.

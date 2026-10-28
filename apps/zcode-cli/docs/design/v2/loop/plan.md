@@ -27,6 +27,7 @@ packages/cli
 **目标**：定义 TurnState、SessionState、TurnPhase 等核心类型
 
 **产出**：
+
 ```
 packages/contracts/src/
 ├── interfaces/
@@ -46,6 +47,7 @@ packages/contracts/src/
 **目标**：实现 append-only event log 和 projection 更新
 
 **产出**：
+
 ```
 packages/contracts/src/events/
 ├── session.events.ts        # 完整 Event 类型
@@ -53,6 +55,7 @@ packages/contracts/src/events/
 ```
 
 **测试**：
+
 - EventReducer 单测：给定事件序列，验证 projection 正确性
 - Event 不可变测试：验证修改事件抛出错误
 
@@ -63,6 +66,7 @@ packages/contracts/src/events/
 **目标**：实现 TurnPhase 状态转移逻辑
 
 **产出**：
+
 ```
 packages/core/src/
 ├── agent/
@@ -75,6 +79,7 @@ packages/core/src/
 ```
 
 **测试**：
+
 - TurnMachine 单测：验证所有合法/非法状态转移
 - Session 创建/恢复测试
 
@@ -85,6 +90,7 @@ packages/core/src/
 **目标**：实现基于依赖的 Tool 调度
 
 **产出**：
+
 ```
 packages/core/src/tool/
 ├── scheduler.ts            # ToolScheduler
@@ -92,6 +98,7 @@ packages/core/src/tool/
 ```
 
 **测试**：
+
 - 拓扑排序测试
 - 并行分组测试
 - 循环依赖检测
@@ -103,6 +110,7 @@ packages/core/src/tool/
 **目标**：整合所有组件，实现最小 AgentRuntime
 
 **产出**：
+
 ```
 packages/core/src/
 ├── agent/
@@ -113,6 +121,7 @@ packages/core/src/
 ```
 
 **测试**：
+
 - 模拟 Turn 流程：输入 → 状态转移 → 事件生成
 - Hook 点测试
 
@@ -156,13 +165,11 @@ class MockSessionEventStore implements SessionEventStorePort {
   }
 
   getEvents(sessionId: SessionId): Promise<SessionEvent[]> {
-    return this.events.filter(e => e.sessionId === sessionId);
+    return this.events.filter((e) => e.sessionId === sessionId);
   }
 
   rebuildProjection(sessionId: SessionId): Promise<SessionProjection> {
-    return this.events
-      .filter(e => e.sessionId === sessionId)
-      .reduce(reduce, initialProjection);
+    return this.events.filter((e) => e.sessionId === sessionId).reduce(reduce, initialProjection);
   }
 }
 ```

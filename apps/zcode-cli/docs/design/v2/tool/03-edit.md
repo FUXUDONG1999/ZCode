@@ -8,12 +8,12 @@
 
 `Edit` 输入是严格对象：
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `file_path` | `string` | 是 | 要修改的绝对路径 |
-| `old_string` | `string` | 是 | 要替换的原文 |
-| `new_string` | `string` | 是 | 替换后的文本，必须不同于 `old_string` |
-| `replace_all` | `boolean` | 否 | 是否替换所有匹配，默认 `false` |
+| 字段          | 类型      | 必填 | 说明                                  |
+| ------------- | --------- | ---- | ------------------------------------- |
+| `file_path`   | `string`  | 是   | 要修改的绝对路径                      |
+| `old_string`  | `string`  | 是   | 要替换的原文                          |
+| `new_string`  | `string`  | 是   | 替换后的文本，必须不同于 `old_string` |
+| `replace_all` | `boolean` | 否   | 是否替换所有匹配，默认 `false`        |
 
 设计要求：
 
@@ -38,16 +38,16 @@
 
 输出：
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `filePath` | `string` | 被编辑路径 |
-| `oldString` | `string` | 实际匹配到的旧字符串 |
-| `newString` | `string` | 新字符串 |
-| `originalFile` | `string` | 编辑前完整内容 |
-| `structuredPatch` | `Hunk[]` | 展示用 diff hunk |
-| `userModified` | `boolean` | 用户是否在权限 UI 中改动了提议变更 |
-| `replaceAll` | `boolean` | 是否替换全部匹配 |
-| `gitDiff` | optional object | 远程场景可附带 git diff |
+| 字段              | 类型            | 说明                               |
+| ----------------- | --------------- | ---------------------------------- |
+| `filePath`        | `string`        | 被编辑路径                         |
+| `oldString`       | `string`        | 实际匹配到的旧字符串               |
+| `newString`       | `string`        | 新字符串                           |
+| `originalFile`    | `string`        | 编辑前完整内容                     |
+| `structuredPatch` | `Hunk[]`        | 展示用 diff hunk                   |
+| `userModified`    | `boolean`       | 用户是否在权限 UI 中改动了提议变更 |
+| `replaceAll`      | `boolean`       | 是否替换全部匹配                   |
+| `gitDiff`         | optional object | 远程场景可附带 git diff            |
 
 模型可见结果只确认文件已更新；如果 `replaceAll` 为真，会说明所有匹配已替换。
 
@@ -97,21 +97,21 @@
 
 错误码语义可归纳为：
 
-| 场景 | 语义 |
-| --- | --- |
-| secret 检查失败 | 拒绝写入敏感内容 |
-| 新旧字符串相同 | 无变更 |
-| deny rule | 权限拒绝 |
-| 目标不存在且旧字符串非空 | 文件不存在 |
-| 目标存在且旧字符串为空 | 不能创建，文件已存在 |
-| notebook | 需要专用 notebook edit |
-| 未读或 partial read | 必须先完整读取 |
-| mtime/content 变化 | stale edit |
-| old string 找不到 | 匹配失败 |
-| 多处匹配但未 replace_all | 歧义替换 |
-| 文件过大 | 超出编辑大小上限 |
-| 空 `file_path` | 路径不能为空 |
-| 不支持编码或新内容不可编码 | 拒绝并保持原文件不变 |
+| 场景                       | 语义                   |
+| -------------------------- | ---------------------- |
+| secret 检查失败            | 拒绝写入敏感内容       |
+| 新旧字符串相同             | 无变更                 |
+| deny rule                  | 权限拒绝               |
+| 目标不存在且旧字符串非空   | 文件不存在             |
+| 目标存在且旧字符串为空     | 不能创建，文件已存在   |
+| notebook                   | 需要专用 notebook edit |
+| 未读或 partial read        | 必须先完整读取         |
+| mtime/content 变化         | stale edit             |
+| old string 找不到          | 匹配失败               |
+| 多处匹配但未 replace_all   | 歧义替换               |
+| 文件过大                   | 超出编辑大小上限       |
+| 空 `file_path`             | 路径不能为空           |
+| 不支持编码或新内容不可编码 | 拒绝并保持原文件不变   |
 
 ZCode 应给这些错误稳定 code，避免依赖英文文本判断流程。Edit handler 在原有检查位置发现
 可预期拒绝时返回 `{ result:false, errorCode, message }`，不通过 `throw` 向 executor
@@ -132,22 +132,22 @@ provider error 与公开工具契约在后续修改中漂移。
 
 ## 实现状态（2026-05-08）
 
-| 能力 | 状态 | 说明 |
-| --- | --- | --- |
-| 基本精确替换 | implemented | 当前 `Edit` 已通过 `FileSystemPort` 执行 `old_string` -> `new_string` 替换并生成 `structuredPatch`。 |
-| 相对路径按 session cwd 解析 | implemented | 当前路径解析不依赖宿主进程 cwd。 |
-| workspace 外路径硬拦截 | disabled | 当前版本只规范化路径，不在 core path-policy 拒绝工作区外编辑；原因是 subagent 需要按用户指令操作外部仓库或文件，细粒度 ask/deny 后续收敛到 filesystem permission adapter。 |
-| 模型可见使用指导 | implemented | 已补充 guidance：先 `Read`、不要带行号前缀、保持缩进、默认唯一匹配、多处替换显式 `replace_all`、优先编辑既有文件、emoji 仅在用户显式要求时加入。 |
-| 模型可见短结果 | in progress | 本轮将 `Edit` 成功结果序列化为短确认文本，完整原文和 diff 不直接回灌模型。 |
-| read-before-edit | missing | 当前 runtime 尚未要求此前完整 `Read`，因此无法区分未读、partial read 和 stale edit。 |
-| 唯一性检查 | implemented | 当前 `replace_all=false` 时会拒绝多处匹配，要求模型提供更具体的 `old_string` 或显式设置 `replace_all`。 |
-| quote normalization | implemented | `Edit` 匹配失败时会尝试 curly quote normalization，并在 `new_string` 中保留文件原有 curly quote 风格。 |
-| line-number prefix compatibility | implemented | `Edit` 可剥离模型误带入的 `<lineNumber>: ` 或历史 `<lineNumber>\t` 视图前缀。 |
-| indentation fallback | implemented | exact miss 时可在唯一候选前提下容忍共同缩进、行首尾空白或字面量 `\n` / `\t` 抄写差异。 |
-| CRLF / UTF-16LE / legacy 中文编码 / 原换行保持 | in progress | `FileSystemPort` 返回 LF 逻辑内容、原始 encoding 和 line ending metadata；`Edit` 在 LF 空间匹配并按原格式写回。 |
-| empty `old_string` 创建语义 | partial | 当前显式拒绝空 `old_string`，避免 JS includes/replace 产生隐式插入；暂不支持通过 `Edit` 创建新文件，创建应使用 `Write`。 |
-| notebook/settings/secret 校验 | missing | 尚未拒绝 `.ipynb` 或进行 settings/team memory 安全校验。 |
-| 稳定业务错误 | implemented | handler 在既有检查位置返回固定的数字 `errorCode + message`；executor 通用组装 provider error，不改变成功路径。 |
+| 能力                                           | 状态        | 说明                                                                                                                                                                       |
+| ---------------------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 基本精确替换                                   | implemented | 当前 `Edit` 已通过 `FileSystemPort` 执行 `old_string` -> `new_string` 替换并生成 `structuredPatch`。                                                                       |
+| 相对路径按 session cwd 解析                    | implemented | 当前路径解析不依赖宿主进程 cwd。                                                                                                                                           |
+| workspace 外路径硬拦截                         | disabled    | 当前版本只规范化路径，不在 core path-policy 拒绝工作区外编辑；原因是 subagent 需要按用户指令操作外部仓库或文件，细粒度 ask/deny 后续收敛到 filesystem permission adapter。 |
+| 模型可见使用指导                               | implemented | 已补充 guidance：先 `Read`、不要带行号前缀、保持缩进、默认唯一匹配、多处替换显式 `replace_all`、优先编辑既有文件、emoji 仅在用户显式要求时加入。                           |
+| 模型可见短结果                                 | in progress | 本轮将 `Edit` 成功结果序列化为短确认文本，完整原文和 diff 不直接回灌模型。                                                                                                 |
+| read-before-edit                               | missing     | 当前 runtime 尚未要求此前完整 `Read`，因此无法区分未读、partial read 和 stale edit。                                                                                       |
+| 唯一性检查                                     | implemented | 当前 `replace_all=false` 时会拒绝多处匹配，要求模型提供更具体的 `old_string` 或显式设置 `replace_all`。                                                                    |
+| quote normalization                            | implemented | `Edit` 匹配失败时会尝试 curly quote normalization，并在 `new_string` 中保留文件原有 curly quote 风格。                                                                     |
+| line-number prefix compatibility               | implemented | `Edit` 可剥离模型误带入的 `<lineNumber>: ` 或历史 `<lineNumber>\t` 视图前缀。                                                                                              |
+| indentation fallback                           | implemented | exact miss 时可在唯一候选前提下容忍共同缩进、行首尾空白或字面量 `\n` / `\t` 抄写差异。                                                                                     |
+| CRLF / UTF-16LE / legacy 中文编码 / 原换行保持 | in progress | `FileSystemPort` 返回 LF 逻辑内容、原始 encoding 和 line ending metadata；`Edit` 在 LF 空间匹配并按原格式写回。                                                            |
+| empty `old_string` 创建语义                    | partial     | 当前显式拒绝空 `old_string`，避免 JS includes/replace 产生隐式插入；暂不支持通过 `Edit` 创建新文件，创建应使用 `Write`。                                                   |
+| notebook/settings/secret 校验                  | missing     | 尚未拒绝 `.ipynb` 或进行 settings/team memory 安全校验。                                                                                                                   |
+| 稳定业务错误                                   | implemented | handler 在既有检查位置返回固定的数字 `errorCode + message`；executor 通用组装 provider error，不改变成功路径。                                                             |
 
 本轮落地模型指导、短结果序列化和 `replace_all=false` 的多匹配拒绝；read cache、stale guard、编码保真和结构化错误在后续阶段补齐。
 

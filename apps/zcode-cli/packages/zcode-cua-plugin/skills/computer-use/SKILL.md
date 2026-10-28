@@ -31,7 +31,7 @@ const root =
 const { join } = await import("node:path");
 const { pathToFileURL } = await import("node:url");
 const { setupComputerUseRuntime } = await import(
-  pathToFileURL(join(root, "scripts", "computer-use-client.mjs")).href,
+  pathToFileURL(join(root, "scripts", "computer-use-client.mjs")).href
 );
 await setupComputerUseRuntime({ globals: globalThis });
 ```
@@ -90,7 +90,9 @@ interface Target {
   getAXState(options?: StateOptions): Promise<string>;
   getScreenshot(options?: ObservationOptions): Promise<Uint8Array>;
   getAXStateAndScreenshot(options?: StateOptions): Promise<StateAndScreenshot>;
-  elements(): Promise<{ index: number; kind: string; title: string | null; value: string | null; actions: string[] }[]>;
+  elements(): Promise<
+    { index: number; kind: string; title: string | null; value: string | null; actions: string[] }[]
+  >;
 
   paste(text: string, options?: PasteOptions): Promise<void>;
   click(target: number | Vec2, options?: ClickOptions): Promise<void>;

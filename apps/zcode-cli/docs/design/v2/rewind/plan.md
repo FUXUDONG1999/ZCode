@@ -133,16 +133,16 @@ Still missing for full conversation rewind UX:
 
 ### Strategy Matrix
 
-| Target | Requested mode | Checkpoint | Compact status | Strategy |
-| --- | --- | --- | --- | --- |
-| active message | conversation | any | active chain | `active_chain` |
-| active message | workspace | yes | active chain | `active_chain` |
-| active message | both | yes | active chain | `active_chain` |
-| active message | workspace/both | no | active chain | `unavailable` |
-| compact-covered message | conversation/both | any | covered | `fork_required` |
-| compact-covered message | workspace | yes | covered | `file_only` |
-| missing message | any | any | missing | `unavailable` |
-| checkpoint id only | workspace | yes | any | `active_chain` or `file_only` |
+| Target                  | Requested mode    | Checkpoint | Compact status | Strategy                      |
+| ----------------------- | ----------------- | ---------- | -------------- | ----------------------------- |
+| active message          | conversation      | any        | active chain   | `active_chain`                |
+| active message          | workspace         | yes        | active chain   | `active_chain`                |
+| active message          | both              | yes        | active chain   | `active_chain`                |
+| active message          | workspace/both    | no         | active chain   | `unavailable`                 |
+| compact-covered message | conversation/both | any        | covered        | `fork_required`               |
+| compact-covered message | workspace         | yes        | covered        | `file_only`                   |
+| missing message         | any               | any        | missing        | `unavailable`                 |
+| checkpoint id only      | workspace         | yes        | any            | `active_chain` or `file_only` |
 
 Important: `both` is not two unrelated operations. It is one runtime turn that
 emits one `rewind_triggered` event with `scope=both`, records the selected
@@ -364,6 +364,7 @@ TUI:
   scriptable compatibility paths until message-id syntax is finalized.
 
 ZCode app-server:
+
 - Add list/evaluate/apply methods or emit structured selection data through the
   existing app facade.
 - Do not require remote clients to infer active-chain legality from transcript

@@ -65,16 +65,17 @@ new Paragraph({ children: [new PageBreak()] }),
 // ✅ Correct — Heading style, TOC can index
 new Paragraph({
   heading: HeadingLevel.HEADING_1,
-  children: [new TextRun({ text: "第一章 引言", bold: true, size: 32, color: c(P.primary) })]
-})
+  children: [new TextRun({ text: "第一章 引言", bold: true, size: 32, color: c(P.primary) })],
+});
 
 // ❌ Wrong — manual bold + large font, TOC cannot detect
 new Paragraph({
-  children: [new TextRun({ text: "第一章 引言", bold: true, size: 32, color: c(P.primary) })]
-})
+  children: [new TextRun({ text: "第一章 引言", bold: true, size: 32, color: c(P.primary) })],
+});
 ```
 
 **Exceptions:**
+
 - Cover title: does NOT need Heading style (should not appear in TOC)
 - "目录" title: **MUST NOT** use Heading style (prevents TOC from indexing itself)
 
@@ -99,6 +100,7 @@ python3 "$DOCX_SCRIPTS/add_toc_placeholders.py" output.docx --auto
 ### Error handling
 
 The script **exits with code 1** if:
+
 - No TOC field structure found (missing `TableOfContents` element)
 - TOC field has `begin` but no `separate` fldChar (malformed structure)
 - Field structure exists but no TOC instrText detected
@@ -131,35 +133,44 @@ When a document has a TOC, the TOC MUST be in its own section so that body page 
 
 ```js
 sections: [
-  { /* Section 1: Cover — no page number, no footer */
+  {
+    /* Section 1: Cover — no page number, no footer */
     properties: {
       page: { size: pgSize, margin: pgMargin },
       // ⚠️ Do NOT set page.pageNumbers here — docx-js emits empty <pgNumType/> which confuses WPS
     },
   },
-  { /* Section 2: Front matter (abstract, TOC) — Roman numerals */
+  {
+    /* Section 2: Front matter (abstract, TOC) — Roman numerals */
     properties: {
       type: SectionType.NEXT_PAGE,
       page: {
-        size: pgSize, margin: pgMargin,
-        pageNumbers: { start: 1, formatType: NumberFormat.UPPER_ROMAN },  // I, II, III...
+        size: pgSize,
+        margin: pgMargin,
+        pageNumbers: { start: 1, formatType: NumberFormat.UPPER_ROMAN }, // I, II, III...
       },
     },
-    footers: { default: pageNumFooter() },  // see footer rules below
-    children: [/* abstract + TOC title + TableOfContents + PageBreak */]
+    footers: { default: pageNumFooter() }, // see footer rules below
+    children: [
+      /* abstract + TOC title + TableOfContents + PageBreak */
+    ],
   },
-  { /* Section 3: Body — Arabic numerals starting from 1 */
+  {
+    /* Section 3: Body — Arabic numerals starting from 1 */
     properties: {
       type: SectionType.NEXT_PAGE,
       page: {
-        size: pgSize, margin: pgMargin,
-        pageNumbers: { start: 1, formatType: NumberFormat.DECIMAL },  // 1, 2, 3...
+        size: pgSize,
+        margin: pgMargin,
+        pageNumbers: { start: 1, formatType: NumberFormat.DECIMAL }, // 1, 2, 3...
       },
     },
     footers: { default: pageNumFooter() },
-    children: [/* body content */]
+    children: [
+      /* body content */
+    ],
   },
-]
+];
 ```
 
 ### ⚠️ Page Number API — Correct Nesting (CRITICAL)
@@ -186,6 +197,7 @@ properties: {
 WPS may ignore `pgNumType fmt` in the section properties. To ensure correct display, the footer PAGE field **MUST** include an explicit format switch via **post-processing**:
 
 After generating the docx, unzip and patch each footer XML:
+
 - **Roman numeral footer**: replace `PAGE` with `PAGE \* ROMAN \\** MERGEFORMAT`
 - **Arabic numeral footer**: replace `PAGE \* arabic \* MERGEFORMAT`
 
@@ -195,36 +207,37 @@ After generating the docx, unzip and patch each footer XML:
 // Post-process footer XML:
 footerXml = footerXml.replace(
   /(<w:instrText[^>]*>)\s*PAGE\s*(<\/w:instrText>)/g,
-  '$1 PAGE \\* ROMAN \\** MERGEFORMAT $2'  // or "arabic" for body section
+  "$1 PAGE \\* ROMAN \\** MERGEFORMAT $2", // or "arabic" for body section
 );
 ```
 
 Also remove any empty `<w:pgNumType/>` from the cover section (docx-js emits these even when no pageNumbers is set):
+
 ```js
 docXml = docXml.replace(/<w:pgNumType\/>/g, "");
 ```
 
 ### Page Numbering Rules
 
-| Section | Content | Format | Start | Footer |
-|---------|---------|--------|-------|--------|
-| Cover | Title page | None | — | No footer |
-| Front matter | Abstract, TOC | Roman (I, II, III) | 1 | `PAGE \* ROMAN` |
-| Body | Main content | Arabic (1, 2, 3) | 1 | `PAGE \* arabic` |
+| Section      | Content       | Format             | Start | Footer           |
+| ------------ | ------------- | ------------------ | ----- | ---------------- |
+| Cover        | Title page    | None               | —     | No footer        |
+| Front matter | Abstract, TOC | Roman (I, II, III) | 1     | `PAGE \* ROMAN`  |
+| Body         | Main content  | Arabic (1, 2, 3)   | 1     | `PAGE \* arabic` |
 
 ⚠️ **The body section MUST set `pageNumbers: { start: 1 }`** — otherwise page numbers continue from the front matter pages, causing TOC page references to be offset. This is the #1 cause of "TOC page numbers are wrong".
 
 ### Common Causes of Incorrect Page Numbers
 
-| Cause | Fix |
-|-------|-----|
-| `pageNumberStart` at properties top level | Move to `page: { pageNumbers: { start: 1 } }` |
-| Cover section emits empty `<pgNumType/>` | Post-process to remove it |
-| Footer uses bare `PAGE` without format switch | Post-process to add `\* roman` or `\* arabic` |
-| Cover and body in same section | Separate cover into its own section |
-| Multiple sections without pageNumbers.start | Explicitly set on each section needing independent counting |
-| headingStyleRange doesn't match headings | Ensure `headingStyleRange: "1-3"` covers all HeadingLevel values used |
-| Cover section has header/footer | Don't set header/footer on cover section |
+| Cause                                         | Fix                                                                   |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| `pageNumberStart` at properties top level     | Move to `page: { pageNumbers: { start: 1 } }`                         |
+| Cover section emits empty `<pgNumType/>`      | Post-process to remove it                                             |
+| Footer uses bare `PAGE` without format switch | Post-process to add `\* roman` or `\* arabic`                         |
+| Cover and body in same section                | Separate cover into its own section                                   |
+| Multiple sections without pageNumbers.start   | Explicitly set on each section needing independent counting           |
+| headingStyleRange doesn't match headings      | Ensure `headingStyleRange: "1-3"` covers all HeadingLevel values used |
+| Cover section has header/footer               | Don't set header/footer on cover section                              |
 
 ## TOC Refresh Hint (MANDATORY)
 
@@ -242,13 +255,13 @@ new Paragraph({
 
 ## 5 Common TOC Bugs
 
-| # | Bug | Symptom | Fix |
-|---|-----|---------|-----|
-| 1 | "目录" heading uses `HeadingLevel.HEADING_1` | TOC includes "目录" as an entry | Remove `heading:` from TOC title paragraph |
-| 2 | No `PageBreak` after `TableOfContents` | TOC and body text on same page | Add `new Paragraph({ children: [new PageBreak()] })` after TOC |
-| 3 | Missing `TableOfContents` element | Script cannot inject placeholders, TOC is empty | Always include `new TableOfContents(...)` in code |
-| 4 | Headings use bold+large instead of `HeadingLevel` | TOC is empty even after running script | Change all body headings to `heading: HeadingLevel.HEADING_X` |
-| 5 | Script not run or exit code ignored | TOC page shows only title + blank space | Always run script; if exit code = 1, fix code and regenerate |
+| #   | Bug                                               | Symptom                                         | Fix                                                            |
+| --- | ------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------- |
+| 1   | "目录" heading uses `HeadingLevel.HEADING_1`      | TOC includes "目录" as an entry                 | Remove `heading:` from TOC title paragraph                     |
+| 2   | No `PageBreak` after `TableOfContents`            | TOC and body text on same page                  | Add `new Paragraph({ children: [new PageBreak()] })` after TOC |
+| 3   | Missing `TableOfContents` element                 | Script cannot inject placeholders, TOC is empty | Always include `new TableOfContents(...)` in code              |
+| 4   | Headings use bold+large instead of `HeadingLevel` | TOC is empty even after running script          | Change all body headings to `heading: HeadingLevel.HEADING_X`  |
+| 5   | Script not run or exit code ignored               | TOC page shows only title + blank space         | Always run script; if exit code = 1, fix code and regenerate   |
 
 ## Checklist (for self-check during generation)
 

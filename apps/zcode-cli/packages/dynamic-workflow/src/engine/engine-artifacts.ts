@@ -385,7 +385,12 @@ function settleArtifactPublish(
       issued,
       new WorkflowError(
         "ArtifactPrimaryConflict",
-        primaryConflictMessage(issued.id, holder, `publish "${issued.id}" without primary`, instance),
+        primaryConflictMessage(
+          issued.id,
+          holder,
+          `publish "${issued.id}" without primary`,
+          instance,
+        ),
       ),
     );
   }

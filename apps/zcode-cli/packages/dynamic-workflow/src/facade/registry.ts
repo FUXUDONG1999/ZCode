@@ -199,9 +199,7 @@ type MarkerFunction = (typeof MARKER_FUNCTIONS)[number];
  * 某 facade symbol 解析到的**展示标记**顶层函数（按声明判定：容器必须缺席），
  * 非标记则 undefined。与 {@link siteProducingFunctionOfSymbol} 同形、刻意不同表。
  */
-export function markerFunctionOfSymbol(
-  symbol: ts.Symbol | undefined,
-): MarkerFunction | undefined {
+export function markerFunctionOfSymbol(symbol: ts.Symbol | undefined): MarkerFunction | undefined {
   const member = facadeMemberOf(symbol);
   if (member === undefined || member.container !== undefined) return undefined;
   return MARKER_FUNCTIONS.find((name) => name === member.member);

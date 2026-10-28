@@ -58,7 +58,7 @@ model adapter 的 Anthropic provider fetch 边界：
 - 当 `content_block_start.content_block.type === "thinking"` 且其 `signature` 是
   非空字符串时，按 block `index` 暂存该签名。
 - 如果同 index 后续出现原生 `content_block_delta.delta.type ===
-  "signature_delta"`，立即清除暂存签名并原样透传原生 delta，禁止重复合成。
+"signature_delta"`，立即清除暂存签名并原样透传原生 delta，禁止重复合成。
 - 如果同 index 到 `content_block_stop` 仍有暂存签名，在原始 stop frame 之前合成
   一个标准 `content_block_delta`，其 delta 为
   `{ type: "signature_delta", signature }`；随后清除该 index 的暂存状态并原样

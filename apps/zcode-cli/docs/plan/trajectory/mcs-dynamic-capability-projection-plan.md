@@ -83,14 +83,14 @@ assistant/tool-result 边界后的具体位置继续遵循现有 `reorderAttachm
 | 文件                                                                                    | 职责                                                                            |
 | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `apps/zcode-cli/packages/contracts/src/model/mid-conversation-system.ts`                | MCS baseURL allowlist 与 fast-supported model lookup 纯函数。                   |
-| `apps/zcode-cli/packages/contracts/src/model/index.ts`                                  | 导出 MCS baseURL / fast-supported model helper。                               |
+| `apps/zcode-cli/packages/contracts/src/model/index.ts`                                  | 导出 MCS baseURL / fast-supported model helper。                                |
 | `apps/zcode-cli/packages/contracts/tests/mid-conversation-system.test.ts`               | 覆盖 allowlisted / denied baseURL 解析和 fast-supported model 判断。            |
 | `apps/zcode-cli/packages/core/src/runtime/helpers/mid-conversation-system.ts`           | 构造完整 MCS capability context，并返回 capability decision。                   |
 | `apps/zcode-cli/packages/core/src/runtime/helpers/provider-request-messages.ts`         | 消费 `useMidConversationSystem`，切换 MCS projection 和 legacy reorder。        |
 | `apps/zcode-cli/packages/core/src/runtime/helpers/runtime-provider-request-messages.ts` | runtime 包装层：解析 capability，再调用 provider request builder。              |
-| `apps/zcode-cli/packages/cli/src/run.ts`                                               | 解析并校验 `--force-mcs`，仅允许 `--prompt` / `--target` / `tui` runtime 路径。 |
-| `apps/zcode-cli/packages/cli/src/prompt-command.ts`                                    | headless prompt runtimeConfig 写入 MCS force override。                        |
-| `apps/zcode-cli/packages/cli/src/tui-command.ts` / `tui-prompt-handler.ts`             | TUI runtimeConfig 写入 MCS force override。                                    |
+| `apps/zcode-cli/packages/cli/src/run.ts`                                                | 解析并校验 `--force-mcs`，仅允许 `--prompt` / `--target` / `tui` runtime 路径。 |
+| `apps/zcode-cli/packages/cli/src/prompt-command.ts`                                     | headless prompt runtimeConfig 写入 MCS force override。                         |
+| `apps/zcode-cli/packages/cli/src/tui-command.ts` / `tui-prompt-handler.ts`              | TUI runtimeConfig 写入 MCS force override。                                     |
 | `apps/zcode-cli/packages/core/src/runtime/methods/turn-loop.ts`                         | main turn 请求使用 runtime wrapper。                                            |
 | `apps/zcode-cli/packages/core/src/runtime/methods/compact.ts`                           | compact sizing 使用 runtime wrapper。                                           |
 | `apps/zcode-cli/packages/core/src/runtime/methods/compact-active.ts`                    | compact summary/token accounting 使用同一个 capability decision。               |
@@ -149,9 +149,7 @@ pnpm --filter @zcode/core exec vitest run tests/provider-request-messages.test.t
 **产出接口：**
 
 ```ts
-export function isMidConversationSystemCapableBaseURL(
-  baseURL: string | undefined,
-): boolean;
+export function isMidConversationSystemCapableBaseURL(baseURL: string | undefined): boolean;
 
 export function isFastSupportedModel(modelId: string | undefined): boolean;
 ```
@@ -285,9 +283,7 @@ function modelNameContainsFastSupportedMarker(name: string, marker: string): boo
   return false;
 }
 
-export function isMidConversationSystemCapableBaseURL(
-  baseURL: string | undefined,
-): boolean {
+export function isMidConversationSystemCapableBaseURL(baseURL: string | undefined): boolean {
   const host = hostnameFromBaseURL(baseURL);
   if (!host) return false;
   return MID_CONVERSATION_SYSTEM_CAPABLE_BASE_HOSTS.some(
@@ -421,9 +417,7 @@ const modelRef: ModelRef = {
   variant: "first-party",
 };
 
-function connection(
-  input: Partial<ModelConnectionInfo> = {},
-): ModelConnectionInfo {
+function connection(input: Partial<ModelConnectionInfo> = {}): ModelConnectionInfo {
   return {
     apiKey: "secret-api-key",
     baseURL: "https://api.z.ai/api/anthropic",
@@ -522,10 +516,7 @@ export function buildProviderRequestMessages(input: {
 it("projects MCS-capable attachments as system messages when MCS is enabled", () => {
   const entries = [
     entry(user("Summarize notes."), "real_user"),
-    attachment(
-      "prompt_attachment",
-      "Called the Read tool with the following input: {}",
-    ),
+    attachment("prompt_attachment", "Called the Read tool with the following input: {}"),
     attachment("output_style", "Terse output style is active."),
   ] satisfies RuntimeMessageEntry[];
 
@@ -538,8 +529,7 @@ it("projects MCS-capable attachments as system messages when MCS is enabled", ()
     { role: "user", content: "Summarize notes." },
     {
       role: "system",
-      content:
-        "Called the Read tool with the following input: {}\n\nTerse output style is active.",
+      content: "Called the Read tool with the following input: {}\n\nTerse output style is active.",
     },
   ]);
 });
@@ -547,10 +537,7 @@ it("projects MCS-capable attachments as system messages when MCS is enabled", ()
 it("renders MCS-capable attachments as legacy user system reminders when MCS is disabled", () => {
   const entries = [
     entry(user("Summarize notes."), "real_user"),
-    attachment(
-      "prompt_attachment",
-      "Called the Read tool with the following input: {}",
-    ),
+    attachment("prompt_attachment", "Called the Read tool with the following input: {}"),
   ] satisfies RuntimeMessageEntry[];
 
   expect(
@@ -608,17 +595,11 @@ pnpm --filter @zcode/core exec vitest run tests/provider-request-messages.test.t
 
 ```ts
 export function resolveRuntimeMidConversationSystemCapability(
-  runtime: Pick<
-    AgentRuntimeInternal,
-    "defaultModelRef" | "modelConnectionPort"
-  >,
+  runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
 ): MidConversationSystemCapabilityDecision;
 
 export function buildRuntimeProviderRequestMessages(
-  runtime: Pick<
-    AgentRuntimeInternal,
-    "defaultModelRef" | "modelConnectionPort"
-  >,
+  runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
   input: {
     entries: readonly RuntimeMessageEntry[];
     applyCacheControl?: boolean;
@@ -641,10 +622,7 @@ import {
 } from "./provider-request-messages.js";
 
 export function resolveRuntimeMidConversationSystemCapability(
-  runtime: Pick<
-    AgentRuntimeInternal,
-    "defaultModelRef" | "modelConnectionPort"
-  >,
+  runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
 ): MidConversationSystemCapabilityDecision {
   return resolveMidConversationSystemCapability({
     modelConnectionPort: runtime.modelConnectionPort,
@@ -653,10 +631,7 @@ export function resolveRuntimeMidConversationSystemCapability(
 }
 
 export function buildRuntimeProviderRequestMessages(
-  runtime: Pick<
-    AgentRuntimeInternal,
-    "defaultModelRef" | "modelConnectionPort"
-  >,
+  runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
   input: {
     entries: readonly RuntimeMessageEntry[];
     applyCacheControl?: boolean;

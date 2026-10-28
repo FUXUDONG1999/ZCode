@@ -138,9 +138,7 @@ export interface TaskNotificationRuntimeCommand extends RuntimeCommandBase {
   readonly toolUseId?: string;
 }
 
-export type RuntimeCommand =
-  | PromptRuntimeCommand
-  | TaskNotificationRuntimeCommand;
+export type RuntimeCommand = PromptRuntimeCommand | TaskNotificationRuntimeCommand;
 ```
 
 新建 `apps/zcode-cli/packages/core/src/runtime/methods/runtime-command-queue.ts`：

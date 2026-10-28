@@ -19,10 +19,10 @@
 
 ## 注册改动点（仅两处手工清单）
 
-| 文件 | 改动 | 作用 |
-|---|---|---|
+| 文件                                                                       | 改动                                                            | 作用                                                                                                                                                 |
+| -------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/zcode-cli/packages/bootstrap/src/app/official-plugin-definitions.ts` | 新增 `OFFICIAL_PLUGIN_DEFINITIONS` 条目，`defaultEnabled: true` | 运行时 seed + 自动进入 `DEFAULT_ENABLED_OFFICIAL_PLUGIN_IDS`，两个 reader（CLI `resolveZCodePlugins`、应用启动 `resolveStartupPlugins`）都会默认启用 |
-| `apps/zcode-cli/packages/cli/scripts/sea-official-plugin-assets.mjs` | 新增 `officialSeaPlugins` 条目，`requiresRuntime: false` | 打进 SEA 单可执行文件；`requiresRuntime:false` 跳过 `dist/mcp/server.js` 校验 |
+| `apps/zcode-cli/packages/cli/scripts/sea-official-plugin-assets.mjs`       | 新增 `officialSeaPlugins` 条目，`requiresRuntime: false`        | 打进 SEA 单可执行文件；`requiresRuntime:false` 跳过 `dist/mcp/server.js` 校验                                                                        |
 
 其余 reader（`bundled-plugins.ts` seed、`writeOfficialMarketplace`、`getZCodePluginsOverview` 可恢复内置列表、skills/commands 的 plugin root 注入）都从 `OFFICIAL_PLUGIN_DEFINITIONS` 自动派生，无需改动。
 
@@ -49,10 +49,13 @@ apps/zcode-cli/packages/zcode-guide-plugin/
 > 技能正文面向**用户与外部 agent**，用**正式、专业的英文**书写，**不含任何源码内部引用**（无 `file:line`、函数名、commit 号、内部注册流程）。保留的是用户真正需要的：CLI 命令、配置文件路径、优先级与合并规则、诊断码。本 spec 与代码注释保持中文。
 
 ### zcode-configuration-guide（总纲）
+
 配置五类资源的**位置、作用域、优先级、合并规则**一张总表，外加“我该配哪里”的选型建议；末尾把每类问题路由到对应 `diagnosing-*` 技能。
 
-### diagnosing-*（五个诊断技能）
+### diagnosing-\*（五个诊断技能）
+
 统一结构，每个都直接可执行：
+
 1. **配置位置与优先级**——每类资源在 user/project 两级读取的确切文件路径与覆盖顺序。
 2. **检查命令**——`zcode <plugins|skills|commands> list --json` / `inspect --json` 等结构化诊断入口（自修复的骨架）。
 3. **常见坑点表**——症状 → 根因 → 代码检测点 → 修复动作。

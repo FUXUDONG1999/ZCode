@@ -42,16 +42,16 @@
 
 ## Product Decisions
 
-| ID | 决策 | 当前 plan 口径 |
-| --- | --- | --- |
-| PVC-D1 | 内部结构 | 保持现状：prefix 继续在内存 `MessageHistory` 中。 |
-| PVC-D2 | provider-visible title | 暂时沿用 ZCode 现有 `# user_instructions` title；不改用其他 section 名，也不按文件名动态生成 `# agentMd`。 |
-| PVC-D3 | instruction source | 保持 `AGENTS.md -> CLAUDE.md` priority，作为明确的产品决策。 |
-| PVC-D4 | project context | 默认拼到 `# user_instructions` block 末尾，作为 ZCode extra 内容；不新增独立 `# projectContext`。 |
-| PVC-D5 | custom system prompt | custom body 跳过 default system/systemContext，但保留 userContext；`project_context` 因归入 `# user_instructions` 也应保留。 |
-| PVC-D6 | compact/reset | 先保持现有 prefix 保留机制；只验证最终 provider body，不做 request-time projection 重构。 |
-| PVC-D7 | Explore subagent | read-only omit 语义：Explore 子请求 omit instruction/project userContext block，保留 `currentDate`。 |
-| PVC-D8 | full discovery | Postpone：不实现多层 `CLAUDE.md` / `.claude/rules` / local / include / conditional discovery。 |
+| ID     | 决策                   | 当前 plan 口径                                                                                                               |
+| ------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| PVC-D1 | 内部结构               | 保持现状：prefix 继续在内存 `MessageHistory` 中。                                                                            |
+| PVC-D2 | provider-visible title | 暂时沿用 ZCode 现有 `# user_instructions` title；不改用其他 section 名，也不按文件名动态生成 `# agentMd`。                   |
+| PVC-D3 | instruction source     | 保持 `AGENTS.md -> CLAUDE.md` priority，作为明确的产品决策。                                                                 |
+| PVC-D4 | project context        | 默认拼到 `# user_instructions` block 末尾，作为 ZCode extra 内容；不新增独立 `# projectContext`。                            |
+| PVC-D5 | custom system prompt   | custom body 跳过 default system/systemContext，但保留 userContext；`project_context` 因归入 `# user_instructions` 也应保留。 |
+| PVC-D6 | compact/reset          | 先保持现有 prefix 保留机制；只验证最终 provider body，不做 request-time projection 重构。                                    |
+| PVC-D7 | Explore subagent       | read-only omit 语义：Explore 子请求 omit instruction/project userContext block，保留 `currentDate`。                         |
+| PVC-D8 | full discovery         | Postpone：不实现多层 `CLAUDE.md` / `.claude/rules` / local / include / conditional discovery。                               |
 
 ## Phase PVC0: Normalize Plan State
 

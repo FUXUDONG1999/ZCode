@@ -204,8 +204,26 @@ Use the host typography scale: body and controls use the body size; h1 is body +
 
 ```html
 <div class="nav nav-pills" role="tablist" aria-label="Platform">
-  <button class="nav-link active" id="mac" role="tab" aria-controls="mac-panel" aria-selected="true" type="button">macOS</button>
-  <button class="nav-link" id="linux" role="tab" aria-controls="linux-panel" aria-selected="false" type="button">Linux</button>
+  <button
+    class="nav-link active"
+    id="mac"
+    role="tab"
+    aria-controls="mac-panel"
+    aria-selected="true"
+    type="button"
+  >
+    macOS
+  </button>
+  <button
+    class="nav-link"
+    id="linux"
+    role="tab"
+    aria-controls="linux-panel"
+    aria-selected="false"
+    type="button"
+  >
+    Linux
+  </button>
 </div>
 <div id="mac-panel" role="tabpanel" aria-labelledby="mac">macOS content</div>
 <div id="linux-panel" role="tabpanel" aria-labelledby="linux" hidden>Linux content</div>

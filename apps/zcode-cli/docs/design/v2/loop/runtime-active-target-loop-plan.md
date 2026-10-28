@@ -53,7 +53,7 @@ continueActiveTargetLoop({
   traceContext,
   trigger,
   verifyBeforeFirstContinue,
-})
+});
 ```
 
 调用入口：
@@ -172,10 +172,7 @@ cd apps/zcode-cli/packages/core
 **新增类型：**
 
 ```ts
-export type ActiveTargetLoopTrigger =
-  | "manual"
-  | "user-prompt"
-  | "task-notification";
+export type ActiveTargetLoopTrigger = "manual" | "user-prompt" | "task-notification";
 
 export interface ContinueActiveTargetLoopOptions {
   abortSignal?: AbortSignal;
@@ -276,11 +273,7 @@ export interface ExecuteTurnOptions {
 runtime command 执行侧语义：
 
 ```ts
-const result = await this.executeTurnCommand(
-  command.input,
-  command.attachments,
-  command.options,
-);
+const result = await this.executeTurnCommand(command.input, command.attachments, command.options);
 const continuationResult =
   command.options?.continueActiveTargetAfterTurn === true
     ? await this.continueActiveTargetLoop({

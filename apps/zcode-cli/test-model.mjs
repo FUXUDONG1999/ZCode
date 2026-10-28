@@ -1,12 +1,12 @@
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { createAnthropic } from "@ai-sdk/anthropic";
 
 const client = createAnthropic({
   apiKey: process.env.ZCODE_API_KEY,
-  baseURL: 'https://open.bigmodel.cn/api/anthropic',
+  baseURL: "https://open.bigmodel.cn/api/anthropic",
 });
 
-const result = await client('glm-4.7').generateText({
-  prompt: 'say hello in 3 words',
+const result = await client("glm-4.7").generateText({
+  prompt: "say hello in 3 words",
 });
 
-console.log('Result:', result);
+console.log("Result:", result);

@@ -8,14 +8,12 @@ the old Key is absent or corrupt, including legacy records without an auth-sourc
 Only explicit manual mode reads the saved Key; it must not depend on an unrelated OAuth
 credential being present or decryptable.
 
-
 Dedicated Key management preserves the CLI's existing default-organization/default-project
 selection, falling back to the first entry without filtering project types. BigModel
 management requests retain the raw login JWT; Z.AI management requests retain Bearer.
 Token issuance uses Bearer for both. The selection policy isolates persisted Key IDs
 from the desktop personal-project policy. Unrelated malformed Key entries are ignored;
 a matching personal Key with no ID fails without creating a duplicate.
-
 
 Account-based Coding Plan key creation explicitly sends `usageScene: 1` for both
 BigModel and Z.AI. This field describes intended usage, independently of `keyType`.

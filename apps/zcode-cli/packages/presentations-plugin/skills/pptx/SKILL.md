@@ -6,6 +6,7 @@ metadata:
 description: "Use this skill any time a presentation file is the primary input or output. Covers: creating new .pptx decks from scratch or from an outline/document (pptxgenjs / python-pptx); editing and restyling an existing .pptx; reading and extracting text/structure from a deck (markitdown); and rendering a deck to PDF (LibreOffice) or to per-slide PNG images (pdftoppm) for previews, thumbnails, or visual review. Trigger when the user references a .pptx file by name or path, says 'make/build a deck, slides, presentation, PPT, 幻灯片, 演示文稿, 汇报/路演材料', or asks to convert, export, render, or preview slides as PDF or images (e.g. 'PPT转PDF', 'ppt导出图片', 'turn these slides into a PDF')."
 license: Proprietary. LICENSE.txt has complete terms
 ---
+
 # Part 1 · Slide Design Best Practices
 
 In one sentence: **don't make boring slides.** Bullet points on a white background are forgettable.
@@ -16,13 +17,13 @@ But "not boring" is not "flashy." The goal is a deck that looks **ready to use i
 
 **Original file preserved:** user-provided decks are read-only by default. Deliverables go to new files
 (`<stem>_updated.pptx` next to the input); edit an original in place only when the user explicitly
-asks — and then copy it to `<stem>_backup.pptx` next to it (never `/tmp`) first. See *"Editing an
-existing PowerPoint presentation"* in Part 2.
+asks — and then copy it to `<stem>_backup.pptx` next to it (never `/tmp`) first. See _"Editing an
+existing PowerPoint presentation"_ in Part 2.
 
 ## 1. Decide three things before you start
 
 **① Pick a content-informed color palette**
-The palette should feel designed *for this topic*. A good test: if you could drop your colors into a completely unrelated deck and it would still "work," your choices aren't specific enough. Derive the hues from the subject itself — its place, industry, brand, or mood — rather than reaching for a default.
+The palette should feel designed _for this topic_. A good test: if you could drop your colors into a completely unrelated deck and it would still "work," your choices aren't specific enough. Derive the hues from the subject itself — its place, industry, brand, or mood — rather than reaching for a default.
 
 **② Dominance, not equality**
 One color should dominate 60–70% of the visual weight, supported by 1–2 secondary tones and one sharp accent. **Never give all colors equal weight.**
@@ -103,7 +104,7 @@ Build the palette on the **BACKGROUND → PRIMARY → ACCENT** model, and reuse 
 - **Alternative (preferred):** instead of full-bleed images, place the image in a bounded region (e.g. the right half) and keep text in the other region on a solid background.
 - If an image is decorative, keep it small and positioned where it won't collide with text.
 - **Never stretch an image to fit** — when its aspect ratio doesn't match the target box, crop it (`sizing: { type: 'cover' }` or an explicit `crop`), never distort it by setting a `w`/`h` that breaks the ratio. This matters most on covers and full-bleed backgrounds, where a stretched photo is the most visible defect on the deck.
-- Test mentally: *"if I printed this slide in grayscale, could I still read every word?"*
+- Test mentally: _"if I printed this slide in grayscale, could I still read every word?"_
 
 ## 6. Typography
 
@@ -149,6 +150,7 @@ Build the palette on the **BACKGROUND → PRIMARY → ACCENT** model, and reuse 
 - ❌ **Don't default to cream/beige backgrounds** — when unspecified, use white `FFFFFF` or your brand color; avoid warm-neutral defaults like `F5F5DC`, `FAF0E6`, `FAEBD7`, `FFF8E1`
 - ❌ **Don't let text overflow its shape** — if it doesn't fit, reduce the font, split across slides, or enlarge the container; never leave content cut off or spilling out
 - ❌ **Don't extra postprocess the east asia font if not needed**
+
 ## 10. QA (recommended)
 
 **Content QA:** check for missing content, typos, wrong order; when using a template, grep for leftover placeholders (`xxx`, `lorem`, `TODO`, `[insert`, etc.).
@@ -197,12 +199,14 @@ npm install -g pptxgenjs
 const pptxgen = require("pptxgenjs");
 
 let pres = new pptxgen();
-pres.layout = 'LAYOUT_WIDE';   // 13.33 × 7.5" — the default for this skill (see below)
-pres.author = 'Your Name';
-pres.title  = 'Presentation Title';
+pres.layout = "LAYOUT_WIDE"; // 13.33 × 7.5" — the default for this skill (see below)
+pres.author = "Your Name";
+pres.title = "Presentation Title";
 
 // Canvas constants — derive every position from these, never hardcode 10 or 13.33
-const W = 13.33, H = 7.5, M = 0.5;   // width, height, margin (true width is 13.333"; 13.33 keeps you inside it)
+const W = 13.33,
+  H = 7.5,
+  M = 0.5; // width, height, margin (true width is 13.333"; 13.33 keeps you inside it)
 
 let slide = pres.addSlide();
 slide.addText("Hello World!", { x: M, y: M, w: W - 2 * M, fontSize: 36, color: "363636" });
@@ -212,10 +216,9 @@ pres.writeFile({ fileName: "Presentation.pptx" }).then(() => console.log("done")
 
 ## Layout dimensions
 
-
-| Layout         | Size (inches)                   |
-| ---------------- | --------------------------------- |
-| `LAYOUT_WIDE`  | **13.33 × 7.5 — use this**    |
+| Layout         | Size (inches)                  |
+| -------------- | ------------------------------ |
+| `LAYOUT_WIDE`  | **13.33 × 7.5 — use this**     |
 | `LAYOUT_16x9`  | 10 × 5.625 (pptxgenjs default) |
 | `LAYOUT_16x10` | 10 × 6.25                      |
 | `LAYOUT_4x3`   | 10 × 7.5                       |
@@ -227,31 +230,45 @@ pres.writeFile({ fileName: "Presentation.pptx" }).then(() => console.log("done")
 ```javascript
 // Basic text
 slide.addText("Simple Text", {
-  x: 1, y: 1, w: 8, h: 2, fontSize: 24, fontFace: "Arial",
-  color: "363636", bold: true, align: "center", valign: "middle"
+  x: 1,
+  y: 1,
+  w: 8,
+  h: 2,
+  fontSize: 24,
+  fontFace: "Arial",
+  color: "363636",
+  bold: true,
+  align: "center",
+  valign: "middle",
 });
 
 // Character spacing: use charSpacing (letterSpacing is silently ignored)
 slide.addText("SPACED TEXT", { x: 1, y: 1, w: 8, h: 1, charSpacing: 6 });
 
 // Rich text array (mixed styles in one paragraph)
-slide.addText([
-  { text: "Bold ",   options: { bold: true } },
-  { text: "Italic ", options: { italic: true } }
-], { x: 1, y: 3, w: 8, h: 1 });
+slide.addText(
+  [
+    { text: "Bold ", options: { bold: true } },
+    { text: "Italic ", options: { italic: true } },
+  ],
+  { x: 1, y: 3, w: 8, h: 1 },
+);
 
 // Multi-line (each line needs breakLine: true; the last may omit it)
-slide.addText([
-  { text: "Line 1", options: { breakLine: true } },
-  { text: "Line 2", options: { breakLine: true } },
-  { text: "Line 3" }
-], { x: 0.5, y: 0.5, w: 8, h: 2 });
+slide.addText(
+  [
+    { text: "Line 1", options: { breakLine: true } },
+    { text: "Line 2", options: { breakLine: true } },
+    { text: "Line 3" },
+  ],
+  { x: 0.5, y: 0.5, w: 8, h: 2 },
+);
 
 // Text-box padding: set margin: 0 to align with shapes/lines
 slide.addText("Title", { x: 0.5, y: 0.3, w: 9, h: 0.6, margin: 0 });
 ```
 
-> ⚠️ **Rich text arrays emit one `<a:pPr>` per run, not per paragraph.** Two or more consecutive items *without* `breakLine` land in the same `<a:p>`, each carrying its own `<a:pPr>` — which violates the `pPr? (r|br|fld)* endParaRPr?` schema. LibreOffice renders it fine, so a PDF preview will not catch it; PowerPoint paints the first frame correctly, then re-lays-out the paragraph and the line garbles. Two safe options: give every item `breakLine: true` (one run per paragraph), or, when you genuinely need mixed formatting inline, post-process the slide XML after `writeFile()` and drop every `<a:pPr>` after the first one inside each `<a:p>`. Do **not** fix it by splitting the runs into separate paragraphs — that silently turns one inline-mixed line into two lines and changes the layout you designed.
+> ⚠️ **Rich text arrays emit one `<a:pPr>` per run, not per paragraph.** Two or more consecutive items _without_ `breakLine` land in the same `<a:p>`, each carrying its own `<a:pPr>` — which violates the `pPr? (r|br|fld)* endParaRPr?` schema. LibreOffice renders it fine, so a PDF preview will not catch it; PowerPoint paints the first frame correctly, then re-lays-out the paragraph and the line garbles. Two safe options: give every item `breakLine: true` (one run per paragraph), or, when you genuinely need mixed formatting inline, post-process the slide XML after `writeFile()` and drop every `<a:pPr>` after the first one inside each `<a:p>`. Do **not** fix it by splitting the runs into separate paragraphs — that silently turns one inline-mixed line into two lines and changes the layout you designed.
 
 ## Lists & bullets
 
@@ -278,16 +295,24 @@ The bare `bullet: true` renders a big dot with a **huge gap** to the text (pptxg
 ```javascript
 // bullet is a PARAGRAPH property — put it in EACH item's options, not top-level.
 // A top-level `bullet` only styles the first paragraph; the rest get <a:buNone/> (no dot).
-const bu = () => ({ code: "2022", indent: 14 });  // factory: fresh object per item (pptxgenjs mutates in place)
-slide.addText([
-  { text: "First item",  options: { bullet: bu(), breakLine: true } },
-  { text: "Second item", options: { bullet: bu(), breakLine: true } },
-  { text: "Third item",  options: { bullet: bu() } }
-], {
-  x: 0.5, y: 0.5, w: 8, h: 3, fontSize: 15, color: "334155",
-  paraSpaceAfter: 8,   // item spacing (never lineSpacing)
-  margin: 0,           // align glyph to x
-});
+const bu = () => ({ code: "2022", indent: 14 }); // factory: fresh object per item (pptxgenjs mutates in place)
+slide.addText(
+  [
+    { text: "First item", options: { bullet: bu(), breakLine: true } },
+    { text: "Second item", options: { bullet: bu(), breakLine: true } },
+    { text: "Third item", options: { bullet: bu() } },
+  ],
+  {
+    x: 0.5,
+    y: 0.5,
+    w: 8,
+    h: 3,
+    fontSize: 15,
+    color: "334155",
+    paraSpaceAfter: 8, // item spacing (never lineSpacing)
+    margin: 0, // align glyph to x
+  },
+);
 ```
 
 - **`indent` matters most** — cut the default ~27pt to 10–16pt to kill the "floating dot" (`indent` = glyph→text gap in pt; try 10–16).
@@ -298,44 +323,64 @@ slide.addText([
 
 ```javascript
 slide.addShape(pres.shapes.RECTANGLE, {
-  x: 0.5, y: 0.8, w: 1.5, h: 3.0,
-  fill: { color: "FF0000" }, line: { color: "000000", width: 2 }
+  x: 0.5,
+  y: 0.8,
+  w: 1.5,
+  h: 3.0,
+  fill: { color: "FF0000" },
+  line: { color: "000000", width: 2 },
 });
 
 slide.addShape(pres.shapes.OVAL, { x: 4, y: 1, w: 2, h: 2, fill: { color: "0000FF" } });
 
 slide.addShape(pres.shapes.LINE, {
-  x: 1, y: 3, w: 5, h: 0, line: { color: "FF0000", width: 3, dashType: "dash" }
+  x: 1,
+  y: 3,
+  w: 5,
+  h: 0,
+  line: { color: "FF0000", width: 3, dashType: "dash" },
 });
 
 // Transparency
 slide.addShape(pres.shapes.RECTANGLE, {
-  x: 1, y: 1, w: 3, h: 2, fill: { color: "0088CC", transparency: 50 }
+  x: 1,
+  y: 1,
+  w: 3,
+  h: 2,
+  fill: { color: "0088CC", transparency: 50 },
 });
 
 // Rounded rectangle (rectRadius works only on ROUNDED_RECTANGLE, not RECTANGLE)
 slide.addShape(pres.shapes.ROUNDED_RECTANGLE, {
-  x: 1, y: 1, w: 3, h: 2, fill: { color: "FFFFFF" }, rectRadius: 0.1
+  x: 1,
+  y: 1,
+  w: 3,
+  h: 2,
+  fill: { color: "FFFFFF" },
+  rectRadius: 0.1,
 });
 
 // Shadow (to make a card stand out — use this, not an edge stripe)
 slide.addShape(pres.shapes.RECTANGLE, {
-  x: 1, y: 1, w: 3, h: 2, fill: { color: "FFFFFF" },
-  shadow: { type: "outer", color: "000000", blur: 6, offset: 2, angle: 45, opacity: 0.15 }
+  x: 1,
+  y: 1,
+  w: 3,
+  h: 2,
+  fill: { color: "FFFFFF" },
+  shadow: { type: "outer", color: "000000", blur: 6, offset: 2, angle: 45, opacity: 0.15 },
 });
 ```
 
 **Shadow options:**
 
-
-| Property  | Range / notes                                                                           |
-| ----------- | ----------------------------------------------------------------------------------------- |
-| `type`    | `"outer"` / `"inner"`                                                                   |
-| `color`   | 6-char hex (no`#`, no 8-char hex)                                                       |
-| `blur`    | 0–100 pt                                                                               |
-| `offset`  | 0–200 pt,**must be non-negative** (negatives corrupt the file)                         |
+| Property  | Range / notes                                                                         |
+| --------- | ------------------------------------------------------------------------------------- |
+| `type`    | `"outer"` / `"inner"`                                                                 |
+| `color`   | 6-char hex (no`#`, no 8-char hex)                                                     |
+| `blur`    | 0–100 pt                                                                              |
+| `offset`  | 0–200 pt,**must be non-negative** (negatives corrupt the file)                        |
 | `angle`   | 0–359°, clockwise from 3 o'clock (45 = bottom-right, 135 = bottom-left, 270 = upward) |
-| `opacity` | 0.0–1.0 (use this for transparency, never encode it in`color`)                         |
+| `opacity` | 0.0–1.0 (use this for transparency, never encode it in`color`)                        |
 
 > To cast a shadow upward (e.g., a card near the bottom), use `angle: 270` + a positive offset — **not** a negative offset.
 > Gradient fills are not natively supported — use a gradient image as the background instead.
@@ -383,40 +428,49 @@ triggers "repair", and drops the chart.
 **To highlight a single bar, use per-point colors instead:**
 
 ```js
-slide.addChart(p.charts.BAR, [{
-  name: "series",
-  labels: ["A", "B", "C"],
-  values: [10, 20, 30],
-}], {
-  barDir: "col",
-  varyColors: true,                            // per-point coloring
-  chartColors: ["17457E", "17457E", "E8590C"], // highlight the 3rd bar
-  showValue: true,
-  dataLabelPosition: "outEnd",                 // valid under clustered grouping
-});
+slide.addChart(
+  p.charts.BAR,
+  [
+    {
+      name: "series",
+      labels: ["A", "B", "C"],
+      values: [10, 20, 30],
+    },
+  ],
+  {
+    barDir: "col",
+    varyColors: true, // per-point coloring
+    chartColors: ["17457E", "17457E", "E8590C"], // highlight the 3rd bar
+    showValue: true,
+    dataLabelPosition: "outEnd", // valid under clustered grouping
+  },
+);
 ```
 
 ## Backgrounds
 
 ```javascript
-slide.background = { color: "F1F1F1" };                        // solid
-slide.background = { color: "FF3399", transparency: 50 };      // with transparency
-slide.background = { path: "https://example.com/bg.jpg" };     // image URL
-slide.background = { data: "image/png;base64,iVBORw0KGgo..." };// image base64
+slide.background = { color: "F1F1F1" }; // solid
+slide.background = { color: "FF3399", transparency: 50 }; // with transparency
+slide.background = { path: "https://example.com/bg.jpg" }; // image URL
+slide.background = { data: "image/png;base64,iVBORw0KGgo..." }; // image base64
 ```
 
 ## Tables
 
 ```javascript
-slide.addTable([
-  ["Header 1", "Header 2"],
-  ["Cell 1", "Cell 2"]
-], { x: 1, y: 1, w: 8, h: 2, border: { pt: 1, color: "999999" }, fill: { color: "F1F1F1" } });
+slide.addTable(
+  [
+    ["Header 1", "Header 2"],
+    ["Cell 1", "Cell 2"],
+  ],
+  { x: 1, y: 1, w: 8, h: 2, border: { pt: 1, color: "999999" }, fill: { color: "F1F1F1" } },
+);
 
 // Merged cells
 let tableData = [
   [{ text: "Header", options: { fill: { color: "6699CC" }, color: "FFFFFF", bold: true } }, "Cell"],
-  [{ text: "Merged", options: { colspan: 2 } }]
+  [{ text: "Merged", options: { colspan: 2 } }],
 ];
 slide.addTable(tableData, { x: 1, y: 3.5, w: 8, colW: [4, 4] });
 ```
@@ -431,33 +485,64 @@ slide.addTable(tableData, { x: 1, y: 3.5, w: 8, colW: [4, 4] });
 
 ```javascript
 // Bar
-slide.addChart(pres.charts.BAR, [{
-  name: "Sales", labels: ["Q1","Q2","Q3","Q4"], values: [4500,5500,6200,7100]
-}], { x: 0.5, y: 0.6, w: 6, h: 3, barDir: 'col', showTitle: true, title: 'Quarterly Sales' });
+slide.addChart(
+  pres.charts.BAR,
+  [
+    {
+      name: "Sales",
+      labels: ["Q1", "Q2", "Q3", "Q4"],
+      values: [4500, 5500, 6200, 7100],
+    },
+  ],
+  { x: 0.5, y: 0.6, w: 6, h: 3, barDir: "col", showTitle: true, title: "Quarterly Sales" },
+);
 
 // Line
-slide.addChart(pres.charts.LINE, [{
-  name: "Temp", labels: ["Jan","Feb","Mar"], values: [32,35,42]
-}], { x: 0.5, y: 2.5, w: 6, h: 2.5, lineSize: 3, lineSmooth: true });
+slide.addChart(
+  pres.charts.LINE,
+  [
+    {
+      name: "Temp",
+      labels: ["Jan", "Feb", "Mar"],
+      values: [32, 35, 42],
+    },
+  ],
+  { x: 0.5, y: 2.5, w: 6, h: 2.5, lineSize: 3, lineSmooth: true },
+);
 
 // Pie
-slide.addChart(pres.charts.PIE, [{
-  name: "Share", labels: ["A","B","Other"], values: [35,45,20]
-}], { x: 6.5, y: 1, w: 3, h: 3, showPercent: true });
+slide.addChart(
+  pres.charts.PIE,
+  [
+    {
+      name: "Share",
+      labels: ["A", "B", "Other"],
+      values: [35, 45, 20],
+    },
+  ],
+  { x: 6.5, y: 1, w: 3, h: 3, showPercent: true },
+);
 ```
 
 **Make charts look modern (defaults look dated):**
 
 ```javascript
 slide.addChart(pres.charts.BAR, chartData, {
-  x: 0.5, y: 1, w: 9, h: 4, barDir: "col",
-  chartColors: ["0D9488", "14B8A6", "5EEAD4"],            // match your palette
+  x: 0.5,
+  y: 1,
+  w: 9,
+  h: 4,
+  barDir: "col",
+  chartColors: ["0D9488", "14B8A6", "5EEAD4"], // match your palette
   chartArea: { fill: { color: "FFFFFF" }, roundedCorners: true },
-  catAxisLabelColor: "64748B", valAxisLabelColor: "64748B", // muted axis labels
-  valGridLine: { color: "E2E8F0", size: 0.5 },             // subtle grid, value axis only
+  catAxisLabelColor: "64748B",
+  valAxisLabelColor: "64748B", // muted axis labels
+  valGridLine: { color: "E2E8F0", size: 0.5 }, // subtle grid, value axis only
   catGridLine: { style: "none" },
-  showValue: true, dataLabelPosition: "outEnd", dataLabelColor: "1E293B", // data labels
-  showLegend: false,                                       // hide legend for single series
+  showValue: true,
+  dataLabelPosition: "outEnd",
+  dataLabelColor: "1E293B", // data labels
+  showLegend: false, // hide legend for single series
 });
 ```
 
@@ -466,14 +551,17 @@ slide.addChart(pres.charts.BAR, chartData, {
 ```javascript
 // Master
 pres.defineSlideMaster({
-  title: 'TITLE_SLIDE', background: { color: '283A5E' },
-  objects: [{ placeholder: { options: { name: 'title', type: 'title', x: 1, y: 2, w: 8, h: 2 } } }]
+  title: "TITLE_SLIDE",
+  background: { color: "283A5E" },
+  objects: [{ placeholder: { options: { name: "title", type: "title", x: 1, y: 2, w: 8, h: 2 } } }],
 });
 let titleSlide = pres.addSlide({ masterName: "TITLE_SLIDE" });
 titleSlide.addText("My Title", { placeholder: "title" });
 
 // Speaker notes (visible only in Presenter View, not on the slide)
-slide.addNotes("Open with the FY25 revenue headline; pause after the number. If asked about the Q3 dip: supply chain, resolved in Q4.");
+slide.addNotes(
+  "Open with the FY25 revenue headline; pause after the number. If asked about the Q3 dip: supply chain, resolved in Q4.",
+);
 ```
 
 ## Common pitfalls (file corruption / visual bugs / AI look)
@@ -516,38 +604,37 @@ Route here when the user supplies a .pptx and wants a NEW deck built on it. Work
 
 **1. Decide the mode — "use as template" hides two different jobs:**
 
-
-| Mode             | User signal                                                            | Build                                                                                                                        |
-| ------------------ | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| Mode             | User signal                                                           | Build                                                                                                                        |
+| ---------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | **Clone & fill** | new outline or free structure — "做成这个风格" / "用这个模板做一份 X" | clone template pages and fill them; pick which pages to reuse by role and shape your outline around what the template offers |
-| **Fill-in**      | new content maps ≈1:1 onto the template's pages (换数据 / 换客户)     | in-place replacement — Approach A of the Editing section                                                                    |
+| **Fill-in**      | new content maps ≈1:1 onto the template's pages (换数据 / 换客户)     | in-place replacement — Approach A of the Editing section                                                                     |
 
 Both modes edit the .pptx natively and output an editable PowerPoint — **never** route a template job through the from-scratch HTML pipeline; a foreign HTML-rendered page next to the template's real pages is instantly visible and loses the theme. Clone & fill builds a new deck on the template; Fill-in is the lighter in-place path. Everything below applies to both.
 
 **2. Study the template (before generating any content) — programmatic first, vision only to break ties:**
-  • Inventory every text shape with python-pptx (recurse into GROUPs): position, size, font, current text length. The original text length is the budget ceiling — the **"Budget every shape"** rules of the Editing section apply verbatim. Collect this first; it also drives the role classification below.
-  • Classify each page's role (cover / section / content / stats / quote / closing…) — this role map is your layout catalog for planning. Derive the role from the inventory, not from an image: cover = few shapes + an outsized title (≥36pt) and/or a full-page background image; section = only 1–2 short text shapes; stats = a 60pt+ numeric shape; quote = a single large centered long-text box; content = several body boxes. Derive every page's role from the inventory alone — never fall back to rendering an image.
-  • Answer the one decisive structural question: does the design live in `slideLayouts` with real placeholders (→ clone & fill can `add_slide` + fill), or is it drawn on slides with free text boxes while layouts sit empty (common in downloaded templates; → clone & fill must clone slides at XML level)?
-  • Read the design's source of truth: `presentation.xml` for slide size (never assume 16:9); `theme1.xml` for colors and fonts — slide XML uses `schemeClr` indirection, the real hex lives in the theme (remapped by the master's `clrMap`), and CJK text renders in the `<a:ea>` font.
+• Inventory every text shape with python-pptx (recurse into GROUPs): position, size, font, current text length. The original text length is the budget ceiling — the **"Budget every shape"** rules of the Editing section apply verbatim. Collect this first; it also drives the role classification below.
+• Classify each page's role (cover / section / content / stats / quote / closing…) — this role map is your layout catalog for planning. Derive the role from the inventory, not from an image: cover = few shapes + an outsized title (≥36pt) and/or a full-page background image; section = only 1–2 short text shapes; stats = a 60pt+ numeric shape; quote = a single large centered long-text box; content = several body boxes. Derive every page's role from the inventory alone — never fall back to rendering an image.
+• Answer the one decisive structural question: does the design live in `slideLayouts` with real placeholders (→ clone & fill can `add_slide` + fill), or is it drawn on slides with free text boxes while layouts sit empty (common in downloaded templates; → clone & fill must clone slides at XML level)?
+• Read the design's source of truth: `presentation.xml` for slide size (never assume 16:9); `theme1.xml` for colors and fonts — slide XML uses `schemeClr` indirection, the real hex lives in the theme (remapped by the master's `clrMap`), and CJK text renders in the `<a:ea>` font.
 
 **3. Plan, then build — always on a COPY of the user's file:**
-  • **Decide the output path BEFORE you modify anything.** By default save to a NEW sibling file
-    (`<stem>_updated.pptx`), never touch the input; overwrite in place ONLY if the user explicitly
-    asks to edit their own file — then first copy it to `<stem>_backup.pptx` next to it (never
-    `/tmp`). `Presentation.save(path)` clobbers whatever path you name, so never pass it the user's
-    original.
-  • Write a short plan first: final page order; each page's template source (slide index to clone, or layout name) chosen by ROLE; replacement text written WITHIN the budget. If the user's outline and the template's structure conflict, surface the trade-off instead of improvising. (Clone & fill: since structure is free, let the template's available page roles drive the outline rather than forcing a shape the template can't carry.)
-  • Fill-in: follow the Editing section's Approach A as written.
-  • Clone & fill: materialize pages first — `add_slide` + fill placeholders when layouts are real; otherwise clone the slide at XML level (copy the slide part + its `.rels`, re-register media rIds, add to `sldIdLst` and `[Content_Types].xml`). **No helper scripts ship with this skill — write the clone yourself**, either in-process (`copy.deepcopy(src.slides[i]._element)` + `prs.part.relate_to(...)` to rebuild each rel) or by unpacking the file with `zipfile` (`ZipFile.extractall` → edit the XML → repack: write `[Content_Types].xml` as the first entry, use `ZIP_DEFLATED`, and add no directory entries). Then replace content page by page (scope mappings per slide — clones share identical source text), swap images by replacing the image part bytes (keep the shape and rId), and delete unused template pages LAST, high-index first. Never hand-build a from-scratch page next to template pages — a foreign page is instantly visible.
+• **Decide the output path BEFORE you modify anything.** By default save to a NEW sibling file
+(`<stem>_updated.pptx`), never touch the input; overwrite in place ONLY if the user explicitly
+asks to edit their own file — then first copy it to `<stem>_backup.pptx` next to it (never
+`/tmp`). `Presentation.save(path)` clobbers whatever path you name, so never pass it the user's
+original.
+• Write a short plan first: final page order; each page's template source (slide index to clone, or layout name) chosen by ROLE; replacement text written WITHIN the budget. If the user's outline and the template's structure conflict, surface the trade-off instead of improvising. (Clone & fill: since structure is free, let the template's available page roles drive the outline rather than forcing a shape the template can't carry.)
+• Fill-in: follow the Editing section's Approach A as written.
+• Clone & fill: materialize pages first — `add_slide` + fill placeholders when layouts are real; otherwise clone the slide at XML level (copy the slide part + its `.rels`, re-register media rIds, add to `sldIdLst` and `[Content_Types].xml`). **No helper scripts ship with this skill — write the clone yourself**, either in-process (`copy.deepcopy(src.slides[i]._element)` + `prs.part.relate_to(...)` to rebuild each rel) or by unpacking the file with `zipfile` (`ZipFile.extractall` → edit the XML → repack: write `[Content_Types].xml` as the first entry, use `ZIP_DEFLATED`, and add no directory entries). Then replace content page by page (scope mappings per slide — clones share identical source text), swap images by replacing the image part bytes (keep the shape and rId), and delete unused template pages LAST, high-index first. Never hand-build a from-scratch page next to template pages — a foreign page is instantly visible.
 
 **4. Verify (mandatory before reporting done) — programmatic checks, no rendering:**
 The whole checklist is decidable without an image; run these and fix until clean:
-  • **Page order & count** — count `sldIdLst` against the plan.
-  • **Leftover placeholders** — grep the slide XML for `Click to add`, `xxx`, `lorem`, `TODO`, `[insert`.
-  • **Broken images** — confirm every image rId on a cloned page resolves to a real media part (empty frames come from dangling rels): for each slide walk `slide.part.rels` and assert every non-external rel has a `target_part` with a non-empty `.blob`.
-  • **File still opens** — reopen the saved copy with `Presentation(path)` and walk every slide's shapes. A dangling rel or malformed slide XML raises here; this load-and-walk is the XML validity check (there is no `validate.py` in this skill).
-  • **Fonts & colors unchanged** — diff the run/theme font+color against the original rather than eyeballing it.
-  • **Overflow / collision** — re-check the "Budget every shape" rule (`len ≤ orig_len × 1.1`) on the final text and compare each `left+width` against its neighbor. A passing budget is the overflow guard here — treat any shape over budget as a real defect and fix it (trim, widen, or shrink per the Editing rules).
+• **Page order & count** — count `sldIdLst` against the plan.
+• **Leftover placeholders** — grep the slide XML for `Click to add`, `xxx`, `lorem`, `TODO`, `[insert`.
+• **Broken images** — confirm every image rId on a cloned page resolves to a real media part (empty frames come from dangling rels): for each slide walk `slide.part.rels` and assert every non-external rel has a `target_part` with a non-empty `.blob`.
+• **File still opens** — reopen the saved copy with `Presentation(path)` and walk every slide's shapes. A dangling rel or malformed slide XML raises here; this load-and-walk is the XML validity check (there is no `validate.py` in this skill).
+• **Fonts & colors unchanged** — diff the run/theme font+color against the original rather than eyeballing it.
+• **Overflow / collision** — re-check the "Budget every shape" rule (`len ≤ orig_len × 1.1`) on the final text and compare each `left+width` against its neighbor. A passing budget is the overflow guard here — treat any shape over budget as a real defect and fix it (trim, widen, or shrink per the Editing rules).
 
 ## Editing an existing PowerPoint presentation (.pptx)
 
@@ -556,7 +643,7 @@ For in-place edits to an existing deck (Fill-in mode, and small fixes like typos
 > **Output first, modify second.** By default save edits to a NEW sibling file (`<stem>_updated.pptx`),
 > never touch the input; overwrite in place ONLY if the user explicitly asks to edit their own file —
 > then first copy it to `<stem>_backup.pptx` next to it (never `/tmp`). "Work on a copy" means the
-> *original stays byte-identical at its original path*, not merely that you opened it read-only.
+> _original stays byte-identical at its original path_, not merely that you opened it read-only.
 
 - **Approach A — `python-pptx` script** — preferred for text replacement, deleting/reordering slides, and any edit that should preserve fonts/colors/layout. Simpler and safer than raw XML for content swaps.
 - **Approach B — raw OOXML** — required for animations, transitions, comments, speaker notes XML, theme tweaks, custom layout edits — anything `python-pptx` can't reach.
@@ -645,7 +732,7 @@ def shrink_text_to_fit(shape):
     shape.text_frame.auto_size = MSO_AUTO_SIZE.TEXT_TO_FIT_SHAPE
 ```
 
-> ⚠️ Both helpers only **write the autofit flag** into the XML — python-pptx does not compute the resized shape or the shrunk font-scale itself. The actual fit is applied by the viewer (PowerPoint / LibreOffice) when the file is opened, so your programmatic overflow check can't see the result. Prefer trimming to `budget` (below), which *is* verifiable without rendering.
+> ⚠️ Both helpers only **write the autofit flag** into the XML — python-pptx does not compute the resized shape or the shrunk font-scale itself. The actual fit is applied by the viewer (PowerPoint / LibreOffice) when the file is opened, so your programmatic overflow check can't see the result. Prefer trimming to `budget` (below), which _is_ verifiable without rendering.
 
 1. **Budget first (preferred).** Check `shape.width` × `font_size` from inventory and trim the replacement so it fits the original visual budget. Numeric badges / small label boxes (`width ≤ 0.7"`, `font_size ≥ 16pt`) hold ~3–4 chars max.
 2. **Widen the shape** with `widen_to_fit(shape, Emu(...))` when the content is genuinely longer and there's free space next to it. Always check the shape isn't going to collide with a neighbor first (compare `left+width` against the next shape's `left`).
@@ -690,8 +777,9 @@ Every PPTX → PDF conversion and every rendered preview/thumbnail step depends 
 **If LibreOffice is not installed, you MUST install it. This is not a choice.**
 
 **FORBIDDEN — do not do any of these:**
+
 - ❌ Using Keynote, Microsoft PowerPoint, WPS Office, or any other program already on the user's
-  machine *instead of* installing LibreOffice.
+  machine _instead of_ installing LibreOffice.
 - ❌ Deciding on the user's behalf that the download is "too large", "too slow", or "not worth it".
   **The package being large is NOT a reason to skip the install.** It is expected to be large.
 - ❌ Asking the user "should I use Keynote/PowerPoint instead to save time?" — that is the same
@@ -710,15 +798,15 @@ Every PPTX → PDF conversion and every rendered preview/thumbnail step depends 
    subdirectory matching the OS and CPU arch (`uname -m` / `$env:PROCESSOR_ARCHITECTURE`) and
    download the main package from it:
 
-   | Platform | Path | Main package |
-   |----------|------|--------------|
-   | Linux x86_64 (deb) | `deb/x86_64/` | `LibreOffice_26.8.0_Linux_x86-64_deb.tar.gz` |
-   | Linux ARM64 (deb) | `deb/aarch64/` | `LibreOffice_26.8.0_Linux_aarch64_deb.tar.gz` |
-   | Linux x86_64 (rpm) | `rpm/x86_64/` | `LibreOffice_26.8.0_Linux_x86-64_rpm.tar.gz` |
-   | macOS Apple Silicon | `mac/aarch64/` | `LibreOffice_26.8.0_MacOS_aarch64.dmg` |
-   | macOS Intel | `mac/x86_64/` | `LibreOffice_26.8.0_MacOS_x86-64.dmg` |
-   | Windows x64 | `win/x86_64/` | `LibreOffice_26.8.0_Win_x86-64.msi` |
-   | Windows ARM64 | `win/aarch64/` | `LibreOffice_26.8.0_Win_aarch64.msi` |
+   | Platform            | Path           | Main package                                  |
+   | ------------------- | -------------- | --------------------------------------------- |
+   | Linux x86_64 (deb)  | `deb/x86_64/`  | `LibreOffice_26.8.0_Linux_x86-64_deb.tar.gz`  |
+   | Linux ARM64 (deb)   | `deb/aarch64/` | `LibreOffice_26.8.0_Linux_aarch64_deb.tar.gz` |
+   | Linux x86_64 (rpm)  | `rpm/x86_64/`  | `LibreOffice_26.8.0_Linux_x86-64_rpm.tar.gz`  |
+   | macOS Apple Silicon | `mac/aarch64/` | `LibreOffice_26.8.0_MacOS_aarch64.dmg`        |
+   | macOS Intel         | `mac/x86_64/`  | `LibreOffice_26.8.0_MacOS_x86-64.dmg`         |
+   | Windows x64         | `win/x86_64/`  | `LibreOffice_26.8.0_Win_x86-64.msi`           |
+   | Windows ARM64       | `win/aarch64/` | `LibreOffice_26.8.0_Win_aarch64.msi`          |
 
    Linux (deb): `tar -xzf <pkg>.tar.gz && sudo dpkg -i LibreOffice_26.8.0*/DEBS/*.deb && sudo apt-get install -f -y`
    macOS: `hdiutil attach <pkg>.dmg && cp -R /Volumes/LibreOffice/LibreOffice.app /Applications/ && hdiutil detach /Volumes/LibreOffice`
@@ -732,17 +820,18 @@ Every PPTX → PDF conversion and every rendered preview/thumbnail step depends 
    - macOS: `brew install --cask libreoffice`
    - Linux (Debian/Ubuntu): `sudo apt-get install libreoffice`
    - Windows: `winget install TheDocumentFoundation.LibreOffice`
+
 4. **Register the binary on `PATH`, then re-verify.** Do this as part of the install, not as an
    afterthought: an install that leaves `soffice` off the executable search path is
    indistinguishable from "not installed" to the next `command -v soffice` probe — which re-triggers
    this whole block and makes you download several hundred MB you already have. **The mechanism
    differs per OS — use the one for the platform you are on:**
 
-   | Platform | Register it | Then verify |
-   |----------|-------------|-------------|
-   | Linux | `sudo ln -sf /opt/libreoffice*/program/soffice /usr/local/bin/soffice` | `soffice --version` |
-   | macOS | `sudo ln -sf /Applications/LibreOffice.app/Contents/MacOS/soffice /usr/local/bin/soffice` | `soffice --version` |
-   | Windows | `setx PATH "$([Environment]::GetEnvironmentVariable('PATH','User'));C:\Program Files\LibreOffice\program"` | `& "C:\Program Files\LibreOffice\program\soffice.exe" --version` |
+   | Platform | Register it                                                                                                | Then verify                                                      |
+   | -------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+   | Linux    | `sudo ln -sf /opt/libreoffice*/program/soffice /usr/local/bin/soffice`                                     | `soffice --version`                                              |
+   | macOS    | `sudo ln -sf /Applications/LibreOffice.app/Contents/MacOS/soffice /usr/local/bin/soffice`                  | `soffice --version`                                              |
+   | Windows  | `setx PATH "$([Environment]::GetEnvironmentVariable('PATH','User'));C:\Program Files\LibreOffice\program"` | `& "C:\Program Files\LibreOffice\program\soffice.exe" --version` |
 
    Notes: on Apple Silicon `/usr/local/bin` is not always on `PATH` — if the verify still fails, link
    into `/opt/homebrew/bin` instead. On Windows `setx` only affects **newly launched** shells, so for
@@ -751,6 +840,7 @@ Every PPTX → PDF conversion and every rendered preview/thumbnail step depends 
    but off-`PATH` (check `/opt/libreoffice*/program/soffice`,
    `/Applications/LibreOffice.app/Contents/MacOS/soffice`,
    `C:\Program Files\LibreOffice\program\soffice.exe`), register it instead of reinstalling.
+
 5. **Only after that install has actually been attempted AND failed** may you use software already
    on the user's machine (Keynote, PowerPoint, WPS). Report the install failure and what you
    switched to, and warn that the rendering may differ from this skill's normal checks.

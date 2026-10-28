@@ -40,6 +40,7 @@ Title (centered, short and punchy)
 ```
 
 ### Decisions
+
 - **Cover:** ❌ Not needed
 - **TOC:** ❌ Not needed
 - **Header/footer:** Optional, minimal
@@ -52,15 +53,16 @@ Title (centered, short and punchy)
 
 ### Font Specifications
 
-| Element | Font | Size | Style |
-|---------|------|------|-------|
-| Title | SimHei | 18pt (size:36) | Bold, centered |
-| Section heading / highlight | SimHei | 14pt (size:28) | Bold |
-| Body | Microsoft YaHei | 12pt (size:24) | Left-aligned |
-| Rhythm markers | Microsoft YaHei | 10.5pt (size:21) | Grey 999999, italic |
-| Notes | Microsoft YaHei | 10pt (size:20) | Grey 666666 |
+| Element                     | Font            | Size             | Style               |
+| --------------------------- | --------------- | ---------------- | ------------------- |
+| Title                       | SimHei          | 18pt (size:36)   | Bold, centered      |
+| Section heading / highlight | SimHei          | 14pt (size:28)   | Bold                |
+| Body                        | Microsoft YaHei | 12pt (size:24)   | Left-aligned        |
+| Rhythm markers              | Microsoft YaHei | 10.5pt (size:21) | Grey 999999, italic |
+| Notes                       | Microsoft YaHei | 10pt (size:20)   | Grey 666666         |
 
 ### Paragraph Spacing
+
 ```js
 // Generous spacing between paragraphs for reading/breathing pauses
 spacing: { before: 200, after: 200, line: 400 }
@@ -69,16 +71,22 @@ sectionGap: { before: 400, after: 200 }
 ```
 
 ### Key Point Highlighting
+
 Use **bold** or **accent-colored text** to mark key selling points:
+
 ```js
-new TextRun({ text: "Key selling point", bold: true, color: c(P.accent) })
+new TextRun({ text: "Key selling point", bold: true, color: c(P.accent) });
 ```
 
 ### Rhythm Markers (optional)
+
 Insert small grey markers where pauses, emphasis, or tone changes are needed:
+
 ```js
-new Paragraph({ spacing: { before: 60, after: 60 },
-  children: [new TextRun({ text: "[Pause 2 sec]", size: 21, color: "999999", italics: true })] })
+new Paragraph({
+  spacing: { before: 60, after: 60 },
+  children: [new TextRun({ text: "[Pause 2 sec]", size: 21, color: "999999", italics: true })],
+});
 // Or inline: new TextRun({ text: " [emphasis] ", size: 18, color: "999999", italics: true })
 ```
 
@@ -88,12 +96,12 @@ new Paragraph({ spacing: { before: 60, after: 60 },
 
 ### Information Density Guide
 
-| Script Type | Duration | Word Count | Core Paragraphs |
-|-------------|----------|-----------|----------------|
-| Short video | 30–60 sec | 150–300 | 1–2 |
-| Product promotion | 2–3 min | 500–800 | 3–4 |
-| Presentation / Speech | 5–10 min | 1200–2500 | 5–8 |
-| Hosting script | Per agenda | Per segment | Per segment |
+| Script Type           | Duration   | Word Count  | Core Paragraphs |
+| --------------------- | ---------- | ----------- | --------------- |
+| Short video           | 30–60 sec  | 150–300     | 1–2             |
+| Product promotion     | 2–3 min    | 500–800     | 3–4             |
+| Presentation / Speech | 5–10 min   | 1200–2500   | 5–8             |
+| Hosting script        | Per agenda | Per segment | Per segment     |
 
 ### Scene-Specific Prohibitions
 
@@ -104,6 +112,7 @@ new Paragraph({ spacing: { before: 60, after: 60 },
 5. **No dense layout:** Paragraphs must have visible spacing — no screen-filling text walls
 
 ### Product Promotion Specific Rules
+
 - **Opening:** Lead with pain point / scenario ("Does your washing machine still smell after a cycle?"), not self-introduction
 - **Product intro:** Compare only 1–2 competitive dimensions at a time — not a full review
 - **Price anchor:** State original/market price first, then discount price — create contrast
@@ -117,11 +126,11 @@ Broadcast scripts use clean, simple colors — no complex visual design needed:
 
 ```js
 const P = {
-  primary: "#1A1A1A",    // Title
-  body: "#333333",       // Body
-  secondary: "#666666",  // Notes
-  accent: "#E85D3A",     // Key highlight (warm, energetic)
-  surface: "#FFF8F5",    // Background (if needed)
+  primary: "#1A1A1A", // Title
+  body: "#333333", // Body
+  secondary: "#666666", // Notes
+  accent: "#E85D3A", // Key highlight (warm, energetic)
+  surface: "#FFF8F5", // Background (if needed)
 };
 ```
 

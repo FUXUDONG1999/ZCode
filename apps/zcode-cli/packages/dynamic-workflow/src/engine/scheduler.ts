@@ -14,7 +14,13 @@ import { cachedAskFacts, headOfInstructions, type CachedAskFacts } from "./cache
 import { inputHash } from "./hash.js";
 import { hashMismatch } from "./hash-mismatch.js";
 import { importedAskRecord, type ImportedActorState } from "./imported-cache.js";
-import { defer, type Actor, type AskNode, type Deferred, type SchedulerHost } from "./scheduler-types.js";
+import {
+  defer,
+  type Actor,
+  type AskNode,
+  type Deferred,
+  type SchedulerHost,
+} from "./scheduler-types.js";
 import { handleSubmitAttempted, handleTurnEnded, type SubmitSeam } from "./scheduler-submit.js";
 import type {
   ActorId,
@@ -28,12 +34,7 @@ import type {
   PersonaSpec,
   SessionRef,
 } from "./types.js";
-import {
-  NUDGE_ATTEMPTS,
-  refToString,
-  REPAIR_ATTEMPTS,
-  WorkflowError,
-} from "./types.js";
+import { NUDGE_ATTEMPTS, refToString, REPAIR_ATTEMPTS, WorkflowError } from "./types.js";
 
 export type { SchedulerHost } from "./scheduler-types.js";
 
@@ -125,7 +126,12 @@ export class AskScheduler {
   }
 
   /** 受理一次 ask：完结命中短路（走 hold 规则），running 命中或未命中则 live 派发。 */
-  admitAsk(siteId: string, actorId: ActorId, instructions: string, spec: AskSpec): Promise<unknown> {
+  admitAsk(
+    siteId: string,
+    actorId: ActorId,
+    instructions: string,
+    spec: AskSpec,
+  ): Promise<unknown> {
     const actor = this.actors.get(actorId)!;
     const ordinal = this.host.nextOrdinal(siteId);
     const instance: InstanceRef = { siteId, ordinal };
@@ -160,7 +166,12 @@ export class AskScheduler {
         // （答案是否读自前驱的转录，看的是此刻的导入消费态；事件可能被结算次序闸推迟）。
         actor.pendingRecorded.set(seq, () => {
           reconcile();
-          this.releaseCachedAsk(instance, recorded, deferred, cachedAskFacts(actor.ref, seq, instructions, actor.imported));
+          this.releaseCachedAsk(
+            instance,
+            recorded,
+            deferred,
+            cachedAskFacts(actor.ref, seq, instructions, actor.imported),
+          );
         });
       }
       this.drainAdmission(actor);
@@ -380,17 +391,36 @@ export class AskScheduler {
    * 「Replaying the settle order」）。hold 规则定的是同一个 actor 内的准入次序，跨 actor 的
    * 完成次序要这一道闸才回得来——扇出分支在 await 之后的每一次 journal 调用都按它编号。
    */
-  private releaseCachedAsk(instance: InstanceRef, recorded: NodeRecord, deferred: Deferred<unknown>, facts: CachedAskFacts): void {
-    this.host.holdForReplay(instance, () => this.settleCachedAsk(instance, recorded, deferred, facts));
+  private releaseCachedAsk(
+    instance: InstanceRef,
+    recorded: NodeRecord,
+    deferred: Deferred<unknown>,
+    facts: CachedAskFacts,
+  ): void {
+    this.host.holdForReplay(instance, () =>
+      this.settleCachedAsk(instance, recorded, deferred, facts),
+    );
   }
 
-  private settleCachedAsk(instance: InstanceRef, recorded: NodeRecord, deferred: Deferred<unknown>, facts: CachedAskFacts): void {
+  private settleCachedAsk(
+    instance: InstanceRef,
+    recorded: NodeRecord,
+    deferred: Deferred<unknown>,
+    facts: CachedAskFacts,
+  ): void {
     if (recorded.status === "completed") {
       this.host.record({ type: "node-settled", instance, outcome: "ok", cached: true, ...facts });
       deferred.resolve(recorded.result);
     } else {
       // 已记录的失败也要短路复现：脚本可能已 try/catch 过它并据此分支，replay 必须重放同一 rejection。
-      this.host.record({ type: "node-settled", instance, outcome: "failed", cached: true, error: recorded.error, ...facts });
+      this.host.record({
+        type: "node-settled",
+        instance,
+        outcome: "failed",
+        cached: true,
+        error: recorded.error,
+        ...facts,
+      });
       deferred.reject(WorkflowError.fromJSON(recorded.error!));
     }
   }
@@ -466,27 +496,29 @@ export class AskScheduler {
     // 种子只有到分歧点才知道（运行期发现），所以必须在这里、由引擎侧交给 driver——引擎持有
     // 导入态，driver 持有会话 store，这个签名是两者的最小汇合点。
     const seed = actor.imported?.seed();
-    const promise = this.host.driver.createActorSession(actor.ref, actor.persona, seed).then((session) => {
-      actor.session = session;
-      // resolvedModel 由宿主侧的 runtime 工厂在 createActorSession **内部**写下（它才知道
-      // "lite" 落到哪个模型）。putActor 是整条记录的替换，所以这条写入必须把刚写下的值读回来
-      // 带过去，否则这里就会把它抹掉——档位解析的审计与 resume 依据随之丢失。
-      const resolvedModel = this.journal.getActor(
-        this.host.runId,
-        actor.ref.siteId,
-        actor.ref.ordinal,
-      )?.resolvedModel;
-      this.journal.putActor({
-        runId: this.host.runId,
-        siteId: actor.ref.siteId,
-        ordinal: actor.ref.ordinal,
-        name: actor.name,
-        persona: actor.persona,
-        sessionId: session.id,
-        resolvedModel,
+    const promise = this.host.driver
+      .createActorSession(actor.ref, actor.persona, seed)
+      .then((session) => {
+        actor.session = session;
+        // resolvedModel 由宿主侧的 runtime 工厂在 createActorSession **内部**写下（它才知道
+        // "lite" 落到哪个模型）。putActor 是整条记录的替换，所以这条写入必须把刚写下的值读回来
+        // 带过去，否则这里就会把它抹掉——档位解析的审计与 resume 依据随之丢失。
+        const resolvedModel = this.journal.getActor(
+          this.host.runId,
+          actor.ref.siteId,
+          actor.ref.ordinal,
+        )?.resolvedModel;
+        this.journal.putActor({
+          runId: this.host.runId,
+          siteId: actor.ref.siteId,
+          ordinal: actor.ref.ordinal,
+          name: actor.name,
+          persona: actor.persona,
+          sessionId: session.id,
+          resolvedModel,
+        });
+        return session;
       });
-      return session;
-    });
     actor.sessionPromise = promise;
     return promise;
   }
@@ -508,7 +540,12 @@ export class AskScheduler {
     // 结算失败必须落 journal（覆盖准入时的 running）：失败是"完结"，且脚本可能已观察到该 rejection
     // 并据此分支，replay 必须复现它——journal 化失败是重放正确性的硬性要求，而非可选。
     this.journal.putNode(this.nodeRecordFor(node, { status: "failed", error: error.toJSON() }));
-    this.host.record({ type: "node-settled", instance: node.instance, outcome: "failed", error: error.toJSON() });
+    this.host.record({
+      type: "node-settled",
+      instance: node.instance,
+      outcome: "failed",
+      error: error.toJSON(),
+    });
     this.finishLiveNode(node);
     // 节点失败只 reject 该 ask，不失败整个 run（脚本可 try/catch）。
     node.deferred.reject(error);
@@ -525,7 +562,9 @@ export class AskScheduler {
 
   private nodeRecordFor(
     node: AskNode,
-    outcome: { status: "completed"; result: unknown } | { status: "failed"; error: NodeRecord["error"] },
+    outcome:
+      | { status: "completed"; result: unknown }
+      | { status: "failed"; error: NodeRecord["error"] },
   ): NodeRecord {
     const record: NodeRecord = {
       runId: this.host.runId,

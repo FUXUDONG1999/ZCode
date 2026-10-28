@@ -10,17 +10,16 @@
 
 以下命令从仓库根目录执行：
 
-| 用途             | 命令                                                 |
-| ---------------- | ---------------------------------------------------- |
-| 类型检查         | `pnpm typecheck`                                     |
-| Lint             | `pnpm lint` / `pnpm lint:fix`                        |
-| 格式检查         | `pnpm fmt:check`                                     |
-| 桌面开发         | `pnpm dev:desktop`                                   |
-| 未使用依赖与导出 | `pnpm knip`                                          |
-| 导出引用查询     | `pnpm dep:refs --list-exports <file>`                |
+| 用途             | 命令                                  |
+| ---------------- | ------------------------------------- |
+| 类型检查         | `pnpm typecheck`                      |
+| Lint             | `pnpm lint` / `pnpm lint:fix`         |
+| 格式检查         | `pnpm fmt:check`                      |
+| 桌面开发         | `pnpm dev:desktop`                    |
+| 未使用依赖与导出 | `pnpm knip`                           |
+| 导出引用查询     | `pnpm dep:refs --list-exports <file>` |
 
-
-测试入口以目标包当前的 `package.json` 和实际测试文件为准，不假定存在统一的单测或 E2E 命令。
+个人版已移除全部测试与测试基础设施（单测、E2E、vitest/wdio、e2e-report），不做测试验证；行为验证以 typecheck/lint/fmt 与实际运行 dev 为准。
 
 - `packages/desktop`：Electron main、host、renderer。
 - `packages/server`：远程工作区与 HTTP/WS 服务层（desktop 依赖）。
@@ -34,7 +33,7 @@
 ## 实现与验证
 
 - 避免重复状态和多条写入路径。明确唯一所有者、接口、依赖方向、事件顺序与幂等边界，不能用超时掩盖同步问题。
-- 有行为改动时先补充对应测试；交互改动需要 E2E 场景。检查测试与实现是否一致，并实际执行可用的验证。未执行或环境受限时如实说明。
+- 行为验证以 `pnpm typecheck`、`pnpm lint` 和实际运行为准；改动后在 dev 里人工体验确认，未执行或环境受限时如实说明。
 - 修复 bug 时用中文注释说明原因和修复依据。发现设计缺陷时先与用户对齐，不不断增加兜底分支。
 - PR 描述须说明背景、设计意图与修改前后行为；包含 bugfix 时逐项说明触发场景、根因证据、修复机制及回归验证，并尽量关联已有工单链接。未确认的根因或引入提交如实标注，不根据模块或时间接近推断归因。
 - 涉及状态、时序、远端或异步同步的方案，用图展示所有者及事件顺序。

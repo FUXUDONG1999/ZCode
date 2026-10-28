@@ -89,6 +89,7 @@ eval <user command> && pwd -P > <cwdFile>
 ## Task 1: 扩展 Execution Contract
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/contracts/src/interfaces/execution.port.ts`
 
 - [ ] **Step 1: 写 contract 字段**
@@ -127,6 +128,7 @@ Expected: PASS。
 ## Task 2: Adapter 捕获成功命令的最终 cwd
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/adapters/src/exec/index.ts`
 - Add: `apps/zcode-cli/packages/adapters/src/exec/cwd-capture.ts`
 - Test: `apps/zcode-cli/packages/adapters/tests/exec.test.ts`
@@ -368,6 +370,7 @@ Expected: PASS。
 ## Task 3: Tool Context 增加 cwd setter
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/tool/types.ts`
 - Modify: `apps/zcode-cli/packages/core/src/tool/executor/types.ts`
 - Modify: `apps/zcode-cli/packages/core/src/tool/executor/call-runner.ts`
@@ -410,7 +413,7 @@ Expected: PASS。
 中文注释写在 setter 旁边：
 
 ```ts
-        // Bash 成功执行后会回写 cwd；只更新当前 runtime 实例，避免污染父 agent 或其他 session。
+// Bash 成功执行后会回写 cwd；只更新当前 runtime 实例，避免污染父 agent 或其他 session。
 ```
 
 - [ ] **Step 4: 跑 core typecheck**
@@ -426,6 +429,7 @@ Expected: PASS。
 ## Task 4: Bash Handler 消费 resolvedCwd
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/tool/handlers/bash.ts`
 - Test: `apps/zcode-cli/packages/core/tests/bash-handler.test.ts`
 
@@ -504,7 +508,10 @@ it("does not capture or update cwd for background Bash execution", async () => {
 ```ts
 it.each([
   ["failed", executionResult({ status: "failed", exitCode: 1, resolvedCwd: "/tmp/ignored" })],
-  ["timed_out", executionResult({ status: "timed_out", timedOut: true, resolvedCwd: "/tmp/ignored" })],
+  [
+    "timed_out",
+    executionResult({ status: "timed_out", timedOut: true, resolvedCwd: "/tmp/ignored" }),
+  ],
 ])("does not update cwd for %s Bash results", async (_name, result) => {
   let observedCwd: string | undefined;
   const executionPort: ExecutionPort = {
@@ -547,16 +554,16 @@ Expected: FAIL，失败原因是 Bash request 未设置 capture 或未消费 `re
 `bashHandler` foreground run 后，在 `toBashOutput` 前消费：
 
 ```ts
-  if (result.status === "completed" && result.exitCode === 0 && result.resolvedCwd) {
-    await context.setWorkingDirectory?.(result.resolvedCwd);
-  }
+if (result.status === "completed" && result.exitCode === 0 && result.resolvedCwd) {
+  await context.setWorkingDirectory?.(result.resolvedCwd);
+}
 ```
 
 中文注释：
 
 ```ts
-  // 修复原因：Bash 不复用 shell 进程，需要把成功 Bash 的最终 cwd 写回会话，后续调用才从新 cwd 执行。
-  // 这里仅更新内部 runtime cwd，不改变 provider-visible Bash output。
+// 修复原因：Bash 不复用 shell 进程，需要把成功 Bash 的最终 cwd 写回会话，后续调用才从新 cwd 执行。
+// 这里仅更新内部 runtime cwd，不改变 provider-visible Bash output。
 ```
 
 - [ ] **Step 6: 跑 handler 测试**
@@ -572,6 +579,7 @@ Expected: PASS。
 ## Task 5: Runtime 级回归测试
 
 **Files:**
+
 - Test: `apps/zcode-cli/packages/core/tests/runtime-tool-loop.test.ts`
 
 - [ ] **Step 1: 写跨 Bash call cwd 持久化测试**
@@ -636,6 +644,7 @@ Expected: PASS。
 ## Task 6: 副作用回归测试
 
 **Files:**
+
 - Test: `apps/zcode-cli/packages/core/tests/tool-executor-trace.test.ts`
 - Test: `apps/zcode-cli/packages/core/tests/bash-handler.test.ts`
 - Test: `apps/zcode-cli/packages/core/tests/tool-contracts.test.ts`
@@ -740,33 +749,33 @@ Expected: 第二个 Bash result 的 stdout 是 `/tmp/zcode-cwd-smoke/child`。
 
 ## Shell / cwd 依赖影响梳理
 
-| 依赖方 | 当前依赖 | 本次影响评估 |
-| --- | --- | --- |
-| Bash foreground | 由 Bash handler 设置 `shellProfile: "posix-bash"` 和 `captureCwdAfterSuccess: true`，成功后消费 `ExecutionResult.resolvedCwd`。 | 受影响且符合预期：main scope 项目内 cwd 持久化；项目外 cwd reset 到 `workspaceRoot` 并追加 reset stderr。 |
-| Bash background | Bash handler 走 `executionPort.start`，request 不设置 cwd capture；adapter `start()` 也会移除 capture 字段。 | 不更新 cwd，不追加 reset；background stdout/stderr path 行为保持原状。 |
-| subagent Bash | `AgentRuntime` 把 `taskType: "subagent_child"` 映射为 `runtimeScope: "subagent"`。 | 不消费 `resolvedCwd`，不 reset，不追加 provider-visible cwd 文案，subagent 不改变 cwd。 |
-| failed / timeout / cancelled / spawn_error Bash | adapter 只在 `status === "completed" && exitCode === 0` 时返回 `resolvedCwd`；policy 也只接受该状态。 | 不更新 cwd，不追加 reset，避免失败命令污染会话 cwd。 |
-| configured hooks / plugin command hooks | hooks 直接调用 `ExecutionPort.run({ command: { mode: "shell" } })`，不设置 `shellProfile` 或 `captureCwdAfterSuccess`。 | 不捕获 cwd，不更新 runtime cwd；只会继续使用当前 runtime cwd 作为 hook 执行目录。 |
-| generic `ExecutionPort` shell request | contract 默认 `captureCwdAfterSuccess` 为 false，`cwd-capture` 只在显式 true 且 `mode: "shell"` 时生效。 | 默认行为不变；非 Bash caller 不会因为 shell mode 自动持久化 cwd。 |
-| Read/Edit/Write/Glob/Grep/Agent/Workflow 等 tool | 通过 `context.workingDirectory` 和稳定 `context.workspaceRoot` 做路径解析或权限边界。 | 只会看到 Bash 成功更新后的执行 cwd；workspace root / project identity 不随 cwd 漂移。 |
-| MCP / memory / hooks context / history persistence | 读取 runtime 当前 `workingDirectory`；message `path.root` 使用稳定 `workspaceRoot`。 | message `path.cwd` 可反映 Bash cwd；`path.root`、project id、session discovery 不改变。 |
-| symlink workspace | context root 可能是用户传入的 symlink，cwd capture 使用 `pwd -P` / realpath 得到物理路径。 | policy 统一比较逻辑路径和 realpath 等价边界，避免把项目内物理 child 误判成项目外。 |
-| Windows shell | foreground cwd capture 使用 cmd-compatible wrapper；cwd policy 在生产路径使用当前 Node 运行平台，不向 `ToolExecutionContext` / executor 透传 platform；Windows path 归一化由共享 tool path normalizer 覆盖 drive-letter、extended drive prefix、Git Bash `/c/...` alias。 | 默认 cmd/ComSpec 路径继续可用；POSIX wrapper 不会套到 Windows shell 上；Windows path 归一化不再由 Bash 单独维护，也不会根据 path 字符串反推平台；helper 单测可显式传入 `win32` 覆盖 Windows 分支。 |
+| 依赖方                                             | 当前依赖                                                                                                                                                                                                                                                                  | 本次影响评估                                                                                                                                                                                       |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bash foreground                                    | 由 Bash handler 设置 `shellProfile: "posix-bash"` 和 `captureCwdAfterSuccess: true`，成功后消费 `ExecutionResult.resolvedCwd`。                                                                                                                                           | 受影响且符合预期：main scope 项目内 cwd 持久化；项目外 cwd reset 到 `workspaceRoot` 并追加 reset stderr。                                                                                          |
+| Bash background                                    | Bash handler 走 `executionPort.start`，request 不设置 cwd capture；adapter `start()` 也会移除 capture 字段。                                                                                                                                                              | 不更新 cwd，不追加 reset；background stdout/stderr path 行为保持原状。                                                                                                                             |
+| subagent Bash                                      | `AgentRuntime` 把 `taskType: "subagent_child"` 映射为 `runtimeScope: "subagent"`。                                                                                                                                                                                        | 不消费 `resolvedCwd`，不 reset，不追加 provider-visible cwd 文案，subagent 不改变 cwd。                                                                                                            |
+| failed / timeout / cancelled / spawn_error Bash    | adapter 只在 `status === "completed" && exitCode === 0` 时返回 `resolvedCwd`；policy 也只接受该状态。                                                                                                                                                                     | 不更新 cwd，不追加 reset，避免失败命令污染会话 cwd。                                                                                                                                               |
+| configured hooks / plugin command hooks            | hooks 直接调用 `ExecutionPort.run({ command: { mode: "shell" } })`，不设置 `shellProfile` 或 `captureCwdAfterSuccess`。                                                                                                                                                   | 不捕获 cwd，不更新 runtime cwd；只会继续使用当前 runtime cwd 作为 hook 执行目录。                                                                                                                  |
+| generic `ExecutionPort` shell request              | contract 默认 `captureCwdAfterSuccess` 为 false，`cwd-capture` 只在显式 true 且 `mode: "shell"` 时生效。                                                                                                                                                                  | 默认行为不变；非 Bash caller 不会因为 shell mode 自动持久化 cwd。                                                                                                                                  |
+| Read/Edit/Write/Glob/Grep/Agent/Workflow 等 tool   | 通过 `context.workingDirectory` 和稳定 `context.workspaceRoot` 做路径解析或权限边界。                                                                                                                                                                                     | 只会看到 Bash 成功更新后的执行 cwd；workspace root / project identity 不随 cwd 漂移。                                                                                                              |
+| MCP / memory / hooks context / history persistence | 读取 runtime 当前 `workingDirectory`；message `path.root` 使用稳定 `workspaceRoot`。                                                                                                                                                                                      | message `path.cwd` 可反映 Bash cwd；`path.root`、project id、session discovery 不改变。                                                                                                            |
+| symlink workspace                                  | context root 可能是用户传入的 symlink，cwd capture 使用 `pwd -P` / realpath 得到物理路径。                                                                                                                                                                                | policy 统一比较逻辑路径和 realpath 等价边界，避免把项目内物理 child 误判成项目外。                                                                                                                 |
+| Windows shell                                      | foreground cwd capture 使用 cmd-compatible wrapper；cwd policy 在生产路径使用当前 Node 运行平台，不向 `ToolExecutionContext` / executor 透传 platform；Windows path 归一化由共享 tool path normalizer 覆盖 drive-letter、extended drive prefix、Git Bash `/c/...` alias。 | 默认 cmd/ComSpec 路径继续可用；POSIX wrapper 不会套到 Windows shell 上；Windows path 归一化不再由 Bash 单独维护，也不会根据 path 字符串反推平台；helper 单测可显式传入 `win32` 覆盖 Windows 分支。 |
 
 ## 风险清单
 
-| 风险 | 控制方式 |
-| --- | --- |
-| 失败命令也改变 cwd | wrapper 只在 exit code 0 时写 cwd file。 |
-| provider-visible output 变化 | `resolvedCwd` 只在内部 context setter 消费，不进入 `BashOutput`；只有 main foreground 成功离开项目边界时追加 reset stderr。 |
-| background command 改变 session cwd | background request 不设置 `captureCwdAfterSuccess`，handler 不消费 cwd。 |
-| hooks/plugin 被影响 | 只由 Bash handler 开启 capture；generic `mode: "shell"` 默认行为不变。 |
-| 其它 tool 误用 setter | executor 不自动调用 setter；只有 Bash handler 消费 `resolvedCwd`。 |
-| provider-visible 内容泄漏 cwd | `resolvedCwd` 不进入 `BashOutput`；增加 formatter/serializer 回归测试。 |
-| 并发 Bash 更新顺序不确定 | 保持 Bash `concurrentSafe: false`，本计划不改变调度语义。 |
-| cwd file 泄漏 | adapter 读取后 `finally` 删除；读取失败也删除。 |
-| subagent 污染 main runtime cwd | setter 只更新当前 runtime 实例。 |
-| Windows 行为偏移 | 默认 `cmd.exe` / `ComSpec` shell 已使用 cmd-compatible wrapper 捕获 cwd；PowerShell / Git Bash shell provider 仍作为后续独立范围。 |
+| 风险                                | 控制方式                                                                                                                           |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 失败命令也改变 cwd                  | wrapper 只在 exit code 0 时写 cwd file。                                                                                           |
+| provider-visible output 变化        | `resolvedCwd` 只在内部 context setter 消费，不进入 `BashOutput`；只有 main foreground 成功离开项目边界时追加 reset stderr。        |
+| background command 改变 session cwd | background request 不设置 `captureCwdAfterSuccess`，handler 不消费 cwd。                                                           |
+| hooks/plugin 被影响                 | 只由 Bash handler 开启 capture；generic `mode: "shell"` 默认行为不变。                                                             |
+| 其它 tool 误用 setter               | executor 不自动调用 setter；只有 Bash handler 消费 `resolvedCwd`。                                                                 |
+| provider-visible 内容泄漏 cwd       | `resolvedCwd` 不进入 `BashOutput`；增加 formatter/serializer 回归测试。                                                            |
+| 并发 Bash 更新顺序不确定            | 保持 Bash `concurrentSafe: false`，本计划不改变调度语义。                                                                          |
+| cwd file 泄漏                       | adapter 读取后 `finally` 删除；读取失败也删除。                                                                                    |
+| subagent 污染 main runtime cwd      | setter 只更新当前 runtime 实例。                                                                                                   |
+| Windows 行为偏移                    | 默认 `cmd.exe` / `ComSpec` shell 已使用 cmd-compatible wrapper 捕获 cwd；PowerShell / Git Bash shell provider 仍作为后续独立范围。 |
 
 ## 完成标准
 

@@ -145,9 +145,7 @@ function staticEffectiveName(call: ts.CallExpression): string | undefined {
       if (property.name !== undefined && ts.isComputedPropertyName(property.name)) return undefined;
       if (property.name === undefined || !isNameKey(property.name)) continue;
       if (!ts.isPropertyAssignment(property)) return undefined; // shorthand / 方法：动态
-      return ts.isStringLiteralLike(property.initializer)
-        ? property.initializer.text
-        : undefined;
+      return ts.isStringLiteralLike(property.initializer) ? property.initializer.text : undefined;
     }
     // 对象字面量里没有 name，落回 name 实参。
   }

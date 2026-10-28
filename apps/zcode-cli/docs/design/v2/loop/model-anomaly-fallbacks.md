@@ -72,8 +72,12 @@ tool call 总数超过某个数字时，不改变 tools 列表、不注入禁止
 
 ```typescript
 interface ModelAnomalyWarningPayload {
-  category: 'tool_call_budget' | 'repeated_tool_call' | 'provider_finish_mismatch' | 'malformed_tool_call';
-  severity: 'info' | 'warning';
+  category:
+    | "tool_call_budget"
+    | "repeated_tool_call"
+    | "provider_finish_mismatch"
+    | "malformed_tool_call";
+  severity: "info" | "warning";
   observedCount?: number;
   threshold?: number;
   toolName?: string;
@@ -125,19 +129,19 @@ runtime 维护一个按单个 turn 生命周期存在的 repeated-tool-call stre
 
 ## 五、其他模型异常兜底清单
 
-| 场景 | 兜底策略 | 是否硬停止 |
-|------|----------|------------|
-| tool calls 很多 | 只记录 telemetry/trace；可选非阻塞 warning | 否 |
-| 连续重复相同 tool call | 注入模型 warning，发事件；有副作用时走权限策略 | 否 |
-| provider `stop` 但带 tool calls | 优先处理 tool calls，并记录 provider mismatch | 否 |
-| malformed tool arguments | 转成模型可见 tool/function error，让模型修正 | 否，除非 schema/adapter 无法构造回灌 |
-| empty non-stop model result | 转成 `model_error`，发 `turn_error` 并在 TUI transcript 展示错误 | 是 |
-| unsupported tool name | 回灌模型可见错误，提示可用工具范围 | 否 |
-| stream 断开/idle timeout | 按 provider retry 策略重试，达到上限后 turn error | 达上限后是 |
-| request 429/5xx/network | 按 retry policy 重试，记录 attempt 和 backoff | 达上限后是 |
-| context overflow | 尝试 auto compact；compact 成功后继续 | compact 失败后是 |
-| tool output 过大 | 截断并保留 artifact/ref | 否 |
-| tool timeout / user cancel | 生成 aborted/timeout tool result 或 turn cancel | 取决于工具契约 |
+| 场景                            | 兜底策略                                                         | 是否硬停止                           |
+| ------------------------------- | ---------------------------------------------------------------- | ------------------------------------ |
+| tool calls 很多                 | 只记录 telemetry/trace；可选非阻塞 warning                       | 否                                   |
+| 连续重复相同 tool call          | 注入模型 warning，发事件；有副作用时走权限策略                   | 否                                   |
+| provider `stop` 但带 tool calls | 优先处理 tool calls，并记录 provider mismatch                    | 否                                   |
+| malformed tool arguments        | 转成模型可见 tool/function error，让模型修正                     | 否，除非 schema/adapter 无法构造回灌 |
+| empty non-stop model result     | 转成 `model_error`，发 `turn_error` 并在 TUI transcript 展示错误 | 是                                   |
+| unsupported tool name           | 回灌模型可见错误，提示可用工具范围                               | 否                                   |
+| stream 断开/idle timeout        | 按 provider retry 策略重试，达到上限后 turn error                | 达上限后是                           |
+| request 429/5xx/network         | 按 retry policy 重试，记录 attempt 和 backoff                    | 达上限后是                           |
+| context overflow                | 尝试 auto compact；compact 成功后继续                            | compact 失败后是                     |
+| tool output 过大                | 截断并保留 artifact/ref                                          | 否                                   |
+| tool timeout / user cancel      | 生成 aborted/timeout tool result 或 turn cancel                  | 取决于工具契约                       |
 
 ---
 

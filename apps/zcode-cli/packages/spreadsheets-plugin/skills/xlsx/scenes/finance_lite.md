@@ -10,18 +10,18 @@ Also load `engines/design.md` for styling (use **standard** design tokens, NOT I
 
 ## When to Use finance_lite vs finance
 
-| Signal | finance_lite ✅ | finance.md ❌ |
-|--------|----------------|--------------|
-| 预算表 / budget | ✅ | |
-| 费用报表 / expense report | ✅ | |
-| 项目成本追踪 / project cost tracking | ✅ | |
-| 收支对比 / revenue vs cost | ✅ | |
-| 个人记账 / personal finance | ✅ | |
-| 简单 ROI 计算 / simple ROI calculation | ✅ | |
-| DCF / LBO / 估值模型 (valuation model) | | ✅ |
-| 三表联动 (P&L + BS + CF) | | ✅ |
-| 敏感性分析 / scenario table | | ✅ |
-| IB pitch book level formatting | | ✅ |
+| Signal                                 | finance_lite ✅ | finance.md ❌ |
+| -------------------------------------- | --------------- | ------------- |
+| 预算表 / budget                        | ✅              |               |
+| 费用报表 / expense report              | ✅              |               |
+| 项目成本追踪 / project cost tracking   | ✅              |               |
+| 收支对比 / revenue vs cost             | ✅              |               |
+| 个人记账 / personal finance            | ✅              |               |
+| 简单 ROI 计算 / simple ROI calculation | ✅              |               |
+| DCF / LBO / 估值模型 (valuation model) |                 | ✅            |
+| 三表联动 (P&L + BS + CF)               |                 | ✅            |
+| 敏感性分析 / scenario table            |                 | ✅            |
+| IB pitch book level formatting         |                 | ✅            |
 
 ---
 
@@ -40,21 +40,25 @@ Sheet: "Budget" (or user-specified name)
 ### Typical Column Patterns
 
 **Budget Table:**
+
 ```
 Category (类别) | Budget Amount (预算金额) | Actual Amount (实际金额) | Variance (差异) | Variance Rate (差异率) | Notes (备注)
 ```
 
 **Expense Report:**
+
 ```
 Date (日期) | Category (类别) | Description (说明) | Amount (金额) | Claimant (报销人) | Status (状态)
 ```
 
 **Revenue vs Cost:**
+
 ```
 Month (月份) | Revenue (收入) | Cost (成本) | Gross Profit (毛利) | Gross Margin (毛利率)
 ```
 
 **Project Cost:**
+
 ```
 Phase (阶段) | Task (任务) | Budget (预算) | Used (已用) | Remaining (剩余) | Usage Rate (使用率) | Status (状态)
 ```
@@ -102,6 +106,7 @@ cell.number_format = FORMATS['date']           # YYYY-MM-DD
 ```
 
 For budget-specific formatting (negatives in parentheses):
+
 ```python
 BUDGET_FORMATS = {
     'currency':    '¥#,##0.00;(¥#,##0.00);"-"',

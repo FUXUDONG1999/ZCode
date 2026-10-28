@@ -6,9 +6,9 @@
 
 ## 输入契约
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `patch_text` | `string` | 是 | 完整 patch 文本，必须包含 `*** Begin Patch` 和 `*** End Patch` |
+| 字段         | 类型     | 必填 | 说明                                                           |
+| ------------ | -------- | ---- | -------------------------------------------------------------- |
+| `patch_text` | `string` | 是   | 完整 patch 文本，必须包含 `*** Begin Patch` 和 `*** End Patch` |
 
 支持的文件操作：
 
@@ -27,11 +27,11 @@ Update hunk 语义：
 
 ## 输出契约
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `files` | array | 每个受影响文件的路径、操作类型、diff、增删行数 |
-| `structuredPatch` | array | 所有文件的展示用 diff hunk |
-| `summary` | string | 短摘要，例如 `M src/a.ts`、`A src/b.ts` |
+| 字段              | 类型   | 说明                                           |
+| ----------------- | ------ | ---------------------------------------------- |
+| `files`           | array  | 每个受影响文件的路径、操作类型、diff、增删行数 |
+| `structuredPatch` | array  | 所有文件的展示用 diff hunk                     |
+| `summary`         | string | 短摘要，例如 `M src/a.ts`、`A src/b.ts`        |
 
 模型可见结果只返回短确认和文件摘要；完整 diff 进入结构化 output、权限 UI、事件和 debug 投影。TUI diff preview 与 `Edit` 共用同一套结构化 hunk 投影和 Shiki token 高亮路径，失败时降级为纯文本 diff。
 
@@ -47,7 +47,7 @@ Update hunk 语义：
 6. 任一 hunk 找不到、路径非法、文件状态不符合操作类型或 parser 失败时，整个 patch 失败且不产生任何文件副作用。
 7. 所有 verification 成功后生成每文件 diff，进入 edit 权限审批。
 8. 如果任一文件编码不支持、疑似二进制、或 patched content 无法编码回原编码，整次 patch 必须失败且不写入任何文件。
-8. 审批通过后再按文件应用写入和删除。
+9. 审批通过后再按文件应用写入和删除。
 
 ## 权限模型
 

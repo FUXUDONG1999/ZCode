@@ -6,6 +6,7 @@
 > **Positioning**: This is the mirror counterpart of `overflow.md` (anti-overflow) — overflow handles "too much content", fill-engine handles "too little content".
 >
 > Related:
+>
 > - `overflow.md` — Anti-overflow layout system (degradation strategy for excessive content)
 > - `pagination.md` — Pagination & cross-page integrity control
 > - `cover.md` — Cover layout engine (covers not affected by Fill Engine; they have their own layout system)
@@ -27,18 +28,18 @@
 
 ### Absolute Font Size Floor
 
-| Element | Single-column | Double-column | Notes |
-|------|---------|---------|------|
-| **Body Text** | **≥ 14pt** | **≥ 12pt** | Below this → considered unreadable, must trigger page break |
-| **Default base size** | 15pt (CJK) / 14pt (Latin) | 13pt (CJK) / 12pt (Latin) | Starting value, not ceiling |
+| Element               | Single-column             | Double-column             | Notes                                                       |
+| --------------------- | ------------------------- | ------------------------- | ----------------------------------------------------------- |
+| **Body Text**         | **≥ 14pt**                | **≥ 12pt**                | Below this → considered unreadable, must trigger page break |
+| **Default base size** | 15pt (CJK) / 14pt (Latin) | 13pt (CJK) / 12pt (Latin) | Starting value, not ceiling                                 |
 
 ### Heading Scale Hard Floor
 
-| Level | Min Size | Recommended |
-|------|---------|---------|
-| **H1** (primary heading / page title) | **≥ 32pt** | 36–42pt |
-| **H2** (secondary heading) | **≥ 24pt** | 26–30pt |
-| **H3** (tertiary heading) | **≥ 18pt** | 20–22pt |
+| Level                                 | Min Size   | Recommended |
+| ------------------------------------- | ---------- | ----------- |
+| **H1** (primary heading / page title) | **≥ 32pt** | 36–42pt     |
+| **H2** (secondary heading)            | **≥ 24pt** | 26–30pt     |
+| **H3** (tertiary heading)             | **≥ 18pt** | 20–22pt     |
 
 ### Coordination with overflow.md
 
@@ -82,12 +83,12 @@ def calculate_fill_ratio(content_blocks, available_height, default_styles):
 
 ### Elastic Inflation Trigger Conditions
 
-| Fill Ratio | Status | Action |
-|--------|------|------|
-| **≥ 80%** | ✅ Full | No adjustment, render normally |
-| **65%–80%** | ⚠️ Slightly empty | Light inflation (line-height + paragraph spacing only) |
+| Fill Ratio  | Status              | Action                                                                              |
+| ----------- | ------------------- | ----------------------------------------------------------------------------------- |
+| **≥ 80%**   | ✅ Full             | No adjustment, render normally                                                      |
+| **65%–80%** | ⚠️ Slightly empty   | Light inflation (line-height + paragraph spacing only)                              |
 | **40%–65%** | 🔶 Noticeably empty | Full inflation (line-height + spacing + slight font increase + component inflation) |
-| **< 40%** | 🔴 Extremely empty | Full inflation + Y-axis golden ratio anchoring (Safety Net 4) |
+| **< 40%**   | 🔴 Extremely empty  | Full inflation + Y-axis golden ratio anchoring (Safety Net 4)                       |
 
 ### Inflation Parameters (Triggered when fill ratio < 65%)
 
@@ -112,12 +113,12 @@ def inflate_line_height(base_line_height, fill_ratio):
 ```
 
 | Fill Ratio | Base line-height 1.4 → After inflation |
-|--------|---------------------|
-| 65% | 1.40 (unchanged) |
-| 55% | 1.63 |
-| 45% | 1.86 |
-| 35% | 2.09 |
-| ≤30% | 2.20 (cap) |
+| ---------- | -------------------------------------- |
+| 65%        | 1.40 (unchanged)                       |
+| 55%        | 1.63                                   |
+| 45%        | 1.86                                   |
+| 35%        | 2.09                                   |
+| ≤30%       | 2.20 (cap)                             |
 
 #### 2b. Paragraph Spacing Compensation (Margin-Bottom Injection)
 
@@ -141,6 +142,7 @@ def inject_paragraph_spacing(remaining_height, paragraph_count, heading_count):
 ```
 
 **Injection positions (by priority):**
+
 1. Between headings and body text (below H1/H2/H3)
 2. Between natural paragraphs
 3. Between body text and charts/tables
@@ -258,10 +260,10 @@ def anchor_content_vertically(content_bbox_height, available_height, fill_ratio)
 
 ### Option Selection
 
-| Option | Formula | Visual Effect | Applicable Scenario |
-|------|------|---------|---------|
-| **A. Golden ratio offset-up** (default) | `offset = remaining * 0.382` | Slightly less whitespace above, more below, visually stable | Most scenarios |
-| **B. Absolute center** | `offset = remaining / 2` | Perfectly symmetrical | Minimal pages with single element |
+| Option                                  | Formula                      | Visual Effect                                               | Applicable Scenario               |
+| --------------------------------------- | ---------------------------- | ----------------------------------------------------------- | --------------------------------- |
+| **A. Golden ratio offset-up** (default) | `offset = remaining * 0.382` | Slightly less whitespace above, more below, visually stable | Most scenarios                    |
+| **B. Absolute center**                  | `offset = remaining / 2`     | Perfectly symmetrical                                       | Minimal pages with single element |
 
 ### Effect Illustration
 
@@ -374,9 +376,15 @@ body {
   font-size: max(var(--body-font, 15px), var(--body-min-font));
 }
 
-h1 { font-size: max(var(--h1-font, 36px), var(--h1-min-font)); }
-h2 { font-size: max(var(--h2-font, 28px), var(--h2-min-font)); }
-h3 { font-size: max(var(--h3-font, 22px), var(--h3-min-font)); }
+h1 {
+  font-size: max(var(--h1-font, 36px), var(--h1-min-font));
+}
+h2 {
+  font-size: max(var(--h2-font, 28px), var(--h2-min-font));
+}
+h3 {
+  font-size: max(var(--h3-font, 22px), var(--h3-min-font));
+}
 
 /* Safety Net 2-3: Dynamically injected after JS virtual render */
 /* Before Playwright screenshot, run Fill Engine JS via page.evaluate() */
@@ -396,47 +404,47 @@ function runFillEngine(pageElement) {
   // 2a. Line-height inflation
   const inflation = Math.min((0.65 - fillRatio) / 0.35, 1.0);
   const newLH = 1.4 + (2.2 - 1.4) * inflation;
-  root.setProperty('--body-line-height', newLH.toFixed(2));
-  pageElement.querySelectorAll('p, li').forEach(el => {
+  root.setProperty("--body-line-height", newLH.toFixed(2));
+  pageElement.querySelectorAll("p, li").forEach((el) => {
     el.style.lineHeight = newLH.toFixed(2);
   });
 
   // 2c. Font scaling
-  if (fillRatio < 0.50) {
-    pageElement.querySelectorAll('p, li').forEach(el => {
+  if (fillRatio < 0.5) {
+    pageElement.querySelectorAll("p, li").forEach((el) => {
       const size = parseFloat(getComputedStyle(el).fontSize);
-      el.style.fontSize = Math.min(size + 2, size + 2) + 'px'; // +2pt max
+      el.style.fontSize = Math.min(size + 2, size + 2) + "px"; // +2pt max
     });
   } else if (fillRatio < 0.65) {
-    pageElement.querySelectorAll('p, li').forEach(el => {
+    pageElement.querySelectorAll("p, li").forEach((el) => {
       const size = parseFloat(getComputedStyle(el).fontSize);
-      el.style.fontSize = (size + 1) + 'px'; // +1pt
+      el.style.fontSize = size + 1 + "px"; // +1pt
     });
   }
 
   // 3a. Table height expansion
-  pageElement.querySelectorAll('td, th').forEach(cell => {
-    const extra = Math.min(20, Math.round((0.65 - fillRatio) / 0.25 * 20));
-    cell.style.paddingTop = (6 + extra) + 'px';
-    cell.style.paddingBottom = (6 + extra) + 'px';
+  pageElement.querySelectorAll("td, th").forEach((cell) => {
+    const extra = Math.min(20, Math.round(((0.65 - fillRatio) / 0.25) * 20));
+    cell.style.paddingTop = 6 + extra + "px";
+    cell.style.paddingBottom = 6 + extra + "px";
   });
 
   // 3b. Blockquote exaggeration
-  pageElement.querySelectorAll('blockquote').forEach(bq => {
+  pageElement.querySelectorAll("blockquote").forEach((bq) => {
     const size = parseFloat(getComputedStyle(bq).fontSize);
-    bq.style.fontSize = (size * 1.5) + 'px';
-    bq.style.fontStyle = 'italic';
-    bq.style.marginTop = '40px';
-    bq.style.marginBottom = '40px';
+    bq.style.fontSize = size * 1.5 + "px";
+    bq.style.fontStyle = "italic";
+    bq.style.marginTop = "40px";
+    bq.style.marginBottom = "40px";
   });
 
   // Safety Net 4: Y-axis anchoring
   const newContentH = pageElement.scrollHeight;
   const newRatio = newContentH / pageH;
-  if (newRatio < 0.40) {
+  if (newRatio < 0.4) {
     const remaining = pageH - newContentH;
     const offset = remaining * 0.382;
-    pageElement.style.paddingTop = offset + 'px';
+    pageElement.style.paddingTop = offset + "px";
   }
 }
 ```
@@ -502,12 +510,12 @@ Input content arrives
 
 ## Coordination with Other Specifications
 
-| Specification | Relationship | Coordination Rule |
-|------|------|---------|
-| `overflow.md` | Complementary (overflow vs void) | overflow's font degradation must not breach Fill Engine's red line |
-| `pagination.md` | Complementary (pagination vs fill) | pagination's "last page ≥ 40%" aligns with Fill Engine's Fill Ratio concept |
-| `cover.md` | Independent | Covers have their own layout system, not affected by Fill Engine |
-| `typography.md` | Infrastructure | Fill Engine makes elastic adjustments on top of typography-defined fonts/line-heights |
+| Specification   | Relationship                       | Coordination Rule                                                                     |
+| --------------- | ---------------------------------- | ------------------------------------------------------------------------------------- |
+| `overflow.md`   | Complementary (overflow vs void)   | overflow's font degradation must not breach Fill Engine's red line                    |
+| `pagination.md` | Complementary (pagination vs fill) | pagination's "last page ≥ 40%" aligns with Fill Engine's Fill Ratio concept           |
+| `cover.md`      | Independent                        | Covers have their own layout system, not affected by Fill Engine                      |
+| `typography.md` | Infrastructure                     | Fill Engine makes elastic adjustments on top of typography-defined fonts/line-heights |
 
 ---
 

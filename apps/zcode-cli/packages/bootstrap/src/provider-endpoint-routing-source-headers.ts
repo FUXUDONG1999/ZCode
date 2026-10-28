@@ -50,9 +50,7 @@ function resolveTelemetryStateFile(env: NodeJS.ProcessEnv): string {
   return join(dataBaseDir, ".zcode", "v2", "telemetry-state.json");
 }
 
-async function readExistingDeviceMid(
-  stateFile: string,
-): Promise<string | undefined> {
+async function readExistingDeviceMid(stateFile: string): Promise<string | undefined> {
   const cached = cachedDeviceMidByStateFile.get(stateFile);
   if (cached) {
     return cached;

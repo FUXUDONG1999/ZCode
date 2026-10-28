@@ -93,13 +93,13 @@ interface ModelRoleResolver {
 
 默认映射：
 
-| Role | 默认模型 |
-|------|----------|
-| `main` | `model.main` |
-| `lite` | `model.lite ?? model.main` |
-| `compact` | `model.main` |
-| `review` | `model.main` |
-| `subagent` | parent model |
+| Role       | 默认模型                   |
+| ---------- | -------------------------- |
+| `main`     | `model.main`               |
+| `lite`     | `model.lite ?? model.main` |
+| `compact`  | `model.main`               |
+| `review`   | `model.main`               |
+| `subagent` | parent model               |
 
 后续可以在 role policy 中把 `compact` 或特定 subagent 指向 `lite`，但第一版不自动改变。
 

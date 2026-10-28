@@ -73,7 +73,9 @@ export async function promptFixtureFromCase(
     return mergeFixtureModelOptions(fixture, modelOptions);
   }
   if (!testcase.promptPath) {
-    throw new Error(`Prompt trajectory case ${testcase.name} is missing prompt.txt or fixture.json`);
+    throw new Error(
+      `Prompt trajectory case ${testcase.name} is missing prompt.txt or fixture.json`,
+    );
   }
   return promptFixtureFromText({
     modelOptions,

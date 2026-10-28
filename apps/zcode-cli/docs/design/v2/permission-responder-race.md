@@ -35,15 +35,15 @@ permissionBroker.requestPermission ► 注册应答 deferred        ← 通道�
 
 ## 设计决策
 
-| 分叉 | 决策 |
-|---|---|
-| hook 语义 | 保留决定能力（allow/deny/modify），**不**改成纯通知的 async hook——那会让外部 UI 的点击永远无法回传决定 |
-| 执行时序 | hook 链与 broker 等待**并发竞速**，先到的决定生效 |
-| 首个决定 | 单一 settled 闩；晚到方的结果作废 |
-| 败者处理 | 立即 abort（AbortSignal 传播到 hook 子进程 / broker 反向 RPC），**不等待**其收尾——等待会把卡死的 hook 重新变成阻塞点 |
-| hook 链失败/超时 | 视为「该应答方退赛」：warn 日志 + 继续等 broker，**不再**转成 deny。辅助应答方的故障不应替用户做拒绝决定 |
-| 无 hook 配置 | 竞速退化为 broker 单边等待，行为与旧路径逐字节等价 |
-| 策略型强制拒绝 | 归属 `PreToolUse` hook（在确认窗出现前即可 deny，不参与竞速）；`PermissionRequest` hook 的定位收敛为「另一个应答面」 |
+| 分叉             | 决策                                                                                                                           |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| hook 语义        | 保留决定能力（allow/deny/modify），**不**改成纯通知的 async hook——那会让外部 UI 的点击永远无法回传决定                         |
+| 执行时序         | hook 链与 broker 等待**并发竞速**，先到的决定生效                                                                              |
+| 首个决定         | 单一 settled 闩；晚到方的结果作废                                                                                              |
+| 败者处理         | 立即 abort（AbortSignal 传播到 hook 子进程 / broker 反向 RPC），**不等待**其收尾——等待会把卡死的 hook 重新变成阻塞点           |
+| hook 链失败/超时 | 视为「该应答方退赛」：warn 日志 + 继续等 broker，**不再**转成 deny。辅助应答方的故障不应替用户做拒绝决定                       |
+| 无 hook 配置     | 竞速退化为 broker 单边等待，行为与旧路径逐字节等价                                                                             |
+| 策略型强制拒绝   | 归属 `PreToolUse` hook（在确认窗出现前即可 deny，不参与竞速）；`PermissionRequest` hook 的定位收敛为「另一个应答面」           |
 | 败者外部 UI 收尾 | v1 仅靠 abort → 子进程终止；外部集成应把「被终止」理解为「已在别处应答」。独立的 `PermissionResolved` 通知型 hook 事件留作后续 |
 
 ## 新时序
@@ -87,8 +87,8 @@ interface PermissionResponderRaceInput {
   runHooks: (signal: AbortSignal) => Promise<PermissionBrokerResult | undefined>;
   /** broker 等待：注册应答 deferred 必须在本函数调用内同步完成（既有契约）。 */
   requestBroker: (signal: AbortSignal) => Promise<PermissionBrokerResult>;
-  signal?: AbortSignal;          // 外层 turn 取消，abort 双方
-  onHookFailure?: (error: unknown) => void;   // hook 链抛错且 broker 仍在等待时回调（warn 日志）
+  signal?: AbortSignal; // 外层 turn 取消，abort 双方
+  onHookFailure?: (error: unknown) => void; // hook 链抛错且 broker 仍在等待时回调（warn 日志）
 }
 
 interface PermissionResponderRaceOutcome {

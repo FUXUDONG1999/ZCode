@@ -97,9 +97,7 @@ const CreateWorkflowModelInputSchema = z
     script: z
       .string()
       .optional()
-      .describe(
-        "The whole workflow script, inline. Exactly one of `script`, `saved` and `path`.",
-      ),
+      .describe("The whole workflow script, inline. Exactly one of `script`, `saved` and `path`."),
     saved: CreateWorkflowSavedSourceSchema.optional().describe(
       "A saved workflow to run, by name. Exactly one of `script`, `saved` and `path`.",
     ),

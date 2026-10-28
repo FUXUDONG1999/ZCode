@@ -10,12 +10,12 @@ The model writes a workflow script in TypeScript against a small facade: `agent(
 `.ask()`, `files.*`, `git.*`, `world.run`, `report`, `artifact.*`, `phase()`, `log`. Before
 the script runs, the analyzer reads it once and answers four questions about it:
 
-| Question | Answer | Module |
-|---|---|---|
-| What depends on what? | the **site graph** | `analysis/graph.ts` |
-| What runs after what, and why? | the **causality graph** | `analysis/causality-graph.ts` |
-| Where can execution go next? | the **control-flow graph** | `analysis/flow-graph.ts` |
-| In each phase, who takes part and who hands work to whom? | the **hand-off graph** | `analysis/handoff-graph.ts` |
+| Question                                                  | Answer                     | Module                        |
+| --------------------------------------------------------- | -------------------------- | ----------------------------- |
+| What depends on what?                                     | the **site graph**         | `analysis/graph.ts`           |
+| What runs after what, and why?                            | the **causality graph**    | `analysis/causality-graph.ts` |
+| Where can execution go next?                              | the **control-flow graph** | `analysis/flow-graph.ts`      |
+| In each phase, who takes part and who hands work to whom? | the **hand-off graph**     | `analysis/handoff-graph.ts`   |
 
 All four are pure functions of one artifact, the **analysis core**, which one
 interpretation of the script produces. The core holds the data-dependency facts, the
@@ -58,18 +58,18 @@ promoted iteration candidates in source order when the core is minted.
 
 Which calls are sites, and what each one is in the graphs:
 
-| Call | Site | Graph node | Reason |
-|---|---|---|---|
-| `x.ask(...)` | `ask#N` | yes | the step other steps wait for |
-| `agent(...)` | `actor#N` | lane, not node | who performs a step |
-| `files.*`, `git.*`, `world.run` | `world-read#N` | yes | a journaled read of the world |
-| `Promise.all`, `Promise.allSettled` | `join#N` | relay node | values flow through it |
-| a promoted iteration | `fan-out#N` | relay node | values flow through it |
-| `report(...)` | `report#N` | no | emits progress; nothing can wait for it |
-| `artifact.*(...)` | `artifact#N` | no | a deliverable, not a step |
-| `phase("...")` | none | none | a marker; lowering rewrites it to `__host.enterPhase` |
-| `log(...)` | none | none | no identity at all |
-| `channel(...)`, `future(...)` | none | none | sandbox-local promise machinery; a channel is a container the analysis sees through (below) |
+| Call                                | Site           | Graph node     | Reason                                                                                      |
+| ----------------------------------- | -------------- | -------------- | ------------------------------------------------------------------------------------------- |
+| `x.ask(...)`                        | `ask#N`        | yes            | the step other steps wait for                                                               |
+| `agent(...)`                        | `actor#N`      | lane, not node | who performs a step                                                                         |
+| `files.*`, `git.*`, `world.run`     | `world-read#N` | yes            | a journaled read of the world                                                               |
+| `Promise.all`, `Promise.allSettled` | `join#N`       | relay node     | values flow through it                                                                      |
+| a promoted iteration                | `fan-out#N`    | relay node     | values flow through it                                                                      |
+| `report(...)`                       | `report#N`     | no             | emits progress; nothing can wait for it                                                     |
+| `artifact.*(...)`                   | `artifact#N`   | no             | a deliverable, not a step                                                                   |
+| `phase("...")`                      | none           | none           | a marker; lowering rewrites it to `__host.enterPhase`                                       |
+| `log(...)`                          | none           | none           | no identity at all                                                                          |
+| `channel(...)`, `future(...)`       | none           | none           | sandbox-local promise machinery; a channel is a container the analysis sees through (below) |
 
 `report` and `artifact` need ids for lowering and journal dedupe, but their arguments are
 not taint sinks and they draw no edges. `phase` consumes no counter at all, so adding a
@@ -100,7 +100,7 @@ whole reason a hole can be filled while its run is alive: **the walk opens a fre
 per-kind counters when it enters the body and prefixes every id minted inside with the
 hole's own id**: `hole#21b40fca/ask#1`, `hole#21b40fca/actor#2`. The prefix is one level
 deep: a hole inside the body gets its own name key, not the outer id plus its own, and the
-sites in *its* body carry *its* prefix. Nesting is recorded on the site table instead, as
+sites in _its_ body carry _its_ prefix. Nesting is recorded on the site table instead, as
 the hole's `fill` (the filled hole whose body holds it; absent at the top level). The outer
 counters never see the body.
 
@@ -140,7 +140,7 @@ An ask's label is the receiver's literal name when the receiver is an inline
 `agent("name")`, the identifier when the receiver is a variable, and `"ask"` otherwise. An
 actor's name is the literal first argument, else the variable it initializes, else absent.
 
-A name computed at runtime still has a static shape. `` agent(`researcher-${i}`) `` yields
+A name computed at runtime still has a static shape. ``agent(`researcher-${i}`)`` yields
 no name but a **name pattern**: the literal text before the first hole (`head`) and after
 the last (`tail`). Literal text between holes is dropped. An affix is trimmed and must
 contain a letter or digit, or it is discarded; `` `${x}-` `` would render as `…-`, which is
@@ -173,18 +173,18 @@ The analyzer adds its own codes to the TypeScript ones. Each one names something
 script must fix before it can be submitted, because the thing it asks for cannot be
 recovered later.
 
-| Code | Rule | Why |
-|---|---|---|
-| 9001 | A facade callable may appear only as the callee of a direct call. | Sites are identity. `const f = planner.ask`, `const { read } = files`, `.bind`, passing `agent` as an argument: a call reached through an escaped function value has no site. |
-| 9001 | A value carrying a site-producing facade member may not be converted to a type that lacks it. | `planner as Askable` makes `.ask` resolve to the local interface, and the real call runs unsited. Checked at `as`, `satisfies`, argument to parameter, return, annotated binding, and assignment. |
-| 9002 | An `ask<T>` type must be expressible as a JSON schema. | `schema/` |
-| 9003 | `world.run`'s command is a string literal. | The confirmation window shows the command set; a runtime-built command has nothing to show. |
-| 9004 | `phase()`'s name is a non-empty string literal, and the call is its own statement. | The name labels the confirmation graph; a marker in expression position has no rest-of-block to claim. |
-| 9005 | Two `agent()` sites may not share a literal name. | The name is the identity key an amended re-run matches its cache against. |
-| 9006 | An `agent("x")` inside a fan-out body has a fixed name for every element. | The run would fail with `DuplicateActorName` on the second element. |
-| artifact codes | Artifact ids are literals, tags name a declared preset, an id belongs to one family. | see `docs/dynamic-workflow/authoring.md`, "Compile-time rules" |
-| 9012 | A `hole<T>()` names its type argument explicitly; its name is a non-empty literal of at most 128 characters, unique among the script's holes and phase markers, nested fills included; the call is awaited; it stands outside every array-method fan-out callback (a `for...of` body is sequential and allowed); and its body, when present, is an inline function literal that references no binding declared after the hole. | The type is the contract a fill is checked against, and an inferred `unknown` is no contract. The name is the hole's phase name and the identity every surface shows, so it must be one hole's alone; two markers with one name are one phase on purpose, two holes with one name would be two gaps merged by accident. An unawaited hole would let the script run past a gap that has no value yet. A hole in a concurrent fan-out would have to be filled while its elements run. The body must be a literal because lowering extracts and evaluates its text at the site, and a function value has no text. A body is a closure the compiler does not check for use before declaration, so a reference to a later `const` would throw at run time. |
-| 9010 | A persona's `model` is typed `ModelRef`, a string literal, or a union of string literals; `model()` takes a non-empty string literal. | The set of models a script can use must be closed before it runs, so the launch can resolve every name and the window can show it. The rule reads the **type** of the `model` property at each `agent()` site, so constants and ternaries between literals pass and a widened `string` does not. |
+| Code           | Rule                                                                                                                                                                                                                                                                                                                                                                                                                           | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 9001           | A facade callable may appear only as the callee of a direct call.                                                                                                                                                                                                                                                                                                                                                              | Sites are identity. `const f = planner.ask`, `const { read } = files`, `.bind`, passing `agent` as an argument: a call reached through an escaped function value has no site.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| 9001           | A value carrying a site-producing facade member may not be converted to a type that lacks it.                                                                                                                                                                                                                                                                                                                                  | `planner as Askable` makes `.ask` resolve to the local interface, and the real call runs unsited. Checked at `as`, `satisfies`, argument to parameter, return, annotated binding, and assignment.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| 9002           | An `ask<T>` type must be expressible as a JSON schema.                                                                                                                                                                                                                                                                                                                                                                         | `schema/`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| 9003           | `world.run`'s command is a string literal.                                                                                                                                                                                                                                                                                                                                                                                     | The confirmation window shows the command set; a runtime-built command has nothing to show.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| 9004           | `phase()`'s name is a non-empty string literal, and the call is its own statement.                                                                                                                                                                                                                                                                                                                                             | The name labels the confirmation graph; a marker in expression position has no rest-of-block to claim.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| 9005           | Two `agent()` sites may not share a literal name.                                                                                                                                                                                                                                                                                                                                                                              | The name is the identity key an amended re-run matches its cache against.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| 9006           | An `agent("x")` inside a fan-out body has a fixed name for every element.                                                                                                                                                                                                                                                                                                                                                      | The run would fail with `DuplicateActorName` on the second element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| artifact codes | Artifact ids are literals, tags name a declared preset, an id belongs to one family.                                                                                                                                                                                                                                                                                                                                           | see `docs/dynamic-workflow/authoring.md`, "Compile-time rules"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| 9012           | A `hole<T>()` names its type argument explicitly; its name is a non-empty literal of at most 128 characters, unique among the script's holes and phase markers, nested fills included; the call is awaited; it stands outside every array-method fan-out callback (a `for...of` body is sequential and allowed); and its body, when present, is an inline function literal that references no binding declared after the hole. | The type is the contract a fill is checked against, and an inferred `unknown` is no contract. The name is the hole's phase name and the identity every surface shows, so it must be one hole's alone; two markers with one name are one phase on purpose, two holes with one name would be two gaps merged by accident. An unawaited hole would let the script run past a gap that has no value yet. A hole in a concurrent fan-out would have to be filled while its elements run. The body must be a literal because lowering extracts and evaluates its text at the site, and a function value has no text. A body is a closure the compiler does not check for use before declaration, so a reference to a later `const` would throw at run time. |
+| 9010           | A persona's `model` is typed `ModelRef`, a string literal, or a union of string literals; `model()` takes a non-empty string literal.                                                                                                                                                                                                                                                                                          | The set of models a script can use must be closed before it runs, so the launch can resolve every name and the window can show it. The rule reads the **type** of the `model` property at each `agent()` site, so constants and ternaries between literals pass and a widened `string` does not.                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
 
 Facade siting (9001) is the only analyzability rule. Everything else the analysis cannot
 follow widens edge sets; it never bounces the script back to the model.
@@ -225,10 +225,10 @@ cardinality, and materializes artifact types as strings.
 
 ```ts
 interface AnalysisCore {
-  sites: { asks, worldReads, joins, actors, fanouts };  // ids, labels, locations, order, within
-  facts: { askData, askActor, worldReadData, joinIn, fanoutIn, returnData };
-  trace: { events, regions, controls, root, phases };   // the temporal walk's output
-  types: { siteType, joinPortTypes };                   // the checker's answers, as strings
+  sites: { asks; worldReads; joins; actors; fanouts }; // ids, labels, locations, order, within
+  facts: { askData; askActor; worldReadData; joinIn; fanoutIn; returnData };
+  trace: { events; regions; controls; root; phases }; // the temporal walk's output
+  types: { siteType; joinPortTypes }; // the checker's answers, as strings
 }
 ```
 
@@ -446,13 +446,13 @@ entry) and `sink` (fed by whatever tracked value reaches the script's `return`).
 
 Sinks and what they emit:
 
-| Sink | Reads | Emits |
-|---|---|---|
-| `ask(instructions)` argument | artifact labels | `data` edge, label's site → ask |
-| world-read arguments | artifact labels | `data` edge, label's site → world-read |
-| join and fan-out inputs | artifact labels | `data` edge into the relay |
-| script `return` | artifact labels | `data` edge → `sink` |
-| `.ask()` receiver | actor labels | the context relation |
+| Sink                         | Reads           | Emits                                  |
+| ---------------------------- | --------------- | -------------------------------------- |
+| `ask(instructions)` argument | artifact labels | `data` edge, label's site → ask        |
+| world-read arguments         | artifact labels | `data` edge, label's site → world-read |
+| join and fan-out inputs      | artifact labels | `data` edge into the relay             |
+| script `return`              | artifact labels | `data` edge → `sink`                   |
+| `.ask()` receiver            | actor labels    | the context relation                   |
 
 Two ask sites are **context-related** when their actor sets intersect; the relation is exact
 when both sets are the same singleton. It is emitted as a `context` edge from the earlier
@@ -496,13 +496,13 @@ compact "who talks to whom" digest.
 
 ### Events
 
-| Event | When |
-|---|---|
-| `issue` | a facade call expression is evaluated: the request is sent |
-| `settle` | an `await` barrier: these steps' promises are known to have settled here, and these strands are joined |
-| `actor` | an `agent()` call is evaluated |
-| `mark` | a `phase("...")` marker statement is evaluated |
-| `jump` | `continue`, `break`, `return`, `throw`, or a recursive re-entry, with its target region already resolved |
+| Event    | When                                                                                                     |
+| -------- | -------------------------------------------------------------------------------------------------------- |
+| `issue`  | a facade call expression is evaluated: the request is sent                                               |
+| `settle` | an `await` barrier: these steps' promises are known to have settled here, and these strands are joined   |
+| `actor`  | an `agent()` call is evaluated                                                                           |
+| `mark`   | a `phase("...")` marker statement is evaluated                                                           |
+| `jump`   | `continue`, `break`, `return`, `throw`, or a recursive re-entry, with its target region already resolved |
 
 Every event carries its region chain. An `issue` and a `jump` also carry the phase current
 where they happened. A `settle` carries `joins`, the strand regions the barrier waited
@@ -520,15 +520,15 @@ incomparability and needs no notation of its own.
 Regions form a tree. Each leaf's chain names its ancestors; children are ordered by first
 leaf.
 
-| Kind | From | `entered` |
-|---|---|---|
-| `seq` | the root | yes |
-| `loop` | `for`, `for-of`, `for-in`, `while`, `do-while`, `for await`; a recursion SCC (`recursive` flag) | a `do…while` body, or a `for` with a positive literal bound |
-| `fanout` | a promoted iteration candidate; `strand` when its literal callback is `async` | no |
-| `choice` | one `if`, ternary, `switch`, or short-circuit; `exhaustive` when an arm must run; `fallthrough` for switch | yes |
-| `branch` | one arm of a choice; also a never-called body the sweep placed (`detached`) | no |
-| `call` | one inlined helper body, located at the call site; `strand` when the applied function is `async` or the registry calls the callback deferred | yes |
-| `try`, `attempt`, `catch`, `finally` | one try statement and its parts | try, attempt, finally yes; catch no |
+| Kind                                 | From                                                                                                                                         | `entered`                                                   |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `seq`                                | the root                                                                                                                                     | yes                                                         |
+| `loop`                               | `for`, `for-of`, `for-in`, `while`, `do-while`, `for await`; a recursion SCC (`recursive` flag)                                              | a `do…while` body, or a `for` with a positive literal bound |
+| `fanout`                             | a promoted iteration candidate; `strand` when its literal callback is `async`                                                                | no                                                          |
+| `choice`                             | one `if`, ternary, `switch`, or short-circuit; `exhaustive` when an arm must run; `fallthrough` for switch                                   | yes                                                         |
+| `branch`                             | one arm of a choice; also a never-called body the sweep placed (`detached`)                                                                  | no                                                          |
+| `call`                               | one inlined helper body, located at the call site; `strand` when the applied function is `async` or the registry calls the callback deferred | yes                                                         |
+| `try`, `attempt`, `catch`, `finally` | one try statement and its parts                                                                                                              | try, attempt, finally yes; catch no                         |
 
 The `strand` flag rides on `call` and `fanout` alone. It says the activation the region
 stands for runs alongside the body that spawned it, and "Strands and frames" below is what
@@ -724,11 +724,51 @@ rendered as a lane, never a node. An edge means "runs after" and records why.
 ### Steps, lanes, regions
 
 ```ts
-interface Step { id; kind; label; labelPattern?; loc; lane; lanes?; source?; region; certainty; phase?; repeat? }
-interface Lane { id; name?; namePattern?; loc?; families? }
-interface Region { id; kind; parent?; loc?; bound?; label? }
-interface OrderEdge { from; to; kind; certainty; exact? }
-interface CausalityGraph { steps; regions; lanes; edges; sink?: { fedBy }; phases?; phaseEdges? }
+interface Step {
+  id;
+  kind;
+  label;
+  labelPattern?;
+  loc;
+  lane;
+  lanes?;
+  source?;
+  region;
+  certainty;
+  phase?;
+  repeat?;
+}
+interface Lane {
+  id;
+  name?;
+  namePattern?;
+  loc?;
+  families?;
+}
+interface Region {
+  id;
+  kind;
+  parent?;
+  loc?;
+  bound?;
+  label?;
+}
+interface OrderEdge {
+  from;
+  to;
+  kind;
+  certainty;
+  exact?;
+}
+interface CausalityGraph {
+  steps;
+  regions;
+  lanes;
+  edges;
+  sink?: { fedBy };
+  phases?;
+  phaseEdges?;
+}
 ```
 
 Lanes are the actor sites in creation order, then `workspace` for world reads, then
@@ -748,13 +788,13 @@ draw it.
 
 Five sources, none of them taint alone:
 
-| Kind | Meaning | Source |
-|---|---|---|
-| `data` | B needed A's answer | the site graph's data edges between steps (relays skipped: their labels are additive) |
-| `control` | A's answer decided whether B runs | the trace's control facts |
-| `fifo` | same actor, serialized by the runtime | any two steps issued on one actor, in issue order; `maybe` when either receiver is a may-set; `workspace` and `unknown` excluded |
-| `seq` | ordered only by where `await` sits | every step settled **in a frame this issue can see** precedes it |
-| `carry` | round k feeds round k+1 | a back edge in issue order, retyped |
+| Kind      | Meaning                               | Source                                                                                                                           |
+| --------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `data`    | B needed A's answer                   | the site graph's data edges between steps (relays skipped: their labels are additive)                                            |
+| `control` | A's answer decided whether B runs     | the trace's control facts                                                                                                        |
+| `fifo`    | same actor, serialized by the runtime | any two steps issued on one actor, in issue order; `maybe` when either receiver is a may-set; `workspace` and `unknown` excluded |
+| `seq`     | ordered only by where `await` sits    | every step settled **in a frame this issue can see** precedes it                                                                 |
+| `carry`   | round k feeds round k+1               | a back edge in issue order, retyped                                                                                              |
 
 A `seq` fact whose source sits in a branch arm that ends in `continue` is marked
 `viaJump`: the later step in the same round is reached only next round. A `break` arm drops
@@ -1009,15 +1049,15 @@ Every graph has a canonical, deterministic text form in `analysis/serialize.ts` 
 `analysis/core.ts`, and a mermaid emitter in `analysis/mermaid.ts`. Each fixture script
 under `tests/graphs/` is snapshotted in all six forms:
 
-| Golden | Form |
-|---|---|
-| `<fixture>.txt` | site graph |
-| `<fixture>.actor.txt` | actor graph |
-| `<fixture>.causality.txt` | causality graph, phases first when present |
-| `<fixture>.core.txt` | the core |
-| `<fixture>.cfg.txt` | control-flow graph, occurrence and phase levels |
-| `<fixture>.handoff.txt` | hand-off graph |
-| `*.mmd` | mermaid, for a representative subset |
+| Golden                    | Form                                            |
+| ------------------------- | ----------------------------------------------- |
+| `<fixture>.txt`           | site graph                                      |
+| `<fixture>.actor.txt`     | actor graph                                     |
+| `<fixture>.causality.txt` | causality graph, phases first when present      |
+| `<fixture>.core.txt`      | the core                                        |
+| `<fixture>.cfg.txt`       | control-flow graph, occurrence and phase levels |
+| `<fixture>.handoff.txt`   | hand-off graph                                  |
+| `*.mmd`                   | mermaid, for a representative subset            |
 
 The strand vocabulary reads in the goldens as three tokens: `strand`, `joins=`, and
 `alongside=`. A region line ends in `strand`. A settle line carries `joins=a,b` after its

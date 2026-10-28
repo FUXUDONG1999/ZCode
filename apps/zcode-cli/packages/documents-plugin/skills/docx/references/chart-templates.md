@@ -3,6 +3,7 @@
 ## Design Philosophy
 
 GLM uses **matplotlib as the primary chart engine**. Advantages:
+
 - High chart quality, print-ready
 - Full style control, consistent with document palette
 - Supports complex chart types (heatmap, radar, box plot, etc.)
@@ -338,16 +339,16 @@ new Paragraph({
       type: "png",
     }),
   ],
-})
+});
 ```
 
 ```js
 // ❌ Wrong: hardcoded width and height (pie becomes ellipse, radar becomes diamond)
 new ImageRun({
   data: chartBuffer,
-  transformation: { width: 500, height: 350 },  // wrong ratio!
+  transformation: { width: 500, height: 350 }, // wrong ratio!
   type: "png",
-})
+});
 ```
 
 ```python
@@ -363,15 +364,15 @@ img = Image('chart.png', width=target_width, height=orig_h * scale)
 
 ## Chart Selection Guide
 
-| Data Scenario | Recommended Chart | Template Function |
-|---------------|-------------------|-------------------|
-| Category comparison | Bar chart | `bar_chart()` |
-| Multi-group comparison | Grouped bar | `grouped_bar()` |
-| Trend over time | Line chart | `line_chart()` |
-| Proportion/composition | Pie chart | `pie_chart()` |
-| Distribution/spread | Box plot | `box_plot()` |
-| Multi-dimensional assessment | Radar chart | `radar_chart()` |
-| Matrix correlation | Heatmap | `heatmap()` |
+| Data Scenario                | Recommended Chart | Template Function |
+| ---------------------------- | ----------------- | ----------------- |
+| Category comparison          | Bar chart         | `bar_chart()`     |
+| Multi-group comparison       | Grouped bar       | `grouped_bar()`   |
+| Trend over time              | Line chart        | `line_chart()`    |
+| Proportion/composition       | Pie chart         | `pie_chart()`     |
+| Distribution/spread          | Box plot          | `box_plot()`      |
+| Multi-dimensional assessment | Radar chart       | `radar_chart()`   |
+| Matrix correlation           | Heatmap           | `heatmap()`       |
 
 ## Quality Standards
 

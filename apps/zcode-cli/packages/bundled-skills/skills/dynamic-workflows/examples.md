@@ -17,6 +17,7 @@ The shape generalizes to anything with an author and a skeptic: code and propert
 and counter-example, schema and fuzzer.
 
 <!-- compile -->
+
 ```ts
 interface ImplUpdate {
   /** Files this round changed. */
@@ -61,7 +62,10 @@ const MAX_ROUNDS = 8;
 // What a watcher wants to know mid-run: which round, and how many attacks are still open.
 artifact.metrics("progress", {
   title: "Verification progress",
-  metrics: [{ field: "round", label: "Round" }, { field: "open", label: "Open counter-examples" }],
+  metrics: [
+    { field: "round", label: "Round" },
+    { field: "open", label: "Open counter-examples" },
+  ],
 });
 
 phase("Implement the first version of the compression");
@@ -81,7 +85,10 @@ while (!verdict.verified && round < MAX_ROUNDS) {
   round = round + 1;
   const open = verdict.counterExamples?.length ?? 0;
   log(`round ${round}: ${open} counter-examples`);
-  report({ round, open, reason: verdict.reason, counterExamples: verdict.counterExamples ?? [] }, "progress");
+  report(
+    { round, open, reason: verdict.reason, counterExamples: verdict.counterExamples ?? [] },
+    "progress",
+  );
 
   impl = await implementer.ask<ImplUpdate>(
     `Verification failed.\nReason: ${verdict.reason}\n` +
@@ -99,7 +106,8 @@ while (!verdict.verified && round < MAX_ROUNDS) {
 phase("Run the property tests for real");
 const proof = await world.run("npx", ["vitest", "run", TEST_PATH], { timeoutMs: 600_000 });
 const verified = verdict.verified && proof.exitCode === 0;
-if (verdict.verified && !verified) log(`the verifier said verified but vitest exited ${proof.exitCode}`);
+if (verdict.verified && !verified)
+  log(`the verifier said verified but vitest exited ${proof.exitCode}`);
 
 await artifact.markdown(
   "report",
@@ -167,6 +175,7 @@ Scan, then plan a fix under critique, then judge each finding independently. Thr
 topologies in one script, each chosen for a different reason.
 
 <!-- compile -->
+
 ```ts
 interface Finding {
   /** Test identifier as the runner reports it. */
@@ -231,8 +240,10 @@ artifact.board("candidates", {
 });
 
 phase("Scan the repository for flaky tests");
-const scan = await agent("scanner", "You identify flaky tests from test code and CI history.")
-  .ask<Scan>("Find flaky tests in this repository. Prefer precision over recall.");
+const scan = await agent(
+  "scanner",
+  "You identify flaky tests from test code and CI history.",
+).ask<Scan>("Find flaky tests in this repository. Prefer precision over recall.");
 
 log(`${scan.findings.length} candidate flaky tests`);
 for (const finding of scan.findings) report({ ...finding, status: "candidate" }, "candidates");
@@ -295,7 +306,10 @@ if (real.length === 0) {
 
 // Planner and reviewer: created once, reused every round, so each accumulates context.
 const planner = agent("planner", "You write minimal, concrete fixes for flaky tests.");
-const reviewer = agent("reviewer", "You find the flaw in a fix plan. Approve only when you cannot find one. You never edit files.");
+const reviewer = agent(
+  "reviewer",
+  "You find the flaw in a fix plan. Approve only when you cannot find one. You never edit files.",
+);
 
 let feedback = "none";
 let approved: Plan | undefined;
@@ -316,7 +330,10 @@ for (let round = 0; round < 5; round++) {
   feedback = review.feedback;
 }
 
-const verified = ["scanned test code and CI history", "each survivor reproduced by an independent confirmer"];
+const verified = [
+  "scanned test code and CI history",
+  "each survivor reproduced by an independent confirmer",
+];
 const done: FlakyReport = approved
   ? {
       conclusion: `${real.length} flaky tests confirmed; a fix plan was approved after ${rounds} round(s).`,
@@ -362,7 +379,7 @@ follows its own judge inside one callback, so the fan-out has one join instead o
 confirming candidate three never waits for candidate forty's judge.
 
 The two early returns matter. A scan that finds nothing and a judging pass that rejects
-everything are both *successes* with an empty result, not failures — and each avoids paying
+everything are both _successes_ with an empty result, not failures — and each avoids paying
 for a planning loop over an empty list. Both still return the full report shape, with a
 `conclusion` that says which of the two happened. Findings are reported before planning
 starts, so even a planning loop that never converges hands back the confirmed findings.
@@ -382,6 +399,7 @@ Discover, transform in parallel, then verify. The transforming subagents write f
 the one shape where isolation and verification really matter.
 
 <!-- compile -->
+
 ```ts
 interface Migration {
   /** Whether this file needed changing at all. */
@@ -491,7 +509,10 @@ return {
     ...migrated.map((p) => `${p}: compiled and tests passed, checked by a separate subagent`),
     `npm test over the whole tree exited ${suite.exitCode}`,
   ],
-  notCovered: ["call sites outside src/**/*.ts", "callers in other packages that import the migrated functions"],
+  notCovered: [
+    "call sites outside src/**/*.ts",
+    "callers in other packages that import the migrated functions",
+  ],
 };
 ```
 
@@ -540,6 +561,7 @@ claim. Compare example 1, where the skeptic is another subagent — right when b
 takes creativity. When a command can render the verdict, the command should.
 
 <!-- compile -->
+
 ```ts
 interface FixNotes {
   /** What changed this round, one line. */
@@ -619,7 +641,10 @@ return proved
         proved: false,
         rounds,
         lastChange: notes.summary,
-        verified: [`lake env lean ${TARGET} exited 0 with no sorry warning`, "lake build exited nonzero"],
+        verified: [
+          `lake env lean ${TARGET} exited 0 with no sorry warning`,
+          "lake build exited nonzero",
+        ],
         notCovered: ["why the whole-project build disagrees with the single-file check"],
       }
     : {
@@ -670,6 +695,7 @@ independently, and hand back a report. Everything a file needs happens as soon a
 review lands; the only join is the cross-file deduplication that needs every finding.
 
 <!-- compile -->
+
 ```ts
 interface Finding {
   /** Workspace-relative path, with a line when it applies: "src/a.ts:42". */
@@ -726,7 +752,10 @@ log(`reviewing ${paths.length} changed files`);
 // One triage subagent for all findings: severity only means anything if it is judged on a
 // consistent scale. It is a queue, not a barrier — asks on it run FIFO, so a finding reaches
 // it the moment its file's review lands, whichever file that is.
-const triage = agent("triage", "You decide which review findings deserve a human's attention. Be strict.");
+const triage = agent(
+  "triage",
+  "You decide which review findings deserve a human's attention. Be strict.",
+);
 
 // One reviewer per file, fresh each: the files are unrelated, so nothing is gained by
 // sharing a context and everything is gained by running them at once. Triage and
@@ -766,8 +795,10 @@ log(`${confirmed.length} findings confirmed or labelled`);
 // The one stage that genuinely needs every finding: two reviewers can flag the same root
 // cause from two files, and only a reader of the whole list can merge them.
 phase("Merge duplicate findings across files and write them up");
-const digest = await agent("editor", "You merge review findings that share a root cause and write them up for the engineer who fixes them.")
-  .ask<Digest>(`Merge duplicates and write these up:\n${JSON.stringify(confirmed)}`);
+const digest = await agent(
+  "editor",
+  "You merge review findings that share a root cause and write them up for the engineer who fixes them.",
+).ask<Digest>(`Merge duplicates and write these up:\n${JSON.stringify(confirmed)}`);
 
 const verifiedCount = confirmed.filter((f) => f.status === "verified").length;
 await artifact.markdown(
@@ -780,7 +811,9 @@ await artifact.markdown(
     ...digest.lines.map((line) => `- ${line}`),
     "",
     "## Every finding",
-    ...confirmed.map((f) => `- **${f.where}** (${f.severity}, ${f.status}): ${f.what}\n  ${f.evidence}`),
+    ...confirmed.map(
+      (f) => `- **${f.where}** (${f.severity}, ${f.status}): ${f.what}\n  ${f.evidence}`,
+    ),
   ].join("\n"),
   { title: "Review report" },
 );
@@ -811,6 +844,7 @@ researchers are still reading; the writer sits after the one join, because it ne
 verified fact.
 
 <!-- compile -->
+
 ```ts
 interface Fact {
   /** Stable id built from the angle and a sequence number: "tests-3". */
@@ -877,7 +911,9 @@ const research = future(async () => {
         ).ask<Research>(
           `Research ${topic} from the angle of ${angle}. Return up to eight facts, each with its source.`,
         );
-        found.facts.forEach((fact, index) => facts.send({ ...fact, id: `${angle}-${index + 1}`, angle }));
+        found.facts.forEach((fact, index) =>
+          facts.send({ ...fact, id: `${angle}-${index + 1}`, angle }),
+        );
         log(`${angle}: ${found.facts.length} facts found`);
       }),
     );
@@ -899,7 +935,12 @@ const verify = future(async () => {
           "You check one claim about a codebase against its source. Do not edit any file.",
         ).ask<Verdict>(`Does this hold? Read the source yourself.\n${JSON.stringify(fact)}`);
         if (verdict.holds) {
-          const finding: Finding = { where: fact.source, what: fact.claim, evidence: verdict.note, status: "verified" };
+          const finding: Finding = {
+            where: fact.source,
+            what: fact.claim,
+            evidence: verdict.note,
+            status: "verified",
+          };
           passed.push(finding);
           report(finding); // published now, so it survives a later failure
         } else {
@@ -930,7 +971,8 @@ const result: WorkflowReport = {
   conclusion: draft.summary,
   findings: passed,
   verified: [`${passed.length} facts each re-checked against their source by a separate subagent`],
-  notCovered: rejected.length > 0 ? rejected.map((claim) => `did not hold on re-check: ${claim}`) : [],
+  notCovered:
+    rejected.length > 0 ? rejected.map((claim) => `did not hold on re-check: ${claim}`) : [],
 };
 return result;
 ```
@@ -957,6 +999,7 @@ published guide, none of which the seed script named. (`SKILL.md` §15.)
 The seed script, submitted with `CreateWorkflow`:
 
 <!-- compile -->
+
 ```ts
 interface Dir {
   /** Workspace-relative path of a top-level entry. */
@@ -982,7 +1025,9 @@ interface Guide {
 
 phase("盘点仓库顶层目录");
 const surveyor = agent("勘察员", "你快速摸清一个仓库的结构：实际查看目录和关键文件，如实汇报。");
-const survey = await surveyor.ask<Survey>("列出顶层目录（跳过 .venv、.zcode 等产物），各用一句话说明作用。");
+const survey = await surveyor.ask<Survey>(
+  "列出顶层目录（跳过 .venv、.zcode 等产物），各用一句话说明作用。",
+);
 log(`盘点完成：${survey.dirs.length} 个条目`);
 
 return await hole<Guide>(
@@ -1024,7 +1069,11 @@ phase("按审读意见修订并交付");
 const chapters = await agent("修订编辑").ask<Chapter[]>(
   `按意见修订，保持章序：${critique}\n\n${JSON.stringify(drafts)}`,
 );
-const guide: Guide = { title: "仓库导览", chapters, notCovered: [".venv、.zcode 等产物目录未纳入"] };
+const guide: Guide = {
+  title: "仓库导览",
+  chapters,
+  notCovered: [".venv、.zcode 等产物目录未纳入"],
+};
 await artifact.markdown("guide", chapters.map((c) => `## ${c.title}\n\n${c.body}`).join("\n\n"), {
   title: guide.title,
   description: "按目录分章的仓库导览。",
@@ -1037,6 +1086,7 @@ After both fills the run's draft holds the effective script — the seed with ea
 in as the last argument of its hole — which is what a resume replays and an amend revises:
 
 <!-- compile -->
+
 ```ts
 interface Dir {
   /** Workspace-relative path of a top-level entry. */
@@ -1062,43 +1112,58 @@ interface Guide {
 
 phase("盘点仓库顶层目录");
 const surveyor = agent("勘察员", "你快速摸清一个仓库的结构：实际查看目录和关键文件，如实汇报。");
-const survey = await surveyor.ask<Survey>("列出顶层目录（跳过 .venv、.zcode 等产物），各用一句话说明作用。");
+const survey = await surveyor.ask<Survey>(
+  "列出顶层目录（跳过 .venv、.zcode 等产物），各用一句话说明作用。",
+);
 log(`盘点完成：${survey.dirs.length} 个条目`);
 
 return await hole<Guide>(
   "第1步：决定导览结构",
-  `盘点：\n${survey.dirs.map((d) => `- ${d.path}：${d.purpose}`).join("\n")}`, async () => {
-  phase("分章并行撰写初稿");
-  // The critic in the next step reads every chapter at once, so this join waits for all.
-  const drafts = await Promise.all(
-    survey.dirs.map((d) =>
-      agent(`写手·${d.path}`, "你只写自己打开核实过的内容。").ask<Chapter>(
-        `写《仓库导览》的「${d.path}」一章（200–400 字 Markdown）：${d.purpose}。covers 如实填写。`,
+  `盘点：\n${survey.dirs.map((d) => `- ${d.path}：${d.purpose}`).join("\n")}`,
+  async () => {
+    phase("分章并行撰写初稿");
+    // The critic in the next step reads every chapter at once, so this join waits for all.
+    const drafts = await Promise.all(
+      survey.dirs.map((d) =>
+        agent(`写手·${d.path}`, "你只写自己打开核实过的内容。").ask<Chapter>(
+          `写《仓库导览》的「${d.path}」一章（200–400 字 Markdown）：${d.purpose}。covers 如实填写。`,
+        ),
       ),
-    ),
-  );
-  log(`${drafts.length} 章初稿完成`);
-  return await hole<Guide>(
-    "第2步：审读与交付",
-    `${drafts.length} 章初稿已就绪：${drafts.map((d) => d.title).join("、")}`, async () => {
-    phase("独立审读初稿");
-    const critique = await agent("审读员", "你只依据文本挑毛病，不读仓库，不夸奖。").ask<string>(
-      `逐章挑毛病：\n${drafts.map((d) => `## ${d.title}\n${d.body}`).join("\n\n")}`,
     );
-    phase("按审读意见修订并交付");
-    const chapters = await agent("修订编辑").ask<Chapter[]>(
-      `按意见修订，保持章序：${critique}\n\n${JSON.stringify(drafts)}`,
+    log(`${drafts.length} 章初稿完成`);
+    return await hole<Guide>(
+      "第2步：审读与交付",
+      `${drafts.length} 章初稿已就绪：${drafts.map((d) => d.title).join("、")}`,
+      async () => {
+        phase("独立审读初稿");
+        const critique = await agent(
+          "审读员",
+          "你只依据文本挑毛病，不读仓库，不夸奖。",
+        ).ask<string>(
+          `逐章挑毛病：\n${drafts.map((d) => `## ${d.title}\n${d.body}`).join("\n\n")}`,
+        );
+        phase("按审读意见修订并交付");
+        const chapters = await agent("修订编辑").ask<Chapter[]>(
+          `按意见修订，保持章序：${critique}\n\n${JSON.stringify(drafts)}`,
+        );
+        const guide: Guide = {
+          title: "仓库导览",
+          chapters,
+          notCovered: [".venv、.zcode 等产物目录未纳入"],
+        };
+        await artifact.markdown(
+          "guide",
+          chapters.map((c) => `## ${c.title}\n\n${c.body}`).join("\n\n"),
+          {
+            title: guide.title,
+            description: "按目录分章的仓库导览。",
+            primary: true,
+          },
+        );
+        return guide;
+      },
     );
-    const guide: Guide = { title: "仓库导览", chapters, notCovered: [".venv、.zcode 等产物目录未纳入"] };
-    await artifact.markdown("guide", chapters.map((c) => `## ${c.title}\n\n${c.body}`).join("\n\n"), {
-      title: guide.title,
-      description: "按目录分章的仓库导览。",
-      primary: true,
-    });
-    return guide;
   },
-  );
-},
 );
 ```
 

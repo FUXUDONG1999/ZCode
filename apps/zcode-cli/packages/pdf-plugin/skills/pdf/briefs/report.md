@@ -28,6 +28,7 @@ Structured documents via ReportLab: reports, proposals, contracts, white papers,
 ```
 
 **Typesetting assets** (load when you reach that step):
+
 - `typesetting/palette.md` - color system, typography rules, anti-patterns
 - `typesetting/cover.md` - 7 cover layouts with variants, typography scale, bounding box rules
 - `typesetting/charts.md` - chart styling, anti-stacking rules, axis/grid/legend treatment
@@ -70,12 +71,14 @@ TABLE_ROW_ODD      = BG_SURFACE
 ```
 
 **Options:**
+
 - `--mode minimal` (default, recommended for 50%+ of documents) | `dark` | `pastel` | `jewel` | `light`
 - `--harmony auto` (default, recommended) | `complementary` | `split_complementary` | `analogous` | `triadic` | `monochrome`
 - `--format python` (default) | `json` | `css`
 - `--seed <int>` - for reproducible palettes across regenerations
 
 **⚠️ FORBIDDEN:**
+
 - ❌ Writing `colors.HexColor('#xxxxxx')` with any hex value you chose yourself
 - ❌ Using `colors.red`, `colors.blue`, or any ReportLab named color for design elements
 - ❌ Skipping this step and picking colors "that look good"
@@ -85,15 +88,15 @@ TABLE_ROW_ODD      = BG_SURFACE
 
 ### 2b. Color Application Rules
 
-| Element | Color Source | Notes |
-|---------|-------------|-------|
-| Table headers | ACCENT (bg) + white (text) | High contrast required |
-| Table odd rows | BG_SURFACE at 50% opacity | Subtle striping |
-| Section titles | ACCENT or TEXT_PRIMARY | Match heading hierarchy |
-| Body text | TEXT_PRIMARY | Never use pure #000000 |
-| Muted/meta text | TEXT_MUTED | Dates, captions, footnotes |
-| Horizontal rules | ACCENT at 30% opacity | Thin, unobtrusive |
-| Chart colors | Derive from ACCENT (see charts.md) | Consistent with palette |
+| Element          | Color Source                       | Notes                      |
+| ---------------- | ---------------------------------- | -------------------------- |
+| Table headers    | ACCENT (bg) + white (text)         | High contrast required     |
+| Table odd rows   | BG_SURFACE at 50% opacity          | Subtle striping            |
+| Section titles   | ACCENT or TEXT_PRIMARY             | Match heading hierarchy    |
+| Body text        | TEXT_PRIMARY                       | Never use pure #000000     |
+| Muted/meta text  | TEXT_MUTED                         | Dates, captions, footnotes |
+| Horizontal rules | ACCENT at 30% opacity              | Thin, unobtrusive          |
+| Chart colors     | Derive from ACCENT (see charts.md) | Consistent with palette    |
 
 ### 2c. Forbidden
 
@@ -114,13 +117,13 @@ TABLE_ROW_ODD      = BG_SURFACE
 
 Parse raw text and categorize content into visual roles:
 
-| Role | ReportLab Mapping | Description |
-|------|------------------|-------------|
-| **Hero / Display** | Cover title (36-42pt) or section opener | 1-5 words, the emotional hook |
-| **Kicker / Eyebrow** | Subtitle or section intro (10-12pt, muted) | Tiny context line above main heading |
-| **Data Sculpture** | CalloutBox or bold stat block | Extract impactful numbers (97%, $4.2M, -45ms) |
-| **Pull Quote** | BlockQuote (italic + left indent 24pt + accent border) | Most provocative sentence, standalone |
-| **Body** | Standard paragraph | Everything else |
+| Role                 | ReportLab Mapping                                      | Description                                   |
+| -------------------- | ------------------------------------------------------ | --------------------------------------------- |
+| **Hero / Display**   | Cover title (36-42pt) or section opener                | 1-5 words, the emotional hook                 |
+| **Kicker / Eyebrow** | Subtitle or section intro (10-12pt, muted)             | Tiny context line above main heading          |
+| **Data Sculpture**   | CalloutBox or bold stat block                          | Extract impactful numbers (97%, $4.2M, -45ms) |
+| **Pull Quote**       | BlockQuote (italic + left indent 24pt + accent border) | Most provocative sentence, standalone         |
+| **Body**             | Standard paragraph                                     | Everything else                               |
 
 **Rule**: Before writing any body paragraph, scan for numbers with units. Every metric like "revenue grew by 12%" or "latency dropped to 45ms" MUST be extracted into a CalloutBox or metrics table - never buried in paragraph prose. See §Data-to-Ink Ratio Rules below.
 
@@ -146,13 +149,13 @@ Three rules for safe character handling in ReportLab PDFs:
 
 Mathematical/relational operators (×, ÷, ±, ≤, √, ∑, ≅, ∫, π, ∠, Δ, etc.) are safe to use as literal characters in `Paragraph()` - both SimHei and Times New Roman have these glyphs.
 
-| Need | Correct Method | Correct Example |
-|------|---------------|---------|
-| Superscript | `<super>` tag in `Paragraph()` | `Paragraph('10<super>2</super> × 10<super>3</super> = 10<super>5</super>', style)` |
-| Subscript | `<sub>` tag in `Paragraph()` | `Paragraph('H<sub>2</sub>O', style)` |
-| Bold | `<b>` tag in `Paragraph()` | `Paragraph('<b>Title</b>', style)` |
-| Math operators | Literal char in `Paragraph()` | `Paragraph('AB ⊥ AC, ∠A = 90°, and ΔABC ≅ ΔDCF', style)` |
-| Scientific notation | Combined tags in `Paragraph()` | `Paragraph('1.2 × 10<super>8</super> kg/m<super>3</super>', style)` |
+| Need                | Correct Method                 | Correct Example                                                                    |
+| ------------------- | ------------------------------ | ---------------------------------------------------------------------------------- |
+| Superscript         | `<super>` tag in `Paragraph()` | `Paragraph('10<super>2</super> × 10<super>3</super> = 10<super>5</super>', style)` |
+| Subscript           | `<sub>` tag in `Paragraph()`   | `Paragraph('H<sub>2</sub>O', style)`                                               |
+| Bold                | `<b>` tag in `Paragraph()`     | `Paragraph('<b>Title</b>', style)`                                                 |
+| Math operators      | Literal char in `Paragraph()`  | `Paragraph('AB ⊥ AC, ∠A = 90°, and ΔABC ≅ ΔDCF', style)`                           |
+| Scientific notation | Combined tags in `Paragraph()` | `Paragraph('1.2 × 10<super>8</super> kg/m<super>3</super>', style)`                |
 
 ```python
 from reportlab.platypus import Paragraph
@@ -187,6 +190,7 @@ Paragraph('When ∠ A = 90°, AB ⊥ AC and ΔABC ≅ ΔDEF', body_style)
 ```
 
 **Pre-generation check - before writing ANY string, ask:**
+
 > "Does this string contain a character outside basic CJK or Mathematical/relational operators?"
 > If YES → it MUST be inside a `Paragraph()` with the appropriate tag.
 > If it is a superscript/subscript digit in raw unicode escape form → REPLACE with `<super>`/`<sub>` tag.
@@ -194,6 +198,7 @@ Paragraph('When ∠ A = 90°, AB ⊥ AC and ΔABC ≅ ΔDEF', body_style)
 **NEVER rely on post-generation scanning. Prevent at the point of writing.**
 
 **Encoding safety - before writing ANY content text:**
+
 > "Does this string contain Japanese kana (の, が, は etc.) or rare Unicode symbols?"
 > If YES → REPLACE with safe plain Chinese equivalents. Japanese kana (Hiragana U+3040-U+309F, Katakana U+30A0-U+30FF) frequently corrupt to U+FFFD (�) when code passes through LLM output, heredoc, or terminal encoding layers.
 > Common safe replacements: `活の真鲷`→`活缔真鲷`, `盐烤の鲭鱼`→`盐烤鲭鱼`, `烤の鸡串`→`炭烤鸡串`.
@@ -204,24 +209,27 @@ Paragraph('When ∠ A = 90°, AB ⊥ AC and ΔABC ≅ ΔDEF', body_style)
 ## Font Setup (Guaranteed Success Method)
 
 ### CRITICAL: Allowed Fonts Only
+
 **You MUST ONLY use the following registered fonts. Using ANY other font is STRICTLY FORBIDDEN.**
 
-| Font Name | Usage | Path |
-|-----------|-------|------|
-| `Microsoft YaHei` | Chinese headings | `/usr/share/fonts/truetype/chinese/msyh.ttf` |
-| `SimHei` | Chinese body text | `/usr/share/fonts/truetype/chinese/SimHei.ttf` |
-| `SarasaMonoSC` | Chinese code blocks | `/usr/share/fonts/truetype/chinese/SarasaMonoSC-Regular.ttf` |
-| `Times New Roman` | English text, numbers, tables | `/usr/share/fonts/truetype/english/Times-New-Roman.ttf` |
-| `Calibri` | English alternative | `/usr/share/fonts/truetype/english/calibri-regular.ttf` |
-| `DejaVuSans` | Formulas, symbols, code | `/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf` |
+| Font Name         | Usage                         | Path                                                         |
+| ----------------- | ----------------------------- | ------------------------------------------------------------ |
+| `Microsoft YaHei` | Chinese headings              | `/usr/share/fonts/truetype/chinese/msyh.ttf`                 |
+| `SimHei`          | Chinese body text             | `/usr/share/fonts/truetype/chinese/SimHei.ttf`               |
+| `SarasaMonoSC`    | Chinese code blocks           | `/usr/share/fonts/truetype/chinese/SarasaMonoSC-Regular.ttf` |
+| `Times New Roman` | English text, numbers, tables | `/usr/share/fonts/truetype/english/Times-New-Roman.ttf`      |
+| `Calibri`         | English alternative           | `/usr/share/fonts/truetype/english/calibri-regular.ttf`      |
+| `DejaVuSans`      | Formulas, symbols, code       | `/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf`        |
 
 **FORBIDDEN fonts (DO NOT USE):**
+
 - ❌ Arial, Arial-Bold, Arial-Italic
 - ❌ Helvetica, Helvetica-Bold, Helvetica-Oblique
 - ❌ Courier, Courier-Bold
 - ❌ Any font not listed in the table above
 
 ### Font Registration Template
+
 ```python
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -250,6 +258,7 @@ registerFontFamily('DejaVuSans', normal='DejaVuSans', bold='DejaVuSans')
 ### Font Configuration by Document Type
 
 **For Chinese PDFs:**
+
 - Body text: `SimHei` or `Microsoft YaHei`
 - Headings: `Microsoft YaHei` (MUST use for Chinese headings)
 - Code blocks: `SarasaMonoSC`
@@ -257,12 +266,14 @@ registerFontFamily('DejaVuSans', normal='DejaVuSans', bold='DejaVuSans')
 - **In tables: ALL Chinese content and numbers MUST use `SimHei`**
 
 **For English PDFs:**
+
 - Body text: `Times New Roman`
 - Headings: `Times New Roman` (MUST use for English headings)
 - Code blocks: `DejaVuSans`
 - **In tables: ALL English content and numbers MUST use `Times New Roman`**
 
 **For Mixed Chinese-English PDFs:**
+
 - Call `install_font_fallback()` once after registering fonts - it automatically wraps characters in `<font>` tags so you don't need to do it manually.
 - If you still want manual control, you can use `<font name='...'>` tags, but the automatic fallback handles most cases.
 
@@ -288,6 +299,7 @@ Paragraph('《巴黎协定》签署于2015年', en_style)               # ✅ CJ
 **How it works:** `install_font_fallback()` monkey-patches `Paragraph.__init__` to scan each character against the font's `charToGlyph` table. Characters missing from the base font are automatically wrapped in `<font name="FallbackFont">`. The fallback chain is: English fonts → SimHei, Chinese fonts → Times New Roman. For aesthetic optimization, Cyrillic text in SimHei is automatically routed to Times New Roman (serif looks better for Cyrillic).
 
 ### Chinese Plot PNG Method
+
 ```python
 import matplotlib.pyplot as plt
 plt.rcParams['font.sans-serif'] = ['SimHei']
@@ -295,7 +307,9 @@ plt.rcParams['axes.unicode_minus'] = False
 ```
 
 ### Available Font Paths
+
 Run `fc-list` to get more fonts. Font files are typically located under:
+
 - `/usr/share/fonts/truetype/chinese/`
 - `/usr/share/fonts/truetype/english/`
 - `/usr/share/fonts/`
@@ -309,11 +323,13 @@ Run `fc-list` to get more fonts. Font files are typically located under:
 Follow the document type strategy defined in SOUL.md Rule 1.
 
 **Structural breaks (always - MANDATORY):**
+
 - Between cover page and TOC - **cover must NEVER share a page with anything else**
 - Between TOC and main content
 - Between main content and back cover
 
 **Content breaks (by document type):**
+
 - **Default (all document types)**: ❗ **Absolutely NEVER force page breaks before H1/H2** — content flows naturally, do not insert `PageBreak()` before section headings. This is an iron rule.
 - Resume / contract / letter → No content page breaks
 - Short article → No content page breaks
@@ -321,6 +337,7 @@ Follow the document type strategy defined in SOUL.md Rule 1.
 - **Exception 2**: User explicitly requests page breaks between chapters
 
 **Anti-tear (mandatory — but with height limit):**
+
 ```python
 from reportlab.platypus import KeepTogether
 from reportlab.lib.pagesizes import A4
@@ -374,20 +391,22 @@ ReportLab pushes the **entire block** to the next page, leaving the current page
 **⚠️ Note:** Do NOT use `KeepWithNext` - it is unreliable in ReportLab 4.x.
 
 ### Vertical Spacing Standards
-* Before tables: `Spacer(1, 18)` after preceding text
-* After tables: `Spacer(1, 6)` before table caption
-* After table captions: `Spacer(1, 18)` before next content
-* Between paragraphs: `Spacer(1, 12)` (~1 line)
-* Between H3 subsections: `Spacer(1, 12)`
-* Between H2 sections: `Spacer(1, 18)` (~1.5 lines)
-* Between H1 sections: `Spacer(1, 24)` (~2 lines)
-* NEVER use `Spacer(1, X)` where X > 24, except for H1 major breaks or cover page elements
+
+- Before tables: `Spacer(1, 18)` after preceding text
+- After tables: `Spacer(1, 6)` before table caption
+- After table captions: `Spacer(1, 18)` before next content
+- Between paragraphs: `Spacer(1, 12)` (~1 line)
+- Between H3 subsections: `Spacer(1, 12)`
+- Between H2 sections: `Spacer(1, 18)` (~1.5 lines)
+- Between H1 sections: `Spacer(1, 24)` (~2 lines)
+- NEVER use `Spacer(1, X)` where X > 24, except for H1 major breaks or cover page elements
 
 ### Cover Page: ReportLab Cover Engine
 
 **⚠️ Report route covers are generated with ReportLab** via `scripts/cover_render.py`, using the template system defined in `typesetting/cover.md` (templates **01–05** for the Report route). Pure Python — **no HTML/Playwright/Chromium required.**
 
 **Pipeline (Report route):**
+
 1. Generate **body PDF** via ReportLab (start with TOC or content — **no cover in story[]**).
 2. Generate the **cover PDF** with `cover_render.py` (pick a template 01–05 per `typesetting/cover.md` Part 2; pass content + palette).
 3. **Merge: insert cover as page 1** of the body PDF using pypdf → single final PDF.
@@ -399,6 +418,7 @@ ReportLab pushes the **entire block** to the next page, leaving the current page
 The Report route handles formal, structured documents. Readers expect a professional cover. **Always generate a cover unless the document type is explicitly excluded below.**
 
 **ALWAYS add a cover page (default behavior):**
+
 - Research reports, experiment reports, lab reports, analysis reports
 - White papers, industry analysis, market research
 - Business proposals, project plans, feasibility studies
@@ -407,6 +427,7 @@ The Report route handles formal, structured documents. Readers expect a professi
 - Any formal document ≥ 3 pages that will be shared externally or submitted
 
 **NEVER add a cover page (explicit exclusions only):**
+
 - **Resumes / CVs** - recruiters want content immediately
 - **Letters / memos** - single-page or short-form
 - **Forms / checklists / invoices** - functional documents
@@ -439,6 +460,7 @@ python3 "$PDF_SKILL_DIR/scripts/cover_render.py" 03 --out cover.pdf --content co
 ```
 
 Or from Python:
+
 ```python
 import sys, os
 sys.path.insert(0, os.path.join(PDF_SKILL_DIR, "scripts"))
@@ -459,6 +481,7 @@ render_cover("03", content, "cover.pdf", palette=palette, fonts=fonts)
 ```
 
 **Insertion script (single output PDF):**
+
 ```python
 from pypdf import PdfReader, PdfWriter, Transformation
 
@@ -494,12 +517,14 @@ def insert_cover(cover_pdf, body_pdf, output_pdf):
 **→ Full cover spec: `typesetting/cover.md`** — read it before designing any cover (templates 01–09, selection matrix, font strategy).
 
 **Cover design rules (summary — see cover.md for details):**
+
 - Rendered by `scripts/cover_render.py` on an A4 canvas (bottom-left origin).
 - Fonts are **auto-detected from the host** and chosen by cover style (sans for 01–05, serif for 06–09). CFF fonts (PingFang/Hiragino/Noto CJK) are skipped; missing heavy weights use faux-bold. See `cover.md` Part 3.
 - **Background must be white or very light** for report templates 01–05; primary color only for text/lines/accents, never a large-area fill (academic 06–08 are dark by design).
 - Sophistication = whitespace + typography + restrained geometric accents.
 
 **Cover Constitution (templates 01–09):**
+
 - **Pick a template (01–05 for Report)** from `typesetting/cover.md` Part 2 matching the document intent. No global default — every selection is a deliberate design decision. Template **05** (Solid Sidebar) for government/bidding/proposal.
 - **Typography Scale**: Hero ≈ 45–66pt, Meta ≥ 16pt (never below 14pt). Tiny text = FAIL.
 - **Data binding**: Hero = entity/company name (largest, heaviest); Kicker = report type/subtitle (small). Never reverse.
@@ -516,6 +541,7 @@ def insert_cover(cover_pdf, body_pdf, output_pdf):
 If a generated PDF shows cover + TOC on the same page, it is a **critical bug** - regenerate immediately.
 
 ### Alignment and Typography
+
 - **CJK body**: Use `TA_LEFT` + 2-char indent. Headings: no indent.
 - **Font sizes**: Body 11pt, subheadings 14pt, headings 18-20pt
 - **Line height**: 1.5-1.6 (leading at **1.4x font size minimum**, recommended 1.5x for CJK)
@@ -524,19 +550,20 @@ If a generated PDF shows cover + TOC on the same page, it is a **critical bug** 
 - **⛔ Prohibited: fixed `rowHeights` in Table()**. Use `TOPPADDING` / `BOTTOMPADDING` to control row spacing. Fixed rowHeights cause content overflow clipping - the text renders but gets invisibly cut off.
 - **CRITICAL: Alignment Selection Rule**:
   - Use `TA_JUSTIFY` only when ALL of:
-    * Text is predominantly English (≥ 90%)
-    * Column width is sufficiently wide (A4 single-column body)
-    * Font: Western fonts (Times New Roman / Calibri)
-    * Chinese content: None or negligible
+    - Text is predominantly English (≥ 90%)
+    - Column width is sufficiently wide (A4 single-column body)
+    - Font: Western fonts (Times New Roman / Calibri)
+    - Chinese content: None or negligible
   - Otherwise, always default to `TA_LEFT`
   - For Chinese text, always add `wordWrap='CJK'` to ParagraphStyle
 
 ### Style Configuration
-* Normal paragraph: `spaceBefore=0`, `spaceAfter=6-12`
-* Headings: `spaceBefore=12-18`, `spaceAfter=6-12`
-* **Headings must be bold**: Use `<b></b>` tags in Paragraph
-* Table captions: `spaceBefore=3`, `spaceAfter=6`, `alignment=TA_CENTER`
-* **CRITICAL**: For Chinese text, always add `wordWrap='CJK'` to ParagraphStyle
+
+- Normal paragraph: `spaceBefore=0`, `spaceAfter=6-12`
+- Headings: `spaceBefore=12-18`, `spaceAfter=6-12`
+- **Headings must be bold**: Use `<b></b>` tags in Paragraph
+- Table captions: `spaceBefore=3`, `spaceAfter=6`, `alignment=TA_CENTER`
+- **CRITICAL**: For Chinese text, always add `wordWrap='CJK'` to ParagraphStyle
 
 ---
 
@@ -555,6 +582,7 @@ TABLE_ROW_ODD = BG_SURFACE                 # From palette --c-mid (light stripe)
 ```
 
 ### Table Rules
+
 - Caption must be centered, added immediately after the table
 - Entire table must be centered on the page
 - **Header Row**: Dark background (from palette `header_fill`), white bold text
@@ -587,6 +615,7 @@ table = Table(data, colWidths=[100, 200, 150], hAlign='CENTER')
 ```
 
 **LaTeX equivalent:**
+
 ```latex
 \begin{table}[htbp]
   \centering  % MANDATORY
@@ -601,6 +630,7 @@ table = Table(data, colWidths=[100, 200, 150], hAlign='CENTER')
 **ALL text content in table cells MUST be wrapped in `Paragraph()`. NO EXCEPTIONS.**
 
 ❌ **PROHIBITED** - Plain strings:
+
 ```python
 data = [
     ['<b>Header</b>', 'Value'],           # Bold won't render!
@@ -609,6 +639,7 @@ data = [
 ```
 
 ✅ **REQUIRED** - All text in Paragraph:
+
 ```python
 data = [
     [Paragraph('<b>Header</b>', header_style), Paragraph('Value', header_style)],
@@ -619,15 +650,18 @@ data = [
 **The ONLY exception**: `Image()` objects can be placed directly in table cells.
 
 ### Units with Exponents (CRITICAL)
+
 - PROHIBITED: `W/m2`, `kg/m3`, `m/s2` (plain text exponents)
 - RIGHT: `Paragraph('W/m<super>2</super>', style)`, `Paragraph('kg/m<super>3</super>', style)`
 
 ### Numeric Values in Tables (CRITICAL)
+
 - Large numbers MUST use scientific notation: `Paragraph('-1.246 × 10<super>8</super>', style)` not `-124600000`
 - Small decimals MUST use scientific notation: `Paragraph('2.5 × 10<super>-3</super>', style)` not `0.0025`
 - Threshold: Use scientific notation when |value| ≥ 10000 or |value| ≤ 0.001
 
 ### Complete Table Example
+
 ```python
 from reportlab.platypus import Table, TableStyle, Paragraph, Image
 from reportlab.lib.styles import ParagraphStyle
@@ -715,6 +749,7 @@ table = Table(data)  # no colWidths
 ```
 
 **Checklist before adding any table:**
+
 1. Calculate `available_width` from your actual page size and margins
 2. Sum all colWidths - must be ≤ `available_width`
 3. For CJK text: characters are wider than Latin - budget ~12pt per CJK char at 10pt font
@@ -722,6 +757,7 @@ table = Table(data)  # no colWidths
 5. Test with the longest expected content in each column
 
 **Common mistake - plain strings don't wrap:**
+
 ```python
 # ❌ Plain string: will overflow if text is long
 data = [['Policy Name', 'Very long description that keeps going and going']]
@@ -740,14 +776,15 @@ Do you need auto-TOC?
 └─ NO → Use SimpleDocTemplate + doc.build(story)
 ```
 
-| Requirement | DocTemplate | Build Method |
-|-------------|-------------|--------------|
-| Multi-page with TOC | `TocDocTemplate` | `multiBuild()` |
-| Single-page or no TOC | `SimpleDocTemplate` | `build()` |
-| With Cross-References (no TOC) | `SimpleDocTemplate` | `build()` |
-| Both TOC + Cross-References | `TocDocTemplate` | `multiBuild()` |
+| Requirement                    | DocTemplate         | Build Method   |
+| ------------------------------ | ------------------- | -------------- |
+| Multi-page with TOC            | `TocDocTemplate`    | `multiBuild()` |
+| Single-page or no TOC          | `SimpleDocTemplate` | `build()`      |
+| With Cross-References (no TOC) | `SimpleDocTemplate` | `build()`      |
+| Both TOC + Cross-References    | `TocDocTemplate`    | `multiBuild()` |
 
 **⚠️ CRITICAL**:
+
 - `multiBuild()` is ONLY needed when using `TableOfContents`
 - Using `build()` with `TocDocTemplate` = TOC won't work
 - Using `multiBuild()` without `TocDocTemplate` = unnecessary overhead
@@ -757,7 +794,9 @@ Do you need auto-TOC?
 ## Rich Text Formatting
 
 ### Prerequisites
+
 To use `<b>`, `<super>`, `<sub>` tags, you **must**:
+
 1. Register fonts via `registerFont()`
 2. Call `registerFontFamily()` to link normal/bold/italic variants
 3. Wrap all tagged text in `Paragraph()` objects
@@ -783,9 +822,11 @@ text = Paragraph("Line 1<br/>Line 2<br/>Line 3", style)
 ## Auto-Generated Table of Contents
 
 ### ❌ FORBIDDEN: Manual Table of Contents
+
 **NEVER manually create TOC with hardcoded page numbers.**
 
 ### ⚠️ MANDATORY: TOC requires a cover page
+
 **Unless the user explicitly requests no cover, if a document has a Table of Contents, it MUST have a cover page.** Structure: Cover (page 1) → TOC (page 2) → Content (page 3+). Do not generate a TOC without a preceding cover page.
 
 ### ✅ ALWAYS use auto-generated TOC:
@@ -849,6 +890,7 @@ doc.multiBuild(story)  # MUST use multiBuild for TOC
 ```
 
 **⚠️ CRITICAL TOC LINK RULES:**
+
 1. `afterFlowable` MUST pass `key` as the 4th element in the notify tuple - without it, TOC entries have no clickable links
 2. `add_heading` MUST set `bookmark_key` AND embed `<a name="key"/>` in the Paragraph text - this creates the link destination
 3. The key must be unique per heading - use a hash of the heading text
@@ -924,16 +966,16 @@ doc.build(story)
 
 **MANDATORY Leader Dots Rules:**
 
-| Rule | Requirement |
-|------|-------------|
-| Column widths | ✅ MUST use fixed values. Percentage-based widths are **STRICTLY FORBIDDEN**. |
-| Dot count | ✅ MUST calculate dynamically: `int(dots_column_width / 4.5)`. Hard-coded counts are **STRICTLY FORBIDDEN**. |
-| Page number column | ✅ MUST be at least 40pt wide. |
-| Dot font size | ✅ MUST NOT exceed 8pt. |
-| Dot alignment | ✅ MUST be LEFT-aligned (visual flow from title). |
-| Padding | ✅ MUST be exactly 0 between columns. |
-| Bold text | ✅ MUST use `Paragraph('<b>Text</b>', style)`. Plain strings like `'<b>Text</b>'` are **STRICTLY FORBIDDEN**. |
-| Indentation | Use leading spaces for hierarchy (e.g., `"    1.1 Subsection"`). |
+| Rule               | Requirement                                                                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Column widths      | ✅ MUST use fixed values. Percentage-based widths are **STRICTLY FORBIDDEN**.                                 |
+| Dot count          | ✅ MUST calculate dynamically: `int(dots_column_width / 4.5)`. Hard-coded counts are **STRICTLY FORBIDDEN**.  |
+| Page number column | ✅ MUST be at least 40pt wide.                                                                                |
+| Dot font size      | ✅ MUST NOT exceed 8pt.                                                                                       |
+| Dot alignment      | ✅ MUST be LEFT-aligned (visual flow from title).                                                             |
+| Padding            | ✅ MUST be exactly 0 between columns.                                                                         |
+| Bold text          | ✅ MUST use `Paragraph('<b>Text</b>', style)`. Plain strings like `'<b>Text</b>'` are **STRICTLY FORBIDDEN**. |
+| Indentation        | Use leading spaces for hierarchy (e.g., `"    1.1 Subsection"`).                                              |
 
 ### TOC Post-Generation Validation (MANDATORY)
 
@@ -944,6 +986,7 @@ python3 "$PDF_SKILL_DIR/scripts/toc_validate.py" check-pdf output.pdf
 ```
 
 If any errors are returned, fix the code and regenerate. Common issues:
+
 - `TOC_ALL_SAME_PAGE` → You used `build()` instead of `multiBuild()`, so all page numbers are stuck at 1.
 - `TOC_NO_ENTRIES` → Headings are missing `bookmark_name`/`bookmark_level` attributes.
 - `TOC_PAGES_INVALID` → A TOC entry references a page beyond the document's total page count.
@@ -1073,6 +1116,7 @@ doc = SimpleDocTemplate(
 ### ⚠️ MANDATORY: Post-Generation Metadata
 
 After `doc.build(story)` completes:
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" meta.brand output.pdf
 ```
@@ -1080,9 +1124,11 @@ python3 "$PDF_SKILL_DIR/scripts/pdf.py" meta.brand output.pdf
 ### ⚠️ MANDATORY: Post-Generation Blank Page Cleanup
 
 After metadata branding, remove any accidental blank pages:
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" pages.clean output.pdf -o output_clean.pdf
 ```
+
 If blank pages were found, rename `output_clean.pdf` → `output.pdf`.
 
 ---
@@ -1120,6 +1166,7 @@ python3 "$PDF_SKILL_DIR/scripts/pdf_qa.py" output.pdf
 ```
 
 **FORBIDDEN patterns:**
+
 ```bash
 # ❌ PROHIBITED: python -c with inline code
 python -c "from reportlab... doc.build(story)"
@@ -1159,15 +1206,18 @@ story.append(caption)
 Single-column, clean layout optimised for Applicant Tracking Systems (ATS). No graphics, no sidebars, no colour blocks - just well-structured text that parses perfectly by HR software.
 
 **When to use this template:**
+
 - Applying to corporate jobs through online portals
 - Any scenario where the PDF will be machine-parsed before a human reads it
 - When the recruiter explicitly asks for "a standard resume"
 
 **When NOT to use (use Academic brief instead):**
+
 - Creative/design industry positions → Academic brief (AltaCV-style)
 - Academic CV with publications → Academic brief (Academic CV)
 
 ### Resume Design Rules
+
 - **Target 1 page** unless user specifies otherwise
 - **Margins**: `left=1.5cm, right=1.5cm, top=1.5cm, bottom=1.5cm`
 - **No cover page** - content starts immediately
@@ -1179,6 +1229,7 @@ Single-column, clean layout optimised for Applicant Tracking Systems (ATS). No g
 - **Bullet style**: `•` with tight spacing
 
 ### Resume Line-Break Rules (Language-Aware)
+
 - **English**: Prefer breaking at word boundaries (spaces, hyphens). If a long word must be split to avoid excessive whitespace, break at a valid syllable boundary and insert a hyphen (`-`) - this is standard typographic practice (e.g., `experi-\nence`, `develop-\nment`). ReportLab supports `wordWrap='CJK'` only for CJK content; for English use default paragraph wrapping with `allowWidows=0, allowOrphans=0`.
 - **Chinese/CJK**: Break allowed between any two CJK characters. Never break between a CJK character and its adjacent punctuation (、。,)》 etc. must stay with the preceding character).
 - **Mixed content** (e.g., "Python 开发工程师"): Break at CJK boundaries or English word boundaries. Never split an English word in a CJK paragraph unless hyphenated.
@@ -1186,6 +1237,7 @@ Single-column, clean layout optimised for Applicant Tracking Systems (ATS). No g
 - **Dates and ranges**: "Jan 2022 - Present" must stay as one unit. Never break a date range across lines.
 
 ### Resume Page-Fill Rules (Anti-Blank-Space)
+
 - **Goal: Fill ≥85% of the page height.** Content should reach at least the bottom quarter of the page. A resume that stops at 60% height with blank space below = FAIL.
 - **Adaptive spacing strategy** (apply in order until page is ≥85% filled):
   1. Increase `spaceBefore` / `spaceAfter` on section headers (from 10pt up to 18pt)
@@ -1363,6 +1415,7 @@ doc.build(story)
 ```
 
 ### Resume Checklist
+
 - [ ] **1 page** (unless user says otherwise)
 - [ ] **No cover page, no TOC**
 - [ ] Tight margins (1.5cm all sides)
@@ -1382,29 +1435,32 @@ doc.build(story)
 ## Component Reference
 
 ### Block types:
-| Type | Description | Notes |
-|------|-------------|-------|
-| h1 | 22pt + accent underline rule | KeepTogether with rule |
-| h2 | 15pt, dark | No rule, no accent |
-| h3 | 11.5pt bold | No accent |
-| body | 10.5pt justified, 17pt leading | Supports `<b>` `<i>` `<font>` |
-| bullet | Body size with `•` prefix | Unordered list |
-| numbered | Body size with N. prefix | Counter auto-resets |
-| callout | Accent left border 4px + light tint bg | Max one per section |
-| table | Accent header + alternating rows + outer box only | Supports fractional col_widths |
-| code | Courier 8.5pt + accent left border | Optional language label |
-| divider | Accent 1.2pt rule | Use sparingly |
-| caption | 8.5pt muted, centered | Below images/tables |
-| chart | matplotlib figure saved as PNG → `Image()` flowable | Generate chart in-script, `fig.savefig()` → embed. Set `plt.rcParams['font.sans-serif']=['SimHei']` for CJK. Always `tight_layout()`. **Must follow `typesetting/charts.md` rules**: delete top/right spines, dashed grid 20% opacity, donut default for pie, anti-stacking labels. |
-| quote | Body italic + left indent 24pt + muted accent left border 2px | For blockquotes / testimonials |
-| bibliography | Hanging indent (firstLineIndent=-24pt, leftIndent=24pt) | GB/T 7714 or APA format per language |
-| math | Rendered via `<super>` `<sub>` tags in Paragraph | For inline math; complex equations → use academic brief instead |
+
+| Type         | Description                                                   | Notes                                                                                                                                                                                                                                                                               |
+| ------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| h1           | 22pt + accent underline rule                                  | KeepTogether with rule                                                                                                                                                                                                                                                              |
+| h2           | 15pt, dark                                                    | No rule, no accent                                                                                                                                                                                                                                                                  |
+| h3           | 11.5pt bold                                                   | No accent                                                                                                                                                                                                                                                                           |
+| body         | 10.5pt justified, 17pt leading                                | Supports `<b>` `<i>` `<font>`                                                                                                                                                                                                                                                       |
+| bullet       | Body size with `•` prefix                                     | Unordered list                                                                                                                                                                                                                                                                      |
+| numbered     | Body size with N. prefix                                      | Counter auto-resets                                                                                                                                                                                                                                                                 |
+| callout      | Accent left border 4px + light tint bg                        | Max one per section                                                                                                                                                                                                                                                                 |
+| table        | Accent header + alternating rows + outer box only             | Supports fractional col_widths                                                                                                                                                                                                                                                      |
+| code         | Courier 8.5pt + accent left border                            | Optional language label                                                                                                                                                                                                                                                             |
+| divider      | Accent 1.2pt rule                                             | Use sparingly                                                                                                                                                                                                                                                                       |
+| caption      | 8.5pt muted, centered                                         | Below images/tables                                                                                                                                                                                                                                                                 |
+| chart        | matplotlib figure saved as PNG → `Image()` flowable           | Generate chart in-script, `fig.savefig()` → embed. Set `plt.rcParams['font.sans-serif']=['SimHei']` for CJK. Always `tight_layout()`. **Must follow `typesetting/charts.md` rules**: delete top/right spines, dashed grid 20% opacity, donut default for pie, anti-stacking labels. |
+| quote        | Body italic + left indent 24pt + muted accent left border 2px | For blockquotes / testimonials                                                                                                                                                                                                                                                      |
+| bibliography | Hanging indent (firstLineIndent=-24pt, leftIndent=24pt)       | GB/T 7714 or APA format per language                                                                                                                                                                                                                                                |
+| math         | Rendered via `<super>` `<sub>` tags in Paragraph              | For inline math; complex equations → use academic brief instead                                                                                                                                                                                                                     |
 
 ### Header / footer:
+
 - Header: document title (left, 7.5pt, muted) + accent rule (1.5pt, full width)
 - Footer: author (left, 7.5pt, muted) + page number (right, 7.5pt, muted) + light rule above
 
 ### Custom flowables (preferred over Table hacks):
+
 - **CalloutBox**: accent 4px left border + light tint background - cleaner than Table simulation
 - **BibliographyItem**: hanging indent reference entry
 
@@ -1412,13 +1468,13 @@ doc.build(story)
 
 ## Quick Reference
 
-| Task | Best Tool | Command/Code |
-|------|-----------|--------------|
-| Create PDF (ReportLab) | reportlab | Canvas or Platypus |
-| Fill PDF forms | Process brief | `python3 "$PDF_SKILL_DIR/scripts/pdf.py" form.fill` or annotation workflow |
-| Merge PDFs | Process brief | `python3 "$PDF_SKILL_DIR/scripts/pdf.py" pages.merge` |
-| Extract text | Process brief | `python3 "$PDF_SKILL_DIR/scripts/pdf.py" extract.text` |
-| Extract tables | Process brief | `python3 "$PDF_SKILL_DIR/scripts/pdf.py" extract.table` |
+| Task                   | Best Tool     | Command/Code                                                               |
+| ---------------------- | ------------- | -------------------------------------------------------------------------- |
+| Create PDF (ReportLab) | reportlab     | Canvas or Platypus                                                         |
+| Fill PDF forms         | Process brief | `python3 "$PDF_SKILL_DIR/scripts/pdf.py" form.fill` or annotation workflow |
+| Merge PDFs             | Process brief | `python3 "$PDF_SKILL_DIR/scripts/pdf.py" pages.merge`                      |
+| Extract text           | Process brief | `python3 "$PDF_SKILL_DIR/scripts/pdf.py" extract.text`                     |
+| Extract tables         | Process brief | `python3 "$PDF_SKILL_DIR/scripts/pdf.py" extract.table`                    |
 
 ---
 
@@ -1427,6 +1483,7 @@ doc.build(story)
 ### 📋 Invoice / Receipt
 
 Key elements:
+
 - Company logo/name at top
 - Invoice number + date (right-aligned)
 - Seller/buyer info block (2-column layout)
@@ -1445,6 +1502,7 @@ data.append(['', '', 'Total:', f'¥{total}'])
 ### 📝 Contract / Legal Document
 
 Key elements:
+
 - Title centered, bold, 18pt
 - Numbered clauses with auto-increment
 - Signature block at bottom: Party A / Party B with date line
@@ -1462,6 +1520,7 @@ sig_table = Table(sig_data, colWidths=[250, 250])
 ### 📊 Book / Long Document
 
 For documents with 10+ pages:
+
 1. Generate TOC with `TableOfContents()` from reportlab.platypus
 2. Use `CondPageBreak(H1_ORPHAN_THRESHOLD)` before H1 headings (NOT `PageBreak()` — never force page breaks between chapters)
 3. Add running headers/footers with chapter title + page number
@@ -1475,6 +1534,7 @@ For documents with 10+ pages:
 **Exam papers have unique layout requirements. These rules are MANDATORY when generating any test/quiz/exam document.**
 
 #### Numbering & Structure
+
 ```
 一、选择题（每小题 3 分，共 30 分）          ← Section header (宋体/黑体 14pt Bold)
 
@@ -1490,6 +1550,7 @@ For documents with 10+ pages:
 ```
 
 #### Option Indentation (MANDATORY)
+
 ```python
 # ReportLab styles for exam papers
 question_style = ParagraphStyle(
@@ -1506,6 +1567,7 @@ option_style = ParagraphStyle(
 ```
 
 #### Option Layout Decision
+
 ```python
 def format_options(options):
     """
@@ -1534,14 +1596,14 @@ def format_options(options):
 
 **Every question MUST have adequate answer space. No exceptions.**
 
-| Question Type | Minimum Space | Implementation |
-|--------------|---------------|----------------|
-| Multiple choice | 0 extra (options are the answer) | Just question + options |
-| Fill-in-the-blank | Inline underline, min 80pt width | `<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>` or ReportLab `HRFlowable` |
-| Short answer | 40-60pt (2-3 lines) | `Spacer(1, 50)` |
-| Calculation / math work | 120-200pt (6-10 lines) | `Spacer(1, 160)` with light guide lines |
-| Essay / long answer | 200-400pt (10-20 lines) | `Spacer(1, 300)` with light guide lines |
-| Proof / derivation | 160-250pt (8-12 lines) | `Spacer(1, 200)` |
+| Question Type           | Minimum Space                    | Implementation                                                                      |
+| ----------------------- | -------------------------------- | ----------------------------------------------------------------------------------- |
+| Multiple choice         | 0 extra (options are the answer) | Just question + options                                                             |
+| Fill-in-the-blank       | Inline underline, min 80pt width | `<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>` or ReportLab `HRFlowable` |
+| Short answer            | 40-60pt (2-3 lines)              | `Spacer(1, 50)`                                                                     |
+| Calculation / math work | 120-200pt (6-10 lines)           | `Spacer(1, 160)` with light guide lines                                             |
+| Essay / long answer     | 200-400pt (10-20 lines)          | `Spacer(1, 300)` with light guide lines                                             |
+| Proof / derivation      | 160-250pt (8-12 lines)           | `Spacer(1, 200)`                                                                    |
 
 ```python
 # Answer line helper — light dashed lines for handwriting
@@ -1558,6 +1620,7 @@ def add_answer_lines(story, num_lines=8, line_spacing=20):
 ```
 
 #### Page Density
+
 - `spaceBefore=12pt` between questions minimum
 - `spaceBefore=24pt` before section headers (一、二、三)
 - Score indicator after question number: `1. (分值: 5分)` or `1. [5 pts]`
@@ -1574,14 +1637,14 @@ def add_answer_lines(story, num_lines=8, line_spacing=20):
 
 Before writing ANY body paragraph, scan the text. If you find any of these patterns, extract them:
 
-| Raw text pattern | ❌ FORBIDDEN | ✅ REQUIRED visual form |
-|-----------------|-------------|----------------------|
-| "revenue grew 12% to $4.2M" | Bury in paragraph prose | CalloutBox with bold `+12%` + `$4.2M` |
-| "latency dropped from 120ms to 75ms" | Long explanatory sentence | CalloutBox or metrics table row |
-| "Q1→Q2→Q3: 10%→25%→40%" | Inline numbers in text | Chart (matplotlib PNG → `Image()`) |
-| "first...second...third..." steps | Paragraph with ordinal words | Numbered Table or process list |
-| "compared to last year / vs Q2" | Nested comparisons in prose | Side-by-side comparison table |
-| "accounted for 60% of total" | Percentage in paragraph | Pie chart or stacked bar chart |
+| Raw text pattern                     | ❌ FORBIDDEN                 | ✅ REQUIRED visual form               |
+| ------------------------------------ | ---------------------------- | ------------------------------------- |
+| "revenue grew 12% to $4.2M"          | Bury in paragraph prose      | CalloutBox with bold `+12%` + `$4.2M` |
+| "latency dropped from 120ms to 75ms" | Long explanatory sentence    | CalloutBox or metrics table row       |
+| "Q1→Q2→Q3: 10%→25%→40%"              | Inline numbers in text       | Chart (matplotlib PNG → `Image()`)    |
+| "first...second...third..." steps    | Paragraph with ordinal words | Numbered Table or process list        |
+| "compared to last year / vs Q2"      | Nested comparisons in prose  | Side-by-side comparison table         |
+| "accounted for 60% of total"         | Percentage in paragraph      | Pie chart or stacked bar chart        |
 
 ### ReportLab CalloutBox Template
 
@@ -1611,7 +1674,6 @@ callout.setStyle(TableStyle([
 ]))
 story.append(KeepTogether(callout))
 ```
-
 
 ---
 

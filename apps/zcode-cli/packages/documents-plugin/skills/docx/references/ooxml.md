@@ -7,6 +7,7 @@
 Use the `Document` class from `"$DOCX_SCRIPTS/document.py"` for all edits, tracked changes, and comments. It handles infrastructure automatically (people.xml, RSIDs, settings.xml, comments, relationships, content types).
 
 **Working with Unicode and Entities:**
+
 - Both entity notation and Unicode work for search: `contains="&#8220;Company"` ≡ `contains="\u201cCompany"`
 - Both work for replacement too
 
@@ -61,6 +62,7 @@ node = doc["word/document.xml"].get_node(tag="w:r", contains="Section", line_num
 **CRITICAL**: Only mark text that actually changes. Keep unchanged text outside `<w:del>`/`<w:ins>` tags.
 
 **Method Selection**:
+
 - Regular text → `replace_node()` with `<w:del>`/`<w:ins>`, or `suggest_deletion()` for whole elements
 - Partially modify another's tracked change → `replace_node()` to nest changes
 - Reject another's insertion → `revert_insertion()` (NOT `suggest_deletion()`)
@@ -189,7 +191,7 @@ doc.save(validate=False)      # Skip validation (debug only)
 ```
 
 > ⚠️ **A bare `doc.save()` writes back to whatever directory you passed to `Document()`.** That is safe
-> when you opened an *unpacked working copy* (the normal flow: `unzip` the input into `work_dir`, then
+> when you opened an _unpacked working copy_ (the normal flow: `unzip` the input into `work_dir`, then
 > `Document('work_dir')`) — the user's `.docx` is a separate file and stays untouched. It is
 > **destructive** if you ever point `Document()` at a directory that is itself the deliverable or the
 > user's data. The real overwrite risk in this skill is the **pack** step, not `save()`: `zip` writes
@@ -224,6 +226,7 @@ nodes = doc["word/document.xml"].insert_after(nodes[-1], "<w:r><w:t>B</w:t></w:r
 ## Validation Rules
 
 The validator ensures document text matches the original after reverting GLM's changes:
+
 - **Never modify text inside another author's `<w:ins>` or `<w:del>` tags**
 - **Use nested deletions** to remove another author's insertions
 - **Every edit must be tracked** with `<w:ins>` or `<w:del>` tags

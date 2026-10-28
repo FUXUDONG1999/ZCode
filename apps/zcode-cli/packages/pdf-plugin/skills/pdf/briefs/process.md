@@ -8,18 +8,17 @@ Work with existing PDFs: extract, merge, split, fill forms, convert formats, or 
 >
 > 🔴 **HARD REQUIREMENT — LibreOffice is missing.** Office→PDF (`convert.office`, `soffice`) and the 5-step DOCX pipeline depend on LibreOffice. **If it is not installed, you MUST install it. This is not a choice.**
 >
-> **FORBIDDEN:** ❌ using Microsoft Word/Excel/PowerPoint, WPS Office, Keynote, Pages, or any other program already on the user's machine *instead of* installing LibreOffice. ❌ Deciding for the user that the download is "too large"/"too slow" — **the package being large is NOT a reason to skip the install**; it is expected to be large. ❌ Asking "should I use Word instead to save time?" — that is the same violation dressed up as a question. ❌ Jumping straight to the python-pptx/python-docx + HTML + Playwright fallback to avoid installing.
+> **FORBIDDEN:** ❌ using Microsoft Word/Excel/PowerPoint, WPS Office, Keynote, Pages, or any other program already on the user's machine _instead of_ installing LibreOffice. ❌ Deciding for the user that the download is "too large"/"too slow" — **the package being large is NOT a reason to skip the install**; it is expected to be large. ❌ Asking "should I use Word instead to save time?" — that is the same violation dressed up as a question. ❌ Jumping straight to the python-pptx/python-docx + HTML + Playwright fallback to avoid installing.
 >
 > **REQUIRED sequence, no steps skipped:**
 >
 > 1. **Explain the necessity to the user.** LibreOffice is the conversion engine that preserves themes, layouts, master slides, fonts, and pagination faithfully; other tools produce visibly lower-fidelity PDFs.
 > 2. **Tell them the download is large** (several hundred MB) and may take a while — this is information for the user, **not** a decision point for you. State it and proceed.
-> 3. **Install it now.** **Preferred source — Tsinghua TUNA mirror:** `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/26.8.0/` — choose the subdirectory for the platform/arch (`deb/x86_64`, `deb/aarch64`, `rpm/x86_64`, `mac/aarch64`, `mac/x86_64`, `win/x86_64`, `win/aarch64`) and install the main package from it (Linux deb: `tar -xzf` then `sudo dpkg -i LibreOffice_26.8.0*/DEBS/*.deb && sudo apt-get install -f -y`; macOS: mount the `.dmg` and copy `LibreOffice.app` to `/Applications`; Windows: `msiexec /i <pkg>.msi /qn`). If 26.8.0 is gone, list `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/` and use the newest version. Full commands in `env_setup/setup.md` → *"LibreOffice — Recommended Download Source"*. Package-manager fallback if the mirror is unreachable: macOS `brew install --cask libreoffice`; Linux (Debian/Ubuntu) `sudo apt install libreoffice-core`; Windows `winget install TheDocumentFoundation.LibreOffice`.
-> 4. **Register the binary on `PATH`, then re-verify `soffice --version`.** An install that leaves `soffice` off the executable search path is indistinguishable from "not installed" to the next probe — that is what causes the same several-hundred-MB package to be downloaded twice. **The mechanism differs per OS:** Linux `sudo ln -sf /opt/libreoffice*/program/soffice /usr/local/bin/soffice`; macOS `sudo ln -sf /Applications/LibreOffice.app/Contents/MacOS/soffice /usr/local/bin/soffice` (or `/opt/homebrew/bin` on Apple Silicon); Windows `setx PATH "$([Environment]::GetEnvironmentVariable('PATH','User'));C:\Program Files\LibreOffice\program"` (affects only new shells — use the full `soffice.exe` path for the rest of the session). Full commands in `env_setup/setup.md` → *"Register the binary on PATH"*. **Probe before installing**: a binary already on disk but off-`PATH` needs registering, not reinstalling.
+> 3. **Install it now.** **Preferred source — Tsinghua TUNA mirror:** `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/26.8.0/` — choose the subdirectory for the platform/arch (`deb/x86_64`, `deb/aarch64`, `rpm/x86_64`, `mac/aarch64`, `mac/x86_64`, `win/x86_64`, `win/aarch64`) and install the main package from it (Linux deb: `tar -xzf` then `sudo dpkg -i LibreOffice_26.8.0*/DEBS/*.deb && sudo apt-get install -f -y`; macOS: mount the `.dmg` and copy `LibreOffice.app` to `/Applications`; Windows: `msiexec /i <pkg>.msi /qn`). If 26.8.0 is gone, list `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/` and use the newest version. Full commands in `env_setup/setup.md` → _"LibreOffice — Recommended Download Source"_. Package-manager fallback if the mirror is unreachable: macOS `brew install --cask libreoffice`; Linux (Debian/Ubuntu) `sudo apt install libreoffice-core`; Windows `winget install TheDocumentFoundation.LibreOffice`.
+> 4. **Register the binary on `PATH`, then re-verify `soffice --version`.** An install that leaves `soffice` off the executable search path is indistinguishable from "not installed" to the next probe — that is what causes the same several-hundred-MB package to be downloaded twice. **The mechanism differs per OS:** Linux `sudo ln -sf /opt/libreoffice*/program/soffice /usr/local/bin/soffice`; macOS `sudo ln -sf /Applications/LibreOffice.app/Contents/MacOS/soffice /usr/local/bin/soffice` (or `/opt/homebrew/bin` on Apple Silicon); Windows `setx PATH "$([Environment]::GetEnvironmentVariable('PATH','User'));C:\Program Files\LibreOffice\program"` (affects only new shells — use the full `soffice.exe` path for the rest of the session). Full commands in `env_setup/setup.md` → _"Register the binary on PATH"_. **Probe before installing**: a binary already on disk but off-`PATH` needs registering, not reinstalling.
 > 5. **Only after that install has actually been attempted AND failed** may you use software already on the user's machine, or the Playwright fallback route. Report the install failure and that fidelity will be lower.
 >
 > **The gate is simple: no install attempt = no substitute program.** If you have not run the install command and seen it fail, reaching for Word/WPS/Keynote is a violation of this skill.
-
 
 ---
 
@@ -146,12 +145,12 @@ python3 "$PDF_SKILL_DIR/scripts/pdf.py" form.fill input.pdf -o filled.pdf \
 
 **Value rules:**
 
-| Type | Value | Example |
-|------|-------|---------|
-| text | Free string | `"name": "Jane Doe"` |
-| checkbox | `"true"` / `"false"` (auto-converts to PDF states) | `"agree": "true"` |
-| radio | One of `radio_options[].value` | `"gender": "/Choice1"` |
-| dropdown | One of `choice_options[].value` | `"country": "US"` |
+| Type     | Value                                              | Example                |
+| -------- | -------------------------------------------------- | ---------------------- |
+| text     | Free string                                        | `"name": "Jane Doe"`   |
+| checkbox | `"true"` / `"false"` (auto-converts to PDF states) | `"agree": "true"`      |
+| radio    | One of `radio_options[].value`                     | `"gender": "/Choice1"` |
+| dropdown | One of `choice_options[].value`                    | `"country": "US"`      |
 
 For complex forms, use `form.detail` and `form.render` for deeper inspection:
 
@@ -165,6 +164,7 @@ python3 "$PDF_SKILL_DIR/scripts/pdf.py" form.render input.pdf -o ./pages/       
 For PDFs without interactive fields (scanned forms, image-based). All four steps are mandatory.
 
 **Step 1 — Render pages as PNG** (required):
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" form.render input.pdf -o ./pages/
 ```
@@ -183,9 +183,9 @@ To determine bbox coordinates: open the rendered PNG in an image viewer or use P
         {
           "id": "last_name",
           "hint": "Last name field",
-          "label": {"tag": "Last name", "bbox": [30, 125, 95, 142]},
-          "target": {"bbox": [100, 125, 280, 142]},
-          "ink": {"value": "Simpson", "size": 14, "color": "000000"}
+          "label": { "tag": "Last name", "bbox": [30, 125, 95, 142] },
+          "target": { "bbox": [100, 125, 280, 142] },
+          "ink": { "value": "Simpson", "size": 14, "color": "000000" }
         }
       ]
     }
@@ -196,6 +196,7 @@ To determine bbox coordinates: open the rendered PNG in an image viewer or use P
 Schema: `pg` = 1-based page, `dims` = [w,h] in pixels, `label.bbox` / `target.bbox` = [left, top, right, bottom], `ink` = {value, size?, color?, font?}. Label and target boxes must NOT intersect.
 
 **Step 3 — Validate bounding boxes** (required):
+
 ```bash
 # Auto-check for intersections
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" form.check-bbox fields.json
@@ -207,6 +208,7 @@ python3 "$PDF_SKILL_DIR/scripts/pdf.py" form.validate 1 fields.json page1.png va
 Fix any issues, regenerate, re-check. Red rectangles must only cover input areas.
 
 **Step 4 — Fill via annotations**:
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" form.annotate input.pdf fields.json -o filled.pdf
 ```
@@ -245,6 +247,7 @@ When user provides a reference PDF to match:
 ```
 
 **Key principles:**
+
 - Match the spirit, not the pixels — exact replication from PDF is impractical
 - Prefer original source files (.docx/.html/.tex) over PDF when available
 - Declare font substitutions upfront; don't silently fall back
@@ -257,6 +260,7 @@ When user provides a reference PDF to match:
 ### Office → PDF (LibreOffice)
 
 **Simple conversion** (no TOC needed):
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" convert.office input.docx -o output.pdf
 ```
@@ -264,6 +268,7 @@ python3 "$PDF_SKILL_DIR/scripts/pdf.py" convert.office input.docx -o output.pdf
 **When to use the 5-step DOCX Pipeline instead**: If the DOCX has (or should have) a Table of Contents, always use §DOCX Pipeline below. Signs: the document has 3+ headings, or the user mentions "table of contents" / "TOC", or the document already contains a TOC section. When in doubt, run `python3 "$PDF_SKILL_DIR/scripts/toc_validate.py" fix-docx input.docx -o fixed.docx` — if it returns `no_toc_needed`, a simple conversion is fine.
 
 Or directly:
+
 ```bash
 soffice --headless --convert-to pdf --outdir ./output input.docx
 ```
@@ -273,6 +278,7 @@ soffice --headless --convert-to pdf --outdir ./output input.docx
 **macOS path**: `/Applications/LibreOffice.app/Contents/MacOS/soffice`
 
 **Gotchas:**
+
 - soffice allows only one instance at a time; close existing LibreOffice windows or use `--env:UserInstallation=file:///tmp/libreoffice_tmp`
 - Missing Chinese fonts → squares. Ensure SimHei/SimSun are installed.
 - Large files (>50MB) may take 1-2 min; set reasonable timeout
@@ -284,12 +290,12 @@ soffice --headless --convert-to pdf --outdir ./output input.docx
 
 Use this **only** when the LibreOffice install attempt has failed. Use openpyxl + HTML + Playwright. Let data shape drive layout:
 
-| Factor | Decision |
-|--------|----------|
-| Columns ≤ 6 | Portrait |
-| Columns > 6 | Landscape |
-| Font size | Scale inversely with column count |
-| Styling | Follow user requirements or source file style; if unspecified, use defaults from `typesetting/palette.md` |
+| Factor      | Decision                                                                                                  |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| Columns ≤ 6 | Portrait                                                                                                  |
+| Columns > 6 | Landscape                                                                                                 |
+| Font size   | Scale inversely with column count                                                                         |
+| Styling     | Follow user requirements or source file style; if unspecified, use defaults from `typesetting/palette.md` |
 
 ### §DOCX Pipeline (5-Step with TOC)
 
@@ -304,17 +310,21 @@ Step 5: soffice     → Convert final DOCX to PDF + pages.clean
 ```
 
 **Step 1 — Pass 1 Convert**:
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" convert.office input.docx -o pass1.pdf
 ```
 
 **Step 2 — Clean Blank Pages**:
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" pages.clean pass1.pdf -o pass1_clean.pdf
 ```
+
 If `blank_pages_removed == 0`, use pass1.pdf directly.
 
 **Step 3 — Fix TOC**:
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/toc_validate.py" fix-docx input.docx -o fixed.docx
 ```
@@ -324,6 +334,7 @@ Auto-detects and fixes: placeholder TOC, stale TOC (>50% drift), empty TOC, miss
 Check output `action` field: `fixed` → use fixed.docx, `skipped` → use original, `no_toc_needed` → skip to Step 5 with pass1 PDF.
 
 **Step 4 — Fix Page Numbers**:
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/toc_validate.py" fix-pages fixed.docx pass1_clean.pdf -o final.docx
 ```
@@ -331,6 +342,7 @@ python3 "$PDF_SKILL_DIR/scripts/toc_validate.py" fix-pages fixed.docx pass1_clea
 Corrects PAGEREF display text using actual page positions from pass1 + TOC page offset.
 
 **Step 5 — Final Convert + Clean**:
+
 ```bash
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" convert.office final.docx -o output.pdf
 python3 "$PDF_SKILL_DIR/scripts/pdf.py" pages.clean output.pdf -o output_clean.pdf
@@ -348,15 +360,15 @@ Issues caught: `CONV_TOC_LOST` (TOC disappeared), `CONV_HINT_LEAKED` (placeholde
 
 ## Caveats
 
-| Topic | Detail |
-|-------|--------|
+| Topic          | Detail                                             |
+| -------------- | -------------------------------------------------- |
 | Encrypted PDFs | Not supported. User must decrypt externally first. |
-| < 50 MB | Instant |
-| 50–200 MB | 1–2 minutes |
-| > 200 MB | Split first, or extend timeout |
-| Memory | ~2-3× input file size |
-| Merge failure | Partial output may remain; delete and retry |
-| Split failure | Some page files may exist; inspect output dir |
-| Form fill | Original never modified; always writes new file |
+| < 50 MB        | Instant                                            |
+| 50–200 MB      | 1–2 minutes                                        |
+| > 200 MB       | Split first, or extend timeout                     |
+| Memory         | ~2-3× input file size                              |
+| Merge failure  | Partial output may remain; delete and retry        |
+| Split failure  | Some page files may exist; inspect output dir      |
+| Form fill      | Original never modified; always writes new file    |
 
 For edge cases (OCR, batch processing, poppler-utils, qpdf, performance tuning), load `briefs/process-advanced.md`.

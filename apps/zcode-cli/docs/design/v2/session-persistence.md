@@ -54,8 +54,8 @@ Timeline 的展示 label 单独保留，不混入严格的 Selection 契约。
 
 所有带 `Timestamps` 的表都有：
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
+| 字段           | 类型    | 用途                   |
+| -------------- | ------- | ---------------------- |
 | `time_created` | integer | 创建时间，毫秒时间戳。 |
 | `time_updated` | integer | 更新时间，毫秒时间戳。 |
 
@@ -63,31 +63,31 @@ Timeline 的展示 label 单独保留，不混入严格的 Selection 契约。
 
 一行表示一个 session。
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
-| `id` | text primary key | Session ID。 |
-| `project_id` | text not null | 所属 project；删除 project 时级联删除 session。 |
-| `workspace_id` | text nullable | 所属 workspace；没有 workspace 时为空。 |
-| `parent_id` | text nullable | fork / 子 session 的父 session。 |
-| `slug` | text not null | URL、文件名或 UI 中使用的短标识。 |
-| `directory` | text not null | session 创建时的工作目录。 |
-| `path` | text nullable | project 相对路径或 UI 展示路径。 |
-| `title` | text not null | session 标题。 |
-| `title_source` | text not null default `first_input` | 标题来源：`default`、`first_input`、`generated`、`custom`。AI generated 标题只能 CAS 覆盖非 custom 来源。 |
-| `title_message_id` | text null | 生成或设置标题所依据的 user message。 |
-| `time_title_updated` | integer null | 标题最近更新时间。 |
-| `version` | text not null | 创建 session 时的 ZCode CLI 版本；来源与根 `package.json` 注入的 `__CLI_VERSION__` 保持一致。 |
-| `share_url` | text nullable | 分享后的 URL。 |
-| `summary_additions` | integer nullable | 当前 revert / diff summary 的新增行数。 |
-| `summary_deletions` | integer nullable | 当前 revert / diff summary 的删除行数。 |
-| `summary_files` | integer nullable | 当前 revert / diff summary 的文件数。 |
-| `summary_diffs` | json nullable | 文件 diff 摘要，shape 对齐 snapshot file diff。 |
-| `revert` | json nullable | 当前 rewind / revert 状态。 |
-| `permission` | json nullable | session 级权限规则覆盖。 |
-| `time_created` | integer | 创建时间。 |
-| `time_updated` | integer | 更新时间。 |
-| `time_compacting` | integer nullable | 正在 compact 的时间；用于避免重复 compact。 |
-| `time_archived` | integer nullable | 归档时间；为空表示未归档。 |
+| 字段                 | 类型                                | 用途                                                                                                      |
+| -------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `id`                 | text primary key                    | Session ID。                                                                                              |
+| `project_id`         | text not null                       | 所属 project；删除 project 时级联删除 session。                                                           |
+| `workspace_id`       | text nullable                       | 所属 workspace；没有 workspace 时为空。                                                                   |
+| `parent_id`          | text nullable                       | fork / 子 session 的父 session。                                                                          |
+| `slug`               | text not null                       | URL、文件名或 UI 中使用的短标识。                                                                         |
+| `directory`          | text not null                       | session 创建时的工作目录。                                                                                |
+| `path`               | text nullable                       | project 相对路径或 UI 展示路径。                                                                          |
+| `title`              | text not null                       | session 标题。                                                                                            |
+| `title_source`       | text not null default `first_input` | 标题来源：`default`、`first_input`、`generated`、`custom`。AI generated 标题只能 CAS 覆盖非 custom 来源。 |
+| `title_message_id`   | text null                           | 生成或设置标题所依据的 user message。                                                                     |
+| `time_title_updated` | integer null                        | 标题最近更新时间。                                                                                        |
+| `version`            | text not null                       | 创建 session 时的 ZCode CLI 版本；来源与根 `package.json` 注入的 `__CLI_VERSION__` 保持一致。             |
+| `share_url`          | text nullable                       | 分享后的 URL。                                                                                            |
+| `summary_additions`  | integer nullable                    | 当前 revert / diff summary 的新增行数。                                                                   |
+| `summary_deletions`  | integer nullable                    | 当前 revert / diff summary 的删除行数。                                                                   |
+| `summary_files`      | integer nullable                    | 当前 revert / diff summary 的文件数。                                                                     |
+| `summary_diffs`      | json nullable                       | 文件 diff 摘要，shape 对齐 snapshot file diff。                                                           |
+| `revert`             | json nullable                       | 当前 rewind / revert 状态。                                                                               |
+| `permission`         | json nullable                       | session 级权限规则覆盖。                                                                                  |
+| `time_created`       | integer                             | 创建时间。                                                                                                |
+| `time_updated`       | integer                             | 更新时间。                                                                                                |
+| `time_compacting`    | integer nullable                    | 正在 compact 的时间；用于避免重复 compact。                                                               |
+| `time_archived`      | integer nullable                    | 归档时间；为空表示未归档。                                                                                |
 
 `message` 或 `part` 写入会刷新所属 session 的 `time_updated`。`--continue` 和 TUI `/resume` 默认选择同目录下最近活动的 root session，而不是只按创建时间排序。
 
@@ -119,13 +119,13 @@ type SessionRevert = {
 
 一行表示一条 user 或 assistant message。message 不直接存文本内容，文本和工具调用都在 `part` 表。
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
-| `id` | text primary key | Message ID。 |
-| `session_id` | text not null | 所属 session。 |
-| `time_created` | integer | 创建时间。 |
-| `time_updated` | integer | 更新时间。 |
-| `data` | json not null | `MessageInfo` 去掉 `id` 和 `sessionID` 后的业务字段。 |
+| 字段           | 类型             | 用途                                                  |
+| -------------- | ---------------- | ----------------------------------------------------- |
+| `id`           | text primary key | Message ID。                                          |
+| `session_id`   | text not null    | 所属 session。                                        |
+| `time_created` | integer          | 创建时间。                                            |
+| `time_updated` | integer          | 更新时间。                                            |
+| `data`         | json not null    | `MessageInfo` 去掉 `id` 和 `sessionID` 后的业务字段。 |
 
 索引：
 
@@ -143,60 +143,60 @@ order by time_created, id;
 
 `id` 和 `sessionID` 在列上，不重复放进 `data`。
 
-| 字段 | 用途 |
-| --- | --- |
-| `role: "user"` | 消息角色。 |
-| `time.created` | 用户消息创建时间。 |
-| `format?` | 输出格式要求，例如 text 或 json schema。 |
-| `summary?` | 这条 user message 是否是 summary prompt；可带 title、body、diffs。 |
-| `agent` | 使用的 agent 名称。 |
-| `model.providerID` | provider ID。 |
-| `model.modelID` | model ID。 |
-| `model.variant?` | model 变体。 |
-| `system?` | 当次请求额外 system 文本。 |
-| `tools?` | 当次可用工具开关，`toolName -> enabled`。 |
+| 字段               | 用途                                                               |
+| ------------------ | ------------------------------------------------------------------ |
+| `role: "user"`     | 消息角色。                                                         |
+| `time.created`     | 用户消息创建时间。                                                 |
+| `format?`          | 输出格式要求，例如 text 或 json schema。                           |
+| `summary?`         | 这条 user message 是否是 summary prompt；可带 title、body、diffs。 |
+| `agent`            | 使用的 agent 名称。                                                |
+| `model.providerID` | provider ID。                                                      |
+| `model.modelID`    | model ID。                                                         |
+| `model.variant?`   | model 变体。                                                       |
+| `system?`          | 当次请求额外 system 文本。                                         |
+| `tools?`           | 当次可用工具开关，`toolName -> enabled`。                          |
 
 ### `MessageInfo.Assistant`
 
 `id` 和 `sessionID` 在列上，不重复放进 `data`。
 
-| 字段 | 用途 |
-| --- | --- |
-| `role: "assistant"` | 消息角色。 |
-| `time.created` | assistant message 创建时间。 |
-| `time.completed?` | assistant 完成时间；生成中或中断时可以为空。 |
-| `error?` | assistant 失败原因，例如 abort、context overflow、provider error。 |
-| `parentID` | 这次 assistant 回复对应的 user message。 |
-| `modelID` | 实际使用的 model ID。 |
-| `providerID` | 实际使用的 provider ID。 |
-| `mode` | 兼容字段，已 deprecated。 |
-| `agent` | 实际使用的 agent。 |
-| `path.cwd` | 运行时 cwd。 |
-| `path.root` | project root。 |
-| `summary?` | 是否是 compact 生成的 summary assistant。 |
-| `cost` | 本次调用成本。 |
-| `tokens.total?` | 总 token，可选。 |
-| `tokens.input` | 输入 token。 |
-| `tokens.output` | 输出 token。 |
-| `tokens.reasoning` | reasoning token。 |
-| `tokens.cache.read` | cache read token。 |
-| `tokens.cache.write` | cache write token。 |
-| `structured?` | 结构化输出结果。 |
-| `variant?` | model 变体。 |
-| `finish?` | provider finish reason。 |
+| 字段                 | 用途                                                               |
+| -------------------- | ------------------------------------------------------------------ |
+| `role: "assistant"`  | 消息角色。                                                         |
+| `time.created`       | assistant message 创建时间。                                       |
+| `time.completed?`    | assistant 完成时间；生成中或中断时可以为空。                       |
+| `error?`             | assistant 失败原因，例如 abort、context overflow、provider error。 |
+| `parentID`           | 这次 assistant 回复对应的 user message。                           |
+| `modelID`            | 实际使用的 model ID。                                              |
+| `providerID`         | 实际使用的 provider ID。                                           |
+| `mode`               | 兼容字段，已 deprecated。                                          |
+| `agent`              | 实际使用的 agent。                                                 |
+| `path.cwd`           | 运行时 cwd。                                                       |
+| `path.root`          | project root。                                                     |
+| `summary?`           | 是否是 compact 生成的 summary assistant。                          |
+| `cost`               | 本次调用成本。                                                     |
+| `tokens.total?`      | 总 token，可选。                                                   |
+| `tokens.input`       | 输入 token。                                                       |
+| `tokens.output`      | 输出 token。                                                       |
+| `tokens.reasoning`   | reasoning token。                                                  |
+| `tokens.cache.read`  | cache read token。                                                 |
+| `tokens.cache.write` | cache write token。                                                |
+| `structured?`        | 结构化输出结果。                                                   |
+| `variant?`           | model 变体。                                                       |
+| `finish?`            | provider finish reason。                                           |
 
 ## 表：`part`
 
 一行表示 message 的一个内容块。文本流、reasoning、tool 状态更新、文件、patch、compact 都写成 part。
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
-| `id` | text primary key | Part ID。 |
-| `message_id` | text not null | 所属 message。 |
-| `session_id` | text not null | 所属 session，冗余存一份方便按 session 查 part。 |
-| `time_created` | integer | 创建时间。 |
-| `time_updated` | integer | 更新时间。 |
-| `data` | json not null | `Part` 去掉 `id`、`sessionID`、`messageID` 后的业务字段。 |
+| 字段           | 类型             | 用途                                                      |
+| -------------- | ---------------- | --------------------------------------------------------- |
+| `id`           | text primary key | Part ID。                                                 |
+| `message_id`   | text not null    | 所属 message。                                            |
+| `session_id`   | text not null    | 所属 session，冗余存一份方便按 session 查 part。          |
+| `time_created` | integer          | 创建时间。                                                |
+| `time_updated` | integer          | 更新时间。                                                |
+| `data`         | json not null    | `Part` 去掉 `id`、`sessionID`、`messageID` 后的业务字段。 |
 
 索引：
 
@@ -213,31 +213,31 @@ order by id;
 
 ### Part 类型
 
-| `type` | 关键字段 | 用途 |
-| --- | --- | --- |
-| `text` | `text`, `synthetic?`, `ignored?`, `time?`, `metadata?` | 用户文本或 assistant 文本。 |
-| `reasoning` | `text`, `metadata?`, `time` | reasoning 流。 |
-| `file` | `mime`, `filename?`, `url`, `source?` | 用户上传文件、图片、工具附件引用。 |
-| `agent` | `name`, `source?` | 用户 prompt 中选择的 agent。 |
-| `tool` | `callID`, `tool`, `state`, `metadata?` | 工具调用及状态。 |
-| `step-start` | `snapshot?` | assistant step 开始，可记录快照。 |
-| `step-finish` | `reason`, `snapshot?`, `cost`, `tokens` | assistant step 结束。 |
-| `snapshot` | `snapshot` | 文件系统快照 ID。 |
-| `patch` | `hash`, `files` | 工作区 patch 信息，用于 revert。 |
-| `compaction` | `auto`, `overflow?`, `tail_start_id?` | compact 标记。 |
-| `retry` | `attempt`, `error`, `time.created` | provider retry 记录。 |
-| `subtask` | `prompt`, `description`, `agent`, `model?`, `command?` | subagent / 子任务描述。 |
+| `type`        | 关键字段                                               | 用途                               |
+| ------------- | ------------------------------------------------------ | ---------------------------------- |
+| `text`        | `text`, `synthetic?`, `ignored?`, `time?`, `metadata?` | 用户文本或 assistant 文本。        |
+| `reasoning`   | `text`, `metadata?`, `time`                            | reasoning 流。                     |
+| `file`        | `mime`, `filename?`, `url`, `source?`                  | 用户上传文件、图片、工具附件引用。 |
+| `agent`       | `name`, `source?`                                      | 用户 prompt 中选择的 agent。       |
+| `tool`        | `callID`, `tool`, `state`, `metadata?`                 | 工具调用及状态。                   |
+| `step-start`  | `snapshot?`                                            | assistant step 开始，可记录快照。  |
+| `step-finish` | `reason`, `snapshot?`, `cost`, `tokens`                | assistant step 结束。              |
+| `snapshot`    | `snapshot`                                             | 文件系统快照 ID。                  |
+| `patch`       | `hash`, `files`                                        | 工作区 patch 信息，用于 revert。   |
+| `compaction`  | `auto`, `overflow?`, `tail_start_id?`                  | compact 标记。                     |
+| `retry`       | `attempt`, `error`, `time.created`                     | provider retry 记录。              |
+| `subtask`     | `prompt`, `description`, `agent`, `model?`, `command?` | subagent / 子任务描述。            |
 
 ### Tool state
 
 `tool` part 的 `state` 是 discriminated union。
 
-| `state.status` | 字段 | 用途 |
-| --- | --- | --- |
-| `pending` | `input`, `raw` | 模型刚吐出工具调用，还没解析或执行。 |
-| `running` | `input`, `title?`, `metadata?`, `time.start` | 工具已开始执行。 |
-| `completed` | `input`, `output`, `title`, `metadata`, `time.start`, `time.end`, `time.compacted?`, `attachments?` | 工具执行成功。 |
-| `error` | `input`, `error`, `metadata?`, `time.start`, `time.end` | 工具执行失败或被取消。 |
+| `state.status` | 字段                                                                                                | 用途                                 |
+| -------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| `pending`      | `input`, `raw`                                                                                      | 模型刚吐出工具调用，还没解析或执行。 |
+| `running`      | `input`, `title?`, `metadata?`, `time.start`                                                        | 工具已开始执行。                     |
+| `completed`    | `input`, `output`, `title`, `metadata`, `time.start`, `time.end`, `time.compacted?`, `attachments?` | 工具执行成功。                       |
+| `error`        | `input`, `error`, `metadata?`, `time.start`, `time.end`                                             | 工具执行失败或被取消。               |
 
 注意：shell/tool 输出不是运行时持续追加一行一行落库，而是在 part 状态变化时更新。对 bash 超长输出，第一版存为 `completed.output` 字符串；compact 时可以截断进入上下文，并用 `time.compacted` 标记已经被压缩过。
 
@@ -251,8 +251,7 @@ type CompletedToolPartMetadata = {
   schemaVersion: 1;
   display?: ToolResultDisplayPayload;
   modelContentLayout?: Array<
-    | { type: "text"; text: string }
-    | { type: "attachment"; attachmentIndex: number }
+    { type: "text"; text: string } | { type: "attachment"; attachmentIndex: number }
   >;
   serialization?: {
     truncated: boolean;
@@ -298,15 +297,15 @@ session 内 todo 列表。
 
 第一版通过 `SessionStorePort.readTodos()` / `SessionStorePort.updateTodos()` 暴露给 `TodoRead` 和 `TodoWrite`。tool handler 只依赖 port，不直接访问 SQLite；SQLite adapter 用事务先删除当前 session 的旧 todo，再按 `position` 写入完整新列表，保证“完整计划替换”语义和稳定读取顺序。
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
-| `session_id` | text not null | 所属 session。 |
-| `content` | text not null | todo 内容。 |
-| `status` | text not null | 状态。 |
-| `priority` | text not null | 优先级。 |
-| `position` | integer not null | 排序位置。 |
-| `time_created` | integer | 创建时间。 |
-| `time_updated` | integer | 更新时间。 |
+| 字段           | 类型             | 用途           |
+| -------------- | ---------------- | -------------- |
+| `session_id`   | text not null    | 所属 session。 |
+| `content`      | text not null    | todo 内容。    |
+| `status`       | text not null    | 状态。         |
+| `priority`     | text not null    | 优先级。       |
+| `position`     | integer not null | 排序位置。     |
+| `time_created` | integer          | 创建时间。     |
+| `time_updated` | integer          | 更新时间。     |
 
 主键：
 
@@ -322,14 +321,14 @@ session 内 todo 列表。
 
 第一版可以建表但不要把恢复上下文绑死在它上面。恢复上下文仍以 `message + part` 为准。
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
-| `id` | text primary key | Entry ID。 |
-| `session_id` | text not null | 所属 session。 |
-| `type` | text not null | `user`、`synthetic`、`assistant`、`compaction`。 |
-| `time_created` | integer | 创建时间。 |
-| `time_updated` | integer | 更新时间。 |
-| `data` | json not null | `SessionEntry.Entry` 去掉 `id` 和 `type` 后的字段。 |
+| 字段           | 类型             | 用途                                                |
+| -------------- | ---------------- | --------------------------------------------------- |
+| `id`           | text primary key | Entry ID。                                          |
+| `session_id`   | text not null    | 所属 session。                                      |
+| `type`         | text not null    | `user`、`synthetic`、`assistant`、`compaction`。    |
+| `time_created` | integer          | 创建时间。                                          |
+| `time_updated` | integer          | 更新时间。                                          |
+| `data`         | json not null    | `SessionEntry.Entry` 去掉 `id` 和 `type` 后的字段。 |
 
 索引：
 
@@ -339,12 +338,12 @@ session 内 todo 列表。
 
 Entry shape：
 
-| `type` | 用途 |
-| --- | --- |
-| `user` | 用户输入，包含 text、files、agents。 |
-| `synthetic` | 系统合成输入。 |
-| `assistant` | assistant timeline，包含 text、reasoning、tool、retry、cost、tokens、error。 |
-| `compaction` | compact 事件展示。 |
+| `type`       | 用途                                                                         |
+| ------------ | ---------------------------------------------------------------------------- |
+| `user`       | 用户输入，包含 text、files、agents。                                         |
+| `synthetic`  | 系统合成输入。                                                               |
+| `assistant`  | assistant timeline，包含 text、reasoning、tool、retry、cost、tokens、error。 |
+| `compaction` | compact 事件展示。                                                           |
 
 ## 表：`input_history`
 
@@ -352,14 +351,14 @@ Entry shape：
 
 总表最多保留最近 100 条，按 `time_created desc, id desc` 计算，不按 project 单独保留 100 条。
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
-| `id` | text primary key | Input history entry ID。 |
-| `project_id` | text not null | 所属 project，召回默认按它过滤。 |
-| `session_id` | text nullable | 产生该输入的 session，仅用于调试/审计。 |
-| `text` | text not null | 用户原始输入，trim 后为空的不写入。 |
-| `kind` | text not null | `prompt`、`steered_input` 或 `slash_command`。 |
-| `time_created` | integer | 创建时间。 |
+| 字段           | 类型             | 用途                                           |
+| -------------- | ---------------- | ---------------------------------------------- |
+| `id`           | text primary key | Input history entry ID。                       |
+| `project_id`   | text not null    | 所属 project，召回默认按它过滤。               |
+| `session_id`   | text nullable    | 产生该输入的 session，仅用于调试/审计。        |
+| `text`         | text not null    | 用户原始输入，trim 后为空的不写入。            |
+| `kind`         | text not null    | `prompt`、`steered_input` 或 `slash_command`。 |
+| `time_created` | integer          | 创建时间。                                     |
 
 索引：
 
@@ -376,12 +375,12 @@ Entry shape：
 
 project 级权限规则。第一版只做 project scope，不做 session/global 持久化。审批 UI 的 `Allow once` 不写入本表；`Always allow in this project` 写入本表。
 
-| 字段 | 类型 | 用途 |
-| --- | --- | --- |
-| `project_id` | text primary key | Project ID。 |
-| `time_created` | integer | 创建时间。 |
-| `time_updated` | integer | 更新时间。 |
-| `data` | json not null | Permission ruleset，形如 `{ "version": 1, "allow": [{ "toolName": "Bash", "ruleContent": "npm run:*" }], "deny": [], "ask": [] }`。 |
+| 字段           | 类型             | 用途                                                                                                                                |
+| -------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `project_id`   | text primary key | Project ID。                                                                                                                        |
+| `time_created` | integer          | 创建时间。                                                                                                                          |
+| `time_updated` | integer          | 更新时间。                                                                                                                          |
+| `data`         | json not null    | Permission ruleset，形如 `{ "version": 1, "allow": [{ "toolName": "Bash", "ruleContent": "npm run:*" }], "deny": [], "ask": [] }`。 |
 
 ## 写入策略
 

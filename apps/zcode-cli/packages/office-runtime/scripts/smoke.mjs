@@ -24,7 +24,9 @@ await cp(join(here, "fixtures"), join(workspace, "docs"), {
 // 个人定制后不再阻断工作区外路径：准备一份工作区外样张，验证绝对路径与符号链接跟随。
 const outsideDir = await mkdtemp(join(tmpdir(), `${name}-outside-`));
 await cp(join(here, "fixtures", "paper.pdf"), join(outsideDir, "paper.pdf"));
-await symlink(join(outsideDir, "paper.pdf"), join(workspace, "docs/escape.pdf")).catch(() => undefined);
+await symlink(join(outsideDir, "paper.pdf"), join(workspace, "docs/escape.pdf")).catch(
+  () => undefined,
+);
 
 const client = new Client({ name: `${name}-smoke`, version: "1" });
 const call = (name, args = {}) => client.callTool({ name, arguments: args });
@@ -158,10 +160,7 @@ try {
   // Path safety.
   const sampleKind = has("docx") ? "docx" : kinds[0];
   const sample = fixtures[sampleKind];
-  assert.equal(
-    await failCode("open_document", { path: `../outside.${sampleKind}` }),
-    "not_found",
-  );
+  assert.equal(await failCode("open_document", { path: `../outside.${sampleKind}` }), "not_found");
   if (has("pdf")) {
     await ok("open_document", { path: join(outsideDir, "paper.pdf") });
     await ok("open_document", { path: "docs/escape.pdf" });

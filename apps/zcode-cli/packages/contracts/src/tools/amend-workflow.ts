@@ -34,7 +34,9 @@ const AmendWorkflowModelInputSchema = z.object({
   run_id: z
     .string()
     .min(1)
-    .describe("ID of the run to amend (from a result, a notification, GetWorkflowRun or ListWorkflowRuns)."),
+    .describe(
+      "ID of the run to amend (from a result, a notification, GetWorkflowRun or ListWorkflowRuns).",
+    ),
   /**
    * `script` 与 `path` 都省略 = 沿用前驱存档的脚本：
    * 只改设定的修订不必把几千 token 的脚本再抄一遍。与两个设定同一个生命周期——`resolveInput` 读前驱

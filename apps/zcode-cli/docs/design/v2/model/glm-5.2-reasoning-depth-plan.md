@@ -32,6 +32,7 @@ All commands assume CWD `apps/zcode-cli/packages/adapters` unless noted. Note: `
 ## Task 1: GLM-5.2 reasoning factories (OpenAI-compatible + Anthropic)
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/adapters/src/model/reasoning-policy.ts`
 - Test: `apps/zcode-cli/packages/adapters/tests/model-default-policy.test.ts`
 
@@ -52,9 +53,15 @@ const glm52OpenAiReasoning = {
   enabled: true,
   levels: ["max", "high", "nothink"],
   providerOptionsByLevel: {
-    max: { openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "max" } } } },
-    high: { openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "high" } } } },
-    nothink: { openaiCompatible: { extra_body: { chat_template_kwargs: { enable_thinking: false } } } },
+    max: {
+      openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "max" } } },
+    },
+    high: {
+      openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "high" } } },
+    },
+    nothink: {
+      openaiCompatible: { extra_body: { chat_template_kwargs: { enable_thinking: false } } },
+    },
   },
 };
 
@@ -188,6 +195,7 @@ git commit -m "feat(model): add GLM-5.2 reasoning depth factories" -- \
 ## Task 2: Wire OpenAI-compatible default policy for GLM-5.2
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/adapters/src/model/default-policy.ts`
 - Test: `apps/zcode-cli/packages/adapters/tests/model-default-policy.test.ts`
 
@@ -280,6 +288,7 @@ git commit -m "feat(model): route GLM-5.2 to reasoning-depth default policy" -- 
 ## Task 3: Wire Anthropic-transport reasoning for configured GLM-5.2
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/adapters/src/config/schema.ts`
 - Test: `apps/zcode-cli/packages/adapters/tests/config.test.ts`
 
@@ -316,18 +325,22 @@ it("defaults configured Anthropic GLM-5.2 to reasoning depth with native thinkin
     const result = loadFileConfig(path);
 
     expect(result.loaded).toBe(true);
-    expect(
-      result.config.modelCatalog?.overrides?.["provider-auth-zai/glm-5.2"]?.reasoning,
-    ).toEqual({
-      defaultLevel: "max",
-      enabled: true,
-      levels: ["max", "high", "nothink"],
-      providerOptionsByLevel: {
-        max: { anthropic: { effort: "max", thinking: { budgetTokens: 32_000, type: "enabled" } } },
-        high: { anthropic: { effort: "high", thinking: { budgetTokens: 16_000, type: "enabled" } } },
-        nothink: { anthropic: { thinking: { type: "disabled" } } },
+    expect(result.config.modelCatalog?.overrides?.["provider-auth-zai/glm-5.2"]?.reasoning).toEqual(
+      {
+        defaultLevel: "max",
+        enabled: true,
+        levels: ["max", "high", "nothink"],
+        providerOptionsByLevel: {
+          max: {
+            anthropic: { effort: "max", thinking: { budgetTokens: 32_000, type: "enabled" } },
+          },
+          high: {
+            anthropic: { effort: "high", thinking: { budgetTokens: 16_000, type: "enabled" } },
+          },
+          nothink: { anthropic: { thinking: { type: "disabled" } } },
+        },
       },
-    });
+    );
   } finally {
     await rm(dir, { force: true, recursive: true });
   }
@@ -359,17 +372,17 @@ import {
 3b. In `createConfiguredModelDefaultReasoning`, inside the `if (kind === "anthropic")` block, add the GLM-5.2 case **after** the DeepSeek-V4 case and **before** the thinking-toggle case:
 
 ```ts
-  if (kind === "anthropic") {
-    if (isDeepSeekV4ConfiguredModelId(modelId)) return createDeepSeekV4AnthropicReasoning();
-    if (isGlm52ConfiguredModelId(modelId)) return createGlm52AnthropicReasoning();
-    if (isThinkingToggleConfiguredModelId(modelId)) return createAnthropicThinkingToggleReasoning();
-    // Bugfix: model-id defaults can be transport-specific. Reusing an
-    // openaiCompatible default for an Anthropic-compatible configured model
-    // makes the UI show thinking enabled while the final request has no
-    // Anthropic thinking field.
-    if (usesAnthropicProviderOptions(defaults.reasoning)) return defaults.reasoning;
-    return createAnthropicThinkingToggleReasoning();
-  }
+if (kind === "anthropic") {
+  if (isDeepSeekV4ConfiguredModelId(modelId)) return createDeepSeekV4AnthropicReasoning();
+  if (isGlm52ConfiguredModelId(modelId)) return createGlm52AnthropicReasoning();
+  if (isThinkingToggleConfiguredModelId(modelId)) return createAnthropicThinkingToggleReasoning();
+  // Bugfix: model-id defaults can be transport-specific. Reusing an
+  // openaiCompatible default for an Anthropic-compatible configured model
+  // makes the UI show thinking enabled while the final request has no
+  // Anthropic thinking field.
+  if (usesAnthropicProviderOptions(defaults.reasoning)) return defaults.reasoning;
+  return createAnthropicThinkingToggleReasoning();
+}
 ```
 
 3c. Add the helper next to `isDeepSeekV4ConfiguredModelId` / `isThinkingToggleConfiguredModelId`:
@@ -400,6 +413,7 @@ git commit -m "feat(model): map configured Anthropic GLM-5.2 to reasoning depth"
 ## Task 4: Full verification + spec trail
 
 **Files:**
+
 - Already created: `apps/zcode-cli/docs/design/v2/model/glm-5.2-reasoning-depth.md`
 
 - [ ] **Step 1: Run the adapters package test suite**
@@ -415,6 +429,7 @@ Expected: PASS.
 - [ ] **Step 3 (optional but recommended): Confirm the real request body** for both transports.
 
 Mirror an existing runner/model-IO debug test (`packages/adapters/tests/runner.test.ts`) or run the agent against a GLM-5.2 target with the model-IO debug path enabled (`createGenerateTextOptions`/`createStreamTextOptions` pass `experimental_include.requestBody` when `includeModelIO` is true). Verify:
+
 - OpenAI-compatible `max` → request body contains `chat_template_kwargs: { reasoning_effort: "max" }`.
 - OpenAI-compatible `nothink` → `chat_template_kwargs: { enable_thinking: false }`.
 - Anthropic `nothink` → `thinking: { type: "disabled" }` and no `chat_template_kwargs`.
@@ -435,4 +450,4 @@ git commit -m "docs(model): add GLM-5.2 reasoning depth spec" -- \
 
 - **Level labels:** No i18n work. `session-mapper.ts` maps each level string to `{ value, label }` verbatim, so the selector shows `max` / `high` / `nothink`, consistent with existing levels.
 - **Round-trip:** `resolveRuntimeThoughtLevel` reverse-maps active provider options to a level by deep equality. The three option objects are mutually distinct per transport, so selection round-trips.
-- **Ordering matters twice:** GLM-5.2 must come *after* `glm-thinking-toggle` in `default-policy.ts` (Object.assign override), and *before* `isThinkingToggleConfiguredModelId` in `config/schema.ts` (first-match-wins return).
+- **Ordering matters twice:** GLM-5.2 must come _after_ `glm-thinking-toggle` in `default-policy.ts` (Object.assign override), and _before_ `isThinkingToggleConfiguredModelId` in `config/schema.ts` (first-match-wins return).

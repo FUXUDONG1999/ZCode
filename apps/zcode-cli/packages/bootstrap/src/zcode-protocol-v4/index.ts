@@ -59,10 +59,7 @@ export {
   ColdSessionResumeCoordinator,
   V4SubscribeSessionUnavailableError,
 } from "./cold-session-resume.js";
-export type {
-  ColdSessionResumeHost,
-  ColdSessionResumeOutcome,
-} from "./cold-session-resume.js";
+export type { ColdSessionResumeHost, ColdSessionResumeOutcome } from "./cold-session-resume.js";
 export {
   ConversationV4Gateway,
   V4CommandNoopError,

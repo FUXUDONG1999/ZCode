@@ -28,21 +28,21 @@ search surface：embedded branch 通过 Bash `find` / `grep` 接管；direct fal
 
 ## 输入
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `pattern` | `string` | 是 | `The glob pattern to match files against` |
-| `path` | `string` | 否 | `The directory to search in. If not specified, the current working directory will be used. IMPORTANT: Omit this field to use the default directory. DO NOT enter "undefined" or "null" - simply omit it for the default behavior. Must be a valid directory path if provided.` |
+| 字段      | 类型     | 必填 | 说明                                                                                                                                                                                                                                                                           |
+| --------- | -------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pattern` | `string` | 是   | `The glob pattern to match files against`                                                                                                                                                                                                                                      |
+| `path`    | `string` | 否   | `The directory to search in. If not specified, the current working directory will be used. IMPORTANT: Omit this field to use the default directory. DO NOT enter "undefined" or "null" - simply omit it for the default behavior. Must be a valid directory path if provided.` |
 
 Provider-visible input schema 不添加 `minLength` 等额外限制；运行时路径解析仍由 tool layer 和 `FileSystemPort` 负责。
 
 ## 输出
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `durationMs` | `number` | 搜索耗时。 |
-| `numFiles` | `number` | 返回文件数。 |
-| `filenames` | `string[]` | 匹配文件路径。路径尽量相对 session cwd，节省 token。 |
-| `truncated` | `boolean` | 是否因结果上限截断。 |
+| 字段         | 类型       | 说明                                                 |
+| ------------ | ---------- | ---------------------------------------------------- |
+| `durationMs` | `number`   | 搜索耗时。                                           |
+| `numFiles`   | `number`   | 返回文件数。                                         |
+| `filenames`  | `string[]` | 匹配文件路径。路径尽量相对 session cwd，节省 token。 |
+| `truncated`  | `boolean`  | 是否因结果上限截断。                                 |
 
 ## 权限与副作用
 

@@ -205,7 +205,7 @@ function runNativeSearchCommand(
       if (forceKillTimer) {
         clearTimeout(forceKillTimer);
       }
-      settle(signal.aborted ? exitCodeForAbortSignal(signal) : code ?? (childSignal ? 128 : 1));
+      settle(signal.aborted ? exitCodeForAbortSignal(signal) : (code ?? (childSignal ? 128 : 1)));
     });
 
     if (io.stdin) {

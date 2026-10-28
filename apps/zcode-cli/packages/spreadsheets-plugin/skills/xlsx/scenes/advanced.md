@@ -1,6 +1,7 @@
 # Scene: Advanced Operations
 
 ## When This Applies
+
 Batch processing multiple files, handling very large datasets, data validation, conditional formatting, sheet protection, or other power-user features.
 
 ---
@@ -8,6 +9,7 @@ Batch processing multiple files, handling very large datasets, data validation, 
 ## Large File Handling (>100K rows)
 
 ### Read-Only Mode
+
 ```python
 from openpyxl import load_workbook
 
@@ -22,6 +24,7 @@ wb.close()  # MUST close read-only workbooks
 ```
 
 ### Write-Only Mode
+
 ```python
 from openpyxl import Workbook
 
@@ -36,6 +39,7 @@ wb.save('output.xlsx')
 ```
 
 ### Chunked Processing with pandas
+
 ```python
 # Read in chunks
 chunks = pd.read_excel('huge.xlsx', chunksize=10000)
@@ -224,14 +228,14 @@ ws.unmerge_cells('B2:H2')
 
 ## Performance Tips
 
-| Technique | When | Impact |
-|-----------|------|--------|
-| `read_only=True` | Reading files >50K rows | ~10x less memory |
-| `write_only=True` | Writing files >50K rows | ~5x faster |
-| `usecols` parameter | Only need specific columns | Faster read |
-| Avoid `ws.cell()` in tight loops | Use `ws.append()` instead | Faster write |
-| Batch style application | Apply to ranges, not cell-by-cell | Faster formatting |
-| `data_only=True` for analysis | Need values not formulas | Faster read |
+| Technique                        | When                              | Impact            |
+| -------------------------------- | --------------------------------- | ----------------- |
+| `read_only=True`                 | Reading files >50K rows           | ~10x less memory  |
+| `write_only=True`                | Writing files >50K rows           | ~5x faster        |
+| `usecols` parameter              | Only need specific columns        | Faster read       |
+| Avoid `ws.cell()` in tight loops | Use `ws.append()` instead         | Faster write      |
+| Batch style application          | Apply to ranges, not cell-by-cell | Faster formatting |
+| `data_only=True` for analysis    | Need values not formulas          | Faster read       |
 
 ---
 
@@ -248,14 +252,14 @@ def list_vba_modules(filepath):
     """List all VBA modules in an .xlsm file."""
     if not filepath.endswith(('.xlsm', '.xlsb')):
         return {"has_vba": False, "modules": []}
-    
+
     modules = []
     try:
         with zipfile.ZipFile(filepath, 'r') as zf:
             vba_files = [f for f in zf.namelist() if f.startswith('xl/vbaProject')]
             if not vba_files:
                 return {"has_vba": False, "modules": []}
-            
+
             # Read with keep_vba to access vba_archive
             wb = load_workbook(filepath, keep_vba=True)
             if wb.vba_archive:
@@ -264,7 +268,7 @@ def list_vba_modules(filepath):
             wb.close()
     except Exception as e:
         return {"has_vba": False, "error": str(e)}
-    
+
     return {"has_vba": True, "modules": modules}
 ```
 

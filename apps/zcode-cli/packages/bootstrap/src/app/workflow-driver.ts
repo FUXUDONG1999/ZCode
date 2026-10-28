@@ -98,10 +98,7 @@ import {
   schemaEpilogue,
   toWorkflowError,
 } from "./workflow-driver-helpers.js";
-import {
-  makeSessionSubmitPort,
-  type SubmitBridgeHost,
-} from "./workflow-driver-submit-bridge.js";
+import { makeSessionSubmitPort, type SubmitBridgeHost } from "./workflow-driver-submit-bridge.js";
 import {
   countSessionTranscript,
   journalAskMessageBoundary,
@@ -290,7 +287,12 @@ class AgentRuntimeWorkflowDriver implements WorkflowDriver {
         : { modelRequestAdmission: modelActivity.admission }),
     });
     if (seed !== undefined) {
-      await seedActorSession(this.deps, { journaledSessionId: journaled, runtime, seed, sessionId });
+      await seedActorSession(this.deps, {
+        journaledSessionId: journaled,
+        runtime,
+        seed,
+        sessionId,
+      });
     }
     state = {
       ref,

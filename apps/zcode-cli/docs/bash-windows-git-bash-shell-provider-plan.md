@@ -238,27 +238,27 @@ WSL 后续建议：
 
 ## Shell 依赖影响面
 
-| 区域 | 当前依赖 | Phase 1 影响 | Phase 2 影响 | 计划动作 |
-| --- | --- | --- | --- | --- |
-| Bash handler | 总是设置 `shellProfile: "posix-bash"` | 不需要读取设置 | 需要从 runtime/settings 注入 override | Phase 2 在 handler 依赖层注入，不让 UI 逻辑进入 adapter |
-| Execution contract | `shellProfile?: "posix-bash"` | 增加内部 `shellOverride` | AppSettings 映射成 `shellOverride` | contract 注释写清楚内部用途 |
-| Shell resolver | 只在 `platform !== "win32"` 找 bash/zsh | 增加 Windows override/Git Bash/cmd fallback | 使用用户选择优先级 | resolver 返回 shell dialect / spawn plan |
-| Cwd capture | 按 `platform` 选择 wrapper | 改成按 shell dialect | 用户选择 cmd/git-bash 都复用 | 增加 `ShellDialect` aware wrapper |
-| Captured cwd readback | 直接把文件内容当 host path | Git Bash 返回 `/c/...` | 同 Phase 1 | `statSync` 前转回 Windows path |
-| Temp/cwd capture file path | 直接嵌入 host path | Git Bash 需要 `/c/...` | 同 Phase 1 | 嵌入 shell 前转成 Git Bash path |
-| Spawn `cwd` | Node spawn 使用 request cwd | Git Bash 可以接受 Windows cwd | 同 Phase 1 | 保持 Windows host path |
-| Env | Windows env key 大小写无关 | Git Bash 加 `SHELL`、`GIT_EDITOR` | 用户选择 Git Bash 时同样加 | 复用现有 env key 处理 |
-| Output decoding | Windows 可能是 code page | Git Bash 通常是 UTF-8 | 同 Phase 1 | 保持现有 decoder，补 UTF-8 验证 |
-| Stdin | stdin 写完后关闭 | shell 选择不应影响 | 同 Phase 1 | 补 Windows real-world prompt case |
-| Background Bash | 不做 cwd capture | resolver 仍应生效 | 用户选择 shell 仍应生效 | 补 background shellProfile 测试 |
-| Output artifact | 结果路径是 Windows host path | provider-visible 文件路径仍应是 host path | 同 Phase 1 | 不转换 result content 里的 artifact/log path |
-| Read-state | 已处理 `/c/...` alias | Git Bash path 出现概率增加 | 同 Phase 1 | 复用并按需补覆盖 |
-| Permission/parser | Bash parser 假设 Bash-ish syntax | Windows 下 Bash syntax 更真实 | 同 Phase 1 | 本计划不改 permission policy |
-| Hooks/config runner | generic shell 或显式 hook shell | 不应被 Bash shellProfile 影响 | 设置项不应影响 hooks | `shellProfile` 继续只给 Bash tool 内部使用 |
-| Settings/AppSettings | 无 shell selection 字段 | 不改变 | 增加 `integratedTerminalShell` | schema + settings service 归一化 |
-| System service | 只有 `info()` | 不改变 | 增加 shell 枚举方法 | 只在 Windows 返回候选 |
-| SettingsPage | 终端 profile/font | 不改变 | Windows only 下拉 | 使用 host platform 判断展示 |
-| Web remote | 通过 host service 操作 | 不改变 | 设置更新仍走现有 host service | 不新增独立 agent runtime |
+| 区域                       | 当前依赖                                | Phase 1 影响                                | Phase 2 影响                          | 计划动作                                                |
+| -------------------------- | --------------------------------------- | ------------------------------------------- | ------------------------------------- | ------------------------------------------------------- |
+| Bash handler               | 总是设置 `shellProfile: "posix-bash"`   | 不需要读取设置                              | 需要从 runtime/settings 注入 override | Phase 2 在 handler 依赖层注入，不让 UI 逻辑进入 adapter |
+| Execution contract         | `shellProfile?: "posix-bash"`           | 增加内部 `shellOverride`                    | AppSettings 映射成 `shellOverride`    | contract 注释写清楚内部用途                             |
+| Shell resolver             | 只在 `platform !== "win32"` 找 bash/zsh | 增加 Windows override/Git Bash/cmd fallback | 使用用户选择优先级                    | resolver 返回 shell dialect / spawn plan                |
+| Cwd capture                | 按 `platform` 选择 wrapper              | 改成按 shell dialect                        | 用户选择 cmd/git-bash 都复用          | 增加 `ShellDialect` aware wrapper                       |
+| Captured cwd readback      | 直接把文件内容当 host path              | Git Bash 返回 `/c/...`                      | 同 Phase 1                            | `statSync` 前转回 Windows path                          |
+| Temp/cwd capture file path | 直接嵌入 host path                      | Git Bash 需要 `/c/...`                      | 同 Phase 1                            | 嵌入 shell 前转成 Git Bash path                         |
+| Spawn `cwd`                | Node spawn 使用 request cwd             | Git Bash 可以接受 Windows cwd               | 同 Phase 1                            | 保持 Windows host path                                  |
+| Env                        | Windows env key 大小写无关              | Git Bash 加 `SHELL`、`GIT_EDITOR`           | 用户选择 Git Bash 时同样加            | 复用现有 env key 处理                                   |
+| Output decoding            | Windows 可能是 code page                | Git Bash 通常是 UTF-8                       | 同 Phase 1                            | 保持现有 decoder，补 UTF-8 验证                         |
+| Stdin                      | stdin 写完后关闭                        | shell 选择不应影响                          | 同 Phase 1                            | 补 Windows real-world prompt case                       |
+| Background Bash            | 不做 cwd capture                        | resolver 仍应生效                           | 用户选择 shell 仍应生效               | 补 background shellProfile 测试                         |
+| Output artifact            | 结果路径是 Windows host path            | provider-visible 文件路径仍应是 host path   | 同 Phase 1                            | 不转换 result content 里的 artifact/log path            |
+| Read-state                 | 已处理 `/c/...` alias                   | Git Bash path 出现概率增加                  | 同 Phase 1                            | 复用并按需补覆盖                                        |
+| Permission/parser          | Bash parser 假设 Bash-ish syntax        | Windows 下 Bash syntax 更真实               | 同 Phase 1                            | 本计划不改 permission policy                            |
+| Hooks/config runner        | generic shell 或显式 hook shell         | 不应被 Bash shellProfile 影响               | 设置项不应影响 hooks                  | `shellProfile` 继续只给 Bash tool 内部使用              |
+| Settings/AppSettings       | 无 shell selection 字段                 | 不改变                                      | 增加 `integratedTerminalShell`        | schema + settings service 归一化                        |
+| System service             | 只有 `info()`                           | 不改变                                      | 增加 shell 枚举方法                   | 只在 Windows 返回候选                                   |
+| SettingsPage               | 终端 profile/font                       | 不改变                                      | Windows only 下拉                     | 使用 host platform 判断展示                             |
+| Web remote                 | 通过 host service 操作                  | 不改变                                      | 设置更新仍走现有 host service         | 不新增独立 agent runtime                                |
 
 ## 文件结构
 
@@ -732,7 +732,7 @@ export function createCwdCapturePlan(
     dialect: ExecutionShellDialect;
     platform: NodeJS.Platform;
   },
-): CwdCapturePlan
+): CwdCapturePlan;
 ```
 
 - [ ] **Step 2: 按 dialect 生成 wrapper**
@@ -757,7 +757,7 @@ const wrappedCommand =
 export function readCapturedCwd(
   cwdFilePath: string | undefined,
   options: { dialect: ExecutionShellDialect },
-): string | undefined
+): string | undefined;
 ```
 
 在 `statSync(value)` 之前转换：
@@ -1066,12 +1066,12 @@ const integratedTerminalShellSchema = z.union([
 在 `normalizeSettingsPatch()` 增加：
 
 ```ts
-  if (
-    "integratedTerminalShell" in normalizedPatch &&
-    normalizedPatch.integratedTerminalShell?.mode === "auto"
-  ) {
-    normalizedPatch.integratedTerminalShell = undefined;
-  }
+if (
+  "integratedTerminalShell" in normalizedPatch &&
+  normalizedPatch.integratedTerminalShell?.mode === "auto"
+) {
+  normalizedPatch.integratedTerminalShell = undefined;
+}
 ```
 
 - [x] **Step 4: settings test**
@@ -1261,38 +1261,40 @@ const handleIntegratedTerminalShellChange = useCallback(
 在 terminal settings group 中新增 `SettingsRow`：
 
 ```tsx
-{platform === "win32" ? (
-  <SettingsRow
-    label={intl.formatMessage({ id: "settings.integratedTerminalShell" })}
-    description={intl.formatMessage({
-      id: "settings.integratedTerminalShellDescription",
-    })}
-    control={
-      <Select
-        value={serializeIntegratedTerminalShellSelection(integratedTerminalShell)}
-        onValueChange={(value) => {
-          void onIntegratedTerminalShellChange(
-            parseIntegratedTerminalShellSelection(value, integratedTerminalShellOptions),
-          );
-        }}
-      >
-        <SelectTrigger size="lg" className="w-[260px] min-w-0 justify-between">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="auto">
-            {intl.formatMessage({ id: "settings.integratedTerminalShell.auto" })}
-          </SelectItem>
-          {integratedTerminalShellOptions.map((option) => (
-            <SelectItem key={option.id} value={option.id}>
-              {option.label}
+{
+  platform === "win32" ? (
+    <SettingsRow
+      label={intl.formatMessage({ id: "settings.integratedTerminalShell" })}
+      description={intl.formatMessage({
+        id: "settings.integratedTerminalShellDescription",
+      })}
+      control={
+        <Select
+          value={serializeIntegratedTerminalShellSelection(integratedTerminalShell)}
+          onValueChange={(value) => {
+            void onIntegratedTerminalShellChange(
+              parseIntegratedTerminalShellSelection(value, integratedTerminalShellOptions),
+            );
+          }}
+        >
+          <SelectTrigger size="lg" className="w-[260px] min-w-0 justify-between">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="auto">
+              {intl.formatMessage({ id: "settings.integratedTerminalShell.auto" })}
             </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    }
-  />
-) : null}
+            {integratedTerminalShellOptions.map((option) => (
+              <SelectItem key={option.id} value={option.id}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      }
+    />
+  ) : null;
+}
 ```
 
 辅助函数：
@@ -1517,20 +1519,20 @@ pnpm typecheck
 
 ## 风险表
 
-| 风险 | 为什么重要 | 缓解方式 |
-| --- | --- | --- |
-| 把 cmd wrapper 跑进 Git Bash | 会导致 Windows foreground Bash 全坏 | Phase 1 先把 cwd capture 改成 dialect-aware |
-| 用户配置的 shell 过期 | 用户升级/卸载 Git Bash 后 path 可能失效 | override path 不可执行时 fallback auto detection |
-| Git Bash path conversion 破坏 UNC path | workspace path 可能不可访问 | 补 UNC conversion 测试，不把 WSL path 走 Git Bash |
-| 没装 Git Bash 的 Windows 用户从成功变失败 | 会回归现有用户 | resolver 必须无声 fallback 到 `ComSpec ?? "cmd.exe"` |
-| generic shell hooks 意外改用 Git Bash | 会破坏 configured hooks/plugin commands | 只对 `shellProfile === "posix-bash"` 生效 |
-| `.cmd` / `.bat` argv mode 回归 | Windows 包管理器依赖 shim 处理 | 不动 argv resolver，并跑 `.cmd` tests |
-| provider-visible path shape 变化 | 模型可能看到 `/c/...` 而不是 `C:\...` | result content 里的 artifact/log path 保持 host Windows path |
-| WSL 混进本地 workspace 语义 | Read/Edit/artifact 可能指错文件系统 | 本计划不启用 WSL fallback |
-| 按模型切换的 prompt branch 漂移 | prompt 可能提错 shell/search tool | 本功能不改变 provider-visible tool pool，不改 prompt branch |
-| SettingsPage 在非 Windows 展示无效项 | 会误导 macOS/Linux 用户 | Phase 2 使用 host `systemService.info().platform` 控制展示 |
-| Web remote 误用浏览器 platform | 手机控制 Windows host 时会判断错 | Phase 2 使用 host service 返回的 platform 和 shell options |
-| UI 设置逻辑进入 adapter | 会让 adapter 依赖 app/settings 层 | Phase 1 只接受 `shellOverride`，Phase 2 在 handler/runtime 依赖层映射 |
+| 风险                                      | 为什么重要                              | 缓解方式                                                              |
+| ----------------------------------------- | --------------------------------------- | --------------------------------------------------------------------- |
+| 把 cmd wrapper 跑进 Git Bash              | 会导致 Windows foreground Bash 全坏     | Phase 1 先把 cwd capture 改成 dialect-aware                           |
+| 用户配置的 shell 过期                     | 用户升级/卸载 Git Bash 后 path 可能失效 | override path 不可执行时 fallback auto detection                      |
+| Git Bash path conversion 破坏 UNC path    | workspace path 可能不可访问             | 补 UNC conversion 测试，不把 WSL path 走 Git Bash                     |
+| 没装 Git Bash 的 Windows 用户从成功变失败 | 会回归现有用户                          | resolver 必须无声 fallback 到 `ComSpec ?? "cmd.exe"`                  |
+| generic shell hooks 意外改用 Git Bash     | 会破坏 configured hooks/plugin commands | 只对 `shellProfile === "posix-bash"` 生效                             |
+| `.cmd` / `.bat` argv mode 回归            | Windows 包管理器依赖 shim 处理          | 不动 argv resolver，并跑 `.cmd` tests                                 |
+| provider-visible path shape 变化          | 模型可能看到 `/c/...` 而不是 `C:\...`   | result content 里的 artifact/log path 保持 host Windows path          |
+| WSL 混进本地 workspace 语义               | Read/Edit/artifact 可能指错文件系统     | 本计划不启用 WSL fallback                                             |
+| 按模型切换的 prompt branch 漂移           | prompt 可能提错 shell/search tool       | 本功能不改变 provider-visible tool pool，不改 prompt branch           |
+| SettingsPage 在非 Windows 展示无效项      | 会误导 macOS/Linux 用户                 | Phase 2 使用 host `systemService.info().platform` 控制展示            |
+| Web remote 误用浏览器 platform            | 手机控制 Windows host 时会判断错        | Phase 2 使用 host service 返回的 platform 和 shell options            |
+| UI 设置逻辑进入 adapter                   | 会让 adapter 依赖 app/settings 层       | Phase 1 只接受 `shellOverride`，Phase 2 在 handler/runtime 依赖层映射 |
 
 ## 验收标准
 

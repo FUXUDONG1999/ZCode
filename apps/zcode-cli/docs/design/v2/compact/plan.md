@@ -31,15 +31,15 @@ hook results
 
 第一版使用以下默认数值，后续再根据真实 token 统计调整：
 
-| 名称 | 初始值 | 用途 |
-| --- | ---: | --- |
-| summary output reserve | `min(modelMaxOutputTokens, 32_000)` | 给 summary 输出和后续请求留空间；没有模型输出上限时默认按 32k 预留。 |
-| auto compact buffer | `13_000` | 自动 compact 不等到满窗才触发。 |
-| warning/error buffer | `20_000` | UI/SDK 的 context warning。 |
-| manual compact buffer | `3_000` | 自动 compact 关闭时的阻塞保护。 |
-| max auto failures | `3` | 自动 compact 失败熔断。 |
-| prompt-too-long retries | `3` | compact 请求自身超窗时丢旧 API round 重试。 |
-| streaming summary retries | `2` | summary 流式请求无有效文本时重试。 |
+| 名称                      |                              初始值 | 用途                                                                 |
+| ------------------------- | ----------------------------------: | -------------------------------------------------------------------- |
+| summary output reserve    | `min(modelMaxOutputTokens, 32_000)` | 给 summary 输出和后续请求留空间；没有模型输出上限时默认按 32k 预留。 |
+| auto compact buffer       |                            `13_000` | 自动 compact 不等到满窗才触发。                                      |
+| warning/error buffer      |                            `20_000` | UI/SDK 的 context warning。                                          |
+| manual compact buffer     |                             `3_000` | 自动 compact 关闭时的阻塞保护。                                      |
+| max auto failures         |                                 `3` | 自动 compact 失败熔断。                                              |
+| prompt-too-long retries   |                                 `3` | compact 请求自身超窗时丢旧 API round 重试。                          |
+| streaming summary retries |                                 `2` | summary 流式请求无有效文本时重试。                                   |
 
 这些阈值不声明环境变量入口。调试、运维 override 需要通过 config file、CLI/session override 或测试注入完成，避免把临时调参路径扩散成长期环境变量契约。
 
@@ -59,16 +59,16 @@ Compact 成功的唯一可信标志是写入 boundary，而不是“拿到了 su
 
 ## 和 ZCode 分层的映射
 
-| 职责 | ZCode 位置 | 说明 |
-| --- | --- | --- |
-| `/compact` 命令入口 | `packages/cli` / `packages/tui` | `/compact [instructions]` 命令入口，只解析用户意图。 |
-| compact 状态机 | `packages/core/src/compact` | compact 状态机和业务编排。 |
-| auto compact 触发 | `packages/core/src/context` + `packages/core/src/compact` | context budget policy 和 auto trigger。 |
-| summary prompt | `packages/core/src/compact` | summary prompt 模板；provider 调用仍走 adapter。 |
-| microcompact | `packages/core/src/context` + `packages/adapters` | tool result budget 先做本地替换，provider cache edit 后置。 |
-| session memory compact | `packages/core/src/memory` + `packages/core/src/compact` | session memory 只是 summary 来源，不能绕过 boundary。 |
-| active chain 与 boundary 查找 | `packages/contracts` + `packages/core/src/agent/message-history.ts` | active chain、boundary 查找、post-compact chain 构造。 |
-| session 存储 | `packages/adapters/src/storage` | append-only message/part 存储和 resume/relink。 |
+| 职责                          | ZCode 位置                                                          | 说明                                                        |
+| ----------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `/compact` 命令入口           | `packages/cli` / `packages/tui`                                     | `/compact [instructions]` 命令入口，只解析用户意图。        |
+| compact 状态机                | `packages/core/src/compact`                                         | compact 状态机和业务编排。                                  |
+| auto compact 触发             | `packages/core/src/context` + `packages/core/src/compact`           | context budget policy 和 auto trigger。                     |
+| summary prompt                | `packages/core/src/compact`                                         | summary prompt 模板；provider 调用仍走 adapter。            |
+| microcompact                  | `packages/core/src/context` + `packages/adapters`                   | tool result budget 先做本地替换，provider cache edit 后置。 |
+| session memory compact        | `packages/core/src/memory` + `packages/core/src/compact`            | session memory 只是 summary 来源，不能绕过 boundary。       |
+| active chain 与 boundary 查找 | `packages/contracts` + `packages/core/src/agent/message-history.ts` | active chain、boundary 查找、post-compact chain 构造。      |
+| session 存储                  | `packages/adapters/src/storage`                                     | append-only message/part 存储和 resume/relink。             |
 
 Core 不直接读写文件、不读 `process.env`、不直接调用 provider SDK。所有外部 I/O 通过 contracts 注入。
 

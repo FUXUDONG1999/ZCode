@@ -17,19 +17,19 @@
 
 ## 已冻结决策
 
-| ID | 决策 |
-| --- | --- |
-| TD-D1 | `Read/Write/Edit.file_path` 面向模型的 schema/description 统一为 absolute path 语义；runtime 内部是否继续兼容 relative path 不写进 provider-visible wording。 |
-| TD-D2 | `TodoWrite.priority` / `activeForm` 字段形态暂不调整；保留 `priority`，只补齐 `content/status`、status enum 和主动维护 todo 的 guidance。 |
-| TD-D3 | `Skill` provider-visible schema 改为 `skill` 字段；runtime 可兼容旧 `name` 输入，但最终工具 schema 不再暴露 `name`。 |
-| TD-D4 | `Glob/Grep` 从 main provider `tools[]` 移除，只在 Explore child tool surface 保留。`toolAllowlist` 只能收窄当前 tool pool，不能把 Explore-only tool 提升到 main。 |
-| TD-D5 | `GoalRead` 是过期 provider tool，从 provider-visible `tools[]` 删除；goal continuation / verification 继续走 runtime prompt、tool result 或已有 goal flow。 |
-| TD-D6 | `Agent` 只覆盖当前 ZCode 已支持的 Explore 子集；同时显式收敛 Explore Agent 的 child system prompt；`model`、custom/team/fork/worktree/isolation/cwd 等未支持能力 postponed。 |
-| TD-D7 | `WebSearch` provider-visible schema/description/native-search branch 在本轮 P-12 baseline 中暂时 postponed；后续已由 [WebSearch client tool plan](./websearch-client-tool-implementation-plan.md) 单独落地。 |
-| TD-D8 | Read PDF / notebook / SVG / `pages` 等 ZCode 未 provider-ready 能力 postponed；本轮只处理 text/image Read 已支持的能力。 |
-| TD-D9 | `ExitPlanMode` V2 / plan-file approval flow postponed；保留当前 ZCode contract。 |
-| TD-D10 | `ApplyPatch`、`TodoRead`、`ReadSessionContext`、`Workflow` 作为 ZCode-specific tool 保留；只要求 description/schema truthful，不声明不存在的能力。 |
-| TD-D11 | `Skill` 是否进入未来其他 agent / custom agent 的 child tool surface 暂时 postponed；当前只调整 main `Skill` schema，Explore child 不暴露 `Skill`。 |
+| ID     | 决策                                                                                                                                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| TD-D1  | `Read/Write/Edit.file_path` 面向模型的 schema/description 统一为 absolute path 语义；runtime 内部是否继续兼容 relative path 不写进 provider-visible wording。                                                |
+| TD-D2  | `TodoWrite.priority` / `activeForm` 字段形态暂不调整；保留 `priority`，只补齐 `content/status`、status enum 和主动维护 todo 的 guidance。                                                                    |
+| TD-D3  | `Skill` provider-visible schema 改为 `skill` 字段；runtime 可兼容旧 `name` 输入，但最终工具 schema 不再暴露 `name`。                                                                                         |
+| TD-D4  | `Glob/Grep` 从 main provider `tools[]` 移除，只在 Explore child tool surface 保留。`toolAllowlist` 只能收窄当前 tool pool，不能把 Explore-only tool 提升到 main。                                            |
+| TD-D5  | `GoalRead` 是过期 provider tool，从 provider-visible `tools[]` 删除；goal continuation / verification 继续走 runtime prompt、tool result 或已有 goal flow。                                                  |
+| TD-D6  | `Agent` 只覆盖当前 ZCode 已支持的 Explore 子集；同时显式收敛 Explore Agent 的 child system prompt；`model`、custom/team/fork/worktree/isolation/cwd 等未支持能力 postponed。                                 |
+| TD-D7  | `WebSearch` provider-visible schema/description/native-search branch 在本轮 P-12 baseline 中暂时 postponed；后续已由 [WebSearch client tool plan](./websearch-client-tool-implementation-plan.md) 单独落地。 |
+| TD-D8  | Read PDF / notebook / SVG / `pages` 等 ZCode 未 provider-ready 能力 postponed；本轮只处理 text/image Read 已支持的能力。                                                                                     |
+| TD-D9  | `ExitPlanMode` V2 / plan-file approval flow postponed；保留当前 ZCode contract。                                                                                                                             |
+| TD-D10 | `ApplyPatch`、`TodoRead`、`ReadSessionContext`、`Workflow` 作为 ZCode-specific tool 保留；只要求 description/schema truthful，不声明不存在的能力。                                                           |
+| TD-D11 | `Skill` 是否进入未来其他 agent / custom agent 的 child tool surface 暂时 postponed；当前只调整 main `Skill` schema，Explore child 不暴露 `Skill`。                                                           |
 
 ## Phase 0 Baseline 代码事实
 

@@ -3,6 +3,7 @@
 ## Goal
 
 Generate a complete, formal, well-structured report ready for Word delivery. Must simultaneously meet:
+
 - Complete structure, clear logic, formal language, definitive conclusions
 - Objective data presentation, proper Word formatting
 - Ready for presentation, filing, review, submission, or internal communication
@@ -34,20 +35,21 @@ function selectReportType(keywords, topic) {
 
 ### 6 Report Types
 
-| Type | Use Case | Structure Focus | Expression Focus |
-|------|----------|----------------|-----------------|
-| analysis | Industry/competitor/operations/data analysis | Background → Dimensions → Findings → Diagnosis → Recommendations | Conclusion-first, clear dimensions, chart-supported, actionable advice |
-| experiment | Scientific/academic/algorithm/engineering experiments | Objective → Environment → Method → Results → Error → Conclusion | Precise process, clear conditions, objective results, conclusion ties to hypothesis |
-| testing | Functional/performance/security/compatibility testing | Overview → Scope → Plan → Results → Defects → Risks → Conclusion | Data-driven, traceable, reproducible, supports go/no-go decisions |
-| research | User/market/survey/interview research | Background → Subjects & Method → Sample → Findings → Synthesis → Recommendations | Clear sample boundaries, layered findings, recommendations match findings |
-| review | Project/incident retrospective, phase summary | Goals → Review → Results → Issues → Lessons → Actions | Clear facts, restrained attribution, specific action items |
-| proposal | Project/optimization proposal, feasibility study | Status → Goals → Solution → Roadmap → Resources → Risks → Benefits | Strong argumentation, executable plan, clear boundaries |
+| Type       | Use Case                                              | Structure Focus                                                                  | Expression Focus                                                                    |
+| ---------- | ----------------------------------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| analysis   | Industry/competitor/operations/data analysis          | Background → Dimensions → Findings → Diagnosis → Recommendations                 | Conclusion-first, clear dimensions, chart-supported, actionable advice              |
+| experiment | Scientific/academic/algorithm/engineering experiments | Objective → Environment → Method → Results → Error → Conclusion                  | Precise process, clear conditions, objective results, conclusion ties to hypothesis |
+| testing    | Functional/performance/security/compatibility testing | Overview → Scope → Plan → Results → Defects → Risks → Conclusion                 | Data-driven, traceable, reproducible, supports go/no-go decisions                   |
+| research   | User/market/survey/interview research                 | Background → Subjects & Method → Sample → Findings → Synthesis → Recommendations | Clear sample boundaries, layered findings, recommendations match findings           |
+| review     | Project/incident retrospective, phase summary         | Goals → Review → Results → Issues → Lessons → Actions                            | Clear facts, restrained attribution, specific action items                          |
+| proposal   | Project/optimization proposal, feasibility study      | Status → Goals → Solution → Roadmap → Resources → Risks → Benefits               | Strong argumentation, executable plan, clear boundaries                             |
 
 ---
 
 ## Standard Template Structures
 
 ### Template A: Analysis Report
+
 1. Executive Summary
 2. Background & Objectives
 3. Scope, Data Sources & Methodology
@@ -57,6 +59,7 @@ function selectReportType(keywords, topic) {
 7. Appendices (if needed)
 
 ### Template B: Experiment Report
+
 1. Abstract
 2. Objective & Hypothesis
 3. Environment & Materials
@@ -67,6 +70,7 @@ function selectReportType(keywords, topic) {
 8. Appendices (if needed)
 
 ### Template C: Testing Report
+
 1. Test Overview
 2. Test Scope & Environment
 3. Test Plan & Case Design
@@ -77,6 +81,7 @@ function selectReportType(keywords, topic) {
 8. Appendices (if needed)
 
 ### Template D: Research Report
+
 1. Research Summary
 2. Background & Objectives
 3. Subjects & Methodology
@@ -87,6 +92,7 @@ function selectReportType(keywords, topic) {
 8. Appendices (if needed)
 
 ### Template E: Review / Summary Report
+
 1. Overview
 2. Goals & Scope
 3. Process Review
@@ -97,6 +103,7 @@ function selectReportType(keywords, topic) {
 8. Appendices (if needed)
 
 ### Template F: Proposal / Feasibility Report
+
 1. Executive Summary
 2. Current State & Problem Analysis
 3. Goals & Expected Outcomes
@@ -114,9 +121,11 @@ function selectReportType(keywords, topic) {
 ## Input Recognition & Completion
 
 ### User May Provide
+
 Report topic, type, use case, audience, industry, length requirements, data sources, structure requirements, output purpose (presentation/filing/audit/review/external submission/coursework), template files, company/department/project/author/date, etc.
 
 ### Processing Rules
+
 1. If the user provides a template, existing document, company standard, or format example, **always follow it first**
 2. If information is incomplete, fill in conservatively — completions must be **restrained, natural, credible, professional**
 3. **Never fabricate** unrealistic data, conclusions, test results, business metrics, project statuses, policy backgrounds, or customer feedback
@@ -128,6 +137,7 @@ Report topic, type, use case, audience, industry, length requirements, data sour
 ## Content Quality Constraints
 
 ### Logic & Structure
+
 1. Report must revolve around a clear topic, objective, audience, and through-line
 2. Must not just pile up background/concepts/vague statements — must demonstrate analysis, synthesis, judgment, comparison, or review value
 3. Terminology must be consistent throughout — concepts must not drift
@@ -136,12 +146,14 @@ Report topic, type, use case, audience, industry, length requirements, data sour
 6. Each major chapter must have a clear core conclusion or topic sentence — no information dump
 
 ### Language Style
+
 1. Formal, objective, restrained, professional
 2. No colloquial expressions, chat tone, hyperbole, emotional language, or propaganda style
 3. For management/decision-maker audience: conclusion-first, highlight key points, actionable recommendations
 4. For technical/testing reports: clear basis, reproducible process, verifiable results, stated risks
 
 ### Data Expression
+
 1. Never use vague expressions as main conclusions: "significantly improved", "obviously optimized", "performed well", "has certain issues"
 2. If data exists, express quantitatively (e.g., "average response time under 200 ms" not "fast response")
 3. First occurrence of a term: write full name with abbreviation, e.g., "Application Programming Interface (API)"
@@ -149,6 +161,7 @@ Report topic, type, use case, audience, industry, length requirements, data sour
 5. Statements about facts, data, status, and results must be internally consistent
 
 ### Truthfulness & Conservative Generation
+
 1. Never fabricate test results, experiment data, growth rates, customer counts, interview conclusions, sample distributions, or launch decisions
 2. Never present speculation as proven fact
 3. Never fabricate meeting minutes, regulatory bases, customer feedback, or system logs
@@ -161,6 +174,7 @@ Report topic, type, use case, audience, industry, length requirements, data sour
 ## Chapter Content Requirements
 
 ### (1) Cover
+
 1. Formal reports should have a cover page
 2. Cover includes: title, subtitle (if any), organization/department, author, date, classification (if requested)
 3. Cover must be a separate section
@@ -169,24 +183,28 @@ Report topic, type, use case, audience, industry, length requirements, data sour
 6. Common recipes: general report R1, whitepaper R2, consulting R3, proposal R4
 
 ### (2) Executive Summary
+
 1. Formal reports **must have** a summary opening — never jump directly into details
 2. Summary should briefly state: background, objective, key methodology, key findings, main recommendations
 3. Suitable for quick reading by management — generally 200–400 words
 4. Must not read like a TOC description or pile of background filler
 
 ### (3) Table of Contents
+
 1. Medium-to-long formal reports should include a TOC
 2. TOC must be generated from real heading styles (Heading + TOC field) — never write a fake TOC
 3. TOC page is typically a separate page
 4. TOC depth: usually 2–3 levels
 
 ### (4) Background & Objectives
+
 1. Must explain why this report exists
 2. Must state what problem/scenario/audience the report serves
 3. If scope boundaries exist, state what the report does NOT cover
 4. Must not be vague/grand background — must relate directly to this report's task
 
 ### (5) Methodology / Scope / Basis
+
 1. Must state what materials, criteria, methods, and time range the report is based on
 2. Analysis: data sources, analysis dimensions, criteria definitions
 3. Experiment: environment, materials, samples, procedure principles
@@ -195,6 +213,7 @@ Report topic, type, use case, audience, industry, length requirements, data sour
 6. Reader must understand how conclusions were derived
 
 ### (6) Core Content / Process / Status / Results
+
 1. Organized by logical or dimensional order — no chaotic piling
 2. Each section should lead with its conclusion, then expand with evidence
 3. Results must be specific — never just "performed well" or "has certain issues"
@@ -202,12 +221,14 @@ Report topic, type, use case, audience, industry, length requirements, data sour
 5. If charts are needed but cannot be generated, use chart placeholders (see below)
 
 ### (7) Analysis / Discussion / Problem Diagnosis
+
 1. Must not merely repeat earlier results
 2. Must explain what results mean, what patterns they reveal, what problems they expose
 3. May include: comparative analysis, root cause analysis, mechanism analysis, anomaly explanation, limitations, risk boundaries
 4. Analysis must be consistent with preceding data and facts
 
 ### (8) Conclusions / Recommendations / Next Steps
+
 1. Conclusions must respond to report objectives
 2. Recommendations must be executable — not just principle slogans
 3. Recommendations should state: who executes, what to do, when, expected improvement
@@ -215,6 +236,7 @@ Report topic, type, use case, audience, industry, length requirements, data sour
 5. Retrospective/summary: specific follow-up action items
 
 ### (9) Appendices
+
 1. Supplementary material valuable to the report but not suitable for the main body
 2. Includes: raw data excerpts, detailed parameters, supplementary tables, sample screenshots
 3. Appendices should be on separate pages with proper headings
@@ -230,6 +252,7 @@ When charts are needed but cannot be directly generated:
 ```
 
 **Rules:**
+
 - Specify: chart type, topic, axis meanings, key dimensions, optional palette suggestion
 - Placeholder must be a standalone paragraph — never inline
 - Never use vague placeholders like "insert chart here"
@@ -241,22 +264,26 @@ When charts are needed but cannot be directly generated:
 ## Content-to-Word Mapping
 
 ### Heading Levels
+
 1. Strict hierarchy — no level-skipping
 2. Headings must be informative — never "Background", "Content", "Other" (use "Project Background & Report Objectives" instead)
 3. Do not mix multiple numbering systems
 4. Normal paragraphs must not masquerade as headings
 
 ### Paragraphs
+
 1. Do not use consecutive blank lines for visual spacing
 2. Each paragraph should be a complete semantic unit — not too long or too fragmented
 
 ### Lists
+
 1. Use lists only when genuinely needed — an entire report must not be bullet points
 2. Nesting depth ≤ 3 levels
 3. Consistent punctuation within a list (all complete sentences or all fragments)
 4. Combine "key points" with "analysis paragraphs" — never just list without explaining
 
 ### Tables
+
 1. Use tables only for structured data (statistics, comparisons, parameter lists)
 2. Every table must have a header row — headers must not be blank
 3. Avoid heavily merged-cell complex nested tables
@@ -264,6 +291,7 @@ When charts are needed but cannot be directly generated:
 5. Cell content should be concise — avoid long paragraphs inside cells
 
 ### Emphasis
+
 1. Bold only for key conclusions, critical metrics, first occurrence of key terms
 2. Never bold entire paragraphs
 3. Avoid italic, strikethrough, and other unstable styles
@@ -272,13 +300,13 @@ When charts are needed but cannot be directly generated:
 
 ## Palette Selection
 
-| Report Type | Suggested Palette |
-|-------------|-------------------|
-| General | Neutral calm (primary: #101820) |
-| Consulting | Warm terracotta |
-| Tech | Cool dawn mist |
-| Environment / Education | Warm sunshine |
-| Medical | Cool mint |
+| Report Type             | Suggested Palette               |
+| ----------------------- | ------------------------------- |
+| General                 | Neutral calm (primary: #101820) |
+| Consulting              | Warm terracotta                 |
+| Tech                    | Cool dawn mist                  |
+| Environment / Education | Warm sunshine                   |
+| Medical                 | Cool mint                       |
 
 See `references/design-system.md` for full palette definitions.
 
@@ -318,12 +346,14 @@ See `references/design-system.md` for full palette definitions.
 In addition to universal checks (see `references/common-rules.md`):
 
 ### Format
+
 - [ ] Executive summary ≤ 1 page
 - [ ] Figures/tables have captions ("Figure X: description" / "Table X: description")
 - [ ] Cover recipe matches report type
 - [ ] Data charts use palette accent color
 
 ### Content
+
 - [ ] Has executive summary — not starting directly with details
 - [ ] Heading names are specific and meaningful
 - [ ] Complete loop: background → basis → content → analysis → conclusions/recommendations
@@ -334,6 +364,7 @@ In addition to universal checks (see `references/common-rules.md`):
 - [ ] Recommendations are actionable with owners and timeline
 
 ### Structure
+
 - [ ] Heading hierarchy has no level-skipping
 - [ ] List nesting ≤ 3 levels
 - [ ] Tables have headers with intro/explanation text

@@ -34,21 +34,21 @@ $env:DOCX_SKILL_DIR = "<skill_directory>"
 
 Run the platform-appropriate setup script:
 
-| Platform | Command |
-|----------|---------|
-| macOS / Linux | `bash "$DOCX_SKILL_DIR/env_setup/setup_mac_linux.sh"` |
-| Windows | `powershell -ExecutionPolicy Bypass -File "$env:DOCX_SKILL_DIR\env_setup\setup_windows.ps1"` |
+| Platform      | Command                                                                                      |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| macOS / Linux | `bash "$DOCX_SKILL_DIR/env_setup/setup_mac_linux.sh"`                                        |
+| Windows       | `powershell -ExecutionPolicy Bypass -File "$env:DOCX_SKILL_DIR\env_setup\setup_windows.ps1"` |
 
 ### Required Dependencies
 
-| Category | Package | Purpose |
-|----------|---------|---------|
-| Runtime | Node.js + npm | DOCX generation (docx-js) |
-| npm pkg | docx | Word document creation library |
-| Runtime | Python 3 + pip | Post-processing scripts |
-| Python pkg | defusedxml | Safe XML parsing for validation |
-| On demand (not substitutable) | LibreOffice | `.doc`→`.docx`, DOCX→PDF, visual verification — install it; do not swap in local Word/WPS/Pages |
-| Font | CJK fonts (from CDN) | Chinese text in documents |
+| Category                      | Package              | Purpose                                                                                         |
+| ----------------------------- | -------------------- | ----------------------------------------------------------------------------------------------- |
+| Runtime                       | Node.js + npm        | DOCX generation (docx-js)                                                                       |
+| npm pkg                       | docx                 | Word document creation library                                                                  |
+| Runtime                       | Python 3 + pip       | Post-processing scripts                                                                         |
+| Python pkg                    | defusedxml           | Safe XML parsing for validation                                                                 |
+| On demand (not substitutable) | LibreOffice          | `.doc`→`.docx`, DOCX→PDF, visual verification — install it; do not swap in local Word/WPS/Pages |
+| Font                          | CJK fonts (from CDN) | Chinese text in documents                                                                       |
 
 ### Manual Install by Platform
 
@@ -84,6 +84,7 @@ winget install TheDocumentFoundation.LibreOffice
 ```
 
 Alternative Windows package managers:
+
 - `choco install nodejs-lts python3`
 - `scoop install nodejs-lts python`
 
@@ -102,28 +103,28 @@ The setup scripts read `font_list.txt`, check which fonts are already installed,
 
 ### CDN Directory Structure (78 fonts)
 
-| Directory | Count | Description |
-|-----------|-------|-------------|
-| `truetype/lxgw-wenkai/` | 6 | LXGW WenKai — Chinese handwriting style |
-| `truetype/noto-serif-sc/` | 9 | Noto Serif SC — Chinese serif (variable + 8 static weights) |
-| `chinese/` | 14 | Noto Sans SC, Sarasa Mono SC, Liberation fallbacks |
-| `dejavu/` | 8 | DejaVu Sans/Serif/Mono — Latin/symbol fallback |
-| `emoji/` | 1 | Noto Color Emoji |
-| `english/` | 12 | Tinos, Carlito, Calibri |
-| `freefont/` | 12 | FreeSans/FreeSerif/FreeMono — open-source fallback |
-| `liberation/` | 12 | Liberation Sans/Serif/Mono — MS-metric-compatible |
-| `libreoffice/` | 1 | OpenSymbol |
-| `noto/` | 1 | Noto Color Emoji (duplicate) |
-| `wqy/` | 1 | WenQuanYi Zen Hei — CJK fallback |
-| *(root)* | 1 | Japanese Gothic |
+| Directory                 | Count | Description                                                 |
+| ------------------------- | ----- | ----------------------------------------------------------- |
+| `truetype/lxgw-wenkai/`   | 6     | LXGW WenKai — Chinese handwriting style                     |
+| `truetype/noto-serif-sc/` | 9     | Noto Serif SC — Chinese serif (variable + 8 static weights) |
+| `chinese/`                | 14    | Noto Sans SC, Sarasa Mono SC, Liberation fallbacks          |
+| `dejavu/`                 | 8     | DejaVu Sans/Serif/Mono — Latin/symbol fallback              |
+| `emoji/`                  | 1     | Noto Color Emoji                                            |
+| `english/`                | 12    | Tinos, Carlito, Calibri                                     |
+| `freefont/`               | 12    | FreeSans/FreeSerif/FreeMono — open-source fallback          |
+| `liberation/`             | 12    | Liberation Sans/Serif/Mono — MS-metric-compatible           |
+| `libreoffice/`            | 1     | OpenSymbol                                                  |
+| `noto/`                   | 1     | Noto Color Emoji (duplicate)                                |
+| `wqy/`                    | 1     | WenQuanYi Zen Hei — CJK fallback                            |
+| _(root)_                  | 1     | Japanese Gothic                                             |
 
 ### Install Targets by Platform
 
-| Platform | User Font Directory |
-|----------|-------------------|
-| macOS | `~/Library/Fonts/` |
-| Linux | `~/.local/share/fonts/` (then run `fc-cache -f`) |
-| Windows | `%LOCALAPPDATA%\Microsoft\Windows\Fonts` (per-user, no admin) |
+| Platform | User Font Directory                                           |
+| -------- | ------------------------------------------------------------- |
+| macOS    | `~/Library/Fonts/`                                            |
+| Linux    | `~/.local/share/fonts/` (then run `fc-cache -f`)              |
+| Windows  | `%LOCALAPPDATA%\Microsoft\Windows\Fonts` (per-user, no admin) |
 
 ### Manual Font Installation
 
@@ -149,11 +150,11 @@ done < env_setup/font_list.txt
 
 After font installation, `FONT_DIR` points to the user font directory:
 
-| Platform | FONT_DIR |
-|----------|----------------|
-| macOS | `~/Library/Fonts` |
-| Linux | `~/.local/share/fonts` |
-| Windows | `%LOCALAPPDATA%\Microsoft\Windows\Fonts` |
+| Platform | FONT_DIR                                 |
+| -------- | ---------------------------------------- |
+| macOS    | `~/Library/Fonts`                        |
+| Linux    | `~/.local/share/fonts`                   |
+| Windows  | `%LOCALAPPDATA%\Microsoft\Windows\Fonts` |
 
 ---
 
@@ -184,10 +185,10 @@ python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host
 
 ### Installer downloads (China)
 
-| Software | China Mirror |
-|----------|-------------|
-| Node.js | https://npmmirror.com/mirrors/node/ |
-| Python | https://npmmirror.com/mirrors/python/ |
+| Software    | China Mirror                                                                |
+| ----------- | --------------------------------------------------------------------------- |
+| Node.js     | https://npmmirror.com/mirrors/node/                                         |
+| Python      | https://npmmirror.com/mirrors/python/                                       |
 | LibreOffice | https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/26.8.0/ |
 
 ---
@@ -206,15 +207,15 @@ package sources** — it is much faster on Chinese networks and ships the curren
 
 Under the version directory, choose the subdirectory matching the OS and CPU architecture:
 
-| Platform | Path under the version dir | Main package |
-|----------|---------------------------|--------------|
-| Linux x86_64 (Debian/Ubuntu) | `deb/x86_64/` | `LibreOffice_26.8.0_Linux_x86-64_deb.tar.gz` |
-| Linux ARM64 (Debian/Ubuntu) | `deb/aarch64/` | `LibreOffice_26.8.0_Linux_aarch64_deb.tar.gz` |
-| Linux x86_64 (RHEL/Fedora/openSUSE) | `rpm/x86_64/` | `LibreOffice_26.8.0_Linux_x86-64_rpm.tar.gz` |
-| macOS Apple Silicon (M1+) | `mac/aarch64/` | `LibreOffice_26.8.0_MacOS_aarch64.dmg` |
-| macOS Intel | `mac/x86_64/` | `LibreOffice_26.8.0_MacOS_x86-64.dmg` |
-| Windows 64-bit | `win/x86_64/` | `LibreOffice_26.8.0_Win_x86-64.msi` |
-| Windows ARM64 | `win/aarch64/` | `LibreOffice_26.8.0_Win_aarch64.msi` |
+| Platform                            | Path under the version dir | Main package                                  |
+| ----------------------------------- | -------------------------- | --------------------------------------------- |
+| Linux x86_64 (Debian/Ubuntu)        | `deb/x86_64/`              | `LibreOffice_26.8.0_Linux_x86-64_deb.tar.gz`  |
+| Linux ARM64 (Debian/Ubuntu)         | `deb/aarch64/`             | `LibreOffice_26.8.0_Linux_aarch64_deb.tar.gz` |
+| Linux x86_64 (RHEL/Fedora/openSUSE) | `rpm/x86_64/`              | `LibreOffice_26.8.0_Linux_x86-64_rpm.tar.gz`  |
+| macOS Apple Silicon (M1+)           | `mac/aarch64/`             | `LibreOffice_26.8.0_MacOS_aarch64.dmg`        |
+| macOS Intel                         | `mac/x86_64/`              | `LibreOffice_26.8.0_MacOS_x86-64.dmg`         |
+| Windows 64-bit                      | `win/x86_64/`              | `LibreOffice_26.8.0_Win_x86-64.msi`           |
+| Windows ARM64                       | `win/aarch64/`             | `LibreOffice_26.8.0_Win_aarch64.msi`          |
 
 Determine the architecture with `uname -m` (macOS/Linux: `x86_64` vs `arm64`/`aarch64`) or
 `$env:PROCESSOR_ARCHITECTURE` (Windows: `AMD64` vs `ARM64`). The base package is English-only; add
@@ -237,7 +238,7 @@ soffice --version              # verify (binary lands in /usr/bin or /opt/libreo
 ```
 
 If `soffice` is not on `PATH` after install, register it — see
-*"Register the binary on PATH"* at the end of this section.
+_"Register the binary on PATH"_ at the end of this section.
 
 `sudo apt install libreoffice-core` from the distro repo remains an acceptable fallback if the
 mirror is unreachable — it is older, but sufficient for conversion.

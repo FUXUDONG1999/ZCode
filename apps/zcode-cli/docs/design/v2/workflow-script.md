@@ -227,7 +227,7 @@ different runtime — see `docs/dynamic-workflow/launch.md`.
 ## Natural Language Creation
 
 **The `/workflow create` command was removed with the rest of the namespace** (see «Command
-Surface»). The authoring *rules* below still hold — they are what the `Workflow` tool's description
+Surface»). The authoring _rules_ below still hold — they are what the `Workflow` tool's description
 in `workflow.md` carries, and what any agent writing a script must respect. Read the command framing
 in this section as history.
 

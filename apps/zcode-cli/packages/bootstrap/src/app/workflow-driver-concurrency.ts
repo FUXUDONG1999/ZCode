@@ -170,7 +170,8 @@ export function createActorModelActivity(input: {
     if (!chains.delete(key) || anyExecuting()) return;
     let latest: Chain | undefined;
     for (const chain of chains.values()) {
-      if (chain.wait !== undefined && (latest === undefined || chain.waitSeq > latest.waitSeq)) latest = chain;
+      if (chain.wait !== undefined && (latest === undefined || chain.waitSeq > latest.waitSeq))
+        latest = chain;
     }
     if (latest?.wait !== undefined) reportWaiting(latest.wait);
   };
@@ -223,7 +224,8 @@ export function createActorModelActivity(input: {
       if (typeof (runtime as Partial<AgentRuntime>).subscribeEvents !== "function") return;
       unsubscribeEvents = runtime.subscribeEvents({
         onSessionEvent: (event: SessionEvent) => {
-          if (event.type !== SessionEventType.ModelNetworkStatus || event.sessionId !== sessionId) return;
+          if (event.type !== SessionEventType.ModelNetworkStatus || event.sessionId !== sessionId)
+            return;
           const status = event.payload as ModelNetworkStatusEvent;
           const key = chainKey(status);
           switch (status.type) {

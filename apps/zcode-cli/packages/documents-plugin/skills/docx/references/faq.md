@@ -5,11 +5,14 @@
 **Symptom**: Text is cramped against table cell edges, no padding.
 
 **Fix**: Set `margins` at the TableCell level:
+
 ```js
 new TableCell({
   margins: { top: 60, bottom: 60, left: 120, right: 120 },
-  children: [/* ... */],
-})
+  children: [
+    /* ... */
+  ],
+});
 ```
 
 ---
@@ -19,11 +22,14 @@ new TableCell({
 **Symptom**: Second numbered list continues from where the first left off (e.g., starts at 4 instead of 1).
 
 **Fix**: Each separate numbered list MUST use a unique `reference` name in numbering config:
+
 ```js
-numbering: { config: [
-  { reference: "list-A", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1." }] },
-  { reference: "list-B", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1." }] },
-]}
+numbering: {
+  config: [
+    { reference: "list-A", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1." }] },
+    { reference: "list-B", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1." }] },
+  ];
+}
 ```
 
 ---
@@ -33,6 +39,7 @@ numbering: { config: [
 **Symptom**: Cover page content flows directly into main content without page break.
 
 **Fix**: Add a PageBreak paragraph at the end of cover content:
+
 ```js
 coverChildren.push(new Paragraph({ children: [new PageBreak()] }));
 ```
@@ -44,6 +51,7 @@ coverChildren.push(new Paragraph({ children: [new PageBreak()] }));
 **Symptom**: Table intended to be three-line shows full grid borders.
 
 **Fix**: Set table-level borders to NONE, then override only specific cell borders:
+
 ```js
 // Table level: all borders NONE
 borders: { top: { style: BorderStyle.SINGLE, size: 4 }, bottom: { style: BorderStyle.SINGLE, size: 4 },
@@ -60,6 +68,7 @@ headerCell.borders = { bottom: { style: BorderStyle.SINGLE, size: 2, color: "000
 **Symptom**: Font size doesn't match expected Chinese size name.
 
 **Fix**: Use the correct half-point value. `size` in docx-js is in half-points:
+
 - Wu Hao 五号 = 10.5pt → `size: 21`
 - Xiao Si 小四 = 12pt → `size: 24`
 - Si Hao 四号 = 14pt → `size: 28`
@@ -73,6 +82,7 @@ See SKILL.md for complete conversion table.
 **Symptom**: Table cells appear solid black in Word.
 
 **Fix**: Use `ShadingType.CLEAR` not `ShadingType.SOLID`:
+
 ```js
 // ❌ WRONG
 shading: { type: ShadingType.SOLID, fill: "F1F5F9" }
@@ -87,6 +97,7 @@ shading: { type: ShadingType.CLEAR, fill: "F1F5F9" }
 **Symptom**: Chinese text shows as empty boxes □□□ in generated PNG charts.
 
 **Fix**: Configure SimHei font before plotting:
+
 ```python
 from matplotlib.font_manager import FontProperties
 zh_font = FontProperties(fname="/path/to/SimHei.ttf")
@@ -101,11 +112,16 @@ plt.rcParams["axes.unicode_minus"] = False
 **Symptom**: Embedded image appears distorted.
 
 **Fix**: Calculate display height from width using original aspect ratio:
+
 ```js
 const aspectRatio = originalHeight / originalWidth;
 const displayWidth = 500;
 const displayHeight = Math.round(displayWidth * aspectRatio);
-new ImageRun({ data: buf, transformation: { width: displayWidth, height: displayHeight }, type: "png" });
+new ImageRun({
+  data: buf,
+  transformation: { width: displayWidth, height: displayHeight },
+  type: "png",
+});
 ```
 
 ---
@@ -121,11 +137,12 @@ new ImageRun({ data: buf, transformation: { width: displayWidth, height: display
 **Symptom**: Document fails to open or renders incorrectly.
 
 **Fix**: PageBreak must always be wrapped in a Paragraph:
+
 ```js
 // ❌ WRONG — standalone
-children: [new PageBreak()]
+children: [new PageBreak()];
 // ✅ CORRECT — inside Paragraph
-children: [new Paragraph({ children: [new PageBreak()] })]
+children: [new Paragraph({ children: [new PageBreak()] })];
 ```
 
 ---
@@ -163,6 +180,7 @@ para("行业增速呈现\u201c前低后高\u201d的态势，在\u201c618\u201d�
 3. **PageBreak right after Table** — Table already at page bottom, PageBreak creates extra page
 
 **Fix:**
+
 ```js
 // Post-generation check: last section's children should not end with PageBreak
 function removeTrailingPageBreak(section) {
@@ -171,8 +189,8 @@ function removeTrailingPageBreak(section) {
   const last = children[children.length - 1];
   // If last element is a Paragraph containing only PageBreak, remove it
   if (last instanceof Paragraph) {
-    const runs = last.root?.filter(c => c instanceof PageBreak);
-    if (runs?.length && !last.root?.some(c => c instanceof TextRun)) {
+    const runs = last.root?.filter((c) => c instanceof PageBreak);
+    if (runs?.length && !last.root?.some((c) => c instanceof TextRun)) {
       children.pop();
     }
   }
@@ -180,6 +198,7 @@ function removeTrailingPageBreak(section) {
 ```
 
 **Prevention rules:**
+
 - Place PageBreak at the **start of the next section**, not the end of the previous one
 - Or use separate sections for pagination (no PageBreak needed)
 - The last section of a document must NEVER end with a PageBreak
@@ -193,6 +212,7 @@ function removeTrailingPageBreak(section) {
 **Root causes and fixes:**
 
 ### 1. `ShadingType.SOLID` shows black in WPS
+
 ```js
 // ❌ WPS shows solid black
 shading: { type: ShadingType.SOLID, fill: "F1F5F9" }
@@ -201,7 +221,9 @@ shading: { type: ShadingType.CLEAR, fill: "F1F5F9" }
 ```
 
 ### 2. `verticalAlign: "center"` in exact-height rows shifts content
+
 WPS ignores vertical centering in `rule: "exact"` rows — content stays at top, creating visual mismatch.
+
 ```js
 // ❌ Inconsistent between Word and WPS
 new TableRow({ height: { value: 800, rule: "exact" },
@@ -213,32 +235,54 @@ new TableRow({ height: { value: 800, rule: "exact" },
 ```
 
 ### 3. Tab stops misalign in WPS
+
 Tab widths differ between Word and WPS. Never use tabs for alignment.
+
 ```js
 // ❌ Tab-based alignment — breaks in WPS
-new Paragraph({ tabStops: [{ type: TabStopType.RIGHT, position: 8000 }],
-  children: [new TextRun({ text: "Party A:\tCompany Name" })] })
+new Paragraph({
+  tabStops: [{ type: TabStopType.RIGHT, position: 8000 }],
+  children: [new TextRun({ text: "Party A:\tCompany Name" })],
+});
 // ✅ Borderless table for alignment — consistent everywhere
-new Table({ borders: allNoBorders, rows: [new TableRow({ children: [
-  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Party A:" })] })] }),
-  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Company Name" })] })] }),
-] })] })
+new Table({
+  borders: allNoBorders,
+  rows: [
+    new TableRow({
+      children: [
+        new TableCell({
+          children: [new Paragraph({ children: [new TextRun({ text: "Party A:" })] })],
+        }),
+        new TableCell({
+          children: [new Paragraph({ children: [new TextRun({ text: "Company Name" })] })],
+        }),
+      ],
+    }),
+  ],
+});
 ```
 
 ### 4. Nested tables in exact-height cells overflow differently
+
 Word calculates nested table heights more accurately than WPS. Use stacked tables instead.
+
 ```js
 // ❌ Nested table inside exact-height cell
-new TableRow({ height: { value: 16838, rule: "exact" },
-  children: [new TableCell({ children: [nestedTable1, nestedTable2] })] })
-// ✅ Stacked approach — content table + filler table
-[contentTable, fillerTable]  // both at top level, heights sum to 16838
+new TableRow({
+  height: { value: 16838, rule: "exact" },
+  children: [new TableCell({ children: [nestedTable1, nestedTable2] })],
+})[
+  // ✅ Stacked approach — content table + filler table
+  (contentTable, fillerTable)
+]; // both at top level, heights sum to 16838
 ```
 
 ### 5. `characterSpacing` renders differently
+
 Large `characterSpacing` values cause inconsistent letter spacing. Keep ≤ 80.
 
 ### 6. `titlePage: true` header/footer suppression
+
 WPS may not correctly hide first-page headers when using `titlePage: true`. Use a separate section for the cover instead.
 
 ---
@@ -248,6 +292,7 @@ WPS may not correctly hide first-page headers when using `titlePage: true`. Use 
 **Symptom**: Cover content overflows, with some elements (date, footer, accent strip) appearing on page 2.
 
 **Root cause**: Total content height exceeds 16838 twips (A4 page height). Common when:
+
 - Title is very long (3+ lines at large font size)
 - Fixed spacing values assume short title
 - Multiple meta lines + subtitle + English label
@@ -263,17 +308,26 @@ WPS may not correctly hide first-page headers when using `titlePage: true`. Use 
 **Root cause**: The cover wrapper table uses **default docx-js table borders** (`single/auto/sz=4`) instead of explicitly setting `allNoBorders`. Default borders add ~8 twips per edge. MS Office includes border thickness in the exact-height row calculation, pushing total height past 16838 twips → overflow to page 2. WPS is more lenient and absorbs the extra pixels.
 
 **Fix**: Every cover wrapper table MUST explicitly set `borders: allNoBorders`:
+
 ```js
 const NB = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
-const allNoBorders = { top: NB, bottom: NB, left: NB, right: NB,
-                       insideHorizontal: NB, insideVertical: NB };
+const allNoBorders = {
+  top: NB,
+  bottom: NB,
+  left: NB,
+  right: NB,
+  insideHorizontal: NB,
+  insideVertical: NB,
+};
 
 new Table({
-  borders: allNoBorders,  // ← MANDATORY
-  rows: [new TableRow({
-    height: { value: 16838, rule: "exact" },
-    // ...
-  })],
+  borders: allNoBorders, // ← MANDATORY
+  rows: [
+    new TableRow({
+      height: { value: 16838, rule: "exact" },
+      // ...
+    }),
+  ],
 });
 ```
 
@@ -288,16 +342,17 @@ new Table({
 **Root cause**: Lines were implemented using text characters (`───`, `━━━`, `═══`, `——————`) instead of paragraph borders. Character-drawn lines depend on font metrics (character width × count), which vary across rendering engines.
 
 **Fix**: Always use **paragraph borders** for decorative lines:
+
 ```js
 // ✅ Paragraph border — renders consistently in both MS Office and WPS
 new Paragraph({
   indent: { left: 1000, right: 1000 },
   border: { top: { style: BorderStyle.SINGLE, size: 18, color: accentColor, space: 20 } },
   children: [],
-})
+});
 
 // ❌ NEVER use text characters for decorative lines
-new TextRun({ text: "───────────────" })  // width varies across engines
+new TextRun({ text: "───────────────" }); // width varies across engines
 ```
 
 **Note**: This applies to ALL cover recipes (R1–R5). Recipe R2 uses `border.top` and `border.bottom` for its double-rule frame — follow this pattern.
@@ -311,10 +366,16 @@ new TextRun({ text: "───────────────" })  // width
 **Root cause**: JavaScript outputs the string `"undefined"` when accessing a property that doesn't exist on the config object.
 
 **Fix**: Use `safeText()` helper for ALL user-facing text values:
+
 ```js
 function safeText(value, placeholder) {
-  if (value === undefined || value === null || value === "" ||
-      String(value) === "NaN" || String(value) === "undefined") {
+  if (
+    value === undefined ||
+    value === null ||
+    value === "" ||
+    String(value) === "NaN" ||
+    String(value) === "undefined"
+  ) {
     return placeholder || "【Please fill in】";
   }
   return String(value);

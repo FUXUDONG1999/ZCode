@@ -85,11 +85,7 @@ async function projectRoot(raw?: string): Promise<string> {
   throw new Error("No Android Gradle project found. Use android_create_app first.");
 }
 
-async function findApk(
-  root: string,
-  module: string,
-  variant: string,
-): Promise<string | undefined> {
+async function findApk(root: string, module: string, variant: string): Promise<string | undefined> {
   const hits = await findApks(root, [module]);
   return pickApk(hits, variant);
 }

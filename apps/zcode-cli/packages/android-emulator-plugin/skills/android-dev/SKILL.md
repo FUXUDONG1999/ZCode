@@ -16,9 +16,9 @@ If the server is configured with a different name, use the corresponding visible
 ## Default Workflow
 
 1. Call `mcp__android_emulator__android_preflight` first.
-	   - If the required environment is not ready, follow `INSTALL_ENVIRONMENT.md` before continuing. Missing emulator-only checks do not block a selected ready USB device target.
-	   - Environment setup is done with the fixed macOS shell or Windows PowerShell procedure in that file; do not improvise unrelated install commands.
-	   - Do not accept Android SDK licenses, enter passwords, wipe emulator data, or delete AVDs on the user's behalf. Stop and ask the user for those cases.
+   - If the required environment is not ready, follow `INSTALL_ENVIRONMENT.md` before continuing. Missing emulator-only checks do not block a selected ready USB device target.
+   - Environment setup is done with the fixed macOS shell or Windows PowerShell procedure in that file; do not improvise unrelated install commands.
+   - Do not accept Android SDK licenses, enter passwords, wipe emulator data, or delete AVDs on the user's behalf. Stop and ask the user for those cases.
 2. Discover the project with `mcp__android_emulator__android_discover_project`.
    - If no Android project exists and the user wants a new app, call `mcp__android_emulator__android_create_app`.
    - Prefer editing Kotlin/Compose files directly after project creation.

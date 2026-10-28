@@ -11,13 +11,13 @@ The larger the colored area, the lower its saturation must be.
 
 ### Tier System
 
-| Tier | Area % | S Cap | Roles |
-|------|--------|-------|-------|
-| **XL** | >50% | ≤ 0.08 | `page_bg`, `section_bg` |
-| **L** | 20-50% | ≤ 0.15 | `card_bg`, `table_stripe` |
-| **M** | 5-20% | ≤ 0.30 | `header_fill`, `cover_block` |
-| **S** | 1-5% | ≤ 0.50 | `border`, `icon` |
-| **XS** | <1% | ≤ 0.75 | `accent`, `accent_secondary` |
+| Tier   | Area % | S Cap  | Roles                        |
+| ------ | ------ | ------ | ---------------------------- |
+| **XL** | >50%   | ≤ 0.08 | `page_bg`, `section_bg`      |
+| **L**  | 20-50% | ≤ 0.15 | `card_bg`, `table_stripe`    |
+| **M**  | 5-20%  | ≤ 0.30 | `header_fill`, `cover_block` |
+| **S**  | 1-5%   | ≤ 0.50 | `border`, `icon`             |
+| **XS** | <1%    | ≤ 0.75 | `accent`, `accent_secondary` |
 
 ### How It Works
 
@@ -74,12 +74,12 @@ Background    → Pure white / primary at opacity 3-8%
 
 ### 2. Color Count Limits
 
-| Element Type | Max Colors | Notes |
-|-------------|-----------|-------|
-| Entire document | 4-5 | Primary + secondary + accent + neutral + background |
-| Single component (card/table) | 2-3 | Don't give each card a different color |
-| Charts / data visualization | Same-family gradient | Differentiate by opacity/lightness, not different hues |
-| Tags / badges | 1 color + text color | No rainbow tags |
+| Element Type                  | Max Colors           | Notes                                                  |
+| ----------------------------- | -------------------- | ------------------------------------------------------ |
+| Entire document               | 4-5                  | Primary + secondary + accent + neutral + background    |
+| Single component (card/table) | 2-3                  | Don't give each card a different color                 |
+| Charts / data visualization   | Same-family gradient | Differentiate by opacity/lightness, not different hues |
+| Tags / badges                 | 1 color + text color | No rainbow tags                                        |
 
 ### 3. Absolutely Forbidden Color Fills
 
@@ -113,14 +113,14 @@ Accent:          hsl(H+15, S, L)        — Warnings, highlights (micro hue shif
 
 ```css
 :root {
-  --c-primary:    #2d5a87;   /* Primary (from palette.cascade) */
-  --c-primary-d:  #1e3d5c;   /* Dark variant */
-  --c-primary-l:  #5a8ab8;   /* Light variant */
-  --c-primary-bg: #f0f4f8;   /* Ultra-light background */
-  --c-accent:     #2d6a87;   /* Accent (hue +10°) */
-  --c-text:       #333;      /* Body text */
-  --c-text-muted: #888;      /* Secondary text */
-  --c-border:     #e0e4e8;   /* Border lines */
+  --c-primary: #2d5a87; /* Primary (from palette.cascade) */
+  --c-primary-d: #1e3d5c; /* Dark variant */
+  --c-primary-l: #5a8ab8; /* Light variant */
+  --c-primary-bg: #f0f4f8; /* Ultra-light background */
+  --c-accent: #2d6a87; /* Accent (hue +10°) */
+  --c-text: #333; /* Body text */
+  --c-text-muted: #888; /* Secondary text */
+  --c-border: #e0e4e8; /* Border lines */
 }
 ```
 
@@ -131,30 +131,56 @@ Accent:          hsl(H+15, S, L)        — Warnings, highlights (micro hue shif
 When distinguishing multiple sibling elements (e.g., multiple cards, categories), **don't use different colors — use these approaches instead**:
 
 ### Strategy A: Same Hue, Different Lightness
+
 ```css
-.card-1 { background: hsl(220, 40%, 95%); }  /* Lightest */
-.card-2 { background: hsl(220, 40%, 90%); }
-.card-3 { background: hsl(220, 40%, 85%); }
-.card-4 { background: hsl(220, 40%, 80%); }  /* Darkest */
+.card-1 {
+  background: hsl(220, 40%, 95%);
+} /* Lightest */
+.card-2 {
+  background: hsl(220, 40%, 90%);
+}
+.card-3 {
+  background: hsl(220, 40%, 85%);
+}
+.card-4 {
+  background: hsl(220, 40%, 80%);
+} /* Darkest */
 ```
 
 ### Strategy B: Same Color, Different Opacity
+
 ```css
-.item-1 { background: rgba(30, 58, 95, 0.06); }
-.item-2 { background: rgba(30, 58, 95, 0.12); }
-.item-3 { background: rgba(30, 58, 95, 0.18); }
-.item-4 { background: rgba(30, 58, 95, 0.24); }
+.item-1 {
+  background: rgba(30, 58, 95, 0.06);
+}
+.item-2 {
+  background: rgba(30, 58, 95, 0.12);
+}
+.item-3 {
+  background: rgba(30, 58, 95, 0.18);
+}
+.item-4 {
+  background: rgba(30, 58, 95, 0.24);
+}
 ```
 
 ### Strategy C: Primary + Whitespace + Lines
+
 ```css
 /* Differentiate by border color/weight/style, uniform white background */
-.card-1 { border-left: 3px solid var(--primary); }
-.card-2 { border-left: 3px solid var(--primary-l); }
-.card-3 { border-left: 3px solid var(--primary-d); }
+.card-1 {
+  border-left: 3px solid var(--primary);
+}
+.card-2 {
+  border-left: 3px solid var(--primary-l);
+}
+.card-3 {
+  border-left: 3px solid var(--primary-d);
+}
 ```
 
 ### Strategy D: Icons / Numbering (Not Color)
+
 ```css
 /* All cards same color, differentiated by icons, numbers, or layout variation */
 ```
@@ -164,11 +190,13 @@ When distinguishing multiple sibling elements (e.g., multiple cards, categories)
 ## Gradient Usage Rules
 
 ### Allowed Gradients
+
 - **Same-family gradient**: `linear-gradient(135deg, var(--c-primary), var(--c-primary-l))` — hue difference < 20°
 - **Lightness gradient**: `linear-gradient(180deg, #fff, #f5f5f5)` — pure lightness change
 - **Primary to transparent**: `linear-gradient(90deg, var(--c-primary), transparent)` — for decorative lines
 
 ### Forbidden Gradients
+
 - ❌ Warm-to-cool crossover: `linear-gradient(#ff6b6b, #4ecdc4)`
 - ❌ More than 3 colors: `linear-gradient(red, yellow, green, blue)`
 - ❌ Neon gradients: Any high-saturation gradient
@@ -179,26 +207,31 @@ When distinguishing multiple sibling elements (e.g., multiple cards, categories)
 ## Preset Palettes (Ready to Use)
 
 ### Business Blue
+
 ```
 #1a365d → #2a5298 → #4a7ac7 → #dce6f5 → #f5f8fc
 ```
 
 ### Warm Gray
+
 ```
 #2d2d2d → #5a5a5a → #8a8a8a → #e8e8e8 → #f9f9f9
 ```
 
 ### Forest Green
+
 ```
 #1a3c2a → #2d6b4a → #4a9a6a → #d5ead8 → #f2f8f4
 ```
 
 ### Terracotta Red
+
 ```
 #5c2018 → #8a3828 → #b85a48 → #f0d8d0 → #faf4f2
 ```
 
 ### Indigo Purple
+
 ```
 #2d1b4e → #4a2d7a → #6a4aaa → #ddd0f0 → #f5f2fa
 ```

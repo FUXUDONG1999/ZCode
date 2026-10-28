@@ -91,18 +91,18 @@ SSE stream 中断后不做连接级 resume，也不依赖 `Last-Event-ID` 拼接
 
 事件提交边界：
 
-| 事件 | 恢复处理 |
-| --- | --- |
-| `start` / `text_start` / `reasoning_start` | 仅记录为 attempt 前奏，不作为恢复锚点。 |
-| 空 `text_delta` / 空 `reasoning_delta`（含纯签名） | 普通请求在首个有效输出前暂存；失败重试时随前奏丢弃，成功时按原顺序释放并保留 metadata。 |
-| 非空 `text_delta` | 可以实时展示和记录，但在 `finish` 前属于不完整 assistant tail；恢复时必须丢弃，不能作为完成的 assistant message 送回模型上下文。 |
-| 非空 `reasoning_delta` | 可以实时展示和记录，但不作为模型上下文锚点；恢复时随失败 tail 丢弃。 |
-| `tool_input_delta` 且尚未形成 `tool_call` | 不执行工具，恢复时丢弃。 |
-| `tool_call` 已接受但工具未执行 | 不把该工具视作已完成；恢复时由下一次模型请求重新决定，或记录 synthetic not-executed 结果。 |
-| 工具已执行且结果已提交 | 该 tool result 是 provider-safe anchor；恢复请求必须保留 assistant tool_call 与 tool result，避免重复执行。 |
-| 工具执行状态未知或存在副作用 | 不得重复执行；必须写 synthetic interrupted tool result 或阻断恢复。 |
-| `finish` / provider `response.completed` | 本次 stream 完整成功，清空 recovery 状态。 |
-| `error` / provider `response.failed` / EOF-before-finish / idle timeout | 进入 adapter retry 或 core recovery，取决于是否已经越过 adapter retry boundary。 |
+| 事件                                                                    | 恢复处理                                                                                                                         |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `start` / `text_start` / `reasoning_start`                              | 仅记录为 attempt 前奏，不作为恢复锚点。                                                                                          |
+| 空 `text_delta` / 空 `reasoning_delta`（含纯签名）                      | 普通请求在首个有效输出前暂存；失败重试时随前奏丢弃，成功时按原顺序释放并保留 metadata。                                          |
+| 非空 `text_delta`                                                       | 可以实时展示和记录，但在 `finish` 前属于不完整 assistant tail；恢复时必须丢弃，不能作为完成的 assistant message 送回模型上下文。 |
+| 非空 `reasoning_delta`                                                  | 可以实时展示和记录，但不作为模型上下文锚点；恢复时随失败 tail 丢弃。                                                             |
+| `tool_input_delta` 且尚未形成 `tool_call`                               | 不执行工具，恢复时丢弃。                                                                                                         |
+| `tool_call` 已接受但工具未执行                                          | 不把该工具视作已完成；恢复时由下一次模型请求重新决定，或记录 synthetic not-executed 结果。                                       |
+| 工具已执行且结果已提交                                                  | 该 tool result 是 provider-safe anchor；恢复请求必须保留 assistant tool_call 与 tool result，避免重复执行。                      |
+| 工具执行状态未知或存在副作用                                            | 不得重复执行；必须写 synthetic interrupted tool result 或阻断恢复。                                                              |
+| `finish` / provider `response.completed`                                | 本次 stream 完整成功，清空 recovery 状态。                                                                                       |
+| `error` / provider `response.failed` / EOF-before-finish / idle timeout | 进入 adapter retry 或 core recovery，取决于是否已经越过 adapter retry boundary。                                                 |
 
 core recovery 的可观测性要求：
 
@@ -137,12 +137,12 @@ core recovery 的可观测性要求：
 
 模型 adapter 的重试策略默认值可以通过 `ZCODE_` 环境变量覆盖，入口只存在于 bootstrap/adapter 层，core 不读取 `process.env`。
 
-| 环境变量 | 默认值 | 语义 |
-| --- | --- | --- |
-| `ZCODE_MODEL_RETRY_MAX_RETRIES` | `10` | 可重试失败最多重试次数，不包含第一次请求；运行时事件中的 `maxAttempts` 等于该值加一。 |
-| `ZCODE_MODEL_RETRY_BASE_DELAY_MS` | `2000` | 指数退避的初始延迟毫秒数，允许为 `0`。 |
-| `ZCODE_MODEL_RETRY_BACKOFF_FACTOR` | `2` | 每次重试延迟的指数退避倍率，必须大于 `0`。 |
-| `ZCODE_MODEL_RETRY_MAX_DELAY_MS` | `60000` | 普通指数退避延迟上限毫秒数，允许为 `0`；provider `retry-after` 提示在 `x-should-retry` 未显式为 `false`，且不超过 5 分钟或短于当前指数退避时仍优先。 |
+| 环境变量                           | 默认值  | 语义                                                                                                                                                 |
+| ---------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ZCODE_MODEL_RETRY_MAX_RETRIES`    | `10`    | 可重试失败最多重试次数，不包含第一次请求；运行时事件中的 `maxAttempts` 等于该值加一。                                                                |
+| `ZCODE_MODEL_RETRY_BASE_DELAY_MS`  | `2000`  | 指数退避的初始延迟毫秒数，允许为 `0`。                                                                                                               |
+| `ZCODE_MODEL_RETRY_BACKOFF_FACTOR` | `2`     | 每次重试延迟的指数退避倍率，必须大于 `0`。                                                                                                           |
+| `ZCODE_MODEL_RETRY_MAX_DELAY_MS`   | `60000` | 普通指数退避延迟上限毫秒数，允许为 `0`；provider `retry-after` 提示在 `x-should-retry` 未显式为 `false`，且不超过 5 分钟或短于当前指数退避时仍优先。 |
 
 优先级：显式传入 adapter 的 `retry` 选项 > `ZCODE_MODEL_RETRY_*` 环境变量 > 内置默认值。非法环境变量值不会让启动失败；adapter 忽略该变量并回退到下一层默认值，避免一个错误的调试变量让 CLI 完全不可用。日志和状态事件不得输出完整环境变量集合，只能暴露归一化后的 retry budget。
 

@@ -167,7 +167,7 @@ diagnostics/schemas/graph output, implement until green.
    an ask is (actor name, per-actor ask sequence) checked against the recorded
    `inputHash`, and for a world node it is `{op, args}` content plus occurrence
    index — neither is positional. Site ids stay display/graph coordinates. Step 3
-   survives only if world nodes ever need a *positional* identity of their own;
+   survives only if world nodes ever need a _positional_ identity of their own;
    nothing asks for that today. See `docs/execution-engine.md` in the
    app repo.
 4. ~~Analysis: taint-based may-flow site graph, then the causality, control-flow and

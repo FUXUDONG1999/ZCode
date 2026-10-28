@@ -38,7 +38,7 @@ Implemented behavior:
   `TuiScreen.input`; image draft state is stored separately on `TuiScreen` as
   `draftAttachments` plus `nextDraftAttachmentId`.
 - `TuiSubmitPrompt` and `TuiSendInput` now accept `string | { text,
-  attachments }`; `TuiPromptAttachment` supports `file`, `image`, and `url`.
+attachments }`; `TuiPromptAttachment` supports `file`, `image`, and `url`.
 - `TuiController.handleInput()` handles image paste before text submission,
   rejects paste while a turn is active, serializes one in-flight clipboard read,
   and keeps existing input shortcuts such as `ctrl+c`, `ctrl+u`, history,

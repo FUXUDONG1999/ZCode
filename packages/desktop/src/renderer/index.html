@@ -45,7 +45,7 @@
         align-items: center;
         justify-content: center;
         border-radius: 24px;
-        background: linear-gradient(180deg, #6365F1 0%, #8A5CF5 100%);
+        background: linear-gradient(180deg, #6365f1 0%, #8a5cf5 100%);
         box-shadow:
           0 20px 25px -5px rgb(0 0 0 / 0.2),
           0 8px 10px -6px rgb(0 0 0 / 0.2);
@@ -107,7 +107,13 @@
   </head>
   <body>
     <div id="root"></div>
-    <div id="loading" class="[app-region:drag]" role="status" aria-busy="true" aria-label="Loading...">
+    <div
+      id="loading"
+      class="[app-region:drag]"
+      role="status"
+      aria-busy="true"
+      aria-label="Loading..."
+    >
       <div class="startup-logo-shell">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -118,15 +124,9 @@
           class="startup-logo"
           aria-hidden="true"
         >
-          <path
-            fill="currentColor"
-            d="M100 0L0 218L56 218L128 49.2L128 0Z"
-          />
+          <path fill="currentColor" d="M100 0L0 218L56 218L128 49.2L128 0Z" />
           <path fill="currentColor" d="M128 0L156 0L256 218L200 218L128 49.2Z" />
-          <path
-            fill="currentColor"
-            d="M91 136L165 136L179.6 170L76.4 170Z"
-          />
+          <path fill="currentColor" d="M91 136L165 136L179.6 170L76.4 170Z" />
         </svg>
       </div>
     </div>

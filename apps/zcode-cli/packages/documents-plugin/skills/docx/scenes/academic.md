@@ -6,11 +6,11 @@
 
 ```js
 const palette = {
-  primary: "#000000",   // Title — pure black
-  body: "#000000",      // Body — pure black
+  primary: "#000000", // Title — pure black
+  body: "#000000", // Body — pure black
   secondary: "#333333", // Header/caption — dark grey
-  accent: "#8B7E5A",    // Cover decoration line — cover only
-  surface: "#F5F7FA",   // Table header light bg — three-line tables only
+  accent: "#8B7E5A", // Cover decoration line — cover only
+  surface: "#F5F7FA", // Table header light bg — three-line tables only
 };
 ```
 
@@ -23,14 +23,14 @@ const palette = {
 
 ## Page Layout
 
-| Property | Value | Twips |
-|----------|-------|-------|
-| Top margin | 2.54 cm | 1440 |
-| Bottom margin | 2.54 cm | 1440 |
-| Left margin | 3.00 cm | 1701 |
-| Right margin | 2.50 cm | 1417 |
-| Header distance | 1.5 cm | 850 |
-| Footer distance | 1.75 cm | 992 |
+| Property        | Value   | Twips |
+| --------------- | ------- | ----- |
+| Top margin      | 2.54 cm | 1440  |
+| Bottom margin   | 2.54 cm | 1440  |
+| Left margin     | 3.00 cm | 1701  |
+| Right margin    | 2.50 cm | 1417  |
+| Header distance | 1.5 cm  | 850   |
+| Footer distance | 1.75 cm | 992   |
 
 ```js
 page: {
@@ -45,23 +45,24 @@ For binding margin, add 0.5–1.0 cm to left (i.e., left: 1985–2268).
 
 ## Font Specifications
 
-| Element | CN Font | EN Font | Size | half-pt | Style |
-|---------|---------|---------|------|---------|-------|
-| Thesis title | SimHei | Times New Roman | Xiao Er 18pt | 36 | Bold, centered |
-| H1 | SimHei | Times New Roman | San Hao 16pt | 32 | Bold, centered |
-| H2 | SimHei | Times New Roman | Xiao San 15pt | 30 | Bold, left |
-| H3 | SimHei | Times New Roman | Si Hao 14pt | 28 | Bold, left |
-| Body | SimSun | Times New Roman | Xiao Si 12pt | 24 | Normal, justified |
-| Abstract title | SimHei | Times New Roman Bold | San Hao 16pt | 32 | Bold, centered |
-| Abstract body | SimSun | Times New Roman | Xiao Si 12pt | 24 | Normal, justified |
-| Keywords label | SimHei | Times New Roman Bold | Xiao Si 12pt | 24 | Bold |
-| Keywords content | SimSun | Times New Roman | Xiao Si 12pt | 24 | Normal |
-| Header | SimSun | Times New Roman | Xiao Wu 9pt | 18 | Centered, color 333333 |
-| Page number | — | Times New Roman | Xiao Wu 10.5pt | 21 | Centered |
-| Footnote | SimSun | Times New Roman | Xiao Wu 9pt | 18 | Normal |
-| Figure/table caption | SimSun | Times New Roman | Wu Hao 10.5pt | 21 | Centered |
+| Element              | CN Font | EN Font              | Size           | half-pt | Style                  |
+| -------------------- | ------- | -------------------- | -------------- | ------- | ---------------------- |
+| Thesis title         | SimHei  | Times New Roman      | Xiao Er 18pt   | 36      | Bold, centered         |
+| H1                   | SimHei  | Times New Roman      | San Hao 16pt   | 32      | Bold, centered         |
+| H2                   | SimHei  | Times New Roman      | Xiao San 15pt  | 30      | Bold, left             |
+| H3                   | SimHei  | Times New Roman      | Si Hao 14pt    | 28      | Bold, left             |
+| Body                 | SimSun  | Times New Roman      | Xiao Si 12pt   | 24      | Normal, justified      |
+| Abstract title       | SimHei  | Times New Roman Bold | San Hao 16pt   | 32      | Bold, centered         |
+| Abstract body        | SimSun  | Times New Roman      | Xiao Si 12pt   | 24      | Normal, justified      |
+| Keywords label       | SimHei  | Times New Roman Bold | Xiao Si 12pt   | 24      | Bold                   |
+| Keywords content     | SimSun  | Times New Roman      | Xiao Si 12pt   | 24      | Normal                 |
+| Header               | SimSun  | Times New Roman      | Xiao Wu 9pt    | 18      | Centered, color 333333 |
+| Page number          | —       | Times New Roman      | Xiao Wu 10.5pt | 21      | Centered               |
+| Footnote             | SimSun  | Times New Roman      | Xiao Wu 9pt    | 18      | Normal                 |
+| Figure/table caption | SimSun  | Times New Roman      | Wu Hao 10.5pt  | 21      | Centered               |
 
 ### Paragraph Format
+
 - Body: justified, first-line indent 2 chars (`firstLine: 480`, SimSun Xiao Si = 480 twips)
 - Line spacing: 1.5x (`line: 360`); if school requires fixed 22pt, use `line: 440, lineRule: "exact"`
 - Body paragraph spacing: before/after 0pt; heading spacing per styles below
@@ -95,13 +96,14 @@ styles: {
 
 ### Format
 
-| Level | Format | Example |
-|-------|--------|---------|
-| H1 | Chapter X + title | 第一章 绪论 (Chapter 1 Introduction) |
-| H2 | X.X + section title | 1.1 Research Background |
-| H3 | X.X.X + subsection | 1.1.1 Domestic Research Status |
+| Level | Format              | Example                              |
+| ----- | ------------------- | ------------------------------------ |
+| H1    | Chapter X + title   | 第一章 绪论 (Chapter 1 Introduction) |
+| H2    | X.X + section title | 1.1 Research Background              |
+| H3    | X.X.X + subsection  | 1.1.1 Domestic Research Status       |
 
 ### Mandatory Rules
+
 1. **H1 must use "第X章" format** — not "一、", not "Chapter 1", not "第1章"
 2. **H2/H3 use Arabic decimal numbering** (1.1, 1.1.1) — no "(一)", "1)"
 3. **No mixing multiple numbering systems**
@@ -112,16 +114,32 @@ styles: {
 // ✅ Correct
 new Paragraph({
   heading: HeadingLevel.HEADING_1,
-  children: [new TextRun({ text: "第一章 绪论", bold: true, size: 32, font: { eastAsia: "SimHei", ascii: "Times New Roman" } })]
-})
+  children: [
+    new TextRun({
+      text: "第一章 绪论",
+      bold: true,
+      size: 32,
+      font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+    }),
+  ],
+});
 new Paragraph({
   heading: HeadingLevel.HEADING_2,
-  children: [new TextRun({ text: "1.1 研究背景", bold: true, size: 30, font: { eastAsia: "SimHei", ascii: "Times New Roman" } })]
-})
+  children: [
+    new TextRun({
+      text: "1.1 研究背景",
+      bold: true,
+      size: 30,
+      font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+    }),
+  ],
+});
 ```
 
 ### Non-Body Headings
+
 Abstract, Table of Contents, References, Appendices, Acknowledgments:
+
 - Use H1 style (San Hao SimHei centered) for TOC indexing
 - But **no numbering** (write directly: "摘　要", "参考文献", etc. — these are non-numbered standalone section headings)
 
@@ -206,29 +224,42 @@ const { NumberFormat } = require("docx");
 
 ```js
 function buildHeader(title) {
-  return new Header({ children: [
-    new Paragraph({ alignment: AlignmentType.CENTER,
-      border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" } },
-      children: [new TextRun({ text: title, size: 18, color: "333333",
-        font: { ascii: "Times New Roman", eastAsia: "SimSun" } })],
-    }),
-  ] });
+  return new Header({
+    children: [
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" } },
+        children: [
+          new TextRun({
+            text: title,
+            size: 18,
+            color: "333333",
+            font: { ascii: "Times New Roman", eastAsia: "SimSun" },
+          }),
+        ],
+      }),
+    ],
+  });
 }
 
 function buildPageNumberFooter() {
-  return new Footer({ children: [
-    new Paragraph({ alignment: AlignmentType.CENTER,
-      children: [
-        new TextRun({ text: "- ", size: 21 }),
-        new TextRun({ children: [PageNumber.CURRENT], size: 21 }),
-        new TextRun({ text: " -", size: 21 }),
-      ],
-    }),
-  ] });
+  return new Footer({
+    children: [
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [
+          new TextRun({ text: "- ", size: 21 }),
+          new TextRun({ children: [PageNumber.CURRENT], size: 21 }),
+          new TextRun({ text: " -", size: 21 }),
+        ],
+      }),
+    ],
+  });
 }
 ```
 
 ### Page Break Rules
+
 - Cover is a separate section (no PageBreak needed)
 - Chinese abstract, English abstract, TOC each in their own section
 - All body chapters in **one section** (no forced page breaks between chapters unless user requests)
@@ -243,17 +274,17 @@ function buildPageNumberFooter() {
 
 Cover must include (use placeholders for missing info):
 
-| Field | Format | Placeholder |
-|-------|--------|-------------|
-| University name | Er Hao SimHei, centered | ×××University |
-| Thesis title (CN) | Xiao Er SimHei, centered | (user-provided) |
+| Field             | Format                            | Placeholder          |
+| ----------------- | --------------------------------- | -------------------- |
+| University name   | Er Hao SimHei, centered           | ×××University        |
+| Thesis title (CN) | Xiao Er SimHei, centered          | (user-provided)      |
 | Thesis title (EN) | San Hao Times New Roman, centered | (translated from CN) |
-| College | Si Hao SimSun | ×××College |
-| Major | Si Hao SimSun | ×××Major |
-| Author | Si Hao SimSun | ××× |
-| Student ID | Si Hao SimSun | ××××××× |
-| Advisor | Si Hao SimSun | ×××Professor |
-| Date | Si Hao SimSun | 2026/XX |
+| College           | Si Hao SimSun                     | ×××College           |
+| Major             | Si Hao SimSun                     | ×××Major             |
+| Author            | Si Hao SimSun                     | ×××                  |
+| Student ID        | Si Hao SimSun                     | ×××××××              |
+| Advisor           | Si Hao SimSun                     | ×××Professor         |
+| Date              | Si Hao SimSun                     | 2026/XX              |
 
 ### Cover Style
 
@@ -291,45 +322,108 @@ function buildAcademicCover(info) {
     width: { size: 60, type: WidthType.PERCENTAGE },
     alignment: AlignmentType.CENTER,
     borders: { top: NB, bottom: NB, left: NB, right: NB, insideHorizontal: NB, insideVertical: NB },
-    rows: infoRows.map(([label, value]) => new TableRow({
-      cantSplit: true,
-      children: [
-        new TableCell({
-          width: { size: 35, type: WidthType.PERCENTAGE },
-          borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, top: NB, left: NB, right: NB },
-          margins: { top: 60, bottom: 60, left: 120, right: 120 },
-          children: [new Paragraph({
-            alignment: AlignmentType.RIGHT,
-            children: [new TextRun({ text: label + ":", size: 28, font: { eastAsia: "SimHei", ascii: "Times New Roman" } })],
-          })],
+    rows: infoRows.map(
+      ([label, value]) =>
+        new TableRow({
+          cantSplit: true,
+          children: [
+            new TableCell({
+              width: { size: 35, type: WidthType.PERCENTAGE },
+              borders: {
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                top: NB,
+                left: NB,
+                right: NB,
+              },
+              margins: { top: 60, bottom: 60, left: 120, right: 120 },
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.RIGHT,
+                  children: [
+                    new TextRun({
+                      text: label + ":",
+                      size: 28,
+                      font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              borders: {
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                top: NB,
+                left: NB,
+                right: NB,
+              },
+              margins: { top: 60, bottom: 60, left: 120, right: 120 },
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text: value,
+                      size: 28,
+                      font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
         }),
-        new TableCell({
-          borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, top: NB, left: NB, right: NB },
-          margins: { top: 60, bottom: 60, left: 120, right: 120 },
-          children: [new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: value, size: 28, font: { eastAsia: "SimSun", ascii: "Times New Roman" } })],
-          })],
-        }),
-      ],
-    })),
+    ),
   });
 
   // ⚠️ Correct order: school → doc type → TITLE → info table → date
   // ★ Rule 8: All large-font paragraphs must set explicit line spacing
   return [
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 1200, after: 400, line: Math.ceil(22 * 23), lineRule: "atLeast" },
-      children: [new TextRun({ text: safeText(school, "【University Name】"), size: 44, bold: true, font: { eastAsia: "SimHei" } })] }),
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 800, line: Math.ceil(18 * 23), lineRule: "atLeast" },
-      children: [new TextRun({ text: "Undergraduate Thesis", size: 36, font: { eastAsia: "SimHei" } })] }),
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200, line: Math.ceil(18 * 23), lineRule: "atLeast" },
-      children: [new TextRun({ text: safeText(title, "【Thesis Title】"), size: 36, bold: true, font: { eastAsia: "SimHei", ascii: "Times New Roman" } })] }),
-    titleEN ? new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 1200, line: Math.ceil(16 * 23), lineRule: "atLeast" },
-      children: [new TextRun({ text: titleEN, size: 32, font: { ascii: "Times New Roman" } })] })
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 1200, after: 400, line: Math.ceil(22 * 23), lineRule: "atLeast" },
+      children: [
+        new TextRun({
+          text: safeText(school, "【University Name】"),
+          size: 44,
+          bold: true,
+          font: { eastAsia: "SimHei" },
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 800, line: Math.ceil(18 * 23), lineRule: "atLeast" },
+      children: [
+        new TextRun({ text: "Undergraduate Thesis", size: 36, font: { eastAsia: "SimHei" } }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200, line: Math.ceil(18 * 23), lineRule: "atLeast" },
+      children: [
+        new TextRun({
+          text: safeText(title, "【Thesis Title】"),
+          size: 36,
+          bold: true,
+          font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+        }),
+      ],
+    }),
+    titleEN
+      ? new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 1200, line: Math.ceil(16 * 23), lineRule: "atLeast" },
+          children: [new TextRun({ text: titleEN, size: 32, font: { ascii: "Times New Roman" } })],
+        })
       : new Paragraph({ spacing: { after: 1200 }, children: [] }),
     infoTable,
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 1200, line: Math.ceil(14 * 23), lineRule: "atLeast" },
-      children: [new TextRun({ text: safeText(date, "2026/XX"), size: 28, font: { eastAsia: "SimSun" } })] }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 1200, line: Math.ceil(14 * 23), lineRule: "atLeast" },
+      children: [
+        new TextRun({ text: safeText(date, "2026/XX"), size: 28, font: { eastAsia: "SimSun" } }),
+      ],
+    }),
   ];
 }
 ```
@@ -346,20 +440,20 @@ The proposal cover MUST be placed in its **own section** (with margin: 0 and a 1
 sections: [
   {
     properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
-    children: buildProposalCover(info),  // standalone cover section
+    children: buildProposalCover(info), // standalone cover section
   },
   {
     properties: { page: { margin: { top: 1440, bottom: 1440, left: 1701, right: 1417 } } },
-    children: [...bodyContent],  // body starts here
+    children: [...bodyContent], // body starts here
   },
-]
+];
 
 // ❌ WRONG — cover and body in same section (no page separation!)
 sections: [
   {
-    children: [...coverElements, ...bodyContent],  // everything on one continuous flow
+    children: [...coverElements, ...bodyContent], // everything on one continuous flow
   },
-]
+];
 ```
 
 ```js
@@ -377,46 +471,112 @@ function buildProposalCover(info) {
     width: { size: 60, type: WidthType.PERCENTAGE },
     alignment: AlignmentType.CENTER,
     borders: { top: NB, bottom: NB, left: NB, right: NB, insideHorizontal: NB, insideVertical: NB },
-    rows: infoRows.map(([label, value]) => new TableRow({
-      children: [
-        new TableCell({
-          width: { size: 35, type: WidthType.PERCENTAGE },
-          borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, top: NB, left: NB, right: NB },
-          margins: { top: 60, bottom: 60, left: 120, right: 120 },
-          children: [new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: label, size: 28, bold: true, font: { eastAsia: "SimHei", ascii: "Times New Roman" } })],
-          })],
+    rows: infoRows.map(
+      ([label, value]) =>
+        new TableRow({
+          children: [
+            new TableCell({
+              width: { size: 35, type: WidthType.PERCENTAGE },
+              borders: {
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                top: NB,
+                left: NB,
+                right: NB,
+              },
+              margins: { top: 60, bottom: 60, left: 120, right: 120 },
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text: label,
+                      size: 28,
+                      bold: true,
+                      font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+                    }),
+                  ],
+                }),
+              ],
+            }),
+            new TableCell({
+              borders: {
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                top: NB,
+                left: NB,
+                right: NB,
+              },
+              margins: { top: 60, bottom: 60, left: 120, right: 120 },
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [
+                    new TextRun({
+                      text: value,
+                      size: 28,
+                      font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
         }),
-        new TableCell({
-          borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" }, top: NB, left: NB, right: NB },
-          margins: { top: 60, bottom: 60, left: 120, right: 120 },
-          children: [new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: value, size: 28, font: { eastAsia: "SimSun", ascii: "Times New Roman" } })],
-          })],
-        }),
-      ],
-    })),
+    ),
   });
 
   // ⚠️ Correct order: doc type label → info table → "论文题目" label → TITLE → subtitle
   // Layout balanced: upper 40% for header + info, middle 20% for title, lower 40% for whitespace
   // ★ Rule 8: All large-font paragraphs must set explicit line spacing
   return [
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 1500, after: 600, line: Math.ceil(18 * 23), lineRule: "atLeast" },
-      children: [new TextRun({ text: safeText(year, "2025") + " 届本科毕业论文开题报告",
-        size: 36, bold: true, font: { eastAsia: "SimHei", ascii: "Times New Roman" } })] }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 1500, after: 600, line: Math.ceil(18 * 23), lineRule: "atLeast" },
+      children: [
+        new TextRun({
+          text: safeText(year, "2025") + " 届本科毕业论文开题报告",
+          size: 36,
+          bold: true,
+          font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+        }),
+      ],
+    }),
     infoTable,
-    new Paragraph({ spacing: { before: 1200 } }),  // Balanced whitespace
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 },
-      children: [new TextRun({ text: "论文题目", size: 28, font: { eastAsia: "SimSun", ascii: "Times New Roman" } })] }),
-    new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200, line: Math.ceil(16 * 23), lineRule: "atLeast" },
-      children: [new TextRun({ text: safeText(title, "【Thesis Title】"), size: 32, bold: true,
-        font: { eastAsia: "SimHei", ascii: "Times New Roman" } })] }),
-    subtitle ? new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 800 },
-      children: [new TextRun({ text: "——" + subtitle, size: 28,
-        font: { eastAsia: "SimSun", ascii: "Times New Roman" } })] })
+    new Paragraph({ spacing: { before: 1200 } }), // Balanced whitespace
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200 },
+      children: [
+        new TextRun({
+          text: "论文题目",
+          size: 28,
+          font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+        }),
+      ],
+    }),
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 200, line: Math.ceil(16 * 23), lineRule: "atLeast" },
+      children: [
+        new TextRun({
+          text: safeText(title, "【Thesis Title】"),
+          size: 32,
+          bold: true,
+          font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+        }),
+      ],
+    }),
+    subtitle
+      ? new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 800 },
+          children: [
+            new TextRun({
+              text: "——" + subtitle,
+              size: 28,
+              font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+            }),
+          ],
+        })
       : new Paragraph({ spacing: { after: 800 }, children: [] }),
   ];
 }
@@ -425,6 +585,7 @@ function buildProposalCover(info) {
 ### ⚠️ WPS Compatibility Notes for Academic Covers
 
 Both thesis cover and proposal cover use info tables. These MUST follow the cross-engine rules:
+
 - Table uses **percentage widths** (`WidthType.PERCENTAGE`), NOT DXA — WPS renders DXA widths differently in nested contexts
 - Table width: adaptive 55–75%, centered via `alignment: CENTER` (calculated by `calcR5MetaLayout()`)
 - Label column: **LEFT aligned**, plain text + "：", NO full-width space padding, NO borders
@@ -434,6 +595,7 @@ Both thesis cover and proposal cover use info tables. These MUST follow the cros
 - ⚠️ Do NOT use DXA widths, full-width space padding (`\u3000`), tab stops, or right-alignment for meta info
 
 ⚠️ **Proposal cover must fit on one page.** Use the same height-budget approach as commercial covers — total content height must stay within 15638 twips (1200 twips safety margin). If the title is very long, reduce font size (minimum 24pt).
+
 ```
 
 ---
@@ -475,40 +637,42 @@ Both thesis cover and proposal cover use info tables. These MUST follow the cros
 ### Standard Structure (6-chapter)
 
 ```
+
 Chapter 1: Introduction
-  1.1 Research Background
-  1.2 Research Purpose & Significance
-  1.3 Literature Review (Domestic & International)
-  1.4 Research Content & Methods
-  1.5 Thesis Structure
+1.1 Research Background
+1.2 Research Purpose & Significance
+1.3 Literature Review (Domestic & International)
+1.4 Research Content & Methods
+1.5 Thesis Structure
 
 Chapter 2: Theoretical Framework & Literature Review
-  2.1 Core Concept Definitions
-  2.2 Theoretical Basis
-  2.3 Literature Review
-  2.4 Research Gap & Entry Point
+2.1 Core Concept Definitions
+2.2 Theoretical Basis
+2.3 Literature Review
+2.4 Research Gap & Entry Point
 
 Chapter 3: Research Design / Method / Model
-  3.1 Research Framework
-  3.2 Method Design / System Architecture / Algorithm
-  3.3 Variables / Data Sources / Experimental Environment
+3.1 Research Framework
+3.2 Method Design / System Architecture / Algorithm
+3.3 Variables / Data Sources / Experimental Environment
 
 Chapter 4: Empirical Analysis / Case Study / Results
-  4.1 Data Analysis / Case Description / Experiment Process
-  4.2 Results Presentation
-  4.3 Results Interpretation
+4.1 Data Analysis / Case Description / Experiment Process
+4.2 Results Presentation
+4.3 Results Interpretation
 
 Chapter 5: Discussion
-  5.1 Key Findings
-  5.2 Comparison with Existing Research
-  5.3 Limitations
+5.1 Key Findings
+5.2 Comparison with Existing Research
+5.3 Limitations
 
 Chapter 6: Conclusions & Outlook
-  6.1 Research Conclusions
-  6.2 Contributions
-  6.3 Limitations
-  6.4 Future Research Directions
-```
+6.1 Research Conclusions
+6.2 Contributions
+6.3 Limitations
+6.4 Future Research Directions
+
+````
 
 ### Chapter Content Requirements
 
@@ -575,15 +739,17 @@ new Paragraph({ alignment: AlignmentType.CENTER,
 new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 60, after: 200 },
   children: [new TextRun({ text: "图3-1 System Architecture", size: 21,
     font: { eastAsia: "SimSun", ascii: "Times New Roman" } })] }),
-```
+````
 
 ### Tables
+
 - Caption **above** table, Wu Hao SimSun, centered, `keepNext: true`
 - Format: "Table X-Y Description"
 - Must use three-line table (mandatory for academic papers)
 - Must be referenced in text: "as shown in Table 2-1"
 
 ### Formulas
+
 - Formula centered, number **right-aligned**
 - Use Tab for center + right alignment
 - Text reference: "from Eq. (3-1)"
@@ -604,6 +770,7 @@ new Paragraph({
 ```
 
 ### Mandatory Rules
+
 1. Figures/tables/formulas **must be referenced in text** — never placed without explanation
 2. Must have introductory and analytical text before/after
 3. Must not exceed page margins
@@ -618,16 +785,18 @@ new Paragraph({
 Default: **GB/T 7714 sequential numbering** — `[1]`, `[2]` in text, references listed in order of appearance.
 
 ```js
-new TextRun({ text: "[1]", superScript: true, size: 18, font: { ascii: "Times New Roman" } })
+new TextRun({ text: "[1]", superScript: true, size: 18, font: { ascii: "Times New Roman" } });
 ```
 
 ### Citation Rules
+
 1. In-text numbers must **correspond one-to-one** with reference list
 2. **Same source reused keeps the same number**
 3. **Do not mix footnote citations and endnote references** (unless user explicitly requests)
 4. Footnotes are for supplementary notes only, not primary citations
 
 ### Reference Format (GB/T 7714)
+
 ```
 [1] Author. Title[J]. Journal, Year, Vol(No): Pages.
 [2] Author. Book Title[M]. Place: Publisher, Year: Pages.
@@ -636,6 +805,7 @@ new TextRun({ text: "[1]", superScript: true, size: 18, font: { ascii: "Times Ne
 ```
 
 ### Reference Formatting
+
 ```js
 // Reference title — H1 style
 new Paragraph({ heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER,
@@ -651,12 +821,12 @@ new Paragraph({
 
 ### Reference Count Guidelines
 
-| Thesis Type | Suggested Count |
-|------------|----------------|
-| Course paper (3000–5000 words) | 10–15 |
-| Undergraduate thesis | 15–30 |
-| Master's thesis | 40–80 |
-| Doctoral dissertation | 80–150 |
+| Thesis Type                    | Suggested Count |
+| ------------------------------ | --------------- |
+| Course paper (3000–5000 words) | 10–15           |
+| Undergraduate thesis           | 15–30           |
+| Master's thesis                | 40–80           |
+| Doctoral dissertation          | 80–150          |
 
 If user specifies APA, MLA, Chicago, or school-specific format, follow that instead.
 
@@ -672,19 +842,40 @@ const threeLineTable = new Table({
   borders: {
     top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
     bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-    left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE },
-    insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE },
+    left: { style: BorderStyle.NONE },
+    right: { style: BorderStyle.NONE },
+    insideHorizontal: { style: BorderStyle.NONE },
+    insideVertical: { style: BorderStyle.NONE },
   },
   rows: [
     new TableRow({
-      tableHeader: true, cantSplit: true,
-      children: headerCells.map(text => new TableCell({
-        borders: { bottom: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
-          top: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
-        margins: { top: 60, bottom: 60, left: 120, right: 120 },
-        children: [new Paragraph({ alignment: AlignmentType.CENTER,
-          children: [new TextRun({ text, bold: true, size: 21, font: { eastAsia: "SimSun", ascii: "Times New Roman" } })] })],
-      })),
+      tableHeader: true,
+      cantSplit: true,
+      children: headerCells.map(
+        (text) =>
+          new TableCell({
+            borders: {
+              bottom: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
+              top: { style: BorderStyle.NONE },
+              left: { style: BorderStyle.NONE },
+              right: { style: BorderStyle.NONE },
+            },
+            margins: { top: 60, bottom: 60, left: 120, right: 120 },
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                  new TextRun({
+                    text,
+                    bold: true,
+                    size: 21,
+                    font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+                  }),
+                ],
+              }),
+            ],
+          }),
+      ),
     }),
     ...dataRows, // All borders NONE
   ],
@@ -696,6 +887,7 @@ const threeLineTable = new Table({
 ## Content Quality Constraints (Mandatory)
 
 ### Truthfulness & Conservatism
+
 1. **Never fabricate** unverifiable statistics, survey response counts, significance levels, interview subject identities, experimental precision, government document numbers
 2. **Never invent** non-existent classic theories, authoritative scholar opinions, regulation names, core data sources
 3. When user provides no real data → prefer **theoretical analysis, literature research, case studies, comparative analysis** (low-risk methods)
@@ -704,6 +896,7 @@ const threeLineTable = new Table({
 6. Research limitations must be **honestly disclosed**
 
 ### Language Style
+
 1. Formal academic register throughout
 2. **Forbidden:** "I think", "everyone knows", "obviously", "it is well known" (subjective expressions)
 3. **Forbidden:** Sloganeering, propaganda, advertising-style expressions
@@ -711,12 +904,14 @@ const threeLineTable = new Table({
 5. CN/EN punctuation, spacing, and number formats must be consistent throughout
 
 ### Structural Consistency
+
 1. Abstract, body, and conclusions **must be consistent** — no self-contradiction
 2. Must form complete loop: "research question → method → analysis → findings → conclusions & outlook"
 3. Terminology consistent throughout — no concept drift
 4. All chapters balanced and substantive — no padding
 
 ### Document Cleanliness
+
 1. **No residual** comments, tracked changes, field codes, template default text
 2. **No** "TBD", "omitted", "user modifies", "insert figure here" expressions
 3. **No** Markdown syntax, HTML tags, code blocks wrapping body text
@@ -730,6 +925,7 @@ const threeLineTable = new Table({
 ⚠️ **When user specifies school/journal-specific format requirements, those requirements OVERRIDE all defaults above.**
 
 Common override items:
+
 - Margins (binding margin left 3.5 cm common)
 - Body font (some schools require FangSong)
 - Line spacing (some schools require fixed 28pt)
@@ -739,11 +935,11 @@ Common override items:
 
 ### Common Variants
 
-| Thesis Type | Common Differences |
-|------------|-------------------|
-| Top universities | Strict GB/T 7714, often require STXiaoBiaoSong cover |
-| Regular undergraduate | More flexible, SimSun/SimHei sufficient |
-| Master's thesis | Requires English abstract, longer lit review, innovation statement |
+| Thesis Type           | Common Differences                                                       |
+| --------------------- | ------------------------------------------------------------------------ |
+| Top universities      | Strict GB/T 7714, often require STXiaoBiaoSong cover                     |
+| Regular undergraduate | More flexible, SimSun/SimHei sufficient                                  |
+| Master's thesis       | Requires English abstract, longer lit review, innovation statement       |
 | Doctoral dissertation | Requires innovation statement, publication list, originality declaration |
 
 ---
@@ -753,6 +949,7 @@ Common override items:
 In addition to universal checks (see `references/common-rules.md`):
 
 ### Structure & Content
+
 - [ ] Cover, abstract, English abstract, TOC, body, references all present
 - [ ] Cover info complete (school/title/EN title/college/major/name/ID/advisor/date)
 - [ ] Abstract contains 5 elements: background + problem + method + results + significance
@@ -762,6 +959,7 @@ In addition to universal checks (see `references/common-rules.md`):
 - [ ] Conclusions respond to research questions
 
 ### Format & Layout
+
 - [ ] Heading numbering consistent (Chapter X / X.X / X.X.X), no mixing
 - [ ] All body headings use `heading: HeadingLevel.HEADING_X`
 - [ ] Body text pure black `"000000"`
@@ -776,6 +974,7 @@ In addition to universal checks (see `references/common-rules.md`):
 - [ ] No extra blank pages
 
 ### Cleanliness
+
 - [ ] No comment/revision residuals
 - [ ] No "TBD" / "omitted" expressions
 - [ ] No Markdown/HTML/code block residuals

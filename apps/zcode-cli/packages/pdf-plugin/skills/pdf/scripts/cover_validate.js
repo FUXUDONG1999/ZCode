@@ -23,21 +23,21 @@
  *   - Posters (use html2poster.js which handles overflow automatically)
  */
 
-'use strict';
+"use strict";
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // ── Playwright import ──
 
 let playwright;
 try {
-  playwright = require('playwright');
+  playwright = require("playwright");
 } catch {
   try {
-    playwright = require('playwright-core');
+    playwright = require("playwright-core");
   } catch {
-    console.error('✗ Neither playwright nor playwright-core is installed.');
+    console.error("✗ Neither playwright nor playwright-core is installed.");
     process.exit(2);
   }
 }
@@ -46,34 +46,44 @@ try {
 
 function resolveChromium(chromiumObj) {
   let exe;
-  try { exe = chromiumObj.executablePath(); } catch (_) { exe = null; }
-  if (exe && fs.existsSync(exe)) return { status: 'ok', executablePath: exe };
+  try {
+    exe = chromiumObj.executablePath();
+  } catch (_) {
+    exe = null;
+  }
+  if (exe && fs.existsSync(exe)) return { status: "ok", executablePath: exe };
 
   const candidates = [
-    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    '/Applications/Chromium.app/Contents/MacOS/Chromium',
-    '/usr/bin/chromium-browser', '/usr/bin/chromium', '/usr/bin/google-chrome',
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/chromium",
+    "/usr/bin/google-chrome",
   ];
-  if (process.env.PLAYWRIGHT_CHROMIUM_PATH) candidates.unshift(process.env.PLAYWRIGHT_CHROMIUM_PATH);
+  if (process.env.PLAYWRIGHT_CHROMIUM_PATH)
+    candidates.unshift(process.env.PLAYWRIGHT_CHROMIUM_PATH);
 
   for (const c of candidates) {
-    if (fs.existsSync(c)) return { status: 'fallback', executablePath: c };
+    if (fs.existsSync(c)) return { status: "fallback", executablePath: c };
   }
-  return { status: 'missing', executablePath: exe || '' };
+  return { status: "missing", executablePath: exe || "" };
 }
 
 // ── CLI parsing ──
 
 function parseArgs(argv) {
   const tokens = argv.slice(2);
-  let input = null, width = '210mm', height = '297mm', minGap = null;
+  let input = null,
+    width = "210mm",
+    height = "297mm",
+    minGap = null;
 
   for (let i = 0; i < tokens.length; i++) {
     const t = tokens[i];
-    if (t === '--width') width = tokens[++i];
-    else if (t === '--height') height = tokens[++i];
-    else if (t === '--min-gap') minGap = parseFloat(tokens[++i]);
-    else if (t === '--help' || t === '-h') {
+    if (t === "--width") width = tokens[++i];
+    else if (t === "--height") height = tokens[++i];
+    else if (t === "--min-gap") minGap = parseFloat(tokens[++i]);
+    else if (t === "--help" || t === "-h") {
       console.log(`Usage: node cover_validate.js <cover.html> [options]
 
 Options:
@@ -82,7 +92,7 @@ Options:
   --min-gap <px>    Minimum gap between text and decorative lines (default: 5% of width)
   --help            Show this help`);
       process.exit(0);
-    } else if (!t.startsWith('-') && !input) {
+    } else if (!t.startsWith("-") && !input) {
       input = t;
     }
   }
@@ -95,10 +105,10 @@ function dimToPx(dim) {
   if (!dim) return null;
   const s = String(dim).trim();
   const num = parseFloat(s);
-  if (s.endsWith('mm')) return Math.round(num * 3.7795);  // 1mm ≈ 3.7795px at 96dpi
-  if (s.endsWith('cm')) return Math.round(num * 37.795);
-  if (s.endsWith('in')) return Math.round(num * 96);
-  if (s.endsWith('px') || !isNaN(num)) return Math.round(num);
+  if (s.endsWith("mm")) return Math.round(num * 3.7795); // 1mm ≈ 3.7795px at 96dpi
+  if (s.endsWith("cm")) return Math.round(num * 37.795);
+  if (s.endsWith("in")) return Math.round(num * 96);
+  if (s.endsWith("px") || !isNaN(num)) return Math.round(num);
   return null;
 }
 
@@ -284,7 +294,7 @@ async function main() {
   const { input, width, height, minGap } = parseArgs(process.argv);
 
   if (!input) {
-    console.error('✗ No input file specified. Usage: node cover_validate.js cover.html');
+    console.error("✗ No input file specified. Usage: node cover_validate.js cover.html");
     process.exit(2);
   }
 
@@ -294,9 +304,9 @@ async function main() {
     process.exit(2);
   }
 
-  const widthPx = dimToPx(width) || 794;   // A4 width in px
+  const widthPx = dimToPx(width) || 794; // A4 width in px
   const heightPx = dimToPx(height) || 1123; // A4 height in px
-  const gap = minGap || Math.round(widthPx * 0.05);  // 1U = 5% of page width
+  const gap = minGap || Math.round(widthPx * 0.05); // 1U = 5% of page width
 
   console.log(`🔍 cover_validate — Cover overlap detection`);
   console.log(`   Input:  ${absIn}`);
@@ -306,15 +316,15 @@ async function main() {
   const { chromium } = playwright;
   const bInfo = resolveChromium(chromium);
 
-  if (bInfo.status === 'missing') {
-    console.error('✗ No Chromium found. Install via: npx playwright install chromium');
+  if (bInfo.status === "missing") {
+    console.error("✗ No Chromium found. Install via: npx playwright install chromium");
     process.exit(2);
   }
 
   let browser;
   try {
     const opts = { headless: true };
-    if (bInfo.status === 'fallback') opts.executablePath = bInfo.executablePath;
+    if (bInfo.status === "fallback") opts.executablePath = bInfo.executablePath;
     browser = await chromium.launch(opts);
   } catch (err) {
     console.error(`✗ Browser launch failed: ${err.message}`);
@@ -323,19 +333,21 @@ async function main() {
 
   try {
     const page = await browser.newPage({ viewport: { width: widthPx, height: heightPx } });
-    await page.goto('file://' + absIn, { waitUntil: 'networkidle' });
+    await page.goto("file://" + absIn, { waitUntil: "networkidle" });
     console.log(`   ✓ HTML loaded`);
 
     // Wait for fonts
-    const fontsLoaded = await page.evaluate(() =>
-      document.fonts.ready.then(() => document.fonts.size)
-    ).catch(() => 0);
+    const fontsLoaded = await page
+      .evaluate(() => document.fonts.ready.then(() => document.fonts.size))
+      .catch(() => 0);
     console.log(`   ✓ Fonts: ${fontsLoaded} loaded`);
 
     // Run overlap detection
     const result = await page.evaluate(`(${DECORATIVE_LINE_DETECTION})(${gap})`);
 
-    console.log(`   ✓ Found ${result.textElements} text elements, ${result.lineElements} decorative lines`);
+    console.log(
+      `   ✓ Found ${result.textElements} text elements, ${result.lineElements} decorative lines`,
+    );
 
     if (result.overlaps.length === 0) {
       console.log(`\n   ✅ No overlap issues found`);
@@ -346,22 +358,27 @@ async function main() {
     console.error(`\n   ❌ Found ${result.overlaps.length} text-line overlap(s):\n`);
 
     for (const o of result.overlaps) {
-      const direction = o.lineType === 'vertical' ? 'horizontal' : 'vertical';
+      const direction = o.lineType === "vertical" ? "horizontal" : "vertical";
       console.error(`   ERROR: ${direction} gap = ${o.gap}px (required ≥ ${o.required}px)`);
-      console.error(`     Text: <${o.textTag}> "${o.text}" @ y=${Math.round(o.textRect.y)}-${Math.round(o.textRect.y + o.textRect.height)}`);
-      console.error(`     Line: <${o.lineTag}${o.lineClass ? '.' + o.lineClass.split(' ')[0] : ''}> [${o.lineType}] @ y=${Math.round(o.lineRect.y)}-${Math.round(o.lineRect.y + o.lineRect.height)}`);
-      console.error(`     Fix: Move the decorative line at least ${Math.ceil(o.required - o.gap)}px away from the text.`);
-      console.error('');
+      console.error(
+        `     Text: <${o.textTag}> "${o.text}" @ y=${Math.round(o.textRect.y)}-${Math.round(o.textRect.y + o.textRect.height)}`,
+      );
+      console.error(
+        `     Line: <${o.lineTag}${o.lineClass ? "." + o.lineClass.split(" ")[0] : ""}> [${o.lineType}] @ y=${Math.round(o.lineRect.y)}-${Math.round(o.lineRect.y + o.lineRect.height)}`,
+      );
+      console.error(
+        `     Fix: Move the decorative line at least ${Math.ceil(o.required - o.gap)}px away from the text.`,
+      );
+      console.error("");
     }
 
     process.exit(1);
-
   } finally {
     await browser.close();
   }
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(`✗ Unexpected error: ${err.message}`);
   process.exit(2);
 });

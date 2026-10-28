@@ -16,18 +16,24 @@ Use large `spacing.before` to push content down for visual centering:
 // For title at ~40% from top: before = 5600
 const coverSection = {
   properties: {
-    page: { /* standard A4 */ },
+    page: {
+      /* standard A4 */
+    },
     // No headers/footers on cover page
   },
   children: [
     new Paragraph({ spacing: { before: 5600 } }), // spacer
     new Paragraph({
       alignment: AlignmentType.CENTER,
-      children: [new TextRun({
-        text: title,
-        font: { ascii: "Calibri", eastAsia: "SimHei" },
-        size: 52, bold: true, color: palette.primary,
-      })],
+      children: [
+        new TextRun({
+          text: title,
+          font: { ascii: "Calibri", eastAsia: "SimHei" },
+          size: 52,
+          bold: true,
+          color: palette.primary,
+        }),
+      ],
     }),
     // ... subtitle, author, date
   ],
@@ -43,22 +49,46 @@ const { FootnoteReferenceRun, Footnote } = require("docx");
 
 const doc = new Document({
   footnotes: {
-    1: { children: [new Paragraph({ children: [new TextRun({ text: "Smith, J. (2024). Research Methods. Academic Press, pp. 45-67.", size: 18 })] })] },
-    2: { children: [new Paragraph({ children: [new TextRun({ text: "Zhang, W. (2023). \u201c数据分析方法研究\u201d. 科学通报, 68(12), 1234-1250.", size: 18 })] })] },
+    1: {
+      children: [
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "Smith, J. (2024). Research Methods. Academic Press, pp. 45-67.",
+              size: 18,
+            }),
+          ],
+        }),
+      ],
+    },
+    2: {
+      children: [
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: "Zhang, W. (2023). \u201c数据分析方法研究\u201d. 科学通报, 68(12), 1234-1250.",
+              size: 18,
+            }),
+          ],
+        }),
+      ],
+    },
   },
-  sections: [{
-    children: [
-      new Paragraph({
-        children: [
-          new TextRun({ text: "According to recent studies" }),
-          new FootnoteReferenceRun(1), // superscript [1]
-          new TextRun({ text: ", data analysis methods have evolved" }),
-          new FootnoteReferenceRun(2), // superscript [2]
-          new TextRun({ text: "." }),
-        ],
-      }),
-    ],
-  }],
+  sections: [
+    {
+      children: [
+        new Paragraph({
+          children: [
+            new TextRun({ text: "According to recent studies" }),
+            new FootnoteReferenceRun(1), // superscript [1]
+            new TextRun({ text: ", data analysis methods have evolved" }),
+            new FootnoteReferenceRun(2), // superscript [2]
+            new TextRun({ text: "." }),
+          ],
+        }),
+      ],
+    },
+  ],
 });
 ```
 
@@ -76,7 +106,7 @@ new Paragraph({
   heading: HeadingLevel.HEADING_2,
   keepNext: true, // don't break after this
   children: [new TextRun({ text: "Table 1: Results" })],
-})
+});
 // Table immediately follows on same page
 
 // Caption stays with image
@@ -84,11 +114,12 @@ new Paragraph({
   keepNext: true,
   alignment: AlignmentType.CENTER,
   children: [new TextRun({ text: "Figure 1: Architecture Diagram", italics: true, size: 20 })],
-})
+});
 // ImageRun paragraph follows
 ```
 
 Use `keepNext: true` for:
+
 - Heading → first paragraph of section
 - Table caption → table
 - Image → image caption
@@ -99,46 +130,50 @@ Use `keepNext: true` for:
 Follow the document type strategy defined in SOUL.md Rule 1.
 
 **Structural breaks (always):**
+
 - Cover page → TOC
 - TOC → main content
 - Main content → back cover
 
 **Content breaks (by document type):**
+
 - Academic / teaching → `new Paragraph({ children: [new PageBreak()] })` before each H1 chapter
 - Business report → PageBreak before each H1; H2 flows naturally
 - Resume / contract / letter → No content page breaks
 - Short article → No content page breaks
 
 **Anti-tear (mandatory):**
+
 ```js
 // Heading stays with next paragraph
 new Paragraph({
   heading: HeadingLevel.HEADING_1,
   keepNext: true,
   children: [new TextRun("Chapter Title")],
-})
+});
 
 // Table caption stays with table
 new Paragraph({
   keepNext: true,
   children: [new TextRun({ text: "Table 1: Summary", italics: true })],
-})
+});
 
 // Image caption stays with image
 new Paragraph({
   keepNext: true,
   children: [new TextRun({ text: "Figure 1: Architecture", italics: true })],
-})
+});
 ```
 
 **Never:**
+
 - PageBreak inside tables
 - PageBreak as standalone element (must be inside Paragraph)
 - PageBreak at the END of the last section (causes blank page)
 
 ```js
 // Correct: page break between cover and TOC
-new Paragraph({ children: [new PageBreak()] })
+new Paragraph({ children: [new PageBreak()] });
 ```
 
 ## Quotes Escaping in JS Strings
@@ -149,12 +184,12 @@ Bare Chinese curly quotation marks (`""` `''`) in JS string literals **WILL brea
 
 **MANDATORY RULE: Before writing ANY `TextRun`, `para()`, or string containing Chinese text, scan the text for `""''` characters and replace ALL of them with `\u201c \u201d \u2018 \u2019`.**
 
-| Character | Unicode | Escape method |
-|-----------|---------|---------------|
-| `"` `"` | `\u201c` `\u201d` | Unicode escape `\u201c` `\u201d` |
-| `'` `'` | `\u2018` `\u2019` | Unicode escape `\u2018` `\u2019` |
-| `"` | U+0022 | `\"` or wrap string in single quotes / template literal |
-| `'` | U+0027 | `\'` or wrap string in double quotes / template literal |
+| Character | Unicode           | Escape method                                           |
+| --------- | ----------------- | ------------------------------------------------------- |
+| `"` `"`   | `\u201c` `\u201d` | Unicode escape `\u201c` `\u201d`                        |
+| `'` `'`   | `\u2018` `\u2019` | Unicode escape `\u2018` `\u2019`                        |
+| `"`       | U+0022            | `\"` or wrap string in single quotes / template literal |
+| `'`       | U+0027            | `\'` or wrap string in double quotes / template literal |
 
 ```js
 // ❌ WRONG — curly quotes in Chinese text break JS syntax (VERY COMMON MISTAKE)
@@ -182,7 +217,11 @@ const doc = new Document({
   sections: [
     {
       // Section 1: Cover — no header/footer
-      properties: { page: { /* ... */ } },
+      properties: {
+        page: {
+          /* ... */
+        },
+      },
       children: coverChildren,
     },
     {
@@ -197,10 +236,12 @@ const doc = new Document({
       headers: { default: new Header({ children: [] }) },
       footers: {
         default: new Footer({
-          children: [new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })],
-          })],
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })],
+            }),
+          ],
         }),
       },
       children: tocAndAbstract,
@@ -216,10 +257,12 @@ const doc = new Document({
       },
       headers: {
         default: new Header({
-          children: [new Paragraph({
-            alignment: AlignmentType.CENTER,
-            children: [new TextRun({ text: docTitle, size: 18, color: "888888" })],
-          })],
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [new TextRun({ text: docTitle, size: 18, color: "888888" })],
+            }),
+          ],
         }),
       },
       footers: { default: footerWithPageNumbers },
@@ -231,8 +274,8 @@ const doc = new Document({
 
 ## Converting DOCX to PDF
 
-> 🔴 **LibreOffice not installed? You MUST install it — do not substitute.** Using Word/WPS *instead
-> of* installing is forbidden, and a large download is **not** a reason to skip it. Required: explain
+> 🔴 **LibreOffice not installed? You MUST install it — do not substitute.** Using Word/WPS _instead
+> of_ installing is forbidden, and a large download is **not** a reason to skip it. Required: explain
 > the necessity to the user (it preserves styles, layout, fonts and pagination faithfully), say the
 > package is large, then install it — **preferred source is the Tsinghua TUNA mirror**
 > `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/26.8.0/` (pick the
@@ -242,7 +285,7 @@ const doc = new Document({
 > `winget install TheDocumentFoundation.LibreOffice` as fallbacks. Only
 > after an install attempt has **failed** may you use another program. **No install attempt = no
 > substitute program.** After installing, **register `soffice` on `PATH` and re-verify
-> `soffice --version`** (per-OS commands: `env_setup/setup.md` → *"Register the binary on PATH"*) —
+> `soffice --version`** (per-OS commands: `env_setup/setup.md` → _"Register the binary on PATH"_) —
 > an install left off the search path reads as "not installed" next time and gets reinstalled
 > needlessly. Note this is separate from the TOC rule below, which is about field
 > recalculation, not about avoiding LibreOffice.

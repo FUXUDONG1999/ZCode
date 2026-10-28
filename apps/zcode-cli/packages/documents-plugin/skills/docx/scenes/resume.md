@@ -3,6 +3,7 @@
 ## Goal
 
 Generate a complete, authentic, well-structured, position-targeted resume with stable Word formatting. Must simultaneously meet:
+
 - Authentic and credible content, clear position targeting
 - ATS-friendly, stable Word layout
 - Clean structure, professional visual design, easy to scan
@@ -27,15 +28,19 @@ Default: generate a position-oriented general resume. Switch to English resume, 
 Auto-select module order based on user background and target:
 
 ### General Resume (default)
+
 Name & Contact → Target Position → Profile Summary (optional) → Core Skills → Work Experience → Projects → Education → Certifications / Awards
 
 ### New Graduate Resume
+
 Name & Contact → Target Position → Education → Internship Experience → Projects → Campus Activities / Competitions / Awards → Skills & Certifications
 
 ### Technical Role Resume
+
 Name & Contact → Target Direction → Profile Summary (optional) → Tech Stack / Core Skills → Work Experience → Projects → Education → Open Source / Papers / Patents / Competitions
 
 ### Academic CV
+
 Name & Contact → Research Direction / Target → Education → Research Experience → Papers / Patents / Projects / Grants → Teaching / Academic Service → Awards / Skills / Languages
 
 ---
@@ -53,6 +58,7 @@ Name & Contact → Research Direction / Target → Education → Research Experi
 ## Content Quality Constraints
 
 ### Core Principles
+
 1. Resume must revolve around the target position — do not spread all experiences equally
 2. Most relevant experiences, projects, and skills must be **placed first and detailed**
 3. Terminology, company names, position titles, date formats, and skill names must be consistent
@@ -66,6 +72,7 @@ Each experience bullet should demonstrate: **Action + Object/Context + Method + 
 **Recommended verbs:** Led, built, drove, optimized, refactored, designed, delivered, coordinated, improved, reduced, achieved
 
 **Rules:**
+
 - "Responsible for" / "participated in" are not absolutely forbidden, but must include scope and results
 - Each bullet is concise — one core contribution per bullet
 - Quantify when possible, but do not force-bold all numbers
@@ -74,12 +81,14 @@ Each experience bullet should demonstrate: **Action + Object/Context + Method + 
 - Expand the most recent 2 experiences; compress earlier ones
 
 ### Profile Summary / Self-Assessment
+
 1. Not mandatory
 2. If included, frame as "Profile Summary" — **3–4 lines max**
 3. Focus on: years of experience, career direction, core capabilities, representative achievements, position fit
 4. **Forbidden** as main content: "hardworking", "strong sense of responsibility", "team player", "quick learner", "outgoing personality"
 
 ### Truthfulness & Risk Control
+
 1. Never fabricate experiences, achievements, education, awards, or certifications
 2. Never upgrade "participated in" to "led" unless user information supports it
 3. Never attribute team results entirely to the individual
@@ -90,13 +99,14 @@ Each experience bullet should demonstrate: **Action + Object/Context + Method + 
 
 ## Length Control
 
-| Candidate Type | Target Pages |
-|---------------|-------------|
-| New graduate / <3 years experience | **1 page** |
-| 3–10 years experience | 1–2 pages |
+| Candidate Type                            | Target Pages                                              |
+| ----------------------------------------- | --------------------------------------------------------- |
+| New graduate / <3 years experience        | **1 page**                                                |
+| 3–10 years experience                     | 1–2 pages                                                 |
 | Senior manager / researcher / academic CV | May exceed 2 pages, but must maintain information density |
 
 **Compression rules:**
+
 - Experiences >5 years old with low relevance should be compressed
 - Experiences >10 years old and irrelevant may be omitted
 - Never pad low-value experiences just to "look comprehensive"
@@ -117,6 +127,7 @@ Each experience bullet should demonstrate: **Action + Object/Context + Method + 
 ## Module Naming
 
 Use only standard, universal, recruiter-familiar names:
+
 - Personal Info, Target Position, Profile Summary, Core Skills, Work Experience, Projects, Education, Certifications, Awards, Languages
 
 **Forbidden fancy names:** "My Growth Journey", "Self-Appreciation", "Shining Moments", "Life Motto"
@@ -137,27 +148,28 @@ Use only standard, universal, recruiter-familiar names:
 
 Three templates are provided, auto-selected based on user needs:
 
-| Template | Layout | Best For | Color Style |
-|----------|--------|----------|-------------|
-| A | Left sidebar + right body | General purpose, tech roles | Dark grey sidebar + blue bar headings |
-| B | Dark header banner + single column | Content-heavy / senior candidates | Dark blue header + underline headings |
-| C | Left sidebar + vertical-line headings | International / bilingual / foreign companies | Blue sidebar + left-border headings |
+| Template | Layout                                | Best For                                      | Color Style                           |
+| -------- | ------------------------------------- | --------------------------------------------- | ------------------------------------- |
+| A        | Left sidebar + right body             | General purpose, tech roles                   | Dark grey sidebar + blue bar headings |
+| B        | Dark header banner + single column    | Content-heavy / senior candidates             | Dark blue header + underline headings |
+| C        | Left sidebar + vertical-line headings | International / bilingual / foreign companies | Blue sidebar + left-border headings   |
 
 **Selection logic:**
+
 - Default: Template A
 - Lots of content (expected > 1 page) → Template B (no sidebar, better space utilization)
 - User explicitly requests bilingual / English → Template C
 
 ### Industry Color Suggestions
 
-| Career Direction | Sidebar BG | Accent Color | Recommended Template |
-|-----------------|-----------|-------------|---------------------|
-| Tech / Internet | `#1A1F36` (deep blue-purple) | `#667eea` (amethyst) | A or C |
-| Finance / Consulting | `#0F2027` (deep sea blue) | `#D4AF37` (gold) | A or B |
-| Design / Creative | `#2D1B30` (deep purple) | `#f5576c` (coral pink) | A or C |
-| Education / Training | `#1A3A3A` (dark green) | `#3CB4A0` (mint green) | A |
-| Medical / Health | `#0E2030` (dark cyan) | `#3888A8` (medical blue) | B |
-| General / Default | `#303030` (warm dark neutral) | `#B89870` (warm accent) | A |
+| Career Direction     | Sidebar BG                    | Accent Color             | Recommended Template |
+| -------------------- | ----------------------------- | ------------------------ | -------------------- |
+| Tech / Internet      | `#1A1F36` (deep blue-purple)  | `#667eea` (amethyst)     | A or C               |
+| Finance / Consulting | `#0F2027` (deep sea blue)     | `#D4AF37` (gold)         | A or B               |
+| Design / Creative    | `#2D1B30` (deep purple)       | `#f5576c` (coral pink)   | A or C               |
+| Education / Training | `#1A3A3A` (dark green)        | `#3CB4A0` (mint green)   | A                    |
+| Medical / Health     | `#0E2030` (dark cyan)         | `#3888A8` (medical blue) | B                    |
+| General / Default    | `#303030` (warm dark neutral) | `#B89870` (warm accent)  | A                    |
 
 When industry is unspecified, use default warm neutral palette. This aligns with the Visual Profile warm-neutral guidance in `design-system.md`.
 
@@ -173,19 +185,21 @@ When industry is unspecified, use default warm neutral palette. This aligns with
 ## Template A: Left Sidebar + Color Bar Headings
 
 ### Color Palette
+
 ```js
 const S = {
-  bg: "3B4F5C",      // sidebar background (dark grey-blue)
-  text: "D8E2E8",    // sidebar text
-  label: "8BA0AD",   // sidebar secondary text
-  accent: "2F97B8",  // accent color (blue-cyan)
-  title: "1A2D38",   // body heading
-  body: "2C3E4A",    // body content
-  sec: "6B8592",     // secondary info (dates etc.)
+  bg: "3B4F5C", // sidebar background (dark grey-blue)
+  text: "D8E2E8", // sidebar text
+  label: "8BA0AD", // sidebar secondary text
+  accent: "2F97B8", // accent color (blue-cyan)
+  title: "1A2D38", // body heading
+  body: "2C3E4A", // body content
+  sec: "6B8592", // secondary info (dates etc.)
 };
 ```
 
 ### Layout Structure
+
 ```
 ┌──────────┬──────────────────────┐
 │ [Photo]  │ ██ Profile ██        │  ← Blue bar heading
@@ -214,6 +228,7 @@ const S = {
 ### Implementation Notes
 
 **Page setup:**
+
 ```js
 page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } }
 // Use Table to simulate columns: columnWidths: [3400, 8506]
@@ -223,6 +238,7 @@ page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } }
 ```
 
 **Sidebar element order:**
+
 1. Photo placeholder (rectangle + border, width 2400 DXA, height 1800)
 2. Name (32pt bold white SimHei) + Title (18pt accent)
 3. Basic info (DOB / degree / school)
@@ -231,30 +247,55 @@ page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } }
 6. Certificates list
 
 **Right-side section headings (color bar style):**
+
 ```js
 // Full-width bar background + white Chinese text + lighter English text
-new Table({ columnWidths:[7600], rows:[new TableRow({ children:[
-  new TableCell({
-    shading: { fill: S.accent, type: ShadingType.CLEAR },
-    margins: { top:40, bottom:40, left:200, right:100 },
-    children: [new Paragraph({ children: [
-      new TextRun({ text: "Work Experience  ", size:22, bold:true, color:"FFFFFF", font:"SimHei" }),
-      new TextRun({ text: "Experience", size:18, color:"C8E8F0", font:"Times New Roman", italics:true }),
-    ] })],
-  })
-] })] });
+new Table({
+  columnWidths: [7600],
+  rows: [
+    new TableRow({
+      children: [
+        new TableCell({
+          shading: { fill: S.accent, type: ShadingType.CLEAR },
+          margins: { top: 40, bottom: 40, left: 200, right: 100 },
+          children: [
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "Work Experience  ",
+                  size: 22,
+                  bold: true,
+                  color: "FFFFFF",
+                  font: "SimHei",
+                }),
+                new TextRun({
+                  text: "Experience",
+                  size: 18,
+                  color: "C8E8F0",
+                  font: "Times New Roman",
+                  italics: true,
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    }),
+  ],
+});
 ```
 
 **Experience entry format:**
+
 ```js
 // Line 1: Company(bold) + Title(accent) + Date(right-aligned)
 new Paragraph({
   tabStops: [{ type: TabStopType.RIGHT, position: 7200 }],
   children: [
-    new TextRun({ text: "Company Name", size:22, bold:true, color:S.title }),
-    new TextRun({ text: "    Role Title", size:20, color:S.accent }),
-    new TextRun({ text: "\t2023.06 — Present", size:17, color:S.sec }),
-  ]
+    new TextRun({ text: "Company Name", size: 22, bold: true, color: S.title }),
+    new TextRun({ text: "    Role Title", size: 20, color: S.accent }),
+    new TextRun({ text: "\t2023.06 — Present", size: 17, color: S.sec }),
+  ],
 });
 // Line 2+: ▸ bullet points
 ```
@@ -264,18 +305,20 @@ new Paragraph({
 ## Template B: Dark Header Banner + Single Column
 
 ### Color Palette
+
 ```js
 const C = {
-  dark: "1A3352",    // header background (dark blue)
-  accent: "2980B9",  // accent color
-  title: "1A2636",   // heading
-  body: "2C3E50",    // body text
-  sec: "6B8599",     // secondary info
-  light: "E8EFF5",   // light background
+  dark: "1A3352", // header background (dark blue)
+  accent: "2980B9", // accent color
+  title: "1A2636", // heading
+  body: "2C3E50", // body text
+  sec: "6B8599", // secondary info
+  light: "E8EFF5", // light background
 };
 ```
 
 ### Layout Structure
+
 ```
 ┌────────────────────────────────┐
 │ ██████████████████████████████ │  ← Dark blue background banner
@@ -303,42 +346,54 @@ const C = {
 ### Implementation Notes
 
 **Header banner:**
+
 ```js
 // Table single row single column, dark background, height 2400 DXA
-new Table({ columnWidths:[11906], rows:[new TableRow({
-  height: { value:2400, rule:"exact" },
-  children:[new TableCell({
-    shading: { fill: C.dark },
-    margins: { top:300, bottom:200, left:800, right:800 },
-    verticalAlign: VerticalAlign.TOP, // Never use CENTER in exact-height rows (WPS incompatible)
-    children: [
-      // Line 1: Name(48pt white) + Title
-      // Line 2: Phone | Email | Location
-      // Line 3: DOB | Degree | School
-    ]
-  })]
-})] });
+new Table({
+  columnWidths: [11906],
+  rows: [
+    new TableRow({
+      height: { value: 2400, rule: "exact" },
+      children: [
+        new TableCell({
+          shading: { fill: C.dark },
+          margins: { top: 300, bottom: 200, left: 800, right: 800 },
+          verticalAlign: VerticalAlign.TOP, // Never use CENTER in exact-height rows (WPS incompatible)
+          children: [
+            // Line 1: Name(48pt white) + Title
+            // Line 2: Phone | Email | Location
+            // Line 3: DOB | Degree | School
+          ],
+        }),
+      ],
+    }),
+  ],
+});
 ```
 
 **Section headings (underline style):**
+
 ```js
 new Paragraph({
   borders: { bottom: { style: BorderStyle.SINGLE, size: 2, color: C.accent } },
   children: [
-    new TextRun({ text: "Work Experience", size:24, bold:true, color:C.accent, font:"SimHei" }),
-    new TextRun({ text: "  Experience", size:18, color:C.sec, italics:true }),
-  ]
+    new TextRun({ text: "Work Experience", size: 24, bold: true, color: C.accent, font: "SimHei" }),
+    new TextRun({ text: "  Experience", size: 18, color: C.sec, italics: true }),
+  ],
 });
 ```
 
 **Skills display (rating + details):**
+
 ```js
 // Name(bold) + ●○ rating + specific tools list
-new Paragraph({ children: [
-  new TextRun({ text: "Programming  ", size:19, bold:true, color:C.title }),
-  new TextRun({ text: "●●●●○  ", size:13, color:C.accent }),
-  new TextRun({ text: "Java / Go / Python / TypeScript", size:18, color:C.sec }),
-] });
+new Paragraph({
+  children: [
+    new TextRun({ text: "Programming  ", size: 19, bold: true, color: C.title }),
+    new TextRun({ text: "●●●●○  ", size: 13, color: C.accent }),
+    new TextRun({ text: "Java / Go / Python / TypeScript", size: 18, color: C.sec }),
+  ],
+});
 ```
 
 ---
@@ -346,48 +401,54 @@ new Paragraph({ children: [
 ## Template C: Blue Sidebar + Vertical-Line Headings
 
 ### Color Palette
+
 ```js
 const C = {
-  side: "4A7C8F",     // sidebar background (teal-blue)
-  text: "FFFFFF",     // sidebar text
-  label: "A0C4D0",   // sidebar secondary text
-  accent: "357A8F",   // accent color
-  dot: "2F8FAD",      // skill dot fill color
-  dotDim: "B8D4DE",   // skill dot empty color
-  title: "1A3040",    // body heading
-  body: "2C4050",     // body content
-  sec: "6B8A98",      // secondary info
+  side: "4A7C8F", // sidebar background (teal-blue)
+  text: "FFFFFF", // sidebar text
+  label: "A0C4D0", // sidebar secondary text
+  accent: "357A8F", // accent color
+  dot: "2F8FAD", // skill dot fill color
+  dotDim: "B8D4DE", // skill dot empty color
+  title: "1A3040", // body heading
+  body: "2C4050", // body content
+  sec: "6B8A98", // secondary info
 };
 ```
 
 ### Sidebar-Specific Elements
 
 **Circular photo placeholder:**
+
 ```js
-new Paragraph({ alignment: AlignmentType.CENTER,
-  children: [new TextRun({ text: "◯", size:80, color:C.label })]
+new Paragraph({
+  alignment: AlignmentType.CENTER,
+  children: [new TextRun({ text: "◯", size: 80, color: C.label })],
 });
 ```
 
 **Language proficiency matrix:**
+
 ```js
-"English  ● ● ● ● ○"
-"Japanese ● ● ○ ○ ○"
+"English  ● ● ● ● ○";
+"Japanese ● ● ○ ○ ○";
 ```
 
 **Right-side section headings (left-border style):**
+
 ```js
 new Paragraph({
-  borders: { left: { style: BorderStyle.SINGLE, size:8, color:C.accent, space:8 } },
+  borders: { left: { style: BorderStyle.SINGLE, size: 8, color: C.accent, space: 8 } },
   indent: { left: 120 },
   children: [
-    new TextRun({ text: "Work Experience", size:24, bold:true, color:C.title, font:"SimHei" }),
-    new TextRun({ text: "  Experience", size:18, color:C.sec, italics:true }),
-  ]
+    new TextRun({ text: "Work Experience", size: 24, bold: true, color: C.title, font: "SimHei" }),
+    new TextRun({ text: "  Experience", size: 18, color: C.sec, italics: true }),
+  ],
 });
 ```
 
 **Experience entry format (differs from A):**
+
 ```js
 // Line 1: Company name (bold)
 // Line 2: Role (accent color) + Date
@@ -399,28 +460,33 @@ new Paragraph({
 ## Universal Rules
 
 ### Font Specifications
-| Element | Font | Size | Style |
-|---------|------|------|-------|
-| Name (sidebar) | SimHei | 32pt (size:64) | Bold, white |
-| Name (header) | SimHei | 24pt (size:48) | Bold, white |
-| Section heading | SimHei | 11pt (size:22) | Bold |
-| Company / School | Microsoft YaHei | 11pt (size:22) | Bold |
-| Role title | Microsoft YaHei | 10pt (size:20) | accent color |
-| Date range | Microsoft YaHei | 8.5pt (size:17) | sec color |
-| Bullet description | Microsoft YaHei | 9.5pt (size:19) | body color |
-| Skill dots | Default | 6.5pt (size:13) | accent / dimColor |
+
+| Element            | Font            | Size            | Style             |
+| ------------------ | --------------- | --------------- | ----------------- |
+| Name (sidebar)     | SimHei          | 32pt (size:64)  | Bold, white       |
+| Name (header)      | SimHei          | 24pt (size:48)  | Bold, white       |
+| Section heading    | SimHei          | 11pt (size:22)  | Bold              |
+| Company / School   | Microsoft YaHei | 11pt (size:22)  | Bold              |
+| Role title         | Microsoft YaHei | 10pt (size:20)  | accent color      |
+| Date range         | Microsoft YaHei | 8.5pt (size:17) | sec color         |
+| Bullet description | Microsoft YaHei | 9.5pt (size:19) | body color        |
+| Skill dots         | Default         | 6.5pt (size:13) | accent / dimColor |
 
 ### Bullet Symbols
+
 - Template A / C: `▸` (small triangle)
 - Template B: `•` (round dot)
 
 ### Skill Rating Rules
+
 - 1–5 levels using filled ● and empty ○ dots
 - One skill per line, name on the left, dots on the right
 - Filled dot color: accent; empty dot color: dimColor
 
 ### JD Matching Logic
+
 When user provides a job description:
+
 1. Extract key requirements (skills, experience, education)
 2. Prioritize matching experience items to the top
 3. Naturally incorporate JD keywords into descriptions
@@ -447,12 +513,13 @@ sections: [
     properties: { page: { margin: { top: 800, bottom: 600, left: 800, right: 800 } } },
     children: [pageHeader(name, title), ...page2Content],
   },
-]
+];
 ```
 
 ⚠️ **Template B multi-page handling:**
 
 Template B header banner uses Table simulation:
+
 1. Banner `columnWidths` must equal **page content area width** (pageWidth - marginLeft - marginRight), not full page width
 2. If banner needs full page width → set page 1 section margin to 0, banner columnWidths to 11906
 3. Page 2+ must be independent sections, margin.top ≥ 800
@@ -469,22 +536,34 @@ Template B header banner uses Table simulation:
 function pageHeader(name, title) {
   return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: { top: NB, left: NB, right: NB, insideHorizontal: NB, insideVertical: NB,
-               bottom: { style: BorderStyle.SINGLE, size: 1, color: "D0D0D0" } },
-    rows: [new TableRow({
-      cantSplit: true,
-      height: { value: 500, rule: "atLeast" },
-      children: [new TableCell({
-        margins: { top: 60, bottom: 60, left: 200, right: 200 },
-        borders: { top: NB, left: NB, right: NB, bottom: NB },
-        children: [new Paragraph({
-          children: [
-            new TextRun({ text: name, size: 20, bold: true, color: S.title || C.title }),
-            new TextRun({ text: `  |  ${title}`, size: 18, color: S.sec || C.sec }),
-          ]
-        })],
-      })],
-    })],
+    borders: {
+      top: NB,
+      left: NB,
+      right: NB,
+      insideHorizontal: NB,
+      insideVertical: NB,
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: "D0D0D0" },
+    },
+    rows: [
+      new TableRow({
+        cantSplit: true,
+        height: { value: 500, rule: "atLeast" },
+        children: [
+          new TableCell({
+            margins: { top: 60, bottom: 60, left: 200, right: 200 },
+            borders: { top: NB, left: NB, right: NB, bottom: NB },
+            children: [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: name, size: 20, bold: true, color: S.title || C.title }),
+                  new TextRun({ text: `  |  ${title}`, size: 18, color: S.sec || C.sec }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
   });
 }
 ```
@@ -496,6 +575,7 @@ function pageHeader(name, title) {
 In addition to universal checks (see `references/common-rules.md`):
 
 ### Format
+
 - [ ] Fits within 1 page (senior ≤ 2 pages)
 - [ ] **Single-page fill rate ≥ 85%** (bottom whitespace ≤ 15%, ~2500 twips)
 - [ ] Section headings are bilingual
@@ -508,6 +588,7 @@ In addition to universal checks (see `references/common-rules.md`):
 - [ ] **Multi-page: page 2+ has header info bar + proper top spacing**
 
 ### Content
+
 - [ ] Clearly organized around target position
 - [ ] No vague self-assessments ("hardworking", "responsible", "team player")
 - [ ] No fabricated data or exaggerated results

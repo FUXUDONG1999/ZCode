@@ -92,11 +92,20 @@ function toPluginInfo(plugin: PluginMetadata, configResult?: ConfigResult): ZCod
       })),
     })),
     declaredMcpServerNames: plugin.declaredMcpServerNames,
-    ...(plugin.uiSurfaces?.length ? { uiSurfaces: plugin.uiSurfaces.map((surface) => ({
-      pluginId: plugin.id, pluginName: plugin.name, id: surface.id, title: surface.title,
-      ...(surface.icon ? { icon: surface.icon } : {}), server: surface.server,
-      resourceUri: surface.resourceUri, availability: surface.availability,
-    })) } : {}),
+    ...(plugin.uiSurfaces?.length
+      ? {
+          uiSurfaces: plugin.uiSurfaces.map((surface) => ({
+            pluginId: plugin.id,
+            pluginName: plugin.name,
+            id: surface.id,
+            title: surface.title,
+            ...(surface.icon ? { icon: surface.icon } : {}),
+            server: surface.server,
+            resourceUri: surface.resourceUri,
+            availability: surface.availability,
+          })),
+        }
+      : {}),
     mcpServerNames: plugin.mcpServerNames,
     ...(hostMcpServerNames.length > 0 ? { hostMcpServerNames } : {}),
     hookDetails: plugin.hookDetails,
@@ -179,9 +188,7 @@ function createMissingConfiguredPluginInfos(
         rootPath: "",
         packageStatus: "missing",
         ...(enabledSource ? { enabledSource } : {}),
-        ...(optionSources && Object.keys(optionSources).length > 0
-          ? { optionSources }
-          : {}),
+        ...(optionSources && Object.keys(optionSources).length > 0 ? { optionSources } : {}),
       },
     ];
   });
@@ -194,9 +201,7 @@ export function normalizePluginRootForComparison(
   const resolvedRoot = resolvePath(rootPath);
   // Windows 路径不区分大小写，且配置与 loader 可能分别返回正斜杠和反斜杠。
   // 若直接做字符串比较，会把同一个 Workspace plugins.dirs 根误判为无归属。
-  return platform === "win32"
-    ? resolvedRoot.replaceAll("\\", "/").toLowerCase()
-    : resolvedRoot;
+  return platform === "win32" ? resolvedRoot.replaceAll("\\", "/").toLowerCase() : resolvedRoot;
 }
 
 function toPluginDiagnostic(diagnostic: PluginDiagnostic): ZCodePluginDiagnostic {
@@ -223,9 +228,7 @@ export async function listPlugins(
     logger: context.logger,
     workingDirectory: params.workspace.workspacePath,
   });
-  const plugins = outcome.plugins.map((plugin) =>
-    toPluginInfo(plugin, configResult),
-  );
+  const plugins = outcome.plugins.map((plugin) => toPluginInfo(plugin, configResult));
   return {
     plugins: [
       ...plugins,

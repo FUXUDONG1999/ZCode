@@ -19,7 +19,7 @@ Your job when this skill is loaded is to figure out where the user is in this lo
 
 ## Communicating with the user
 
-People using this skill range from seasoned skill authors to first-timers. Pay attention to context cues. In doubt, briefly explain a term ("an *eval prompt* is just a test message you'd send the model to see how the skill behaves") rather than assuming familiarity.
+People using this skill range from seasoned skill authors to first-timers. Pay attention to context cues. In doubt, briefly explain a term ("an _eval prompt_ is just a test message you'd send the model to see how the skill behaves") rather than assuming familiarity.
 
 ---
 
@@ -45,7 +45,7 @@ ZCode discovers skills in these directories (highest priority first):
 - `~/.zcode/skills/<name>/SKILL.md`
 - `~/.agents/skills/<name>/SKILL.md`
 
-**Default to creating new skills under `.agents/skills/`** — it's the standard, cross-tool location for new skills. Note that `.zcode/skills` still takes priority during discovery: if the same skill name exists in both, the `.zcode/skills` copy wins, so `.zcode/skills` is the place to *override* a skill. Pick the `<project>` path for skills that only make sense in this repo; pick the `~/` (user) path for personal skills you want everywhere.
+**Default to creating new skills under `.agents/skills/`** — it's the standard, cross-tool location for new skills. Note that `.zcode/skills` still takes priority during discovery: if the same skill name exists in both, the `.zcode/skills` copy wins, so `.zcode/skills` is the place to _override_ a skill. Pick the `<project>` path for skills that only make sense in this repo; pick the `~/` (user) path for personal skills you want everywhere.
 
 ### Write the SKILL.md
 
@@ -63,7 +63,7 @@ my-skill/
 Required frontmatter:
 
 - `name` — the skill's identifier. Lowercase kebab-case, 1–64 chars. Must match the directory name.
-- `description` — when this skill should trigger and what it does. This is the primary triggering signal — both *what* the skill does and *in what contexts* belong here, not in the body. Models tend to *under*-trigger skills, so write descriptions a little bit pushy: instead of "How to build a dashboard for internal data," write "How to build a fast dashboard for internal data. Use whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any company data — even if they don't explicitly say 'dashboard'."
+- `description` — when this skill should trigger and what it does. This is the primary triggering signal — both _what_ the skill does and _in what contexts_ belong here, not in the body. Models tend to _under_-trigger skills, so write descriptions a little bit pushy: instead of "How to build a dashboard for internal data," write "How to build a fast dashboard for internal data. Use whenever the user mentions dashboards, data visualization, internal metrics, or wants to display any company data — even if they don't explicitly say 'dashboard'."
 
 Optional (reserved) frontmatter fields are listed in the ZCode skill spec; for most skills you only need `name` and `description`.
 
@@ -90,7 +90,7 @@ The SKILL.md then says "if the target is AWS, read references/aws.md before proc
 
 ### Writing style
 
-Prefer the imperative form ("Read the file before editing"). Explain *why* something matters when the rule isn't obvious — modern models follow guidance better when they understand the reason. If you find yourself writing all-caps MUSTs and NEVERs, that's usually a sign the rule needs better explanation rather than louder enforcement.
+Prefer the imperative form ("Read the file before editing"). Explain _why_ something matters when the rule isn't obvious — modern models follow guidance better when they understand the reason. If you find yourself writing all-caps MUSTs and NEVERs, that's usually a sign the rule needs better explanation rather than louder enforcement.
 
 Examples beat rules. If the skill produces structured output, include a literal example of the format. If a specific tool should be used, show the call.
 
@@ -108,9 +108,9 @@ For each test prompt:
 
 1. Make sure the draft skill is on disk where ZCode can discover it (one of the directories listed above).
 2. In a fresh ZCode turn, give the test prompt to the model. Either let the description trigger the skill, or use `/skill <name> <prompt>` to force-load it.
-3. Look at the result *with the user*. Did the skill trigger? Did the output match what they wanted? Where did it go off the rails?
+3. Look at the result _with the user_. Did the skill trigger? Did the output match what they wanted? Where did it go off the rails?
 
-Note both the *result* and the *trace*: if the skill caused the model to do a bunch of busywork (re-reading the same files, writing a throwaway script, going in circles), the skill is probably over-prescribing or unclear. That's a signal to cut, not to add more rules.
+Note both the _result_ and the _trace_: if the skill caused the model to do a bunch of busywork (re-reading the same files, writing a throwaway script, going in circles), the skill is probably over-prescribing or unclear. That's a signal to cut, not to add more rules.
 
 ---
 

@@ -80,22 +80,22 @@ consumer-specific mapper 必须位于 TUI、ZCode app-server transport 或其他
 
 ### TUI projection
 
-| ZCode event | TUI update |
-| --- | --- |
-| `session_resumed` | append resumed message/part counts |
-| `turn_started` | status: `Thinking...` |
-| `model_request` | status: `Calling model...` |
-| `model_complete` | update token usage panel and status; do not append usage to transcript |
-| `turn_error` / `model_error` | append a bounded system error row and update status/sidebar error |
-| `tool_call_scheduled` | create/update one tool transcript part with a structured title/detail projection from the scheduled input |
-| `tool_call_started` | update the same tool transcript part to running without appending a duplicate row |
-| `tool_call_result` | update the same tool transcript part to completed; for `result.display.kind=file_diff`, append a bounded diff preview |
-| `tool_call_error` | update the same tool transcript part to failed and render the error description directly under the tool title |
-| `permission_requested` | append `Permission requested for <tool>` |
-| `permission_denied` | append `Permission denied for <tool>` |
-| `compact_boundary` | append compact summary stats |
-| `turn_complete` | final result still comes from `TurnResult.response` |
-| `turn_error` | final error path still renders the thrown error |
+| ZCode event                  | TUI update                                                                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `session_resumed`            | append resumed message/part counts                                                                                    |
+| `turn_started`               | status: `Thinking...`                                                                                                 |
+| `model_request`              | status: `Calling model...`                                                                                            |
+| `model_complete`             | update token usage panel and status; do not append usage to transcript                                                |
+| `turn_error` / `model_error` | append a bounded system error row and update status/sidebar error                                                     |
+| `tool_call_scheduled`        | create/update one tool transcript part with a structured title/detail projection from the scheduled input             |
+| `tool_call_started`          | update the same tool transcript part to running without appending a duplicate row                                     |
+| `tool_call_result`           | update the same tool transcript part to completed; for `result.display.kind=file_diff`, append a bounded diff preview |
+| `tool_call_error`            | update the same tool transcript part to failed and render the error description directly under the tool title         |
+| `permission_requested`       | append `Permission requested for <tool>`                                                                              |
+| `permission_denied`          | append `Permission denied for <tool>`                                                                                 |
+| `compact_boundary`           | append compact summary stats                                                                                          |
+| `turn_complete`              | final result still comes from `TurnResult.response`                                                                   |
+| `turn_error`                 | final error path still renders the thrown error                                                                       |
 
 ### TUI viewport and status placement
 
@@ -186,17 +186,17 @@ steady-state full-screen erase.
 
 ### ZCode app-server projection, future phase
 
-| ZCode event | ZCode app-server behavior |
-| --- | --- |
-| `turn_started` | optional progress `session/update` |
-| `model_complete` | `session/update` with `agent_message_chunk` |
-| `tool_call_scheduled` | `session/update` with `tool_call`, status `pending` |
-| `tool_call_started` | `session/update` with `tool_call_update`, status `in_progress` |
-| `tool_call_result` | `session/update` with `tool_call_update`, status `completed` |
-| `tool_call_error` | `session/update` with `tool_call_update`, status `failed` |
-| `permission_requested` | `session/request_permission` |
-| `turn_complete` | `session/prompt` response with `end_turn` |
-| cancellation | `session/prompt` response with `cancelled` |
+| ZCode event            | ZCode app-server behavior                                      |
+| ---------------------- | -------------------------------------------------------------- |
+| `turn_started`         | optional progress `session/update`                             |
+| `model_complete`       | `session/update` with `agent_message_chunk`                    |
+| `tool_call_scheduled`  | `session/update` with `tool_call`, status `pending`            |
+| `tool_call_started`    | `session/update` with `tool_call_update`, status `in_progress` |
+| `tool_call_result`     | `session/update` with `tool_call_update`, status `completed`   |
+| `tool_call_error`      | `session/update` with `tool_call_update`, status `failed`      |
+| `permission_requested` | `session/request_permission`                                   |
+| `turn_complete`        | `session/prompt` response with `end_turn`                      |
+| cancellation           | `session/prompt` response with `cancelled`                     |
 
 ## Delivery Shape
 
@@ -223,15 +223,14 @@ The first implementation still uses `generateText()`, so model text appears when
 `Write` and `Edit` results may attach a UI-only display payload to `tool_call_result`:
 
 ```ts
-type ToolResultDisplay =
-  | {
-      kind: "file_diff";
-      filePath: string;
-      additions: number;
-      deletions: number;
-      structuredPatch: DiffHunk[];
-      truncated?: boolean;
-    };
+type ToolResultDisplay = {
+  kind: "file_diff";
+  filePath: string;
+  additions: number;
+  deletions: number;
+  structuredPatch: DiffHunk[];
+  truncated?: boolean;
+};
 ```
 
 This payload is a projection for interactive clients. It is not the model-visible tool result and should remain bounded before rendering. The TUI renders a small red/green diff preview with a line-number gutter, `+`/`-` markers, full-line red/green backgrounds when color is available, and a plain-text fallback when color is disabled. It does not provide syntax highlighting, word-level diffing, permission-dialog editing, or a full review UI.

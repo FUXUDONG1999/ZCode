@@ -34,20 +34,20 @@ $env:XLSX_SKILL_DIR = "<skill_directory>"
 
 Run the platform-appropriate setup script:
 
-| Platform | Command |
-|----------|---------|
-| macOS / Linux | `bash "$XLSX_SKILL_DIR/env_setup/setup_mac_linux.sh"` |
-| Windows | `powershell -ExecutionPolicy Bypass -File "$env:XLSX_SKILL_DIR\env_setup\setup_windows.ps1"` |
+| Platform      | Command                                                                                      |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| macOS / Linux | `bash "$XLSX_SKILL_DIR/env_setup/setup_mac_linux.sh"`                                        |
+| Windows       | `powershell -ExecutionPolicy Bypass -File "$env:XLSX_SKILL_DIR\env_setup\setup_windows.ps1"` |
 
 ### Required Dependencies
 
-| Category | Package | Purpose |
-|----------|---------|---------|
-| Runtime | Python 3 + pip | Spreadsheet generation and processing |
-| Python pkg | openpyxl | Read/write .xlsx files |
-| Python pkg | XlsxWriter | High-performance .xlsx creation |
-| On demand (not substitutable) | LibreOffice | recalc, .xlsx-to-PDF, .csv-to-.xlsx — install it; do not swap in local Excel/WPS |
-| Font | CJK fonts (pre-installed in /usr/share/fonts) | Chinese text in spreadsheets |
+| Category                      | Package                                       | Purpose                                                                          |
+| ----------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------- |
+| Runtime                       | Python 3 + pip                                | Spreadsheet generation and processing                                            |
+| Python pkg                    | openpyxl                                      | Read/write .xlsx files                                                           |
+| Python pkg                    | XlsxWriter                                    | High-performance .xlsx creation                                                  |
+| On demand (not substitutable) | LibreOffice                                   | recalc, .xlsx-to-PDF, .csv-to-.xlsx — install it; do not swap in local Excel/WPS |
+| Font                          | CJK fonts (pre-installed in /usr/share/fonts) | Chinese text in spreadsheets                                                     |
 
 ### Manual Install by Platform
 
@@ -76,6 +76,7 @@ winget install TheDocumentFoundation.LibreOffice   # on demand (not substitutabl
 ```
 
 Alternative Windows package managers:
+
 - `choco install python3`
 - `scoop install python`
 
@@ -84,8 +85,9 @@ Alternative Windows package managers:
 > **you MUST install it. This is not a choice.**
 >
 > **FORBIDDEN:**
+>
 > - ❌ Using Microsoft Excel, WPS Office, Numbers, or any other program already on the user's machine
->   *instead of* installing LibreOffice.
+>   _instead of_ installing LibreOffice.
 > - ❌ Deciding on the user's behalf that the download is "too large" or "too slow".
 >   **The package being large is NOT a reason to skip the install** — it is expected to be large.
 > - ❌ Asking "should I just use Excel instead to save time?" — same violation, phrased as a question.
@@ -98,14 +100,14 @@ Alternative Windows package managers:
 >    loses layout fidelity.
 > 2. **Tell them the download is large** (several hundred MB) and may take a while — information for
 >    the user, **not** a decision point for you. State it and proceed.
-> 3. **Install it now** — prefer the **Tsinghua TUNA mirror** documented in *"LibreOffice —
->    Recommended Download Source"* at the end of this file
+> 3. **Install it now** — prefer the **Tsinghua TUNA mirror** documented in _"LibreOffice —
+>    Recommended Download Source"_ at the end of this file
 >    (`https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/26.8.0/`); fall back to the
 >    platform package manager command above if the mirror is unreachable.
 > 4. **Register the binary on `PATH`, then re-verify `soffice --version`.** An install left off the
 >    executable search path reads as "not installed" to the next probe and causes the same
 >    several-hundred-MB package to be downloaded twice. The mechanism differs per OS — see
->    *"Register the binary on PATH"* at the end of this file. **Probe before installing**: a binary
+>    _"Register the binary on PATH"_ at the end of this file. **Probe before installing**: a binary
 >    already on disk but off-`PATH` needs registering, not reinstalling.
 > 5. **Only after that install has actually been attempted AND failed** may you use software already
 >    on the user's machine (Excel, WPS, Numbers). Report the failure and which checks were skipped.
@@ -124,20 +126,20 @@ Fonts are pre-installed in the system font directory `/usr/share/fonts/`.
 
 ### Font Directory Structure (78 fonts)
 
-| Directory | Count | Description |
-|-----------|-------|-------------|
-| `truetype/lxgw-wenkai/` | 6 | LXGW WenKai — Chinese handwriting style |
-| `truetype/noto-serif-sc/` | 9 | Noto Serif SC — Chinese serif (variable + 8 static weights) |
-| `chinese/` | 14 | Noto Sans SC, Sarasa Mono SC, Liberation fallbacks |
-| `dejavu/` | 8 | DejaVu Sans/Serif/Mono — Latin/symbol fallback |
-| `emoji/` | 1 | Noto Color Emoji |
-| `english/` | 12 | Tinos, Carlito, Calibri |
-| `freefont/` | 12 | FreeSans/FreeSerif/FreeMono — open-source fallback |
-| `liberation/` | 12 | Liberation Sans/Serif/Mono — MS-metric-compatible |
-| `libreoffice/` | 1 | OpenSymbol |
-| `noto/` | 1 | Noto Color Emoji (duplicate) |
-| `wqy/` | 1 | WenQuanYi Zen Hei — CJK fallback |
-| *(root)* | 1 | Japanese Gothic |
+| Directory                 | Count | Description                                                 |
+| ------------------------- | ----- | ----------------------------------------------------------- |
+| `truetype/lxgw-wenkai/`   | 6     | LXGW WenKai — Chinese handwriting style                     |
+| `truetype/noto-serif-sc/` | 9     | Noto Serif SC — Chinese serif (variable + 8 static weights) |
+| `chinese/`                | 14    | Noto Sans SC, Sarasa Mono SC, Liberation fallbacks          |
+| `dejavu/`                 | 8     | DejaVu Sans/Serif/Mono — Latin/symbol fallback              |
+| `emoji/`                  | 1     | Noto Color Emoji                                            |
+| `english/`                | 12    | Tinos, Carlito, Calibri                                     |
+| `freefont/`               | 12    | FreeSans/FreeSerif/FreeMono — open-source fallback          |
+| `liberation/`             | 12    | Liberation Sans/Serif/Mono — MS-metric-compatible           |
+| `libreoffice/`            | 1     | OpenSymbol                                                  |
+| `noto/`                   | 1     | Noto Color Emoji (duplicate)                                |
+| `wqy/`                    | 1     | WenQuanYi Zen Hei — CJK fallback                            |
+| _(root)_                  | 1     | Japanese Gothic                                             |
 
 ### Verify Fonts Manually
 
@@ -159,8 +161,8 @@ done < env_setup/font_list.txt
 
 `FONT_DIR` is set to the system font directory:
 
-| Value | Path |
-|-------|------|
+| Value      | Path               |
+| ---------- | ------------------ |
 | `FONT_DIR` | `/usr/share/fonts` |
 
 ---
@@ -185,9 +187,9 @@ python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --trusted-host
 
 ### Installer downloads (China)
 
-| Software | China Mirror |
-|----------|-------------|
-| Python | https://npmmirror.com/mirrors/python/ |
+| Software    | China Mirror                                                                |
+| ----------- | --------------------------------------------------------------------------- |
+| Python      | https://npmmirror.com/mirrors/python/                                       |
 | LibreOffice | https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/26.8.0/ |
 
 ---
@@ -206,15 +208,15 @@ package sources** — it is much faster on Chinese networks and ships the curren
 
 Under the version directory, choose the subdirectory matching the OS and CPU architecture:
 
-| Platform | Path under the version dir | Main package |
-|----------|---------------------------|--------------|
-| Linux x86_64 (Debian/Ubuntu) | `deb/x86_64/` | `LibreOffice_26.8.0_Linux_x86-64_deb.tar.gz` |
-| Linux ARM64 (Debian/Ubuntu) | `deb/aarch64/` | `LibreOffice_26.8.0_Linux_aarch64_deb.tar.gz` |
-| Linux x86_64 (RHEL/Fedora/openSUSE) | `rpm/x86_64/` | `LibreOffice_26.8.0_Linux_x86-64_rpm.tar.gz` |
-| macOS Apple Silicon (M1+) | `mac/aarch64/` | `LibreOffice_26.8.0_MacOS_aarch64.dmg` |
-| macOS Intel | `mac/x86_64/` | `LibreOffice_26.8.0_MacOS_x86-64.dmg` |
-| Windows 64-bit | `win/x86_64/` | `LibreOffice_26.8.0_Win_x86-64.msi` |
-| Windows ARM64 | `win/aarch64/` | `LibreOffice_26.8.0_Win_aarch64.msi` |
+| Platform                            | Path under the version dir | Main package                                  |
+| ----------------------------------- | -------------------------- | --------------------------------------------- |
+| Linux x86_64 (Debian/Ubuntu)        | `deb/x86_64/`              | `LibreOffice_26.8.0_Linux_x86-64_deb.tar.gz`  |
+| Linux ARM64 (Debian/Ubuntu)         | `deb/aarch64/`             | `LibreOffice_26.8.0_Linux_aarch64_deb.tar.gz` |
+| Linux x86_64 (RHEL/Fedora/openSUSE) | `rpm/x86_64/`              | `LibreOffice_26.8.0_Linux_x86-64_rpm.tar.gz`  |
+| macOS Apple Silicon (M1+)           | `mac/aarch64/`             | `LibreOffice_26.8.0_MacOS_aarch64.dmg`        |
+| macOS Intel                         | `mac/x86_64/`              | `LibreOffice_26.8.0_MacOS_x86-64.dmg`         |
+| Windows 64-bit                      | `win/x86_64/`              | `LibreOffice_26.8.0_Win_x86-64.msi`           |
+| Windows ARM64                       | `win/aarch64/`             | `LibreOffice_26.8.0_Win_aarch64.msi`          |
 
 Determine the architecture with `uname -m` (macOS/Linux: `x86_64` vs `arm64`/`aarch64`) or
 `$env:PROCESSOR_ARCHITECTURE` (Windows: `AMD64` vs `ARM64`). The base package is English-only; add
@@ -237,7 +239,7 @@ soffice --version              # verify (binary lands in /usr/bin or /opt/libreo
 ```
 
 If `soffice` is not on `PATH` after install, register it — see
-*"Register the binary on PATH"* at the end of this section.
+_"Register the binary on PATH"_ at the end of this section.
 
 `sudo apt install libreoffice-core` from the distro repo remains an acceptable fallback if the
 mirror is unreachable — it is older, but sufficient for conversion.
@@ -324,4 +326,3 @@ if ($UserPath -notlike "*$LoDir*") { setx PATH "$UserPath;$LoDir" }
 
 `setx` only affects **newly launched** shells. For the remainder of the current session, call the
 binary by its full path: `& "C:\Program Files\LibreOffice\program\soffice.exe" --version`.
-

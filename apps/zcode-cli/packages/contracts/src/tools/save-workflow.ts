@@ -33,15 +33,8 @@ export const SaveWorkflowInputSchema = z
       .min(1)
       .max(SAVED_WORKFLOW_MAX_NAME_CHARS)
       .describe("File-safe identifier: letters, digits, dot, dash and underscore."),
-    description: z
-      .string()
-      .min(1)
-      .describe("One line saying what the workflow does."),
-    whenToUse: z
-      .string()
-      .min(1)
-      .optional()
-      .describe("When this workflow is the right answer."),
+    description: z.string().min(1).describe("One line saying what the workflow does."),
+    whenToUse: z.string().min(1).optional().describe("When this workflow is the right answer."),
     args: SavedWorkflowArgsDeclarationSchema.optional().describe(
       "Argument declarations the script reads off `args`.",
     ),

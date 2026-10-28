@@ -9,8 +9,7 @@
   "scripts": {
     "build": "node ../office-runtime/scripts/build.mjs",
     "clean": "node ../../scripts/clean-dist.mjs",
-    "smoke": "node ../office-runtime/scripts/smoke.mjs",
-    "test:e2e": "node ../office-runtime/scripts/e2e.mjs"
+    "smoke": "node ../office-runtime/scripts/smoke.mjs"
   },
   "devDependencies": {
     "@zcode/office-runtime": "workspace:*"

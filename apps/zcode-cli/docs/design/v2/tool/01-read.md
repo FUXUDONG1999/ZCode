@@ -11,7 +11,7 @@
 | 字段        | 类型     | 必填 | 说明                                                                                  |
 | ----------- | -------- | ---- | ------------------------------------------------------------------------------------- |
 | `file_path` | `string` | 是   | 要读取的路径；相对路径按 session cwd 解析，绝对路径会规范化后直接交给文件系统 adapter |
-| `offset`    | `number` | 否   | 从第几行开始读取，非负整数。默认从 `1` 开始                                            |
+| `offset`    | `number` | 否   | 从第几行开始读取，非负整数。默认从 `1` 开始                                           |
 | `limit`     | `number` | 否   | 读取多少行，正整数                                                                    |
 | `pages`     | `string` | 否   | PDF 页码范围，例如 `1-5`、`3`、`10-20`；单次最多 20 页                                |
 
@@ -249,12 +249,12 @@ ZCode 应将路径权限做成统一 filesystem permission adapter，`Read` 只�
 | 相对路径按 session cwd 解析        | implemented | 当前路径解析不依赖宿主进程 cwd。                                                                                                                                           |
 | workspace 外路径硬拦截             | disabled    | 当前版本只规范化路径，不在 core path-policy 拒绝工作区外读取；原因是 subagent 需要读取用户指定的外部仓库或文件，细粒度 ask/deny 后续收敛到 filesystem permission adapter。 |
 | 图片读取                           | implemented | 已支持常见图片格式和 resize adapter。                                                                                                                                      |
-| PDF 原生读取与分页提取             | implemented | `supportsPdf` 条件 shape；原生 PDF 或 PATH Poppler JPEG 页面提取，单次最多 20 页；与图片、视频共用 `40MiB` 编码后请求媒体预算。                                       |
+| PDF 原生读取与分页提取             | implemented | `supportsPdf` 条件 shape；原生 PDF 或 PATH Poppler JPEG 页面提取，单次最多 20 页；与图片、视频共用 `40MiB` 编码后请求媒体预算。                                            |
 | 视频读取                           | implemented | 支持 MP4、M4V、MOV、WEBM、MKV、AVI；最多 `30MiB`，无转码/压缩，结果按 provider-neutral video block 投影。                                                                  |
 | 模型可见行号格式                   | implemented | 当前文本输出通过 `formatModelContent` 转成 cat-n 风格 `<lineNumber>: <content>`，避免 JSON 转义污染 `Edit.old_string`；`Edit` 仍兼容旧的 `<lineNumber>\t<content>` 输入。  |
 | readFileState                      | missing     | 当前 `Read` 尚未记录完整 read cache，后续 `Edit` / `Write` 不能判断未读、partial read 或 stale mutation。                                                                  |
 | 重复读取 dedup                     | missing     | 尚未返回 `file_unchanged` stub。                                                                                                                                           |
-| 文件类型、device path 和大文件保护 | partial     | 当前已实现文本大文件 `256KB` 总大小保护、真实范围读取和 `25_000` token 输出保护；二进制和 device path 失败路径仍待补齐。                                                     |
+| 文件类型、device path 和大文件保护 | partial     | 当前已实现文本大文件 `256KB` 总大小保护、真实范围读取和 `25_000` token 输出保护；二进制和 device path 失败路径仍待补齐。                                                   |
 
 后续优先级：保留文本大文件与 read cache 既有语义；PDF 不在 Read handler 内叠加媒体
 预算特殊兜底，共享请求媒体策略继续由 runtime provider-request 投影边界统一维护。

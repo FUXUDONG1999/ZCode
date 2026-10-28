@@ -5,7 +5,6 @@ Fetch this reference on demand with
 the resident Computer Use skill, so read it only when you need an argument shape or
 a response field that page does not give.
 
-
 Control native apps on the user's computer by reading or operating UI. Prefer a
 purpose-built skill, connector, API or CLI when one can complete the task.
 
@@ -34,7 +33,7 @@ const root =
 const { join } = await import("node:path");
 const { pathToFileURL } = await import("node:url");
 const { setupComputerUseRuntime } = await import(
-  pathToFileURL(join(root, "scripts", "computer-use-client.mjs")).href,
+  pathToFileURL(join(root, "scripts", "computer-use-client.mjs")).href
 );
 await setupComputerUseRuntime({ globals: globalThis });
 
@@ -58,7 +57,7 @@ type Strategy = "auto" | "a11y" | "event";
 type ClickOptions = {
   mouseButton?: MouseButton;
   clickCount?: number;
-  modifiers?: string;   // "cmd+shift"; macOS cmd, Linux/Windows ctrl
+  modifiers?: string; // "cmd+shift"; macOS cmd, Linux/Windows ctrl
   strategy?: Strategy;
 };
 type SelectTextOptions = { prefix?: string; suffix?: string; selectionType?: SelectionType };
@@ -85,8 +84,12 @@ interface Target {
   click(target: number | Vec2, options?: ClickOptions): Promise<void>;
   drag(from: number | Vec2, to: number | Vec2, options?: DragOptions): Promise<void>;
   pressKey(key: string, options?: PressKeyOptions): Promise<void>;
-  scroll(target: number | Vec2, direction: Direction, pages?: number,
-         options?: ScrollOptions): Promise<void>;
+  scroll(
+    target: number | Vec2,
+    direction: Direction,
+    pages?: number,
+    options?: ScrollOptions,
+  ): Promise<void>;
   selectText(elementIndex: number, text: string, options?: SelectTextOptions): Promise<void>;
   setValue(elementIndex: number, value: string): Promise<void>;
   typeText(text: string): Promise<void>;
@@ -179,7 +182,7 @@ stop_computer_control({reason?})
 ```
 
 - `app_ref` — `{name: "Notes"}` for a display name, `{bundle_id:
-  "com.apple.Notes"}` for an identifier, or `{pid: 1234}`. Add `window_id` to
+"com.apple.Notes"}` for an identifier, or `{pid: 1234}`. Add `window_id` to
   bind a single window. A bare string is read as a **bundle id**, never as a
   display name. On Windows a display name is the name the OS lists (the
   Start-menu name), not a window title.
@@ -207,7 +210,6 @@ stop_computer_control({reason?})
 - `repeat` — how many times `key` re-sends the chord. Use it instead of a loop of
   `pressKey` calls.
 
-
 ## Tool results
 
 The bound API returns typed values. `computer.*` instead hands back what the tool
@@ -233,13 +235,13 @@ So branch on the shape instead of assuming one:
 const wins = await agent.computerUse.computer.list_windows({
   app_ref: { name: "Notes" },
 });
-nodeRepl.write(`windows: ${JSON.stringify(wins)}`);       // parsed payload
+nodeRepl.write(`windows: ${JSON.stringify(wins)}`); // parsed payload
 
 const shot = await agent.computerUse.computer.get_app_state({
   app_ref: { name: "Notes" },
   include_screenshot: true,
 });
-const image = shot.content.find((block) => block.type === "image");  // envelope
+const image = shot.content.find((block) => block.type === "image"); // envelope
 ```
 
 Never pass a whole envelope to `nodeRepl.write` or `JSON.stringify`: the image
@@ -308,12 +310,11 @@ So when an action fails unexpectedly, or the tree reads like a different part of
 the app, check the observation's `window` block first: a modal dialog appears
 there as the captured window. Read its contents, then decide. Dismiss it only
 when it is not the intended target — press Escape, or use the dialog's own cancel
-control — and observe again afterwards. When the dialog *is* the task, act on it.
+control — and observe again afterwards. When the dialog _is_ the task, act on it.
 Judging "my previous action worked" from a tree that turns out to be the dialog's
 is the specific mistake this section exists to prevent: the element you were
 looking for is absent because you are reading a different window, not because
 the action removed it.
-
 
 ## Workflow
 
@@ -389,11 +390,11 @@ try {
   await app.performSecondaryAction(7, "Show Menu");
 } catch (e) {
   if (e.code === "ACTION_UNAVAILABLE") {
-    await app.getAXState({ disableDiffing: true });   // the tree lists each element's actions
+    await app.getAXState({ disableDiffing: true }); // the tree lists each element's actions
   } else if (e.code === "CONTROLLER_BUSY") {
     nodeRepl.write(`another ZCode Computer Use session owns control: ${e.details.owner}`);
   } else if (e.actionSent) {
-    await app.getAXState();                            // may already have landed; look first
+    await app.getAXState(); // may already have landed; look first
   } else throw e;
 }
 ```

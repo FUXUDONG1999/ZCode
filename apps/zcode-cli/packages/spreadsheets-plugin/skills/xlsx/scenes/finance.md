@@ -9,6 +9,7 @@ Also load `engines/design.md` → use **Finance** scene overrides (IB text color
 ## Financial Model Architecture
 
 ### Standard Sheet Structure
+
 ```
 Assumptions Sheet:
   - All inputs, growth rates, margins, multiples
@@ -50,6 +51,7 @@ sheet['D15'] = '=IF(C15=0,"-",B15/C15)'
 ```
 
 ### Assumptions Sheet Layout
+
 ```
 B4: "Key Assumptions"           (section header, bold)
 B6: "Revenue Growth Rate"       C6: 0.05    (blue font, yellow bg)
@@ -123,6 +125,7 @@ cell.number_format = FINANCE_FORMATS['currency_mm']
 > Finance-specific overrides (IB text color rules, section dividers) are in `design.md §2.4`.
 
 ### Section Headers
+
 ```python
 # Dark background, white bold text, merged across data width
 # Uses PRIMARY from design.md (or Finance palette PRIMARY from design.md)
@@ -133,6 +136,7 @@ ws['B10'].font = Font(name=FONT_NAME, size=12, bold=HEADER_BOLD, color='FFFFFF')
 ```
 
 ### Data Alignment
+
 - Column labels (years, quarters): **right-aligned**
 - Row labels (line items): **left-aligned**
 - Submetrics: **indented** (add 2-3 spaces prefix)
@@ -148,6 +152,7 @@ ws['B14'] = '   Service Revenue'
 ```
 
 ### Totals Formatting
+
 ```python
 # Uses design tokens — see engines/design.md §6.3
 total_border = Border(top=Side(style='thin', color=PRIMARY))
@@ -158,6 +163,7 @@ for col in range(3, 9):  # C through H
 ```
 
 ### Grid Lines
+
 ```python
 ws.sheet_view.showGridLines = False  # Standard — defined in design.md §7.3
 ```
@@ -242,23 +248,23 @@ for i, year in enumerate(years):
 Sheet: "P&L"
   Row 1: Company Name + Period
   Row 3: Headers (Month/Quarter columns)
-  
+
   Revenue Section:
     Product Revenue     =Assumptions!B5 * (1+Assumptions!C5)
     Service Revenue     =Assumptions!B6 * (1+Assumptions!C6)
     Total Revenue       =SUM(above)
-  
+
   COGS Section:
     Direct Costs        =Total_Revenue * Assumptions!gross_margin
     Gross Profit        =Total_Revenue - Direct_Costs
     Gross Margin %      =IFERROR(Gross_Profit/Total_Revenue, 0)
-  
+
   OpEx Section:
     S&M, R&D, G&A       (each from Assumptions)
     Total OpEx          =SUM(S&M:G&A)
     EBITDA              =Gross_Profit - Total_OpEx
     EBITDA Margin %     =IFERROR(EBITDA/Total_Revenue, 0)
-  
+
   Below the Line:
     D&A, Interest, Tax
     Net Income          =EBITDA - D&A - Interest - Tax
@@ -269,16 +275,16 @@ Sheet: "P&L"
 ```
 Sheet: "Budget vs Actual"
   Columns: Category | Budget | Actual | Variance | Var %
-  
+
   Key formulas:
     Variance     = =Actual - Budget
     Var %        = =IFERROR(Variance/Budget, 0)
-  
+
   Conditional formatting:
     Var % > 0    → Green font (favorable)
     Var % < -10% → Red font + red fill (unfavorable)
     Var % -10~0  → Orange font (watch)
-  
+
   Summary section:
     Total Budget    =SUM(Budget range)
     Total Actual    =SUM(Actual range)
@@ -297,7 +303,7 @@ Sheet: "SaaS Metrics"
     LTV              =IFERROR(ARPU * Gross_Margin / Monthly_Churn_Rate, 0)
     LTV:CAC Ratio    =IFERROR(LTV / CAC, 0)
     Payback Months   =IFERROR(CAC / (ARPU * Gross_Margin), 0)
-    
+
   Chart: MRR waterfall (starting → new → expansion → contraction → churn → ending)
   Chart: LTV:CAC trend line
 ```
@@ -307,12 +313,12 @@ Sheet: "SaaS Metrics"
 ```
 Sheet: "Project Budget"
   Columns: Phase | Task | Planned Cost | Actual Cost | Remaining | % Spent | Status
-  
+
   Key formulas:
     Remaining   = =Planned - Actual
     % Spent     = =IFERROR(Actual/Planned, 0)
     Status      = =IF(% Spent>1, "Over Budget", IF(% Spent>0.9, "At Risk", "On Track"))
-    
+
   Phase subtotals with SUBTOTAL function
   Grand total row with project-level health indicator
 ```

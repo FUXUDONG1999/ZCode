@@ -8,10 +8,10 @@
 
 `Write` 输入是严格对象：
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `file_path` | `string` | 是 | 要写入的路径；相对路径按 session cwd 解析，绝对路径会规范化后直接交给文件系统 adapter |
-| `content` | `string` | 是 | 完整文件内容 |
+| 字段        | 类型     | 必填 | 说明                                                                                  |
+| ----------- | -------- | ---- | ------------------------------------------------------------------------------------- |
+| `file_path` | `string` | 是   | 要写入的路径；相对路径按 session cwd 解析，绝对路径会规范化后直接交给文件系统 adapter |
+| `content`   | `string` | 是   | 完整文件内容                                                                          |
 
 设计要求：
 
@@ -27,14 +27,14 @@
 
 输出：
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `type` | `create | update` | 新建还是覆盖已有文件 |
-| `filePath` | `string` | 写入路径 |
-| `content` | `string` | 已写入内容 |
-| `structuredPatch` | `Hunk[]` | 展示用 diff hunk |
-| `originalFile` | `string | null` | 原始内容，新文件为 `null` |
-| `gitDiff` | optional object | 远程场景可附带 git diff |
+| 字段              | 类型            | 说明                    |
+| ----------------- | --------------- | ----------------------- | ------------------------- |
+| `type`            | `create         | update`                 | 新建还是覆盖已有文件      |
+| `filePath`        | `string`        | 写入路径                |
+| `content`         | `string`        | 已写入内容              |
+| `structuredPatch` | `Hunk[]`        | 展示用 diff hunk        |
+| `originalFile`    | `string         | null`                   | 原始内容，新文件为 `null` |
+| `gitDiff`         | optional object | 远程场景可附带 git diff |
 
 模型可见结果是短文本：
 
@@ -110,17 +110,17 @@ ZCode 应把 create/update 都归入 `workspace` side effect，并显式声明�
 
 ## 实现状态（2026-05-08）
 
-| 能力 | 状态 | 说明 |
-| --- | --- | --- |
-| 基本创建/覆盖 | implemented | 当前 `Write` 已通过 `FileSystemPort` 读取原内容、写入完整内容并生成 `structuredPatch`。 |
-| 相对路径按 session cwd 解析 | implemented | 当前路径解析不依赖宿主进程 cwd。 |
-| workspace 外路径硬拦截 | disabled | 当前版本只规范化路径，不在 core path-policy 拒绝工作区外写入；原因是 subagent 需要按用户指令操作外部仓库或文件，细粒度 ask/deny 后续收敛到 filesystem permission adapter。 |
-| 模型可见使用指导 | in progress | 本轮补充 guidance：修改已有文件前先 `Read`，优先用 `Edit` 修改既有文件，不主动创建文档。 |
-| 模型可见短结果 | in progress | 本轮将 `Write` 成功结果序列化为短确认文本，完整内容和 diff 仅留给结构化 output / UI projection。 |
-| existing file read-before-write | missing | 当前 runtime 尚未要求已有文件先被完整 `Read`。 |
-| stale write 防护 | partial | 当前依赖 `FileSystemPort.writeTextFile(expectedRevision)` 的单次读写保护，但缺少基于 read cache 的未读、partial read 和 mtime/content 对比。 |
-| file history / LSP / IDE 通知 | missing | 尚未接入文件历史记录和编辑器通知链路。 |
-| secret/settings/dangerous path 校验 | missing | 当前主要依赖通用路径策略和权限声明，尚未覆盖特殊文件安全校验。 |
+| 能力                                | 状态        | 说明                                                                                                                                                                       |
+| ----------------------------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 基本创建/覆盖                       | implemented | 当前 `Write` 已通过 `FileSystemPort` 读取原内容、写入完整内容并生成 `structuredPatch`。                                                                                    |
+| 相对路径按 session cwd 解析         | implemented | 当前路径解析不依赖宿主进程 cwd。                                                                                                                                           |
+| workspace 外路径硬拦截              | disabled    | 当前版本只规范化路径，不在 core path-policy 拒绝工作区外写入；原因是 subagent 需要按用户指令操作外部仓库或文件，细粒度 ask/deny 后续收敛到 filesystem permission adapter。 |
+| 模型可见使用指导                    | in progress | 本轮补充 guidance：修改已有文件前先 `Read`，优先用 `Edit` 修改既有文件，不主动创建文档。                                                                                   |
+| 模型可见短结果                      | in progress | 本轮将 `Write` 成功结果序列化为短确认文本，完整内容和 diff 仅留给结构化 output / UI projection。                                                                           |
+| existing file read-before-write     | missing     | 当前 runtime 尚未要求已有文件先被完整 `Read`。                                                                                                                             |
+| stale write 防护                    | partial     | 当前依赖 `FileSystemPort.writeTextFile(expectedRevision)` 的单次读写保护，但缺少基于 read cache 的未读、partial read 和 mtime/content 对比。                               |
+| file history / LSP / IDE 通知       | missing     | 尚未接入文件历史记录和编辑器通知链路。                                                                                                                                     |
+| secret/settings/dangerous path 校验 | missing     | 当前主要依赖通用路径策略和权限声明，尚未覆盖特殊文件安全校验。                                                                                                             |
 
 本轮只落地模型指导和短结果序列化；read cache、stale guard 和安全校验在后续阶段补齐。
 

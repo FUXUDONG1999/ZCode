@@ -137,7 +137,10 @@ one are the same shape written twice for exposition; in a real script write only
 
 ```ts
 const planner = agent("planner", "You write concrete, minimal implementation plans.");
-const reviewer = agent("reviewer", "You find the flaw in a plan. Approve only when you cannot. You never edit files.");
+const reviewer = agent(
+  "reviewer",
+  "You find the flaw in a plan. Approve only when you cannot. You never edit files.",
+);
 
 let feedback = "none";
 for (let round = 0; round < 5; round++) {
@@ -167,7 +170,10 @@ approval:
 
 ```ts
 phase("Independent review of the final plan");
-const second = await agent("independent-reviewer", "You review plans and never edit files.").ask<Review>(
+const second = await agent(
+  "independent-reviewer",
+  "You review plans and never edit files.",
+).ask<Review>(
   `You have not seen this plan before. Read it against the codebase. What would break it, and what is missing?
 ${JSON.stringify(plan)}`,
 );
@@ -188,8 +194,9 @@ phase("Judge the finding from three angles");
 // A majority needs every vote, so the join waits for all three.
 const votes = await Promise.all(
   ["correctness", "security", "does-it-reproduce"].map((lens) =>
-    agent(`judge-${lens}`)
-      .ask<Verdict>(`Judge this finding through the ${lens} lens. Try to refute it:\n${claim}`),
+    agent(`judge-${lens}`).ask<Verdict>(
+      `Judge this finding through the ${lens} lens. Try to refute it:\n${claim}`,
+    ),
   ),
 );
 const survives = votes.filter((v) => !v.refuted).length >= 2;
@@ -233,7 +240,9 @@ reproduced it.
 let best: Attempt | undefined;
 for (let round = 0; round < 6; round++) {
   phase("Attempt the fix");
-  const attempt = await worker.ask<Attempt>(`Attempt the fix. Prior failure: ${lastError ?? "none"}`);
+  const attempt = await worker.ask<Attempt>(
+    `Attempt the fix. Prior failure: ${lastError ?? "none"}`,
+  );
   phase("Check whether it actually passes");
   const check = await checker.ask<Check>(`Does this pass? ${JSON.stringify(attempt)}`);
   if (check.passed) return { attempt, rounds: round + 1, converged: true };
@@ -486,7 +495,9 @@ const checked: Checked[] = [];
 const seed = future(async () => {
   phase("Decide what to look into");
   try {
-    const plan = await agent("planner").ask<{ questions: string[] }>(`List the questions to answer about ${topic}.`);
+    const plan = await agent("planner").ask<{ questions: string[] }>(
+      `List the questions to answer about ${topic}.`,
+    );
     for (const question of plan.questions) leads.send({ question });
   } finally {
     leads.close();
@@ -503,7 +514,9 @@ const research = future(async () => {
         const researcher = agent(`researcher-${k + 1}`);
         for await (const lead of leads) {
           const found = await researcher.ask<Research>(`Research: ${lead.question}`);
-          found.facts.forEach((fact, index) => facts.send({ ...fact, id: `${lead.question}-${index + 1}` }));
+          found.facts.forEach((fact, index) =>
+            facts.send({ ...fact, id: `${lead.question}-${index + 1}` }),
+          );
         }
       }),
     );
@@ -602,7 +615,9 @@ const verify = future(async () => {
   for await (const fact of facts) {
     checks.push(
       future(async () => {
-        const verdict = await agent(`verifier-${fact.id}`).ask<Verdict>(`Check: ${JSON.stringify(fact)}`);
+        const verdict = await agent(`verifier-${fact.id}`).ask<Verdict>(
+          `Check: ${JSON.stringify(fact)}`,
+        );
         if (verdict.holds) passed.push(fact);
         else if (verdict.followUp !== undefined && fact.depth < MAX_DEPTH) {
           // This fact is still open, so `open` is at least 1 and `leads` cannot have closed:
@@ -639,6 +654,7 @@ and never a model under another provider the user did not name; when you see the
 propose it and ask before the call (SKILL.md §2).
 
 <!-- compile -->
+
 ```ts
 // Every model the run can use, declared once; names come from ListModels.
 const MODELS = {
@@ -698,7 +714,9 @@ return await hole<Guide>("第1步：决定导览结构", `盘点：${JSON.string
 return await hole<Guide>("第1步：决定导览结构", `盘点：…`, async () => {
   phase("分章并行撰写初稿");
   const drafts = await Promise.all(
-    survey.dirs.map((d) => agent(`写手·${d.path}`).ask<Chapter>(`写「${d.path}」一章：${d.purpose}`)),
+    survey.dirs.map((d) =>
+      agent(`写手·${d.path}`).ask<Chapter>(`写「${d.path}」一章：${d.purpose}`),
+    ),
   );
   return await hole<Guide>("第2步：审读与交付", `${drafts.length} 章初稿已就绪`);
 });
@@ -712,7 +730,9 @@ return await hole<Guide>("第1步：决定导览结构", `盘点：…`, async (
   return await hole<Guide>("第2步：审读与交付", `…`, async () => {
     phase("独立审读并修订");
     const critique = await agent("审读员").ask<string>(`只凭文本挑毛病：${JSON.stringify(drafts)}`);
-    const chapters = await agent("修订编辑").ask<Chapter[]>(`按意见修订：${critique}\n${JSON.stringify(drafts)}`);
+    const chapters = await agent("修订编辑").ask<Chapter[]>(
+      `按意见修订：${critique}\n${JSON.stringify(drafts)}`,
+    );
     return { title: "仓库导览", chapters, notCovered: [] };
   });
 });
@@ -731,7 +751,7 @@ the journal.
 
 ## 15. A stage shaped by discovery
 
-**When:** the survey decides the *topology* of the next stage, not just its inputs — how many
+**When:** the survey decides the _topology_ of the next stage, not just its inputs — how many
 reviewers, fanned out or sequential, which check gates them. The survey's value goes to the
 script as data; the fill writes the stage.
 
@@ -751,12 +771,16 @@ command. None of that topology was knowable before the survey.
 ```ts
 phase("并行审查独立模块");
 const [a, b] = await Promise.all(
-  hot.modules.slice(0, 2).map((m) => agent(`审查员·${m.path}`).ask<Review>(`审查 ${m.path}：${m.coupling}`)),
+  hot.modules
+    .slice(0, 2)
+    .map((m) => agent(`审查员·${m.path}`).ask<Review>(`审查 ${m.path}：${m.coupling}`)),
 );
 phase("在前两份审查的基础上审查共享模块");
 const shared = hot.modules[2];
 const reviewer = agent("共享模块审查员", "你在别人的审查基础上工作，只找他们没看到的问题。");
-let review = await reviewer.ask<Review>(`已有审查：${JSON.stringify([a, b])}\n现在审查 ${shared.path}`);
+let review = await reviewer.ask<Review>(
+  `已有审查：${JSON.stringify([a, b])}\n现在审查 ${shared.path}`,
+);
 for (let round = 1; round <= 3 && review.findings.length > 0; round += 1) {
   const fix = await world.run("pnpm", ["test", "--", shared.path]);
   if (fix.exitCode === 0) break;
@@ -765,7 +789,7 @@ for (let round = 1; round <= 3 && review.findings.length > 0; round += 1) {
 return [a, b, review];
 ```
 
-Contrast with a plain subagent ask: had the survey only said *which* modules to review, the
+Contrast with a plain subagent ask: had the survey only said _which_ modules to review, the
 script could have fanned out over `hot.modules` itself and no hole was needed.
 
 ---

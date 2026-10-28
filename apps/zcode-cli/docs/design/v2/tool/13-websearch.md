@@ -29,25 +29,25 @@
 
 主模型看到的 contract：
 
-| 字段 | 值 |
-| --- | --- |
-| `name` | `WebSearch` |
-| `capability` | `web_search` |
-| `executionMode` | `client` |
-| `providerNative` | 不存在 |
-| `readOnly` | `true` |
-| `concurrentSafe` | `true` |
-| `sideEffectScope` | `network` |
-| `needsApproval` | `false` |
+| 字段              | 值           |
+| ----------------- | ------------ |
+| `name`            | `WebSearch`  |
+| `capability`      | `web_search` |
+| `executionMode`   | `client`     |
+| `providerNative`  | 不存在       |
+| `readOnly`        | `true`       |
+| `concurrentSafe`  | `true`       |
+| `sideEffectScope` | `network`    |
+| `needsApproval`   | `false`      |
 
 public input:
 
-| 字段 | 说明 |
-| --- | --- |
-| `query` | 要搜索的自然语言 query |
-| `allowed_domains` | 可选，只允许这些 domain 的结果 |
-| `blocked_domains` | 可选，排除这些 domain 的结果 |
-| `maxUses` | 可选，内部 provider-native 搜索次数上限，默认 `8` |
+| 字段              | 说明                                              |
+| ----------------- | ------------------------------------------------- |
+| `query`           | 要搜索的自然语言 query                            |
+| `allowed_domains` | 可选，只允许这些 domain 的结果                    |
+| `blocked_domains` | 可选，排除这些 domain 的结果                      |
+| `maxUses`         | 可选，内部 provider-native 搜索次数上限，默认 `8` |
 
 `allowed_domains` 和 `blocked_domains` 不能同时传入。domain 只接受 hostname，不接受
 protocol、path 或 wildcard。
@@ -56,11 +56,11 @@ protocol、path 或 wildcard。
 
 `WebSearch` handler 负责把 public input 转成内部 provider-native args：
 
-| public 字段 | 内部 provider-native args |
-| --- | --- |
-| `allowed_domains` | `allowedDomains` |
-| `blocked_domains` | `blockedDomains` |
-| `maxUses` | `maxUses`，未传时默认 `8` |
+| public 字段       | 内部 provider-native args |
+| ----------------- | ------------------------- |
+| `allowed_domains` | `allowedDomains`          |
+| `blocked_domains` | `blockedDomains`          |
+| `maxUses`         | `maxUses`，未传时默认 `8` |
 
 内部 request 固定：
 

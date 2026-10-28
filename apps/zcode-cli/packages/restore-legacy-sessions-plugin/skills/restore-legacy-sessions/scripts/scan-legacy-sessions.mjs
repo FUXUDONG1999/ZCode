@@ -306,7 +306,15 @@ function printAgents(candidates, json) {
   if (json) return printJson(rows);
   console.log(
     markdownTable(
-      ["agent", "conversations", "workspaces", "ready", "needs-cli-db", "needs-task-index", "needs-full-import"],
+      [
+        "agent",
+        "conversations",
+        "workspaces",
+        "ready",
+        "needs-cli-db",
+        "needs-task-index",
+        "needs-full-import",
+      ],
       rows.map((row) => [
         row.key,
         row.count,
@@ -325,7 +333,15 @@ function printWorkspaces(candidates, json) {
   if (json) return printJson(rows);
   console.log(
     markdownTable(
-      ["workspace", "conversations", "ready", "needs-cli-db", "needs-task-index", "needs-full-import", "latest"],
+      [
+        "workspace",
+        "conversations",
+        "ready",
+        "needs-cli-db",
+        "needs-task-index",
+        "needs-full-import",
+        "latest",
+      ],
       rows.map((row) => [
         row.key,
         row.count,

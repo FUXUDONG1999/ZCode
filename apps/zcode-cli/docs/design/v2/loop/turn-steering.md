@@ -38,12 +38,12 @@ interface SendInputRequest {
 
 `delivery: "auto"` 的路由由 server/core 判断：
 
-| runtime 状态 | 行为 |
-| --- | --- |
-| 没有 active turn | 开启新 turn |
-| 有 active regular turn | 调用 `steerTurn`，输入进入 pending queue |
-| active turn 不可 steering | 返回结构化拒绝 |
-| `expectedTurnId` 与 active turn 不匹配 | 返回结构化拒绝 |
+| runtime 状态                           | 行为                                     |
+| -------------------------------------- | ---------------------------------------- |
+| 没有 active turn                       | 开启新 turn                              |
+| 有 active regular turn                 | 调用 `steerTurn`，输入进入 pending queue |
+| active turn 不可 steering              | 返回结构化拒绝                           |
+| `expectedTurnId` 与 active turn 不匹配 | 返回结构化拒绝                           |
 
 UI 可以根据本地状态选择调用入口，但不能把 queued 当成本地事实。事实必须来自 `TurnSteerQueued` 事件或 `sendInput` 返回值。
 
@@ -88,12 +88,12 @@ type TurnSteerRejectReason =
 
 Core 必须发出以下事件：
 
-| event | 时机 | UI 语义 |
-| --- | --- | --- |
-| `turn_steer_queued` | 输入被接受并进入 active turn pending queue | 把用户消息标记为 queued |
-| `turn_steer_drained` | pending input 已注入 `MessageHistory`，下一次 model request 会看到 | 把 queued 标记移除或改为 sent |
-| `turn_steer_rejected` | 输入未被接受 | 恢复输入或显示拒绝原因 |
-| `turn_steer_discarded` | pending input 因 turn 失败、取消或恢复策略被丢弃 | 从队列投影移除并显示丢弃原因 |
+| event                  | 时机                                                               | UI 语义                       |
+| ---------------------- | ------------------------------------------------------------------ | ----------------------------- |
+| `turn_steer_queued`    | 输入被接受并进入 active turn pending queue                         | 把用户消息标记为 queued       |
+| `turn_steer_drained`   | pending input 已注入 `MessageHistory`，下一次 model request 会看到 | 把 queued 标记移除或改为 sent |
+| `turn_steer_rejected`  | 输入未被接受                                                       | 恢复输入或显示拒绝原因        |
+| `turn_steer_discarded` | pending input 因 turn 失败、取消或恢复策略被丢弃                   | 从队列投影移除并显示丢弃原因  |
 
 Payload：
 
@@ -133,12 +133,12 @@ interface TurnSteerDiscardedPayload {
 
 除了 session event 作为事实来源，runtime 还必须写入只含安全摘要的 structured log，便于判断一次中途输入到底是被 steer 到当前 turn，还是退化成了新 turn：
 
-| event | level | 用途 |
-| --- | --- | --- |
-| `turn.steer.queued` | debug | 输入进入 active turn pending queue，包含 `pendingInputId`、`targetTurnId`、`queueLength`、`expectedTurnId`、`inputPreview` 和 `inputSize` |
-| `turn.steer.rejected` | debug | 输入未进入 pending queue，包含稳定 `reason`、`activeTurnId`、`expectedTurnId`、active turn steerable 状态和队列长度 |
-| `turn.steer.drained` | debug | pending input 已注入 `MessageHistory`，包含 `pendingInputIds`、`injectedMessageIds`、`inputPreviews`、`inputSizes` 和排队等待时间 |
-| `turn.steer.discarded` | debug | pending input 因取消、失败或 resume 被丢弃，包含 `pendingInputIds`、`targetTurnId` 和 `reason` |
+| event                            | level | 用途                                                                                                                                                                                   |
+| -------------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `turn.steer.queued`              | debug | 输入进入 active turn pending queue，包含 `pendingInputId`、`targetTurnId`、`queueLength`、`expectedTurnId`、`inputPreview` 和 `inputSize`                                              |
+| `turn.steer.rejected`            | debug | 输入未进入 pending queue，包含稳定 `reason`、`activeTurnId`、`expectedTurnId`、active turn steerable 状态和队列长度                                                                    |
+| `turn.steer.drained`             | debug | pending input 已注入 `MessageHistory`，包含 `pendingInputIds`、`injectedMessageIds`、`inputPreviews`、`inputSizes` 和排队等待时间                                                      |
+| `turn.steer.discarded`           | debug | pending input 因取消、失败或 resume 被丢弃，包含 `pendingInputIds`、`targetTurnId` 和 `reason`                                                                                         |
 | `model.request.steering_context` | debug | 每次 active turn 的 model request 前记录 provider-visible messages 的安全摘要，包含 `messageCount`、尾部 role 序列、最近 user message 距离尾部的位置、drained input 是否已经出现在尾部 |
 
 日志不得写完整 provider-visible messages、完整 user input 或完整 tool result。允许写入经过空白归一化和长度截断的 `inputPreview`，以及 role、content byte length、tool call count、tool name 等低敏诊断字段。排查“steer 后模型忘了原任务”时，应先按同一 `traceId` 查询：
@@ -203,7 +203,6 @@ user row 之后。
 - reducer 能从 queued/drained/discarded 重建 `pendingSteerInputs` 作为 live/diagnostic projection。
 - resume 不恢复 queued-but-not-drained input，也不能把历史 queued event 注入下一次 model request。
 - TUI busy `sendInput` 即使先收到 streaming event、后收到 `started_turn` 返回，也必须渲染为 user row 在前、assistant row 在后。
-
 
 ## 消息来源与 provider 投影（2026-09-11）
 
@@ -318,7 +317,6 @@ No human input has been received since the last genuine user message in this con
 - 真实模型 A 未完成插入 B 的观察独立保存，不用 fixture 回复证明模型会恢复 A，也不因此扩写提示。
 - CR-01 回归：四类中途来源携带关闭标签、伪造授权文本和重新打开标签；非 MCS、text-only fallback、位置校验 fallback 均只能产生一对实际 reminder 标签。正式 BG25 双能力 tool/text 轨迹覆盖 coordinator、peer、task 及 human guide，并在 compact/冷恢复后重验。该测试证明文本分隔边界，不宣称能消除所有模型提示注入。
 
-
 ### 来源提示 E2E 双能力轨迹合同
 
 2026-09-11：本轮扩充已有 P06、BG25 和 BG36 正式用例，按实际 endpoint 的
@@ -326,15 +324,15 @@ No human input has been received since the last genuine user message in this con
 固定模板来自独立黄金样本；对真实 HTTP request body 验证全文、角色、包装、位置、唯一性、
 完整 tool-result 批次以及 metadata 不泄漏。证据按能力与阶段命名，保留每次请求的完整 messages。
 
-| 既有用例 | 扩展场景 | MCS 开启 | MCS 关闭 |
-| --- | --- | --- | --- |
-| P06 | human 在 tool batch 后 / text-only 后，两条 steer 同轮有序 | system / user reminder | user reminder / user reminder |
-| P06 | 冷恢复后切换模型能力，重新发送普通用户消息 | 历史按新能力投影，原来的中途形态和原文保留 | 同左，无重复正文 |
-| BG25 | coordinator 有 summary，中途 child；peer 和 task 空闲唤醒 | coordinator system；peer 裸 user；task user reminder | coordinator user reminder；peer 裸 user；task user reminder |
-| BG25 | coordinator 无 summary，active peer 与 active task 先后消费 | tool batch 后 system；text-only 后 user reminder | 均为 user reminder |
-| BG25 | active peer 消费时 reactive compact，完成后冷恢复 | 保留原始 peer 与完整工具组；合法 system / text-only user 降级；task notification 无丢失或重复 | 保留完整 user reminder 与工具组，冷恢复一致 |
-| BG25 | 终态 child 经 SendMessage 恢复 | 新消息为原始 user 正文，不出现中途提示 | 同左 |
-| BG36 | 后台 notification 空闲批量消费 | user reminder，整批一个完整前缀和一对外层标签，两轮消费 | 同左 |
+| 既有用例 | 扩展场景                                                    | MCS 开启                                                                                      | MCS 关闭                                                    |
+| -------- | ----------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| P06      | human 在 tool batch 后 / text-only 后，两条 steer 同轮有序  | system / user reminder                                                                        | user reminder / user reminder                               |
+| P06      | 冷恢复后切换模型能力，重新发送普通用户消息                  | 历史按新能力投影，原来的中途形态和原文保留                                                    | 同左，无重复正文                                            |
+| BG25     | coordinator 有 summary，中途 child；peer 和 task 空闲唤醒   | coordinator system；peer 裸 user；task user reminder                                          | coordinator user reminder；peer 裸 user；task user reminder |
+| BG25     | coordinator 无 summary，active peer 与 active task 先后消费 | tool batch 后 system；text-only 后 user reminder                                              | 均为 user reminder                                          |
+| BG25     | active peer 消费时 reactive compact，完成后冷恢复           | 保留原始 peer 与完整工具组；合法 system / text-only user 降级；task notification 无丢失或重复 | 保留完整 user reminder 与工具组，冷恢复一致                 |
+| BG25     | 终态 child 经 SendMessage 恢复                              | 新消息为原始 user 正文，不出现中途提示                                                        | 同左                                                        |
+| BG36     | 后台 notification 空闲批量消费                              | user reminder，整批一个完整前缀和一对外层标签，两轮消费                                       | 同左                                                        |
 
 ```text
 主 Agent SendMessage -> child Bash 等待点 -> coordinator 中途请求

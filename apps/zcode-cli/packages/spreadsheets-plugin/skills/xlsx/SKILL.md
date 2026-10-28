@@ -27,16 +27,17 @@ This auto-detects and exports `XLSX_SKILL_DIR` and `FONT_DIR`. No manual variabl
 > Excel/WPS/Numbers instead is forbidden, and a large download is not a reason to skip.
 > See [HARD REQUIREMENT](#-hard-requirement--libreoffice-is-missing) under Quality Gate.
 
-| Variable | Auto-set by env_check.sh | Description |
-|----------|--------------------------|-------------|
-| `XLSX_SKILL_DIR` | skill root directory | Parent of this file |
-| `FONT_DIR` | macOS: `~/Library/Fonts`, Linux: `/usr/share/fonts` | Font base directory |
+| Variable         | Auto-set by env_check.sh                            | Description         |
+| ---------------- | --------------------------------------------------- | ------------------- |
+| `XLSX_SKILL_DIR` | skill root directory                                | Parent of this file |
+| `FONT_DIR`       | macOS: `~/Library/Fonts`, Linux: `/usr/share/fonts` | Font base directory |
 
 > **Local-font-first.** Inspect fonts available in the user's local environment and prefer a suitable
 > installed font. Use bundled or downloaded fonts only as fallbacks; do not install fonts without the
 > user's confirmation.
 
 ---
+
 ## Pre-Flight: Intent Gate
 
 Before touching any code, confirm the user actually needs a spreadsheet:
@@ -50,6 +51,7 @@ Before touching any code, confirm the user actually needs a spreadsheet:
 If confirmed xlsx → proceed to Scene Router below.
 
 **Request Decomposition** (do this every time):
+
 - **Explicit needs**: sheets, columns, formulas, metrics the user stated
 - **Implicit needs**: business context, downstream use (filter? sort? input?)
 - **Multi-part requests**: generate ALL parts — never silently drop a component
@@ -135,6 +137,7 @@ User Request
 **Mixed requests**: load all matching files. Engine files always **append** to a scene.
 
 **Finance detection**:
+
 - **finance.md** (complex): DCF, LBO, P&L, 利润表, 资产负债, valuation, 估值, IRR, 三表联动, sensitivity, scenario
 - **finance_lite.md** (simple): 预算, budget, 费用, expense, 收支, 记账, 项目成本, cost tracking, 报销, ROI
 
@@ -145,24 +148,31 @@ User Request
 ## Design Principles
 
 ### 1. Live Formula Guarantee
+
 Every derived value SHOULD be an Excel formula so the spreadsheet stays dynamic.
 
 **Exception — Programmatic Verification**: When the output file will be verified by Python (not opened in Excel), TOTAL/SUM rows should write **computed values** instead of formulas, because openpyxl cannot evaluate formulas and `data_only=True` returns `None` for newly-written formulas. Optionally add the formula as a cell comment for reference.
 
 ### 2. Zero Error Tolerance
+
 Deliverables must have zero formula errors. All divisions wrapped with `IFERROR` or `IF(denom=0,...)`. Absolute references (`$C$42`) for shared denominators.
 
 ### 3. Compatibility First
+
 No dynamic array functions (`FILTER`, `UNIQUE`, `XLOOKUP`, `SORT`, `SORTBY`, `XMATCH`, `SEQUENCE`, `LET`, `LAMBDA`, `RANDARRAY`). No implicit array formulas — use `SUMPRODUCT` alternatives.
 
 ### 4. Preserve & Match
+
 When editing existing files: study and exactly match format, style, conventions. Existing patterns always override defaults. Text starting with `=` must be prefixed with `'`.
 
 ### 5. Language Mirror
+
 Output language (sheet names, headers, labels) matches user's input language.
 
 ### 6. Data Consistency Over Instructions
+
 When user instructions conflict with the actual data patterns in the existing file:
+
 - **First priority**: match the existing data pattern (e.g., if existing data uses `0` for empty, don't switch to `-`)
 - **Second priority**: follow user instructions literally
 - Always flag the conflict to the user
@@ -170,6 +180,7 @@ When user instructions conflict with the actual data patterns in the existing fi
 Example: User says "show hyphen for zero" but existing data and answer key use numeric `0` → Use `0` and notify user of the discrepancy.
 
 ### 7. Original File Preserved
+
 User-provided input files are read-only by default. Deliverables go to new
 files; edit an original in place only when the user explicitly asks.
 
@@ -204,14 +215,14 @@ for sub in [XLSX_SKILL_DIR, os.path.join(XLSX_SKILL_DIR, "templates")]:
 
 ### Tool Reference
 
-| Tool | Use |
-|------|-----|
-| **openpyxl** | Formulas, formatting, charts, cell-level control |
-| **pandas** | Data analysis, bulk operations, CSV/TSV |
-| `load_workbook(read_only=True)` | Large file reads |
-| `Workbook(write_only=True)` | Large file writes |
-| **templates/base.py** | Design tokens, font resolution, style factories, utilities (single source of truth) |
-| **xlsx.py** | QA commands (see `quality/pipeline.md`) |
+| Tool                            | Use                                                                                 |
+| ------------------------------- | ----------------------------------------------------------------------------------- |
+| **openpyxl**                    | Formulas, formatting, charts, cell-level control                                    |
+| **pandas**                      | Data analysis, bulk operations, CSV/TSV                                             |
+| `load_workbook(read_only=True)` | Large file reads                                                                    |
+| `Workbook(write_only=True)`     | Large file writes                                                                   |
+| **templates/base.py**           | Design tokens, font resolution, style factories, utilities (single source of truth) |
+| **xlsx.py**                     | QA commands (see `quality/pipeline.md`)                                             |
 
 Workbook metadata: `wb.properties.creator = "Z.ai"`
 
@@ -226,6 +237,7 @@ Every deliverable must pass the full integrity pipeline before delivery.
 → **Load `quality/pipeline.md` for the role-based integrity workflow.**
 
 Quick reference:
+
 ```
 Blueprint → Build & Self-check (per-sheet) → Inspect → Pivot (if needed) → Release
 ```
@@ -233,14 +245,15 @@ Blueprint → Build & Self-check (per-sheet) → Inspect → Pivot (if needed) �
 ### 🔴 HARD REQUIREMENT — LibreOffice is missing
 
 `recalc` (formula recalculation), `.xlsx` → PDF, and `.csv` → `.xlsx` all run through
-LibreOffice/`soffice`. It is *install-on-demand* only in the sense that it is installed the moment a
+LibreOffice/`soffice`. It is _install-on-demand_ only in the sense that it is installed the moment a
 task needs it.
 
 **If LibreOffice is not installed, you MUST install it. This is not a choice.**
 
 **FORBIDDEN — do not do any of these:**
+
 - ❌ Using Microsoft Excel, WPS Office, Numbers, or any other program already on the user's machine
-  *instead of* installing LibreOffice.
+  _instead of_ installing LibreOffice.
 - ❌ Deciding on the user's behalf that the download is "too large", "too slow", or "not worth it".
   **The package being large is NOT a reason to skip the install.** It is expected to be large.
 - ❌ Asking the user "should I just use Excel instead to save time?" — that is the same violation
@@ -259,7 +272,7 @@ task needs it.
    subdirectory for the platform/arch (`deb/x86_64`, `deb/aarch64`, `rpm/x86_64`, `mac/aarch64`,
    `mac/x86_64`, `win/x86_64`, `win/aarch64`) and install the main package from it. If 26.8.0 is
    gone, use the newest version under `.../libreoffice/stable/`. Full per-platform commands:
-   [`env_setup/setup.md`](env_setup/setup.md) → *"LibreOffice — Recommended Download Source"*.
+   [`env_setup/setup.md`](env_setup/setup.md) → _"LibreOffice — Recommended Download Source"_.
    Package-manager fallback, only if the mirror is unreachable: macOS
    `brew install --cask libreoffice`; Linux (Debian/Ubuntu) `sudo apt install libreoffice-core`;
    Windows `winget install TheDocumentFoundation.LibreOffice`.
@@ -267,8 +280,8 @@ task needs it.
    executable search path looks identical to "not installed" on the next probe — that is what causes
    the same several-hundred-MB package to be downloaded twice. **The mechanism differs per OS**
    (Linux/macOS: symlink into `/usr/local/bin`; Windows: append the program dir to the user `PATH`
-   with `setx`). Full per-OS commands: [`env_setup/setup.md`](env_setup/setup.md) → *"Register the
-   binary on PATH"*. Re-run `soffice --version` and only continue once it prints a version.
+   with `setx`). Full per-OS commands: [`env_setup/setup.md`](env_setup/setup.md) → _"Register the
+   binary on PATH"_. Re-run `soffice --version` and only continue once it prints a version.
    Corollary: **probe before installing** — if the binary already exists on disk but off-`PATH`,
    register it instead of reinstalling.
 5. **Only after that install has actually been attempted AND failed** may you use software already
@@ -282,25 +295,25 @@ task needs it.
 
 ## Capability Matrix
 
-| Capability | Supported | Scene/Engine |
-|-----------|-----------|-------------|
-| Create from scratch | ✅ | scenes/create |
-| Edit existing file | ✅ | scenes/edit |
-| Data analysis & EDA | ✅ | scenes/analyze |
-| Format conversion | ✅ | scenes/convert |
-| Financial models (DCF/LBO/P&L) | ✅ | scenes/finance |
-| Simple budgets & expenses | ✅ | scenes/finance_lite |
-| VBA macros & automation | ✅ | scenes/vba + engines/vba-templates |
-| Batch processing | ✅ | scenes/advanced |
-| Embedded charts | ✅ | engines/chart |
-| Smart chart recommendation | ✅ | engines/chart |
-| Design system & styling | ✅ | engines/design |
-| PivotTable creation | ✅ | quality/pipeline (pivot cmd) |
-| Formula validation | ✅ | quality/pipeline |
-| Structural validation | ✅ | quality/pipeline |
-| Data provenance tracking | ✅ | scenes/analyze |
-| Large file handling | ✅ | scenes/advanced |
-| Data protection & locking | ✅ | scenes/advanced |
+| Capability                     | Supported | Scene/Engine                       |
+| ------------------------------ | --------- | ---------------------------------- |
+| Create from scratch            | ✅        | scenes/create                      |
+| Edit existing file             | ✅        | scenes/edit                        |
+| Data analysis & EDA            | ✅        | scenes/analyze                     |
+| Format conversion              | ✅        | scenes/convert                     |
+| Financial models (DCF/LBO/P&L) | ✅        | scenes/finance                     |
+| Simple budgets & expenses      | ✅        | scenes/finance_lite                |
+| VBA macros & automation        | ✅        | scenes/vba + engines/vba-templates |
+| Batch processing               | ✅        | scenes/advanced                    |
+| Embedded charts                | ✅        | engines/chart                      |
+| Smart chart recommendation     | ✅        | engines/chart                      |
+| Design system & styling        | ✅        | engines/design                     |
+| PivotTable creation            | ✅        | quality/pipeline (pivot cmd)       |
+| Formula validation             | ✅        | quality/pipeline                   |
+| Structural validation          | ✅        | quality/pipeline                   |
+| Data provenance tracking       | ✅        | scenes/analyze                     |
+| Large file handling            | ✅        | scenes/advanced                    |
+| Data protection & locking      | ✅        | scenes/advanced                    |
 
 ## Final response citations
 
@@ -320,9 +333,10 @@ Locators support only `page_number`; otherwise use a plain citation. Do not gues
 ```
 
 ### PDF
+
 Citations currently support only plain file citations. Do not add `artifact_kind`, `page_number`, or other locators. Never cite rendered PNGs, scratch files, builders, or QA intermediates unless asked. Inspect the complete relevant pages, preserve material headings, table/figure labels, footnotes, sources, and sample sizes, and cite each source PDF once with a plain source citation.
 
-### Presentation 
+### Presentation
 
 inspect the complete relevant slide, including callouts, question wording, chart/table titles, totals/sample sizes, and source/methodology footers. Answer directly, group same-slide claims, and cite that slide once. For concrete chart/table/image/diagram/callout evidence, include exact inspected `slide_id`, `object_id`, and a useful label when available.
 

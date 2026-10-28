@@ -169,7 +169,11 @@ export function createOfficeServer({
     {
       description: `Open a ${EXTENSIONS_OR} file from the workspace or an absolute path in the ${TITLE} viewer panel, which the user sees. Optionally jump to a location. Returns the document's outline and how to address locations in it. Use this when the user wants to view, review or discuss ${FILE_NOUN}.`,
       input: {
-        path: z.string().min(1).max(1000).describe("Path of the file: workspace-relative or absolute."),
+        path: z
+          .string()
+          .min(1)
+          .max(1000)
+          .describe("Path of the file: workspace-relative or absolute."),
         at: z
           .string()
           .max(300)
@@ -221,7 +225,11 @@ export function createOfficeServer({
       description:
         "Find text in a document (case-insensitive). Returns matching locations as anchors with a snippet each; pass them to read_document or show_in_viewer.",
       input: {
-        path: z.string().min(1).max(1000).describe("Path of the file: workspace-relative or absolute."),
+        path: z
+          .string()
+          .min(1)
+          .max(1000)
+          .describe("Path of the file: workspace-relative or absolute."),
         query: z.string().min(1).max(200),
         limit: z.number().int().min(1).max(100).optional(),
       },

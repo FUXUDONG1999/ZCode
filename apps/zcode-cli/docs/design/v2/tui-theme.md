@@ -180,17 +180,17 @@ object is complete; components should not handle missing tokens.
 The current TUI uses a smaller palette:
 
 ```ts
-accent
-background
-border
-danger
-muted
-panel
-panelAlt
-success
-text
-userMessageBackground
-warning
+accent;
+background;
+border;
+danger;
+muted;
+panel;
+panelAlt;
+success;
+text;
+userMessageBackground;
+warning;
 ```
 
 P0 keeps this adapter as a compatibility layer:

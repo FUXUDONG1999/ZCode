@@ -69,27 +69,27 @@ if DOCX_SCRIPTS not in sys.path:
 
 ### Task Router
 
-| User Intent | Route | Files to Load |
-|-------------|-------|---------------|
-| Create/write/generate (no attachment) | **Create** | `routes/create.md` + `references/docx-js-core.md` |
-| Edit/modify/revise (has attachment) | **Edit** | `routes/edit.md` + `references/ooxml.md` |
-| Format/layout/font/margin | **Format** | `routes/format.md` |
-| Comment/annotate/review | **Comment** | `routes/comment.md` |
-| Read/analyze/extract | **Read** | `routes/read.md` |
+| User Intent                           | Route       | Files to Load                                     |
+| ------------------------------------- | ----------- | ------------------------------------------------- |
+| Create/write/generate (no attachment) | **Create**  | `routes/create.md` + `references/docx-js-core.md` |
+| Edit/modify/revise (has attachment)   | **Edit**    | `routes/edit.md` + `references/ooxml.md`          |
+| Format/layout/font/margin             | **Format**  | `routes/format.md`                                |
+| Comment/annotate/review               | **Comment** | `routes/comment.md`                               |
+| Read/analyze/extract                  | **Read**    | `routes/read.md`                                  |
 
 ### Scene Router (Optional — load after route)
 
-| User Keywords | Scene | File |
-|---------------|-------|------|
-| thesis, academic, research, paper, dissertation, abstract, journal | Academic | `scenes/academic.md` |
-| report, analysis, experiment, testing, survey, review, summary, proposal, feasibility, competitor, industry, operations | Report | `scenes/report.md` |
-| contract, agreement, terms, transfer, NDA, confidential, framework, cooperation, service terms, user agreement, procurement | Contract | `scenes/contract.md` |
-| resume, CV, job application | Resume | `scenes/resume.md` |
-| exam, test, quiz, paper (exam context), lesson plan | Exam | `scenes/exam.md` |
-| official document, notice, letter, reply, minutes, red header, government, issuance | Official | `scenes/official-doc.md` |
-| broadcast script, product copy, livestream, speech, presentation script, video script | Copywriting | `scenes/copywriting.md` |
-| plan, proposal (if not report context) | Report | `scenes/report.md` |
-| policy, regulation, standard, management rules | Official | `scenes/official-doc.md` |
+| User Keywords                                                                                                               | Scene       | File                     |
+| --------------------------------------------------------------------------------------------------------------------------- | ----------- | ------------------------ |
+| thesis, academic, research, paper, dissertation, abstract, journal                                                          | Academic    | `scenes/academic.md`     |
+| report, analysis, experiment, testing, survey, review, summary, proposal, feasibility, competitor, industry, operations     | Report      | `scenes/report.md`       |
+| contract, agreement, terms, transfer, NDA, confidential, framework, cooperation, service terms, user agreement, procurement | Contract    | `scenes/contract.md`     |
+| resume, CV, job application                                                                                                 | Resume      | `scenes/resume.md`       |
+| exam, test, quiz, paper (exam context), lesson plan                                                                         | Exam        | `scenes/exam.md`         |
+| official document, notice, letter, reply, minutes, red header, government, issuance                                         | Official    | `scenes/official-doc.md` |
+| broadcast script, product copy, livestream, speech, presentation script, video script                                       | Copywriting | `scenes/copywriting.md`  |
+| plan, proposal (if not report context)                                                                                      | Report      | `scenes/report.md`       |
+| policy, regulation, standard, management rules                                                                              | Official    | `scenes/official-doc.md` |
 
 **If no scene matches**, use default design rules from `references/design-system.md` and `references/common-rules.md`.
 
@@ -98,6 +98,7 @@ if DOCX_SCRIPTS not in sys.path:
 → See `references/common-rules.md` for full font profiles, spacing, indent, and layout rules.
 
 **Key rules (quick reference):**
+
 - **Line spacing**: 1.3x (`line: 312`) — MANDATORY. Exceptions: resume 1.15x, official doc 28pt fixed, copywriting `400`, contract 1.5x
 - **CJK body**: Justified + 2-char indent (`firstLine: 480` SimSun / `420` YaHei)
 - **Tables**: `margins` set, `ShadingType.CLEAR`, `tableHeader: true`, `cantSplit: true`, title `keepNext: true`
@@ -106,12 +107,12 @@ if DOCX_SCRIPTS not in sys.path:
 
 ## Unit Quick Reference
 
-| Unit | Value |
-|------|-------|
-| 1 cm | 567 twips |
-| 1 inch | 1440 twips |
-| 1 pt | 20 half-points |
-| A4 | 11906 × 16838 twips |
+| Unit   | Value               |
+| ------ | ------------------- |
+| 1 cm   | 567 twips           |
+| 1 inch | 1440 twips          |
+| 1 pt   | 20 half-points      |
+| A4     | 11906 × 16838 twips |
 
 For Chinese font size table and common margins, see `references/common-rules.md`.
 
@@ -120,6 +121,7 @@ For Chinese font size table and common margins, see `references/common-rules.md`
 ### Layer 1: Manual Checklist (self-check during generation)
 
 #### Basic Format
+
 - [ ] Line spacing is 1.3x (`line: 312`) or scene-specific override
 - [ ] CJK body has 2-char indent (`firstLine: 480` or `420`)
 - [ ] Tables have margins set
@@ -132,10 +134,12 @@ For Chinese font size table and common margins, see `references/common-rules.md`
 - [ ] Header/footer present (unless scene says otherwise)
 
 #### Heading Styles
+
 - [ ] All body chapter headings use `heading: HeadingLevel.HEADING_X` (never simulate with bold + large font)
 - [ ] Cover title may skip Heading style (not in TOC), but body headings MUST use Heading style
 
 #### Page Break & Blank Page Prevention
+
 - [ ] Cover/content in separate sections
 - [ ] Three rules to prevent blank pages:
   - ① When using section(NEXT_PAGE), previous section must NOT end with PageBreak (double break = blank page)
@@ -145,7 +149,9 @@ For Chinese font size table and common margins, see `references/common-rules.md`
 - [ ] No unwanted blank pages (check each section ending)
 
 #### TOC
+
 → See `references/toc.md` for the complete TOC reference and checklist.
+
 - [ ] If TOC title exists → `TableOfContents` element must be present
 - [ ] **⚠️ MANDATORY PageBreak after TableOfContents** — a Paragraph containing PageBreak MUST immediately follow the `TableOfContents` element; without it, TOC and body content will render on the same page. This is the #1 TOC formatting failure — never omit it
 - [ ] `add_toc_placeholders.py --auto` runs after generation; exit code = 0
@@ -157,11 +163,13 @@ For Chinese font size table and common margins, see `references/common-rules.md`
 - [ ] **⚠️ TOC Refresh Hint MANDATORY** — between `TableOfContents` element and the PageBreak, MUST add an italic gray note paragraph telling users to right-click TOC → "Update Field" to refresh page numbers (see toc.md § TOC Refresh Hint)
 
 #### Table Cross-Page
+
 - [ ] Header rows: `tableHeader: true`
 - [ ] All rows: `cantSplit: true`
 - [ ] Title paragraph: `keepNext: true`
 
 #### Cover
+
 - [ ] **Cover MUST use a validated recipe (R1–R7)** from `design-system.md` — free-form cover code is forbidden
 - [ ] Cover recipe matches document type (per `selectCoverRecipe()` in `design-system.md`)
 - [ ] Cover uses the 16838 outer wrapper table with `allNoBorders` (all recipes provide this)
@@ -174,6 +182,7 @@ For Chinese font size table and common margins, see `references/common-rules.md`
 - [ ] No text-character decorative lines (`───`, `━━━`) — use paragraph borders only
 
 #### Output Files
+
 - [ ] The user's original input file is untouched at its original path (unless the user explicitly asked for in-place editing); any backup you created stays next to it — these are NOT temp/retry artifacts
 - [ ] Deliverable is a new file (`<stem>_updated.docx`), not the input path overwritten
 - [ ] Working directories from unpack/pack are cleaned up; only expected deliverables remain
@@ -225,8 +234,9 @@ depends on LibreOffice.
 **If LibreOffice is not installed, you MUST install it. This is not a choice.**
 
 **FORBIDDEN — do not do any of these:**
+
 - ❌ Using Microsoft Word, WPS Office, Pages, or any other program already on the user's machine
-  *instead of* installing LibreOffice.
+  _instead of_ installing LibreOffice.
 - ❌ Deciding on the user's behalf that the download is "too large", "too slow", or "not worth it".
   **The package being large is NOT a reason to skip the install.** It is expected to be large.
 - ❌ Asking the user "should I use Word instead to save time?" — that is the same violation dressed
@@ -246,7 +256,7 @@ depends on LibreOffice.
    `mac/x86_64`, `win/x86_64`, `win/aarch64`) and download the main package from it. If 26.8.0 is no
    longer there, list `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/` and take
    the newest version. Full per-platform download-and-install commands: `env_setup/setup.md` →
-   *"LibreOffice — Recommended Download Source"*.
+   _"LibreOffice — Recommended Download Source"_.
    Package-manager fallback, only if the mirror is unreachable:
    - macOS: `brew install --cask libreoffice`
    - Linux (Debian/Ubuntu): `sudo apt install libreoffice-core`
@@ -255,7 +265,7 @@ depends on LibreOffice.
    executable search path looks identical to "not installed" on the next probe — that is what causes
    the same several-hundred-MB package to be downloaded twice. **The mechanism differs per OS**
    (Linux/macOS: symlink into `/usr/local/bin`; Windows: append the program dir to the user `PATH`
-   with `setx`). Full per-OS commands: `env_setup/setup.md` → *"Register the binary on PATH"*.
+   with `setx`). Full per-OS commands: `env_setup/setup.md` → _"Register the binary on PATH"_.
    Re-run `soffice --version` and only continue once it prints a version. Corollary: **probe before
    installing** — if the binary already exists on disk but off-`PATH`, register it instead of
    reinstalling.
@@ -286,9 +296,10 @@ Locators support only `page_number`; otherwise use a plain citation. Do not gues
 ```
 
 ### PDF
+
 Citations currently support only plain file citations. Do not add `artifact_kind`, `page_number`, or other locators. Never cite rendered PNGs, scratch files, builders, or QA intermediates unless asked. Inspect the complete relevant pages, preserve material headings, table/figure labels, footnotes, sources, and sample sizes, and cite each source PDF once with a plain source citation.
 
-### Presentation 
+### Presentation
 
 inspect the complete relevant slide, including callouts, question wording, chart/table titles, totals/sample sizes, and source/methodology footers. Answer directly, group same-slide claims, and cite that slide once. For concrete chart/table/image/diagram/callout evidence, include exact inspected `slide_id`, `object_id`, and a useful label when available.
 

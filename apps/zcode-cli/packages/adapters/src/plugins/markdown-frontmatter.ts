@@ -104,10 +104,7 @@ function readBlockScalar(
     line.trim().length === 0 ? "" : line.slice(indent ?? 0),
   );
   return {
-    value:
-      style === "folded"
-        ? foldBlockScalarLines(contentLines)
-        : contentLines.join("\n").trim(),
+    value: style === "folded" ? foldBlockScalarLines(contentLines) : contentLines.join("\n").trim(),
     nextIndex: index,
   };
 }

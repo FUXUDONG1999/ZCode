@@ -148,7 +148,8 @@ async function requestPermission(
     },
     {
       ...createInteractionRegistrationOptions(request, "other"),
-      ...(request.approvalMode !== "user-once" && !request.origin &&
+      ...(request.approvalMode !== "user-once" &&
+      !request.origin &&
       !request.optionsPolicy &&
       options?.claimResponse &&
       context.deps?.sessionStore?.commitPermissionFullAccess

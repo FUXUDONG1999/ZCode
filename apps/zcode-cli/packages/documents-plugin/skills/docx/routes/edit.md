@@ -28,7 +28,7 @@ libreoffice --headless --convert-to docx input.doc
 ```
 
 > 🔴 **If `libreoffice` is not installed, you MUST install it — do not substitute.** Using Word, WPS,
-> or Pages *instead of* installing is forbidden, and a large download is **not** a reason to skip it.
+> or Pages _instead of_ installing is forbidden, and a large download is **not** a reason to skip it.
 > Required: explain the necessity to the user (only engine that converts legacy `.doc` while
 > preserving styles and layout), tell them the package is large, then install it **from the Tsinghua TUNA mirror** (`https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/26.8.0/`, or the newest version under `.../libreoffice/stable/`; package-manager commands are the fallback). Only after an
 > install attempt has actually **failed** may you use another program. **No install attempt = no
@@ -123,14 +123,14 @@ Ask user if they want clean output or tracked changes only if ambiguous.
 
 ## Common Operations Quick Reference
 
-| Operation | Approach |
-|-----------|----------|
-| Replace text | `get_node` + `replace_node` with tracked changes |
-| Change font | Modify `<w:rFonts>` in run properties |
-| Add paragraph | `insert_after` with `<w:p>` element |
-| Delete paragraph | `suggest_deletion` on `<w:p>` |
-| Add table row | Clone `<w:tr>`, modify cells |
-| Update header | Edit `word/headerN.xml` |
-| Change margins | Edit `<w:pgMar>` in `<w:sectPr>` |
-| Add image | See `references/ooxml.md` image insertion pattern |
-| Add comment | `doc.add_comment(start, end, text)` |
+| Operation        | Approach                                          |
+| ---------------- | ------------------------------------------------- |
+| Replace text     | `get_node` + `replace_node` with tracked changes  |
+| Change font      | Modify `<w:rFonts>` in run properties             |
+| Add paragraph    | `insert_after` with `<w:p>` element               |
+| Delete paragraph | `suggest_deletion` on `<w:p>`                     |
+| Add table row    | Clone `<w:tr>`, modify cells                      |
+| Update header    | Edit `word/headerN.xml`                           |
+| Change margins   | Edit `<w:pgMar>` in `<w:sectPr>`                  |
+| Add image        | See `references/ooxml.md` image insertion pattern |
+| Add comment      | `doc.add_comment(start, end, text)`               |

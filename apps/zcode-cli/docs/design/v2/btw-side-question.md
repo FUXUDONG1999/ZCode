@@ -63,13 +63,13 @@ After every main model request is built, runtime records an in-memory `LatestMod
 
 ```ts
 interface LatestModelRequestSnapshot {
-  model: ModelRef
-  messages: ModelMessage[]
-  tools: ModelToolContract[]
-  providerOptions?: Record<string, unknown>
-  traceContext: TraceContext
-  capturedAt: Date
-  sourceTurnId?: TurnId
+  model: ModelRef;
+  messages: ModelMessage[];
+  tools: ModelToolContract[];
+  providerOptions?: Record<string, unknown>;
+  traceContext: TraceContext;
+  capturedAt: Date;
+  sourceTurnId?: TurnId;
 }
 ```
 
@@ -101,25 +101,25 @@ The exact wording should be centralized as a named constant so tests can assert 
 
 ```ts
 interface SideQuestionRequest {
-  question: string
-  sessionId: SessionId
-  traceContext?: TraceContext
-  abortSignal?: AbortSignal
+  question: string;
+  sessionId: SessionId;
+  traceContext?: TraceContext;
+  abortSignal?: AbortSignal;
 }
 
 interface SideQuestionResult {
-  sideQuestionId: string
-  status: "completed" | "failed" | "cancelled"
-  question: string
-  answer?: string
-  error?: string
-  usage?: ModelUsage
+  sideQuestionId: string;
+  status: "completed" | "failed" | "cancelled";
+  question: string;
+  answer?: string;
+  error?: string;
+  usage?: ModelUsage;
   cache?: {
-    usedSnapshot: boolean
-    sourceTurnId?: TurnId
-    cacheReadTokens?: number
-    cacheWriteTokens?: number
-  }
+    usedSnapshot: boolean;
+    sourceTurnId?: TurnId;
+    cacheReadTokens?: number;
+    cacheWriteTokens?: number;
+  };
 }
 ```
 

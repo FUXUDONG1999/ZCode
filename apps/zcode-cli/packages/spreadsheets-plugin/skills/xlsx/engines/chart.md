@@ -6,12 +6,12 @@
 
 ## Decision: Native Excel Chart vs Matplotlib Image
 
-| Situation | Use |
-|-----------|-----|
-| User will interact with chart in Excel (resize, filter, update) | **Native Excel chart** (openpyxl.chart) |
-| Publication-quality or complex visualization (heatmap, multi-axis) | **Matplotlib image** → embed in Excel |
-| Dashboard with multiple small charts | **Matplotlib** (more layout control) |
-| Simple bar/line/pie from sheet data | **Native Excel chart** |
+| Situation                                                          | Use                                     |
+| ------------------------------------------------------------------ | --------------------------------------- |
+| User will interact with chart in Excel (resize, filter, update)    | **Native Excel chart** (openpyxl.chart) |
+| Publication-quality or complex visualization (heatmap, multi-axis) | **Matplotlib image** → embed in Excel   |
+| Dashboard with multiple small charts                               | **Matplotlib** (more layout control)    |
+| Simple bar/line/pie from sheet data                                | **Native Excel chart**                  |
 
 ---
 
@@ -33,29 +33,29 @@ Multiple charts on one sheet: each chart ≈ 15 rows tall + 2 rows gap. Calculat
 
 When user doesn't specify chart type, auto-select:
 
-| Data Pattern | Best Chart | Avoid |
-|-------------|-----------|-------|
-| Trend over time | Line | Pie |
-| Category comparison (≤6) | Bar (vertical) | Pie |
-| Category comparison (7-15) | Horizontal Bar | Vertical bar |
-| Category comparison (>15) | Top 10 bar + "Others" | All-in-one |
-| Part of whole (≤5 slices) | Pie / Donut | Bar |
-| Part of whole (>8) | Horizontal Bar | Pie |
-| Distribution | Histogram | Pie |
-| Correlation | Scatter | Bar |
-| Budget vs Actual | Clustered Bar + variance line | Pie |
-| Mixed scales ($ + %) | Combo (bar + line) | Single axis |
+| Data Pattern               | Best Chart                    | Avoid        |
+| -------------------------- | ----------------------------- | ------------ |
+| Trend over time            | Line                          | Pie          |
+| Category comparison (≤6)   | Bar (vertical)                | Pie          |
+| Category comparison (7-15) | Horizontal Bar                | Vertical bar |
+| Category comparison (>15)  | Top 10 bar + "Others"         | All-in-one   |
+| Part of whole (≤5 slices)  | Pie / Donut                   | Bar          |
+| Part of whole (>8)         | Horizontal Bar                | Pie          |
+| Distribution               | Histogram                     | Pie          |
+| Correlation                | Scatter                       | Bar          |
+| Budget vs Actual           | Clustered Bar + variance line | Pie          |
+| Mixed scales ($ + %)       | Combo (bar + line)            | Single axis  |
 
 ### Auto-Detection from Headers
 
-| Header patterns | Suggested chart |
-|----------------|-----------------|
-| Date, Month, Quarter, Year, 月, 季度, 年 | Line / Area |
-| Category, Type, Product, Region, 类别, 产品 | Bar |
-| Percentage, Share, %, 占比, 份额 | Pie / Donut |
-| Budget + Actual, 预算 + 实际 | Clustered Bar |
+| Header patterns                             | Suggested chart     |
+| ------------------------------------------- | ------------------- |
+| Date, Month, Quarter, Year, 月, 季度, 年    | Line / Area         |
+| Category, Type, Product, Region, 类别, 产品 | Bar                 |
+| Percentage, Share, %, 占比, 份额            | Pie / Donut         |
+| Budget + Actual, 预算 + 实际                | Clustered Bar       |
 | Revenue + Cost + Profit, 收入 + 成本 + 利润 | Stacked Bar / Combo |
-| Growth, Change, Δ, 增长, 变化 | Line with markers |
+| Growth, Change, Δ, 增长, 变化               | Line with markers   |
 
 ---
 

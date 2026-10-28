@@ -42,10 +42,12 @@
 ## Phase 1: Running Background Task Defers Goal Verification
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/target.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-tool-loop.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `hasRunningBackgroundTaskForGoalContinuation(this: AgentRuntimeInternal): Promise<boolean>`
   - `executeTargetContinuationCommand(...)` 在 verifier 前调用该 helper。
@@ -60,58 +62,58 @@
 Add this test near existing target continuation tests in `apps/zcode-cli/packages/core/tests/runtime-tool-loop.test.ts`:
 
 ```ts
-  it("defers goal completion verification while background tasks are still running", async () => {
-    const sessionId = createSessionId("runtime-target-defers-running-background");
-    const eventStore = createTestSessionEventStore();
-    const sessionStore = new RecordingSessionStore();
-    const requests: any[] = [];
+it("defers goal completion verification while background tasks are still running", async () => {
+  const sessionId = createSessionId("runtime-target-defers-running-background");
+  const eventStore = createTestSessionEventStore();
+  const sessionStore = new RecordingSessionStore();
+  const requests: any[] = [];
 
-    await eventStore.append(
-      createSessionEvent(SessionEventType.BackgroundTaskStarted, sessionId, {
-        cancellable: true,
-        command: "npm run test",
-        startedAt: new Date(0),
-        status: "running",
-        taskId: "bg_goal_running",
-        terminalId: "bg_goal_running",
-        toolCallId: "tool_bg_goal_running",
-        toolName: "Bash",
-      }),
-    );
+  await eventStore.append(
+    createSessionEvent(SessionEventType.BackgroundTaskStarted, sessionId, {
+      cancellable: true,
+      command: "npm run test",
+      startedAt: new Date(0),
+      status: "running",
+      taskId: "bg_goal_running",
+      terminalId: "bg_goal_running",
+      toolCallId: "tool_bg_goal_running",
+      toolName: "Bash",
+    }),
+  );
 
-    const runtime = new AgentRuntime(
-      sessionId,
-      { mode: "build", workingDirectory: "/tmp/zcode-runtime-target-bg-defer" },
-      {
-        eventStore,
-        modelAdapter: {
-          async generateText(request: any) {
-            requests.push(request);
-            return {
-              finishReason: "stop",
-              model: request.model,
-              providerMetadata: undefined,
-              text: "unexpected verifier request",
-              usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
-            };
-          },
-        } as never,
-        sessionStore,
-      },
-    );
+  const runtime = new AgentRuntime(
+    sessionId,
+    { mode: "build", workingDirectory: "/tmp/zcode-runtime-target-bg-defer" },
+    {
+      eventStore,
+      modelAdapter: {
+        async generateText(request: any) {
+          requests.push(request);
+          return {
+            finishReason: "stop",
+            model: request.model,
+            providerMetadata: undefined,
+            text: "unexpected verifier request",
+            usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+          };
+        },
+      } as never,
+      sessionStore,
+    },
+  );
 
-    await runtime.ensureSessionPersistedForExternalActivity("/goal Wait for background");
-    await sessionStore.setTarget({
-      objective: "Wait for background output before verification",
-      sessionID: sessionId,
-    });
-
-    await expect(
-      runtime.continueActiveTargetIfIdle({ verifyBeforeContinue: true }),
-    ).resolves.toBeNull();
-
-    expect(requests).toEqual([]);
+  await runtime.ensureSessionPersistedForExternalActivity("/goal Wait for background");
+  await sessionStore.setTarget({
+    objective: "Wait for background output before verification",
+    sessionID: sessionId,
   });
+
+  await expect(
+    runtime.continueActiveTargetIfIdle({ verifyBeforeContinue: true }),
+  ).resolves.toBeNull();
+
+  expect(requests).toEqual([]);
+});
 ```
 
 - [ ] **Step 2: Run failing test**
@@ -143,16 +145,16 @@ export async function hasRunningBackgroundTaskForGoalContinuation(
 In `executeTargetContinuationCommand(...)`, immediately after `if (!target) return null;`, add:
 
 ```ts
-  if (await hasRunningBackgroundTaskForGoalContinuation.call(this)) {
-    this.logger?.info("Goal continuation deferred while background tasks are running", {
-      ...traceContextToLogContext(traceContext),
-      event: "target.continuation.deferred_background_running",
-      module: "core.runtime",
-      status: "waiting",
-      targetId: target.targetID,
-    });
-    return null;
-  }
+if (await hasRunningBackgroundTaskForGoalContinuation.call(this)) {
+  this.logger?.info("Goal continuation deferred while background tasks are running", {
+    ...traceContextToLogContext(traceContext),
+    event: "target.continuation.deferred_background_running",
+    module: "core.runtime",
+    status: "waiting",
+    targetId: target.targetID,
+  });
+  return null;
+}
 ```
 
 - [ ] **Step 5: Run Phase 1 tests**
@@ -175,10 +177,12 @@ Expected after implementation: pass.
 ## Phase 2: Task Notification Wakes Goal Verification After Notifications Drain
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/runtime-command-queue.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-tool-loop.test.ts`
 
 **Interfaces:**
+
 - Consumes:
   - `executeTargetContinuationCommand.call(this, { traceContext, verifyBeforeContinue: true })`
   - `this.runtimeCommandQueue.snapshot()`
@@ -193,111 +197,109 @@ Expected after implementation: pass.
 Add this test near the existing `"queues background notifications behind target completion verification"` test in `apps/zcode-cli/packages/core/tests/runtime-tool-loop.test.ts`:
 
 ```ts
-  it("runs pending background notifications before goal completion verification", async () => {
-    const sessionId = createSessionId("runtime-target-notification-before-verifier");
-    const eventStore = createTestSessionEventStore();
-    const sessionStore = new RecordingSessionStore();
-    const requestOrder: string[] = [];
-    let verifierCount = 0;
+it("runs pending background notifications before goal completion verification", async () => {
+  const sessionId = createSessionId("runtime-target-notification-before-verifier");
+  const eventStore = createTestSessionEventStore();
+  const sessionStore = new RecordingSessionStore();
+  const requestOrder: string[] = [];
+  let verifierCount = 0;
 
-    const runtime = new AgentRuntime(
-      sessionId,
-      { mode: "build", workingDirectory: "/tmp/zcode-runtime-target-notification-order" },
-      {
-        eventStore,
-        modelAdapter: {
-          async generateText(request: any) {
-            const latestText = providerContentToText(
-              request.messages.at(-1)?.content,
-            );
-            if (latestText.includes("<task-id>bg-notification-1</task-id>")) {
-              requestOrder.push("notification-1");
-              return {
-                finishReason: "stop",
-                model: request.model,
-                providerMetadata: undefined,
-                text: "processed notification 1",
-                usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
-              };
-            }
-            if (latestText.includes("<task-id>bg-notification-2</task-id>")) {
-              requestOrder.push("notification-2");
-              return {
-                finishReason: "stop",
-                model: request.model,
-                providerMetadata: undefined,
-                text: "processed notification 2",
-                usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
-              };
-            }
-            if (latestText.includes("Verify whether the active session goal")) {
-              verifierCount++;
-              if (verifierCount === 1) {
-                requestOrder.push("verifier-fail");
-                return {
-                  finishReason: "stop",
-                  model: request.model,
-                  providerMetadata: undefined,
-                  text: JSON.stringify({
-                    nextAction: "Continue after both background notifications.",
-                    passed: false,
-                    reason: "The background results are now available.",
-                  }),
-                  usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
-                };
-              }
-              requestOrder.push("verifier-pass");
+  const runtime = new AgentRuntime(
+    sessionId,
+    { mode: "build", workingDirectory: "/tmp/zcode-runtime-target-notification-order" },
+    {
+      eventStore,
+      modelAdapter: {
+        async generateText(request: any) {
+          const latestText = providerContentToText(request.messages.at(-1)?.content);
+          if (latestText.includes("<task-id>bg-notification-1</task-id>")) {
+            requestOrder.push("notification-1");
+            return {
+              finishReason: "stop",
+              model: request.model,
+              providerMetadata: undefined,
+              text: "processed notification 1",
+              usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+            };
+          }
+          if (latestText.includes("<task-id>bg-notification-2</task-id>")) {
+            requestOrder.push("notification-2");
+            return {
+              finishReason: "stop",
+              model: request.model,
+              providerMetadata: undefined,
+              text: "processed notification 2",
+              usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+            };
+          }
+          if (latestText.includes("Verify whether the active session goal")) {
+            verifierCount++;
+            if (verifierCount === 1) {
+              requestOrder.push("verifier-fail");
               return {
                 finishReason: "stop",
                 model: request.model,
                 providerMetadata: undefined,
                 text: JSON.stringify({
-                  nextAction: "",
-                  passed: true,
-                  reason: "The goal is complete after the continuation.",
+                  nextAction: "Continue after both background notifications.",
+                  passed: false,
+                  reason: "The background results are now available.",
                 }),
                 usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
               };
             }
-            requestOrder.push("continuation");
+            requestOrder.push("verifier-pass");
             return {
               finishReason: "stop",
               model: request.model,
               providerMetadata: undefined,
-              text: "continued target after notifications",
+              text: JSON.stringify({
+                nextAction: "",
+                passed: true,
+                reason: "The goal is complete after the continuation.",
+              }),
               usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
             };
-          },
-        } as never,
-        sessionStore,
-      },
-    );
+          }
+          requestOrder.push("continuation");
+          return {
+            finishReason: "stop",
+            model: request.model,
+            providerMetadata: undefined,
+            text: "continued target after notifications",
+            usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+          };
+        },
+      } as never,
+      sessionStore,
+    },
+  );
 
-    await runtime.ensureSessionPersistedForExternalActivity("/goal Wait for notifications");
-    await sessionStore.setTarget({
-      objective: "Use both background notifications before verification",
-      sessionID: sessionId,
-    });
-
-    runtime.enqueueBackgroundTaskNotification({
-      text: "<task-notification><task-id>bg-notification-1</task-id><status>completed</status></task-notification>",
-      traceContext: { sessionId, traceId: "trace_bg_notification_1" },
-    });
-    runtime.enqueueBackgroundTaskNotification({
-      text: "<task-notification><task-id>bg-notification-2</task-id><status>completed</status></task-notification>",
-      traceContext: { sessionId, traceId: "trace_bg_notification_2" },
-    });
-
-    await waitForCondition(() => requestOrder.includes("continuation"));
-
-    expect(requestOrder).toEqual([
-      "notification-1",
-      "notification-2",
-      "verifier-fail",
-      "continuation",
-      "verifier-pass",
-    ]);
+  await runtime.ensureSessionPersistedForExternalActivity("/goal Wait for notifications");
+  await sessionStore.setTarget({
+    objective: "Use both background notifications before verification",
+    sessionID: sessionId,
   });
+
+  runtime.enqueueBackgroundTaskNotification({
+    text: "<task-notification><task-id>bg-notification-1</task-id><status>completed</status></task-notification>",
+    traceContext: { sessionId, traceId: "trace_bg_notification_1" },
+  });
+  runtime.enqueueBackgroundTaskNotification({
+    text: "<task-notification><task-id>bg-notification-2</task-id><status>completed</status></task-notification>",
+    traceContext: { sessionId, traceId: "trace_bg_notification_2" },
+  });
+
+  await waitForCondition(() => requestOrder.includes("continuation"));
+
+  expect(requestOrder).toEqual([
+    "notification-1",
+    "notification-2",
+    "verifier-fail",
+    "continuation",
+    "verifier-pass",
+  ]);
+});
 ```
 
 - [ ] **Step 2: Run failing test**
@@ -356,28 +358,25 @@ async function continueTargetAfterTaskNotification(
 In the `command.mode === "task-notification"` branch, after `await this.executeTurnCommand(...)`, add:
 
 ```ts
-      await continueTargetAfterTaskNotification.call(this, command);
+await continueTargetAfterTaskNotification.call(this, command);
 ```
 
 The resulting branch should keep this order:
 
 ```ts
-    if (command.mode === "task-notification") {
-      const messageId = await persistBackgroundTaskNotificationCommand.call(
-        this,
-        command,
-      );
-      await this.executeTurnCommand(command.text, undefined, {
-        inputSource: "background_task",
-        inputVisibility: "model-only",
-        recordedInputMessageId: messageId,
-        skipInputRecord: true,
-        skipUserPromptSubmitHooks: true,
-        traceContext: command.traceContext,
-      });
-      await continueTargetAfterTaskNotification.call(this, command);
-      return;
-    }
+if (command.mode === "task-notification") {
+  const messageId = await persistBackgroundTaskNotificationCommand.call(this, command);
+  await this.executeTurnCommand(command.text, undefined, {
+    inputSource: "background_task",
+    inputVisibility: "model-only",
+    recordedInputMessageId: messageId,
+    skipInputRecord: true,
+    skipUserPromptSubmitHooks: true,
+    traceContext: command.traceContext,
+  });
+  await continueTargetAfterTaskNotification.call(this, command);
+  return;
+}
 ```
 
 - [ ] **Step 6: Run Phase 2 test**
@@ -401,9 +400,11 @@ Expected after implementation: pass.
 ## Phase 3: Document Runtime Semantics
 
 **Files:**
+
 - Modify: `apps/zcode-cli/docs/design/v2/session-target.md`
 
 **Interfaces:**
+
 - Consumes:
   - Phase 1 behavior: running background task defers verifier.
   - Phase 2 behavior: notification turn is consumed before verifier.
@@ -438,6 +439,7 @@ Expected: the new paragraph is present once and does not mention external produc
 ## Phase 4: Regression Verification
 
 **Files:**
+
 - Test-only commands; no source edits unless a test failure identifies a real bug.
 
 **Checklist:**

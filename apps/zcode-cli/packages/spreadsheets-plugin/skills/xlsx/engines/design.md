@@ -30,12 +30,12 @@ The entire table uses **at most 3 color roles**: primary, secondary, and accent.
 
 Each table allows only 3 color roles + neutral base:
 
-| Role | Token | Responsibility | Area Ratio |
-|------|-------|----------------|------------|
-| **Primary** | `primary` | Header background, title text | ~5-8% |
-| **Secondary** | `secondary` | Section title background, totals row | ~2-3% |
-| **Accent** | `accent` | Status indicators (positive/negative/warning) | ≤2% |
-| **Neutral** | `neutral-*` | Body text, background, alternating rows | ~90% |
+| Role          | Token       | Responsibility                                | Area Ratio |
+| ------------- | ----------- | --------------------------------------------- | ---------- |
+| **Primary**   | `primary`   | Header background, title text                 | ~5-8%      |
+| **Secondary** | `secondary` | Section title background, totals row          | ~2-3%      |
+| **Accent**    | `accent`    | Status indicators (positive/negative/warning) | ≤2%        |
+| **Neutral**   | `neutral-*` | Body text, background, alternating rows       | ~90%       |
 
 ### 2.2 Default Palette
 
@@ -71,20 +71,20 @@ Domains (finance/education/sales…) only affect data formats and header convent
 
 All theme headers use PRIMARY background + white text.
 
-| # | Style | Keyword Triggers | PRIMARY | Positioning |
-|---|------|-----------|---------|------|
-| 01 | **professional** | 正式/商务/汇报/默认 | `1B2A4A` deep blue | Universal default |
-| 02 | **warm** | 温暖/活力/热情 | `B85C1E` warm orange | Vibrant and impactful |
-| 03 | **elegant** | 极简/简约 | `2C2C2C` charcoal | High-end minimalist |
-| 04 | **creative** | 文艺/莫兰迪/设计感 | `6C5B7B` purple-gray | Artistic distinction |
-| 05 | **muji** | 无印/呼吸感/素净 | `2C2C2C` warm black | MUJI pencil-on-paper |
-| 06 | **aesop** | 沙岩/大地色/护肤 | `3D3229` earth brown | Premium skincare packaging |
-| 07 | **kinfolk** | 奶油/刊物/杂志/拿铁 | `5C524C` cocoa | Independent magazine aesthetic |
-| 08 | **celine** | 黑白/时装/冷冽/mono | `000000` pure black | Fashion house coldness |
-| 09 | **bottega** | 墨绿/深绿/森林/贵气 | `2D4A3E` dark green | Italian luxury restraint |
-| 10 | **chanel** | 米金/香奈儿/奶茶/高级 | `1C1917` ink | Champagne gold elegance |
-| 11 | **bloomberg** | 终端/深蓝/金融终端/工业/包豪斯 | `0D1B2A` deep space | Financial data aesthetic |
-| 12 | **original_blue** | 原始/经典蓝/传统蓝 | `1B2A4A` classic blue | Original blue-black scheme |
+| #   | Style             | Keyword Triggers               | PRIMARY               | Positioning                    |
+| --- | ----------------- | ------------------------------ | --------------------- | ------------------------------ |
+| 01  | **professional**  | 正式/商务/汇报/默认            | `1B2A4A` deep blue    | Universal default              |
+| 02  | **warm**          | 温暖/活力/热情                 | `B85C1E` warm orange  | Vibrant and impactful          |
+| 03  | **elegant**       | 极简/简约                      | `2C2C2C` charcoal     | High-end minimalist            |
+| 04  | **creative**      | 文艺/莫兰迪/设计感             | `6C5B7B` purple-gray  | Artistic distinction           |
+| 05  | **muji**          | 无印/呼吸感/素净               | `2C2C2C` warm black   | MUJI pencil-on-paper           |
+| 06  | **aesop**         | 沙岩/大地色/护肤               | `3D3229` earth brown  | Premium skincare packaging     |
+| 07  | **kinfolk**       | 奶油/刊物/杂志/拿铁            | `5C524C` cocoa        | Independent magazine aesthetic |
+| 08  | **celine**        | 黑白/时装/冷冽/mono            | `000000` pure black   | Fashion house coldness         |
+| 09  | **bottega**       | 墨绿/深绿/森林/贵气            | `2D4A3E` dark green   | Italian luxury restraint       |
+| 10  | **chanel**        | 米金/香奈儿/奶茶/高级          | `1C1917` ink          | Champagne gold elegance        |
+| 11  | **bloomberg**     | 终端/深蓝/金融终端/工业/包豪斯 | `0D1B2A` deep space   | Financial data aesthetic       |
+| 12  | **original_blue** | 原始/经典蓝/传统蓝             | `1B2A4A` classic blue | Original blue-black scheme     |
 
 **Three-step matching logic (priority from high to low):**
 
@@ -108,12 +108,12 @@ When `use_palette` is not called, the default behavior is identical to before (p
 
 Only when the scene is Finance, add the following text color encoding (IB industry convention, overrides default NEUTRAL_900):
 
-| Text Color | Hex | Meaning |
-|------------|-----|--------|
-| Blue `0000FF` | Manual input values (user-modifiable) |
-| Black `000000` | Formula/calculated values |
-| Green `008000` | Cross-sheet references |
-| Red `FF0000` | External file references |
+| Text Color     | Hex                                   | Meaning |
+| -------------- | ------------------------------------- | ------- |
+| Blue `0000FF`  | Manual input values (user-modifiable) |
+| Black `000000` | Formula/calculated values             |
+| Green `008000` | Cross-sheet references                |
+| Red `FF0000`   | External file references              |
 
 ### 2.5 Color Prohibitions
 
@@ -128,15 +128,15 @@ Only when the scene is Finance, add the following text color encoding (IB indust
 
 ### 3.1 Font Hierarchy
 
-| Token | Size | Weight | Color | Usage |
-|-------|------|--------|-------|-------|
-| `font-title` | 16pt | `HEADER_BOLD`* | `PRIMARY` | Table title (B2) |
-| `font-header` | 11pt | `HEADER_BOLD`* | `#FFFFFF` | Column headers (white text on primary background) |
-| `font-subheader` | 11pt/12pt | `HEADER_BOLD`* | `PRIMARY` | Section titles, totals row |
-| `font-body` | 11pt | Normal | `NEUTRAL_900` | Body data |
-| `font-caption` | 9pt | Normal | `NEUTRAL_600` | Annotations, sources, footnotes |
-| `font-kpi` | 22pt | `HEADER_BOLD`* | `PRIMARY` | KPI large numbers (analysis scenes only) |
-| `font-kpi-label` | 9pt | Normal | `NEUTRAL_600` | KPI labels |
+| Token            | Size      | Weight          | Color         | Usage                                             |
+| ---------------- | --------- | --------------- | ------------- | ------------------------------------------------- |
+| `font-title`     | 16pt      | `HEADER_BOLD`\* | `PRIMARY`     | Table title (B2)                                  |
+| `font-header`    | 11pt      | `HEADER_BOLD`\* | `#FFFFFF`     | Column headers (white text on primary background) |
+| `font-subheader` | 11pt/12pt | `HEADER_BOLD`\* | `PRIMARY`     | Section titles, totals row                        |
+| `font-body`      | 11pt      | Normal          | `NEUTRAL_900` | Body data                                         |
+| `font-caption`   | 9pt       | Normal          | `NEUTRAL_600` | Annotations, sources, footnotes                   |
+| `font-kpi`       | 22pt      | `HEADER_BOLD`\* | `PRIMARY`     | KPI large numbers (analysis scenes only)          |
+| `font-kpi-label` | 9pt       | Normal          | `NEUTRAL_600` | KPI labels                                        |
 
 > \* `HEADER_BOLD` is determined at runtime by §3.3. Heavy-stroke fonts (Noto Sans SC/Noto Sans CJK SC, etc.) → False, thin-stroke fonts → True.
 
@@ -189,6 +189,7 @@ FONT_NAME = FONT_CJK
 ```
 
 **Rules**:
+
 - Use `FONT_NAME` uniformly across the entire table — do not mix fonts
 - All `Font(name=...)` in code must use the `FONT_NAME` variable — **hardcoding font names is prohibited**
 - If the user explicitly specifies a font, respect the user's choice
@@ -211,6 +212,7 @@ HEADER_BOLD = FONT_NAME not in _HEAVY_FONTS
 ```
 
 **Hierarchy alternatives when `HEADER_BOLD = False`**:
+
 - Headers: no bold, rely on **primary background + white text** for distinction
 - Titles: no bold, use **larger font size (16pt vs 11pt)** for hierarchy
 - Totals row: no bold, use **secondary background + primary text** for distinction
@@ -218,13 +220,13 @@ HEADER_BOLD = FONT_NAME not in _HEAVY_FONTS
 
 ### 3.4 Alignment Rules
 
-| Data Type | Horizontal Alignment | Notes |
-|-----------|---------------------|-------|
-| Numbers/amounts/percentages | Right-aligned | Ensures decimal point alignment |
-| Dates | Center-aligned | |
-| Text | Left-aligned | |
-| Headers | Center-aligned | |
-| Titles | Left-aligned | ❌ Not centered |
+| Data Type                   | Horizontal Alignment | Notes                           |
+| --------------------------- | -------------------- | ------------------------------- |
+| Numbers/amounts/percentages | Right-aligned        | Ensures decimal point alignment |
+| Dates                       | Center-aligned       |                                 |
+| Text                        | Left-aligned         |                                 |
+| Headers                     | Center-aligned       |                                 |
+| Titles                      | Left-aligned         | ❌ Not centered                 |
 
 ---
 
@@ -247,13 +249,13 @@ HEADER_BOLD = FONT_NAME not in _HEAVY_FONTS
 
 ### 4.2 Row Height Standards
 
-| Row Type | Height | Notes |
-|----------|--------|-------|
-| Title row (Row 2) | 32pt | 16pt font + top/bottom breathing room |
-| Spacing row (Row 3) | 8pt | Gap between title and header |
-| Header row (Row 4) | 28pt+ | 11pt font + wrap_text space; auto-grows if header wraps |
-| Data rows | 22pt+ | 11pt font + comfortable reading; **auto-grows via `auto_fit_row_heights()`** |
-| Totals row | 26pt | Slightly taller than data rows for emphasis |
+| Row Type            | Height | Notes                                                                        |
+| ------------------- | ------ | ---------------------------------------------------------------------------- |
+| Title row (Row 2)   | 32pt   | 16pt font + top/bottom breathing room                                        |
+| Spacing row (Row 3) | 8pt    | Gap between title and header                                                 |
+| Header row (Row 4)  | 28pt+  | 11pt font + wrap_text space; auto-grows if header wraps                      |
+| Data rows           | 22pt+  | 11pt font + comfortable reading; **auto-grows via `auto_fit_row_heights()`** |
+| Totals row          | 26pt   | Slightly taller than data rows for emphasis                                  |
 
 ### 4.3 Column Width Guidelines
 
@@ -287,6 +289,7 @@ auto_fit_row_heights(ws, header_row=4, data_start_row=5)
 ```
 
 **Rules**:
+
 - Column width is determined by the widest **data cell**, not the header
 - CJK characters are counted as 1.7x width (via `unicodedata.east_asian_width`)
 - Headers wider than the column automatically get `wrap_text=True`
@@ -304,6 +307,7 @@ auto_fit_row_heights(ws, header_row=4, data_start_row=5)
 ```
 
 **What it does**:
+
 - Scans each cell for `wrap_text=True` or explicit `\n` line breaks
 - Estimates how many lines the content needs given the column width
 - Increases row height accordingly (base 22pt + 16pt per extra line)
@@ -317,10 +321,10 @@ auto_fit_row_heights(ws, header_row=4, data_start_row=5)
 
 ### 5.1 Allowed Borders
 
-| Position | Style | Color | Purpose |
-|------|------|------|------|
-| Header bottom | `thin` | `NEUTRAL_200` | Separate header from data |
-| Totals top | `medium` | `NEUTRAL_200` | Mark summary row |
+| Position      | Style    | Color         | Purpose                   |
+| ------------- | -------- | ------------- | ------------------------- |
+| Header bottom | `thin`   | `NEUTRAL_200` | Separate header from data |
+| Totals top    | `medium` | `NEUTRAL_200` | Mark summary row          |
 
 ### 5.2 Prohibited Borders
 
@@ -332,6 +336,7 @@ auto_fit_row_heights(ws, header_row=4, data_start_row=5)
 ### 5.3 Row Separation Alternative
 
 Use **alternating row fills** instead of grid lines:
+
 - Even rows: `NEUTRAL_0` (white)
 - Odd rows: `NEUTRAL_100` (warm white `#F7F7F5`)
 
@@ -422,11 +427,11 @@ ws.sheet_view.showGridLines = False  # Disable Excel default grid lines
 
 ### 8.1 When to Use
 
-| ✅ Use | ❌ Don't Use |
-|---------|----------|
-| Data has comparison/ranking semantics (scores, KPIs, growth rates) | Simple entry forms, reference tables |
-| Financial data with positive/negative values (profit/loss, increase/decrease) | Data rows ≤5 |
-| User explicitly requests | User requests minimalist style |
+| ✅ Use                                                                        | ❌ Don't Use                         |
+| ----------------------------------------------------------------------------- | ------------------------------------ |
+| Data has comparison/ranking semantics (scores, KPIs, growth rates)            | Simple entry forms, reference tables |
+| Financial data with positive/negative values (profit/loss, increase/decrease) | Data rows ≤5                         |
+| User explicitly requests                                                      | User requests minimalist style       |
 
 ### 8.2 Color Rules
 
@@ -570,16 +575,16 @@ wb.save("output.xlsx")
 
 ### Complete API provided by base.py
 
-| Category | Exports |
-|------|------|
-| **Constants** | `FONT_NAME`, `HEADER_BOLD`, `PRIMARY`, `PRIMARY_LIGHT`, `SECONDARY`, `ACCENT_*`, `NEUTRAL_*`, `CHART_COLORS`, `COLUMN_WIDTHS`, `FORMATS`, `ROW_HEIGHTS` |
-| **Conditional Formatting** | `CF_POSITIVE_FILL/FONT`, `CF_NEGATIVE_FILL/FONT`, `CF_WARNING_FILL/FONT` |
-| **Font Factories** | `font_title()`, `font_header()`, `font_subheader()`, `font_body()`, `font_caption()`, `font_kpi()`, `font_kpi_label()` |
-| **Fill Factories** | `fill_header()`, `fill_total()`, `fill_data_row(row_index)` |
-| **Border Factories** | `border_header()`, `border_total()` |
-| **Alignment Factories** | `align_title()`, `align_header()`, `align_number()`, `align_text()`, `align_date()` |
-| **Sheet Helpers** | `setup_sheet(ws, title, last_col)`, `style_header_row(...)`, `style_data_row(...)`, `style_total_row(...)`, `auto_fit_columns(...)`, `auto_fit_row_heights(...)` |
-| **Utility Functions** | `normalize_cell_value(value)`, `copy_style(source, target)` |
+| Category                   | Exports                                                                                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Constants**              | `FONT_NAME`, `HEADER_BOLD`, `PRIMARY`, `PRIMARY_LIGHT`, `SECONDARY`, `ACCENT_*`, `NEUTRAL_*`, `CHART_COLORS`, `COLUMN_WIDTHS`, `FORMATS`, `ROW_HEIGHTS`          |
+| **Conditional Formatting** | `CF_POSITIVE_FILL/FONT`, `CF_NEGATIVE_FILL/FONT`, `CF_WARNING_FILL/FONT`                                                                                         |
+| **Font Factories**         | `font_title()`, `font_header()`, `font_subheader()`, `font_body()`, `font_caption()`, `font_kpi()`, `font_kpi_label()`                                           |
+| **Fill Factories**         | `fill_header()`, `fill_total()`, `fill_data_row(row_index)`                                                                                                      |
+| **Border Factories**       | `border_header()`, `border_total()`                                                                                                                              |
+| **Alignment Factories**    | `align_title()`, `align_header()`, `align_number()`, `align_text()`, `align_date()`                                                                              |
+| **Sheet Helpers**          | `setup_sheet(ws, title, last_col)`, `style_header_row(...)`, `style_data_row(...)`, `style_total_row(...)`, `auto_fit_columns(...)`, `auto_fit_row_heights(...)` |
+| **Utility Functions**      | `normalize_cell_value(value)`, `copy_style(source, target)`                                                                                                      |
 
 ---
 

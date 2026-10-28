@@ -22,7 +22,7 @@ one-row spacer so the composer height does not flash.
   history.
 - Keep the prompt input title and in-frame metadata row stable while busy. The
   input frame must not append an additional active-turn phrase such as `current
-  turn running`, and it must not render `esc to interrupt` inside the border.
+turn running`, and it must not render `esc to interrupt` inside the border.
 - Keep approval, clarification, selection, and workflow panels in their existing
   replacement slots.
 - Do not add environment variables, runtime events, provider behavior, storage

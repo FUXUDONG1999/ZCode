@@ -50,6 +50,7 @@ ZCode CLI 按四层组织：
 #### contracts/
 
 **职责**：
+
 - 定义所有跨边界交互的 port 接口
 - 定义 session event 类型和语义
 - 定义错误类型和错误码
@@ -57,6 +58,7 @@ ZCode CLI 按四层组织：
 - 不承载任何业务逻辑或实现细节
 
 **内部结构**：
+
 ```
 contracts/src/
 ├── interfaces/         # Port 接口定义
@@ -68,6 +70,7 @@ contracts/src/
 #### core/
 
 **职责**：
+
 - 业务状态机实现
 - agent loop 驱动
 - turn 调度和状态转移
@@ -76,6 +79,7 @@ contracts/src/
 - 不直接调用外部 I/O
 
 **内部结构**：
+
 ```
 core/
 ├── src/
@@ -94,12 +98,14 @@ core/
 #### adapters/
 
 **职责**：
+
 - 实现 contracts 定义的 port 接口
 - 处理所有外部 I/O 副作用
 - 文件系统、子进程、HTTP、SQLite 等具体实现
 - provider SDK 适配
 
 **内部结构**：
+
 ```
 adapters/
 ├── storage/   # SQLite、File 等存储实现
@@ -112,6 +118,7 @@ adapters/
 #### bootstrap/
 
 **职责**：
+
 - composition root
 - 依赖注入配置
 - 各层装配
@@ -548,12 +555,12 @@ Permission 负责 collaboration mode、approval policy、risk policy 和 audit p
 
 当前 P0 mode 语义：
 
-| Mode | Permission 行为 |
-| --- | --- |
-| `plan` | 允许 `readOnly=true` 且 `destructive=false` 的工具；拒绝 workspace/git/system/network 写入和其他非只读工具。 |
-| `build` | 默认模式；只读工具直接允许，有副作用、破坏性或高风险工具进入 `ask`，等待后续 UI/SDK 审批链路接管。 |
-| `yolo` | 跳过 permission prompts，直接 `allow`；仍不跳过 tool registry、schema/adapter contract、trace 和审计。 |
-| `auto` | 保留模式，暂不实现；如果被配置到 runtime，permission 明确拒绝并写入可调试原因。 |
+| Mode    | Permission 行为                                                                                              |
+| ------- | ------------------------------------------------------------------------------------------------------------ |
+| `plan`  | 允许 `readOnly=true` 且 `destructive=false` 的工具；拒绝 workspace/git/system/network 写入和其他非只读工具。 |
+| `build` | 默认模式；只读工具直接允许，有副作用、破坏性或高风险工具进入 `ask`，等待后续 UI/SDK 审批链路接管。           |
+| `yolo`  | 跳过 permission prompts，直接 `allow`；仍不跳过 tool registry、schema/adapter contract、trace 和审计。       |
+| `auto`  | 保留模式，暂不实现；如果被配置到 runtime，permission 明确拒绝并写入可调试原因。                              |
 
 Permission decision 必须携带 `mode`、`toolName`、`riskLevel`、`sideEffectScope`、`decision`、`ruleId` 和用户可读 `reason`，并在 tool executor 处记录结构化 debug 日志。日志只记录输入摘要；需要审批的 `permission_requested` event 可携带原始 input 供 UI 展示。
 

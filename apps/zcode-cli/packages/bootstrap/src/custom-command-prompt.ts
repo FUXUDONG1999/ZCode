@@ -6,10 +6,7 @@ import {
   type SessionId,
   type TraceContext,
 } from "@zcode/contracts";
-import {
-  loadZCodeCustomCommand,
-  type ListZCodeCustomCommandsOptions,
-} from "./custom-commands.js";
+import { loadZCodeCustomCommand, type ListZCodeCustomCommandsOptions } from "./custom-commands.js";
 import { expandCustomCommandShellSyntax } from "./custom-command-shell-expansion.js";
 import { isReservedZCodeSlashCommandName } from "./slash-command-surface.js";
 

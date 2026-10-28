@@ -283,8 +283,10 @@ function Shell() {
       const path = host.readDocument();
       // 恢复本窗口的手动选择优先于历史工具结果；新窗口没有记录，保持空状态。
       if (path) void load(path);
-      else for (const result of buffered)
-        if (!result.isError) applySnapshot(result.structuredContent as ViewerSnapshot | undefined);
+      else
+        for (const result of buffered)
+          if (!result.isError)
+            applySnapshot(result.structuredContent as ViewerSnapshot | undefined);
     });
     return () => window.removeEventListener("office:toolresult", drain);
   }, [applySnapshot, load]);
@@ -294,9 +296,12 @@ function Shell() {
   useEffect(() => {
     if (!doc) return;
     const timer = setTimeout(() => {
-      void call("report_view", { viewId: host.viewId, path: doc.info.path, at: location, selection }).catch(
-        () => undefined,
-      );
+      void call("report_view", {
+        viewId: host.viewId,
+        path: doc.info.path,
+        at: location,
+        selection,
+      }).catch(() => undefined);
     }, 400);
     return () => clearTimeout(timer);
   }, [doc, location, selection]);

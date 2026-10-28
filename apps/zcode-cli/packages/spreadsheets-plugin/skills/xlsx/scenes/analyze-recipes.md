@@ -162,6 +162,7 @@ python3 "$XLSX_SKILL_DIR/xlsx.py" validate output.xlsx
 ```
 
 ### PivotTable Best Practices
+
 - Source data: first row must have unique, non-blank headers
 - No merged cells or blank rows in source range
 - Place pivot on a dedicated sheet, position at A3 or B2
@@ -169,12 +170,13 @@ python3 "$XLSX_SKILL_DIR/xlsx.py" validate output.xlsx
 - Values: numeric measures only
 
 ### PivotTable Troubleshooting
-| Symptom | Remedy |
-|---------|--------|
-| "Field not found" | Check header spelling via `inspect` |
-| PivotTable empty | Ensure `--source` covers all data rows |
-| `validate` reports pivot errors | Critical — must fix |
-| `validate` reports `pass_with_warnings` | Safe to deliver |
+
+| Symptom                                 | Remedy                                 |
+| --------------------------------------- | -------------------------------------- |
+| "Field not found"                       | Check header spelling via `inspect`    |
+| PivotTable empty                        | Ensure `--source` covers all data rows |
+| `validate` reports pivot errors         | Critical — must fix                    |
+| `validate` reports `pass_with_warnings` | Safe to deliver                        |
 
 ---
 
@@ -183,6 +185,7 @@ python3 "$XLSX_SKILL_DIR/xlsx.py" validate output.xlsx
 When odd columns contain identifiers and even columns contain corresponding values (e.g., O=PartNo, P=Qty, Q=PartNo, R=Qty, ...):
 
 **Detection heuristic**:
+
 - Odd columns have repeated values or category codes
 - Even columns are numeric
 - Headers alternate between descriptive and quantitative names
@@ -202,12 +205,14 @@ formula = f'=SUMIF(O{row}:W{row},A{row},P{row}:X{row})'
 Scenario: Allocate limited inventory to order lines in sequence — each row gets what's left after previous rows consumed their share.
 
 **Formula template** (row N):
+
 ```
 =MAX(0, MIN(OrderQty_N,
     TotalInventory_for_key - SUM_of_already_allocated_above))
 ```
 
 **Example** (H column = allocated qty):
+
 ```python
 # Row 2 (first row): allocate up to available inventory
 f'=MIN(G2, SUMIFS(Sheet2!D:D, Sheet2!A:A, A2, Sheet2!B:B, D2))'

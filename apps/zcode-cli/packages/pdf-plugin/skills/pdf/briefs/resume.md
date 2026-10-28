@@ -3,15 +3,18 @@
 Single-column, clean layout optimised for Applicant Tracking Systems (ATS). No graphics, no sidebars, no colour blocks - just well-structured text that parses perfectly by HR software.
 
 **When to use this template:**
+
 - Applying to corporate jobs through online portals
 - Any scenario where the PDF will be machine-parsed before a human reads it
 - When the recruiter explicitly asks for "a standard resume"
 
 **When NOT to use (use Academic brief instead):**
+
 - Creative/design industry positions → Academic brief (AltaCV-style)
 - Academic CV with publications → Academic brief (Academic CV)
 
 ### Resume Design Rules
+
 - **Target 1 page** unless user specifies otherwise
 - **Margins**: `left=1.5cm, right=1.5cm, top=1.5cm, bottom=1.5cm`
 - **No cover page** - content starts immediately
@@ -23,6 +26,7 @@ Single-column, clean layout optimised for Applicant Tracking Systems (ATS). No g
 - **Bullet style**: `•` with tight spacing
 
 ### Resume Line-Break Rules (Language-Aware)
+
 - **English**: Prefer breaking at word boundaries (spaces, hyphens). If a long word must be split to avoid excessive whitespace, break at a valid syllable boundary and insert a hyphen (`-`) - this is standard typographic practice (e.g., `experi-\nence`, `develop-\nment`). ReportLab supports `wordWrap='CJK'` only for CJK content; for English use default paragraph wrapping with `allowWidows=0, allowOrphans=0`.
 - **Chinese/CJK**: Break allowed between any two CJK characters. Never break between a CJK character and its adjacent punctuation (、。,)》 etc. must stay with the preceding character.
 - **Mixed content** (e.g., "Python 开发工程师"): Break at CJK boundaries or English word boundaries. Never split an English word in a CJK paragraph unless hyphenated.
@@ -30,6 +34,7 @@ Single-column, clean layout optimised for Applicant Tracking Systems (ATS). No g
 - **Dates and ranges**: "Jan 2022 - Present" must stay as one unit. Never break a date range across lines.
 
 ### Resume Page-Fill Rules (Anti-Blank-Space)
+
 - **Goal: Fill ≥85% of the page height.** Content should reach at least the bottom quarter of the page. A resume that stops at 60% height with blank space below = FAIL.
 - **Adaptive spacing strategy** (apply in order until page is ≥85% filled):
   1. Increase `spaceBefore` / `spaceAfter` on section headers (from 10pt up to 18pt)
@@ -211,6 +216,7 @@ doc.build(story)
 ```
 
 ### Resume Checklist
+
 - [ ] **1 page** (unless user says otherwise)
 - [ ] **No cover page, no TOC**
 - [ ] Tight margins (1.5cm all sides)
@@ -224,4 +230,3 @@ doc.build(story)
 - [ ] **⚠️ Minimum font size 12px (9pt)** - no text smaller than this anywhere
 - [ ] **Line breaks are language-aware** - no mid-word English breaks, no CJK punctuation orphans, no date range splits
 - [ ] **Page fill ≥85%** - no large blank area at bottom. If sparse, increase spacing/leading/font size adaptively
-

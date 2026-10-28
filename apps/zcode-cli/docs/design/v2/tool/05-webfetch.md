@@ -18,10 +18,10 @@ ZCode v2 第一版实现遵循本文的 L2 runtime 契约：工具本身只表�
 
 `WebFetch` 输入是严格对象：
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `url` | `string` | 是 | 完整合法 URL |
-| `prompt` | `string` | 是 | 对抓取内容要执行的提取或分析指令 |
+| 字段     | 类型     | 必填 | 说明                             |
+| -------- | -------- | ---- | -------------------------------- |
+| `url`    | `string` | 是   | 完整合法 URL                     |
+| `prompt` | `string` | 是   | 对抓取内容要执行的提取或分析指令 |
 
 设计要求：
 
@@ -69,32 +69,32 @@ ZCode 为 `WebFetch` 提供完整的 tool prompt 语义，而不是只给模型�
 
 输出：
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `bytes` | `number` | 抓取内容大小 |
-| `code` | `number` | HTTP 状态码 |
-| `codeText` | `string` | HTTP 状态文本 |
-| `result` | `string` | prompt 处理后的结果 |
-| `durationMs` | `number` | 抓取和处理耗时 |
-| `url` | `string` | 原始请求 URL |
+| 字段         | 类型     | 说明                |
+| ------------ | -------- | ------------------- |
+| `bytes`      | `number` | 抓取内容大小        |
+| `code`       | `number` | HTTP 状态码         |
+| `codeText`   | `string` | HTTP 状态文本       |
+| `result`     | `string` | prompt 处理后的结果 |
+| `durationMs` | `number` | 抓取和处理耗时      |
+| `url`        | `string` | 原始请求 URL        |
 
 ZCode 输出结构：
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `url` | `string` | 原始请求 URL |
-| `finalUrl` | `string` | 实际抓取 URL，包含安全 redirect 后的位置 |
-| `status` | `number` | HTTP 状态码 |
-| `statusText` | `string` | HTTP 状态文本 |
-| `contentType` | `string` | 响应 content type |
-| `bytes` | `number` | 原始响应字节数 |
-| `durationMs` | `number` | 总耗时 |
-| `result` | `string` | prompt 处理后的结果 |
-| `cacheHit` | `boolean` | 是否命中 fetch cache |
-| `redirects` | `array` | 已接受的安全 redirect 链 |
-| `artifactUri` | `string?` | 原始 markdown/text 内容被落盘时的 artifact 引用 |
+| 字段           | 类型      | 说明                                                                 |
+| -------------- | --------- | -------------------------------------------------------------------- |
+| `url`          | `string`  | 原始请求 URL                                                         |
+| `finalUrl`     | `string`  | 实际抓取 URL，包含安全 redirect 后的位置                             |
+| `status`       | `number`  | HTTP 状态码                                                          |
+| `statusText`   | `string`  | HTTP 状态文本                                                        |
+| `contentType`  | `string`  | 响应 content type                                                    |
+| `bytes`        | `number`  | 原始响应字节数                                                       |
+| `durationMs`   | `number`  | 总耗时                                                               |
+| `result`       | `string`  | prompt 处理后的结果                                                  |
+| `cacheHit`     | `boolean` | 是否命中 fetch cache                                                 |
+| `redirects`    | `array`   | 已接受的安全 redirect 链                                             |
+| `artifactUri`  | `string?` | 原始 markdown/text 内容被落盘时的 artifact 引用                      |
 | `artifactPath` | `string?` | adapter 返回的本地 artifact 路径，仅用于内部/UI 追踪，不要求模型可见 |
-| `truncated` | `boolean` | 输入二级模型或模型可见结果是否被预算截断 |
+| `truncated`    | `boolean` | 输入二级模型或模型可见结果是否被预算截断                             |
 
 模型可见结果只返回 `result`，完整结构进入 tool result event 和内部 output。
 

@@ -74,9 +74,13 @@ export async function refreshMcpOAuthTokensUnderLock(
   const lockPath = resolveRefreshLockPath(input.credentialStore.filePath, input.keyPrefix);
 
   try {
-    return await withFileLock(lockPath, async () => await refreshLocked(input, observedGeneration), {
-      lockMaxWaitMs: REFRESH_LOCK_MAX_WAIT_MS,
-    });
+    return await withFileLock(
+      lockPath,
+      async () => await refreshLocked(input, observedGeneration),
+      {
+        lockMaxWaitMs: REFRESH_LOCK_MAX_WAIT_MS,
+      },
+    );
   } catch (error) {
     if (!isZCodeFileLockTimeoutError(error)) throw error;
     // 等锁超时不代表刷新失败：winner 可能已经发布结果。先重读，确认换代且有 token 就直接用。

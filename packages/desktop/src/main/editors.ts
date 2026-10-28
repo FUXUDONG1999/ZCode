@@ -357,7 +357,10 @@ function findWindowsVisualStudioEditorDefs(): EditorDef[] {
     try {
       const yearEntries = readdirSync(root, { withFileTypes: true })
         .filter((entry) => entry.isDirectory() && resolveWindowsVisualStudioYearLabel(entry.name))
-        .map((entry) => ({ dir: entry.name, year: resolveWindowsVisualStudioYearLabel(entry.name)! }))
+        .map((entry) => ({
+          dir: entry.name,
+          year: resolveWindowsVisualStudioYearLabel(entry.name)!,
+        }))
         .sort((left, right) => Number(right.year) - Number(left.year));
 
       for (const { dir, year } of yearEntries) {
@@ -371,14 +374,7 @@ function findWindowsVisualStudioEditorDefs(): EditorDef[] {
           .sort((left, right) => editionRank(left) - editionRank(right));
 
         for (const edition of editions) {
-          const devenvPath = pathWin32.join(
-            root,
-            dir,
-            edition,
-            "Common7",
-            "IDE",
-            "devenv.exe",
-          );
+          const devenvPath = pathWin32.join(root, dir, edition, "Common7", "IDE", "devenv.exe");
           if (existsSync(devenvPath)) {
             defsByYear.set(`visual-studio-${year}`, {
               id: `visual-studio-${year}`,

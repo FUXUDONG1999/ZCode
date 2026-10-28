@@ -24,7 +24,9 @@ system sections are rendered before dynamic system sections. Each rendered
 system block may carry provider-neutral cache intent:
 
 ```typescript
-cacheControl: { type: "ephemeral" }
+cacheControl: {
+  type: "ephemeral";
+}
 ```
 
 Adapters translate this intent to provider-specific request fields. For
@@ -32,7 +34,11 @@ Anthropic-compatible providers, the AI SDK receives:
 
 ```typescript
 providerOptions: {
-  anthropic: { cacheControl: { type: "ephemeral" } }
+  anthropic: {
+    cacheControl: {
+      type: "ephemeral";
+    }
+  }
 }
 ```
 
@@ -61,20 +67,20 @@ preserved.
 
 ## Default Section Placement
 
-| Section | Target | Cache hint | Reason |
-| --- | --- | --- | --- |
-| CLI Prefix | system | stable | Fixed product identity prefix. |
-| Agent Identity | system | stable | Fixed `zcode-agent` identity and role. |
-| Dynamic Behavior | system | dynamic | Communication and action-caution content; independent of output-style coding-instruction replacement. |
-| Session-specific Guidance | system | dynamic | Optional guidance derived from the active tool and skill surface. |
-| Memory | system | dynamic | Optional project-memory guidance. |
-| Environment Info | system | dynamic | cwd and platform vary by session, current model refreshes with session model changes, and git fields stay pinned to the session-start snapshot. |
-| Output Style | system | dynamic | Optional active output-style prompt. |
-| Context Management | system | dynamic | Long-context continuity and autonomous execution guidance. |
-| Git System Context | system | dynamic | Optional session-start git snapshot. |
-| Skills | meta_user | dynamic | Discovered skills vary by workspace and are user-invocable context. |
-| Request User Context | meta_user | dynamic | Resolved instruction files and project-memory index are assembled into one request context block. |
-| Current Date | meta_user | dynamic | Date changes independently of behavior rules. |
+| Section                   | Target    | Cache hint | Reason                                                                                                                                          |
+| ------------------------- | --------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| CLI Prefix                | system    | stable     | Fixed product identity prefix.                                                                                                                  |
+| Agent Identity            | system    | stable     | Fixed `zcode-agent` identity and role.                                                                                                          |
+| Dynamic Behavior          | system    | dynamic    | Communication and action-caution content; independent of output-style coding-instruction replacement.                                           |
+| Session-specific Guidance | system    | dynamic    | Optional guidance derived from the active tool and skill surface.                                                                               |
+| Memory                    | system    | dynamic    | Optional project-memory guidance.                                                                                                               |
+| Environment Info          | system    | dynamic    | cwd and platform vary by session, current model refreshes with session model changes, and git fields stay pinned to the session-start snapshot. |
+| Output Style              | system    | dynamic    | Optional active output-style prompt.                                                                                                            |
+| Context Management        | system    | dynamic    | Long-context continuity and autonomous execution guidance.                                                                                      |
+| Git System Context        | system    | dynamic    | Optional session-start git snapshot.                                                                                                            |
+| Skills                    | meta_user | dynamic    | Discovered skills vary by workspace and are user-invocable context.                                                                             |
+| Request User Context      | meta_user | dynamic    | Resolved instruction files and project-memory index are assembled into one request context block.                                               |
+| Current Date              | meta_user | dynamic    | Date changes independently of behavior rules.                                                                                                   |
 
 Environment Info is a bounded snapshot, not a full repository index. In
 particular, `git status --short --untracked-files=all` must be capped to 20

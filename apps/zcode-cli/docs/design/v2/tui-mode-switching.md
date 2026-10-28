@@ -69,7 +69,7 @@ must remember the mode it had before entering `plan` and return to it on exit.
 - Maintaining `prePlanMode` is centralized in the one and only mode write point,
   `AgentRuntime.updateConfig({ mode })`:
   - Switching into `plan` from a non-plan mode records `prePlanMode = <current
-    mode>`.
+mode>`.
   - Switching out of `plan` into any other mode clears `prePlanMode`, because the
     overlay has been resolved and no stale "return target" should survive.
   - Repeated `plan -> plan` writes do not overwrite an existing `prePlanMode`.

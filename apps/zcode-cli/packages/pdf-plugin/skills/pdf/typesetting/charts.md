@@ -37,6 +37,7 @@ def labels_overlap(label_a, label_b):
 ```
 
 **Matplotlib-specific anti-overlap:**
+
 ```python
 # MANDATORY for all matplotlib charts
 import matplotlib.pyplot as plt
@@ -55,6 +56,7 @@ plt.subplots_adjust(bottom=0.15)  # Reserve space for rotated labels
 ```
 
 **Chart-to-body-text separation (ReportLab):**
+
 ```python
 # MANDATORY spacers around chart flowables
 story.append(Spacer(1, 24))       # 24pt gap before chart
@@ -72,6 +74,7 @@ When slices are too small, labels MUST NOT be placed inside the arc.
 #### Strategy A: Leader Lines + Y-Axis Collision Avoidance
 
 When slice angle `< 15°` (or area share `< 5%`), force external labels:
+
 - Draw a polyline (leader line) from the arc's outer edge to the label text
 - **Y-axis anti-collision logic**: Calculate adjacent label Y-coordinates. If `Y2 - Y1 < font_height + padding`, push `Y2` downward (or pull `Y1` upward). Extend/shorten the horizontal segment of the leader line accordingly.
 - Leader lines: 1pt, same color as slice at 60% opacity
@@ -79,6 +82,7 @@ When slice angle `< 15°` (or area share `< 5%`), force external labels:
 #### Strategy B: "Others" Grouping (Long-Tail Merge)
 
 Before data reaches the renderer, intercept and merge:
+
 - Threshold: slices `< 3%` → merge into a single "其他 (Others)" slice
 - If detail is needed, add a minimal table beside the chart showing the breakdown
 - This prevents 5+ tiny slivers from cluttering the chart
@@ -86,6 +90,7 @@ Before data reaches the renderer, intercept and merge:
 #### Strategy C: Strip Labels, Use Rich Legend
 
 The most premium approach — **zero text on the chart itself**:
+
 - Pie/donut body shows only pure shapes + colors
 - All names, percentages, and values are laid out in a grid-aligned legend to the right or below
 - This NEVER stacks, and looks the most professional
@@ -99,12 +104,14 @@ The most premium approach — **zero text on the chart itself**:
 #### Strategy A: Auto-Rotate to Horizontal Bar
 
 **Hard rule**: When X-axis label average length exceeds **5 Chinese characters** (or 10 Latin characters), automatically convert to a horizontal bar chart.
+
 - Y-axis has unlimited downward space for labels — stacking is impossible
 - This is the single most effective anti-collision measure for bar charts
 
 #### Strategy B: Tick Thinning + Stagger
 
 When there are many bars (e.g., 30-day trend):
+
 - **Thinning**: Show every 2nd or 5th label (skip intermediate ticks)
 - **Stagger**: Alternate labels between two rows (offset vertically)
 - **Tilt (last resort)**: 45° rotation works but reduces readability in premium reports. Prefer thinning or horizontal bars.
@@ -124,6 +131,7 @@ Dense data points with labels on every point = visual chaos.
 #### Strategy A: "First, Last, Max, Min" Rule (Data Journalism Standard)
 
 Only auto-label **4 points** on any line:
+
 - **Start point** (first value)
 - **End point** (last value)
 - **Maximum** (peak)
@@ -134,6 +142,7 @@ All other points show only the curve shape — no labels. This instantly elevate
 #### Strategy B: Callout Boxes
 
 For points that must be highlighted:
+
 - Don't let text sit naked on the curve
 - Wrap in a rounded-corner background box (white fill, very light shadow or thin border)
 - Connect to the data point with a thin needle line
@@ -147,13 +156,13 @@ For points that must be highlighted:
 
 **The #1 sign of amateur charts: thick black border frames and solid grid lines.**
 
-| Element | Rule |
-|---------|------|
-| Top spine | **DELETE** (unconditionally) |
-| Right spine | **DELETE** (unconditionally) |
-| Left Y-axis spine | Optional — can delete if values are labeled on bars directly |
-| Bottom X-axis | Keep as baseline reference (thin, gray) |
-| Grid lines | **Dashed only** (dotted or dashed), 0.5pt, 15-20% opacity. NEVER solid. |
+| Element                        | Rule                                                                                    |
+| ------------------------------ | --------------------------------------------------------------------------------------- |
+| Top spine                      | **DELETE** (unconditionally)                                                            |
+| Right spine                    | **DELETE** (unconditionally)                                                            |
+| Left Y-axis spine              | Optional — can delete if values are labeled on bars directly                            |
+| Bottom X-axis                  | Keep as baseline reference (thin, gray)                                                 |
+| Grid lines                     | **Dashed only** (dotted or dashed), 0.5pt, 15-20% opacity. NEVER solid.                 |
 | Grid lines (when values shown) | **DELETE entirely** — if bar/line values are directly labeled, grid lines are redundant |
 
 ### 2. Geometric Shape Refinement
@@ -167,20 +176,20 @@ For points that must be highlighted:
 
 #### Bar Styling
 
-| Property | Value | Why |
-|----------|-------|-----|
-| Bar-to-gap ratio | `1.5:1` or `2:1` | Not too thin (bamboo sticks), not too fat (no breathing room) |
-| Top border-radius | `2px – 4px` | Micro-rounding removes machine harshness, adds modern UI feel |
-| Bottom border-radius | `0px` | Flat base anchors to the axis |
+| Property             | Value            | Why                                                           |
+| -------------------- | ---------------- | ------------------------------------------------------------- |
+| Bar-to-gap ratio     | `1.5:1` or `2:1` | Not too thin (bamboo sticks), not too fat (no breathing room) |
+| Top border-radius    | `2px – 4px`      | Micro-rounding removes machine harshness, adds modern UI feel |
+| Bottom border-radius | `0px`            | Flat base anchors to the axis                                 |
 
 #### Line Chart Refinement
 
-| Property | Value | Why |
-|----------|-------|-----|
-| Curve type | **Smooth (Bézier/spline)** | Unless showing strictly discrete data |
-| Line width | `2pt – 3pt` | Stands out against weakened grid |
-| Area fill | Gradient from line color at 20% opacity → 0% opacity downward | Adds volume and depth |
-| Data point markers | Small circles (3-4px radius), only on labeled points | Don't mark every point |
+| Property           | Value                                                         | Why                                   |
+| ------------------ | ------------------------------------------------------------- | ------------------------------------- |
+| Curve type         | **Smooth (Bézier/spline)**                                    | Unless showing strictly discrete data |
+| Line width         | `2pt – 3pt`                                                   | Stands out against weakened grid      |
+| Area fill          | Gradient from line color at 20% opacity → 0% opacity downward | Adds volume and depth                 |
+| Data point markers | Small circles (3-4px radius), only on labeled points          | Don't mark every point                |
 
 ### 3. Legend & Text Hierarchy
 
@@ -192,13 +201,13 @@ For points that must be highlighted:
 
 #### Legend Rules
 
-| Rule | Details |
-|------|---------|
-| Border | **NONE** — never put a box around the legend |
-| Position | Top-left horizontal row (preferred) or directly above chart area |
-| Markers | Small circles (4px) or short line segments — NOT chunky squares |
-| Font size | Same as axis labels (10-12pt) |
-| Spacing | Generous horizontal spacing between items (≥24px) |
+| Rule      | Details                                                          |
+| --------- | ---------------------------------------------------------------- |
+| Border    | **NONE** — never put a box around the legend                     |
+| Position  | Top-left horizontal row (preferred) or directly above chart area |
+| Markers   | Small circles (4px) or short line segments — NOT chunky squares  |
+| Font size | Same as axis labels (10-12pt)                                    |
+| Spacing   | Generous horizontal spacing between items (≥24px)                |
 
 ---
 
@@ -256,6 +265,7 @@ Chart Defaults:
 ### Creative Pipeline (Playwright HTML/CSS)
 
 Charts in the Creative pipeline are rendered as HTML/SVG within the blueprint's components. Apply chart rules through:
+
 - Inline SVG with proper viewBox and text positioning
 - CSS classes for axis hiding, grid styling, legend layout
 - JavaScript-based collision detection for leader lines (if dynamic)
@@ -263,6 +273,7 @@ Charts in the Creative pipeline are rendered as HTML/SVG within the blueprint's 
 ### Report Pipeline (ReportLab)
 
 Charts in the Report pipeline use ReportLab Drawing objects or embedded matplotlib figures:
+
 - Use matplotlib with `plt.rcParams` overrides matching the defaults above
 - `ax.spines['top'].set_visible(False)`, `ax.spines['right'].set_visible(False)`
 - `ax.grid(True, linestyle='--', alpha=0.2, linewidth=0.5)`
@@ -281,12 +292,12 @@ Charts in the Report pipeline use ReportLab Drawing objects or embedded matplotl
 
 ### 5.1 Chart-to-Body-Text Separation
 
-| Context | Minimum Gap | Notes |
-|---------|-------------|-------|
-| Chart above/below body text | 24pt | Both above and below the chart |
-| Chart caption to chart | 8pt | Caption immediately below chart |
-| Chart caption to next body text | 18pt | Clear separation |
-| Two consecutive charts | 30pt | Prevent visual merging |
+| Context                         | Minimum Gap | Notes                           |
+| ------------------------------- | ----------- | ------------------------------- |
+| Chart above/below body text     | 24pt        | Both above and below the chart  |
+| Chart caption to chart          | 8pt         | Caption immediately below chart |
+| Chart caption to next body text | 18pt        | Clear separation                |
+| Two consecutive charts          | 30pt        | Prevent visual merging          |
 
 ### 5.2 Legend-to-Chart Overlap Prevention
 
@@ -306,6 +317,7 @@ fig.tight_layout()
 ### 5.3 Value Label Anti-Collision
 
 **When value labels on adjacent bars/points overlap:**
+
 1. **Stagger vertically** — alternate above/below the bar
 2. **Rotate 45°** — angled labels take less horizontal space
 3. **Show only key values** — max, min, first, last
@@ -314,6 +326,7 @@ fig.tight_layout()
 ### 5.4 Multi-Chart Layout in Documents
 
 When a page contains 2+ charts:
+
 - Each chart gets its own bounding box with explicit dimensions
 - Charts must not share the same vertical space (no side-by-side unless explicitly designed)
 - For side-by-side charts: use a 2-column layout with `Spacer` between columns

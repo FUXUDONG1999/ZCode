@@ -30,23 +30,23 @@ embedded search 分支，主智能体和 `Explore` child runtime 都不暴露 di
 
 ## 输入
 
-| 字段 | 类型 | 必填 | 说明 |
-| --- | --- | --- | --- |
-| `pattern` | `string` | 是 | `The regular expression pattern to search for in file contents` |
-| `path` | `string` | 否 | `File or directory to search in (rg PATH). Defaults to current working directory.` |
-| `glob` | `string` | 否 | `Glob pattern to filter files (e.g. "*.js", "*.{ts,tsx}") - maps to rg --glob` |
-| `output_mode` | `"content" \| "files_with_matches" \| "count"` | 否 | `Output mode: "content" shows matching lines (supports -A/-B/-C context, -n line numbers, head_limit), "files_with_matches" shows file paths (supports head_limit), "count" shows match counts (supports head_limit). Defaults to "files_with_matches".` |
-| `-B` | `number` | 否 | `Number of lines to show before each match (rg -B). Requires output_mode: "content", ignored otherwise.` |
-| `-A` | `number` | 否 | `Number of lines to show after each match (rg -A). Requires output_mode: "content", ignored otherwise.` |
-| `-C` | `number` | 否 | `Alias for context.` |
-| `context` | `number` | 否 | `Number of lines to show before and after each match (rg -C). Requires output_mode: "content", ignored otherwise.` |
-| `-n` | `boolean` | 否 | `Show line numbers in output (rg -n). Requires output_mode: "content", ignored otherwise. Defaults to true.` |
-| `-i` | `boolean` | 否 | `Case insensitive search (rg -i)` |
-| `-o` | `boolean` | 否 | `Print only the matched (non-empty) parts of each matching line, one match per output line (rg -o / --only-matching). Requires output_mode: "content", ignored otherwise. Defaults to false.` |
-| `type` | `string` | 否 | `File type to search (rg --type). Common types: js, py, rust, go, java, etc. More efficient than include for standard file types.` |
-| `head_limit` | `number` | 否 | `Limit output to first N lines/entries, equivalent to "| head -N". Works across all output modes: content (limits output lines), files_with_matches (limits file paths), count (limits count entries). Defaults to 250 when unspecified. Pass 0 for unlimited (use sparingly — large result sets waste context).` |
-| `offset` | `number` | 否 | `Skip first N lines/entries before applying head_limit, equivalent to "| tail -n +N | head -N". Works across all output modes. Defaults to 0.` |
-| `multiline` | `boolean` | 否 | `Enable multiline mode where . matches newlines and patterns can span lines (rg -U --multiline-dotall). Default: false.` |
+| 字段          | 类型                                           | 必填 | 说明                                                                                                                                                                                                                                                     |
+| ------------- | ---------------------------------------------- | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| `pattern`     | `string`                                       | 是   | `The regular expression pattern to search for in file contents`                                                                                                                                                                                          |
+| `path`        | `string`                                       | 否   | `File or directory to search in (rg PATH). Defaults to current working directory.`                                                                                                                                                                       |
+| `glob`        | `string`                                       | 否   | `Glob pattern to filter files (e.g. "*.js", "*.{ts,tsx}") - maps to rg --glob`                                                                                                                                                                           |
+| `output_mode` | `"content" \| "files_with_matches" \| "count"` | 否   | `Output mode: "content" shows matching lines (supports -A/-B/-C context, -n line numbers, head_limit), "files_with_matches" shows file paths (supports head_limit), "count" shows match counts (supports head_limit). Defaults to "files_with_matches".` |
+| `-B`          | `number`                                       | 否   | `Number of lines to show before each match (rg -B). Requires output_mode: "content", ignored otherwise.`                                                                                                                                                 |
+| `-A`          | `number`                                       | 否   | `Number of lines to show after each match (rg -A). Requires output_mode: "content", ignored otherwise.`                                                                                                                                                  |
+| `-C`          | `number`                                       | 否   | `Alias for context.`                                                                                                                                                                                                                                     |
+| `context`     | `number`                                       | 否   | `Number of lines to show before and after each match (rg -C). Requires output_mode: "content", ignored otherwise.`                                                                                                                                       |
+| `-n`          | `boolean`                                      | 否   | `Show line numbers in output (rg -n). Requires output_mode: "content", ignored otherwise. Defaults to true.`                                                                                                                                             |
+| `-i`          | `boolean`                                      | 否   | `Case insensitive search (rg -i)`                                                                                                                                                                                                                        |
+| `-o`          | `boolean`                                      | 否   | `Print only the matched (non-empty) parts of each matching line, one match per output line (rg -o / --only-matching). Requires output_mode: "content", ignored otherwise. Defaults to false.`                                                            |
+| `type`        | `string`                                       | 否   | `File type to search (rg --type). Common types: js, py, rust, go, java, etc. More efficient than include for standard file types.`                                                                                                                       |
+| `head_limit`  | `number`                                       | 否   | `Limit output to first N lines/entries, equivalent to "                                                                                                                                                                                                  | head -N". Works across all output modes: content (limits output lines), files_with_matches (limits file paths), count (limits count entries). Defaults to 250 when unspecified. Pass 0 for unlimited (use sparingly — large result sets waste context).` |
+| `offset`      | `number`                                       | 否   | `Skip first N lines/entries before applying head_limit, equivalent to "                                                                                                                                                                                  | tail -n +N                                                                                                                                                                                                                                               | head -N". Works across all output modes. Defaults to 0.` |
+| `multiline`   | `boolean`                                      | 否   | `Enable multiline mode where . matches newlines and patterns can span lines (rg -U --multiline-dotall). Default: false.`                                                                                                                                 |
 
 `-o` 只在 `output_mode: "content"` 生效；`files_with_matches` 和 `count` 模式必须忽略
 `onlyMatching`。当 `multiline: true` 的 match 跨行时，adapter 必须按 `rg -n -o`
@@ -58,18 +58,18 @@ embedded search 分支，主智能体和 `Explore` child runtime 都不暴露 di
 
 ## 输出
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `mode` | `"content" \| "files_with_matches" \| "count"` | 实际输出模式。 |
-| `durationMs` | `number` | 搜索耗时。 |
-| `numFiles` | `number` | 返回文件数。 |
-| `filenames` | `string[]` | `files_with_matches` 模式下的文件列表。 |
-| `content` | `string` | `content` 或 `count` 模式下的文本结果。 |
-| `numLines` | `number` | content 模式返回行数。 |
-| `numMatches` | `number` | 搜索到的匹配数。 |
-| `truncated` | `boolean` | 是否因 `head_limit` 或结果预算截断。 |
-| `appliedLimit` | `number` | 实际触发的条数限制。未截断时省略。 |
-| `appliedOffset` | `number` | 实际偏移。未设置时省略。 |
+| 字段            | 类型                                           | 说明                                    |
+| --------------- | ---------------------------------------------- | --------------------------------------- |
+| `mode`          | `"content" \| "files_with_matches" \| "count"` | 实际输出模式。                          |
+| `durationMs`    | `number`                                       | 搜索耗时。                              |
+| `numFiles`      | `number`                                       | 返回文件数。                            |
+| `filenames`     | `string[]`                                     | `files_with_matches` 模式下的文件列表。 |
+| `content`       | `string`                                       | `content` 或 `count` 模式下的文本结果。 |
+| `numLines`      | `number`                                       | content 模式返回行数。                  |
+| `numMatches`    | `number`                                       | 搜索到的匹配数。                        |
+| `truncated`     | `boolean`                                      | 是否因 `head_limit` 或结果预算截断。    |
+| `appliedLimit`  | `number`                                       | 实际触发的条数限制。未截断时省略。      |
+| `appliedOffset` | `number`                                       | 实际偏移。未设置时省略。                |
 
 ## 权限与副作用
 

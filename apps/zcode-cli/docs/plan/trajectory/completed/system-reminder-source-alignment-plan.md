@@ -58,14 +58,14 @@
 
 ## Delivery Channel Taxonomy
 
-| Channel | 含义 | 例子 |
-| --- | --- | --- |
-| `request_prefix` | session/request-wide context，位于 conversation 前，不属于当前用户 prompt | skill listing、generic context prefix、后续 request-level userContext |
-| `current_turn` | 当前 request 生成或重发的动态 context | hook context、relevant memory、plan/auto mode、active goal/target、output_style、date_change、Todo reminder |
-| `tool_result` | 附着在 tool result 输出中的 context | Read empty-file / short-read warnings |
-| `history_continuity` | resume / compact 恢复出来的上下文 | restored todos、restored goal、post-compact continuity |
-| `mid_turn_event` | tool loop / assistant turn 中途出现的 system-origin notification | background task status、diagnostics、system queued notification |
-| `real_user` | 用户真实输入 | queued human input、用户 prompt 以 `<system-reminder>` 开头的 badcase |
+| Channel              | 含义                                                                      | 例子                                                                                                        |
+| -------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `request_prefix`     | session/request-wide context，位于 conversation 前，不属于当前用户 prompt | skill listing、generic context prefix、后续 request-level userContext                                       |
+| `current_turn`       | 当前 request 生成或重发的动态 context                                     | hook context、relevant memory、plan/auto mode、active goal/target、output_style、date_change、Todo reminder |
+| `tool_result`        | 附着在 tool result 输出中的 context                                       | Read empty-file / short-read warnings                                                                       |
+| `history_continuity` | resume / compact 恢复出来的上下文                                         | restored todos、restored goal、post-compact continuity                                                      |
+| `mid_turn_event`     | tool loop / assistant turn 中途出现的 system-origin notification          | background task status、diagnostics、system queued notification                                             |
+| `real_user`          | 用户真实输入                                                              | queued human input、用户 prompt 以 `<system-reminder>` 开头的 badcase                                       |
 
 ## Source Descriptor Contract
 
@@ -89,13 +89,9 @@ export type SystemReminderLifecycle =
   | "mid_turn_event"
   | "real_user";
 
-export type SystemReminderProviderVisibility =
-  | "provider_visible"
-  | "provider_hidden";
+export type SystemReminderProviderVisibility = "provider_visible" | "provider_hidden";
 
-export type SystemReminderPrefixSource =
-  | "context_prefix"
-  | "skills_listing";
+export type SystemReminderPrefixSource = "context_prefix" | "skills_listing";
 
 export type SystemReminderPersistedSource =
   | "todo_reminder"
@@ -151,6 +147,7 @@ Descriptor rules:
 ### Task SR0.1: 新增 source helper
 
 **Files:**
+
 - Create: `apps/zcode-cli/packages/core/src/system-reminder/source.ts`
 - Test: `apps/zcode-cli/packages/core/tests/system-reminder-source.test.ts`
 
@@ -178,6 +175,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR1.1: Classify current-turn reminder sources
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/hooks.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/memory-recall.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts`
@@ -197,6 +195,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR1.2: Classify prefix/tool/history sources
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/context/sections/skills.ts`
 - Modify: `apps/zcode-cli/packages/core/src/context/builder.ts`
 - Modify: `apps/zcode-cli/packages/core/src/tool/handlers/read.ts`
@@ -217,6 +216,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR1.3: Classify ZCode-specific existing producers
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/model-anomaly.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/rewind.ts`
 - Modify: `apps/zcode-cli/packages/contracts/src/tools/target.ts`
@@ -244,6 +244,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR2.1: 共享 local `YYYY-MM-DD` helper
 
 **Files:**
+
 - Create: `apps/zcode-cli/packages/contracts/src/time/local-date.ts`
 - Modify: `apps/zcode-cli/packages/contracts/src/index.ts`
 - Modify: `apps/zcode-cli/packages/adapters/src/context/index.ts`
@@ -256,6 +257,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR2.2: Add `date_change` reminder source
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/internal.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/agent-runtime.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/turn.ts`
@@ -292,6 +294,7 @@ pnpm --dir apps/zcode-cli/packages/adapters exec oxlint src/context/index.ts
 ### Task SR3.1: Todo state reminder
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/resume.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts` or a new Todo reminder helper after confirming current best location
 - Test: `apps/zcode-cli/packages/core/tests/runtime-tool-loop.test.ts`
@@ -306,6 +309,7 @@ pnpm --dir apps/zcode-cli/packages/adapters exec oxlint src/context/index.ts
 ### Task SR3.2: Goal / target state reminder
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/resume.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/target.ts`
@@ -320,6 +324,7 @@ pnpm --dir apps/zcode-cli/packages/adapters exec oxlint src/context/index.ts
 ### Task SR3.3: Task status source
 
 **Files:**
+
 - Modify: background task / task status producer after confirming current source path
 - Test: `apps/zcode-cli/packages/core/tests/runtime-trace.test.ts`
 
@@ -345,6 +350,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR4.1: Add MessageHistory entry metadata envelope
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/agent/message-history.ts`
 - Test: `apps/zcode-cli/packages/core/tests/message-history.test.ts`
 
@@ -360,6 +366,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR4.2: Annotate existing provider-visible reminder producers with metadata
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/context.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/hooks.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/memory-recall.ts`
@@ -394,6 +401,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR4.3: Restore metadata from persisted synthetic parts during hydration
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/agent/session-history-hydrator.ts`
 - Test: `apps/zcode-cli/packages/core/tests/session-history-hydrator.test.ts`
 - Test: `apps/zcode-cli/packages/core/tests/session-history-rewind.test.ts`
@@ -420,6 +428,7 @@ pnpm --dir apps/zcode-cli/packages/core exec oxlint src/agent/message-history.ts
 ### Task SR5.1: Add Todo reminder source and cadence helpers
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/system-reminder/source.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts`
 - Test: `apps/zcode-cli/packages/core/tests/system-reminder-source.test.ts`
@@ -435,6 +444,7 @@ pnpm --dir apps/zcode-cli/packages/core exec oxlint src/agent/message-history.ts
 ### Task SR5.2: Replace per-request todo-state reminder with cadence injection
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/turn-loop.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/internal-methods.ts`
@@ -453,6 +463,7 @@ pnpm --dir apps/zcode-cli/packages/core exec oxlint src/agent/message-history.ts
 ### Task SR5.3: Resume/hydrate cadence continuity
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/agent/session-history-hydrator.ts`
 - Test: `apps/zcode-cli/packages/core/tests/session-history-hydrator.test.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-trace.test.ts`
@@ -480,6 +491,7 @@ pnpm --dir apps/zcode-cli/packages/core exec oxlint src/system-reminder/source.t
 ### Task SR6.1: Supported attachment inventory
 
 **Files:**
+
 - Create: `apps/zcode-cli/packages/core/src/system-reminder/prompt-attachment.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts`
 - Modify: `apps/zcode-cli/packages/core/src/agent/session-history-hydrator.ts`
@@ -494,6 +506,7 @@ pnpm --dir apps/zcode-cli/packages/core exec oxlint src/system-reminder/source.t
 ### Task SR6.2: Add reminder text for ZCode-supported text attachments where needed
 
 **Files:**
+
 - Create: `apps/zcode-cli/packages/core/src/system-reminder/prompt-attachment.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts`
 - Modify: `apps/zcode-cli/packages/core/src/agent/session-history-hydrator.ts`
@@ -522,6 +535,7 @@ pnpm --dir apps/zcode-cli/packages/core exec oxlint src/system-reminder/prompt-a
 ### Task SR7.1: Classify queued system events and diagnostics
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/steering.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-tool-loop.test.ts`
 - Test: `apps/zcode-cli/packages/core/tests/session-history-hydrator.test.ts`
@@ -549,6 +563,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR8.1: Prompt trajectory evidence
 
 **Files:**
+
 - Create: `apps/zcode-cli/tools/prompt-trajectory/testcases/system-reminder-sources/prompt.txt`
 - Create: `apps/zcode-cli/tools/prompt-trajectory/testcases/system-reminder-sources/expect.json`
 - Modify: `apps/zcode-cli/worklogs/trajectory-align-log.md`
@@ -587,6 +602,7 @@ pnpm lint
 ### Task SR9.1: `runtime_mode` / plan mode content and cadence
 
 **Files:**
+
 - Add/Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/runtime-reminders.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/turn-loop.ts`
@@ -603,6 +619,7 @@ pnpm lint
 ### Task SR9.2: `output_style` tail reminder content
 
 **Files:**
+
 - Add/Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/runtime-reminders.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-reminders.test.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-trace.test.ts`
@@ -616,6 +633,7 @@ pnpm lint
 ### Task SR9.3: `date_change` reminder wording
 
 **Files:**
+
 - Add/Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/runtime-reminders.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-trace.test.ts`
 
@@ -627,6 +645,7 @@ pnpm lint
 ### Task SR9.4: Supplement `todo_reminder` wording
 
 **Files:**
+
 - Add/Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/runtime-reminders.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-reminders.test.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-trace.test.ts`
@@ -652,6 +671,7 @@ pnpm --filter @zcode/prompt-trajectory run:testcases -- --cases testcases --out-
 After prompt-trajectory finishes, inspect the latest `apps/zcode-cli/tools/prompt-trajectory/out/system-reminder-sr9/test*/**/trajectory.jsonl` and `apps/zcode-cli/tools/prompt-trajectory/out/system-reminder-sr9/test*/**/trajectories/*.openai_request_body.json`; confirm every provider-visible message matches SR9 expectations before asking for user confirmation.
 
 SR9 prompt-trajectory coverage boundary:
+
 - Covered by `system-reminder-sr9-runtime`: first-turn full `runtime_mode`, non-repeat before 5 human turns, `output_style` tail reminder without full style prompt, and output_style in-memory history tracking. The latest validated output is `apps/zcode-cli/tools/prompt-trajectory/out/system-reminder-output-style-memory/test20260604-161114`; it exports a single incremental-derived `0001.openai_request_body.json` for the two-turn run, with two output_style reminders and no `0002-non-incremental-change` file.
 - Covered by focused Vitest, not prompt-trajectory yet: `date_change` and `todo_reminder`, because the current prompt-trajectory fixture runner does not expose deterministic local date injection or seeded TodoWrite/tool-call history.
 
@@ -664,6 +684,7 @@ SR9 prompt-trajectory coverage boundary:
 ### Task SR10.1: Build tag-wrap matrix
 
 **Files:**
+
 - Modify: `apps/zcode-cli/docs/plan/trajectory/system-reminder-source-alignment-plan.md`
 - Test: `apps/zcode-cli/packages/core/tests/system-reminder-source.test.ts`
 - Test: `apps/zcode-cli/packages/core/tests/runtime-reminders.test.ts`
@@ -698,6 +719,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR11.1: Research queued notification wrapper before implementation
 
 **Files:**
+
 - Modify: `apps/zcode-cli/docs/plan/trajectory/system-reminder-source-alignment-plan.md`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/methods/steering.ts`
 - Modify: `apps/zcode-cli/packages/core/src/agent/session-history-hydrator.ts`
@@ -743,6 +765,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR12.1: Decide exact provider-visible shape
 
 **Files:**
+
 - Modify: `apps/zcode-cli/docs/plan/trajectory/system-reminder-source-alignment-plan.md`
 
 - [x] 设计 synthetic Read / Bash tool call/result 的最终 provider-visible meta-user text body 形态。
@@ -753,6 +776,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR12.2: Implement chosen shape for ZCode-supported file-source text attachments
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/system-reminder/prompt-attachment.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/helpers/conversation.ts`
 - Modify: `apps/zcode-cli/packages/core/src/agent/session-history-hydrator.ts`
@@ -768,6 +792,7 @@ pnpm --filter @zcode/core typecheck
 ### Task SR12.3: Prompt trajectory evidence
 
 **Files:**
+
 - Modify: `apps/zcode-cli/tools/prompt-trajectory/testcases/system-reminder-sources/...`
 - Modify: `apps/zcode-cli/worklogs/trajectory-align-log.md`
 

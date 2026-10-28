@@ -33,13 +33,13 @@ contracts ← core ← bootstrap ← cli
 
 ### 1.2 主要结构性问题 Top 5（按严重程度排序）
 
-| # | 问题 | 严重程度 | 影响 |
-|---|------|----------|------|
-| 1 | **AgentRuntime God Object**: 1 个类承载 90+ 方法、40+ 状态字段，通过 prototype 猴子补丁安装 | P0 | 任何修改都有连锁风险，无法独立测试 |
-| 2 | **Mixin via `this: AgentRuntimeInternal` 模式**: 30+ 方法文件全部绑定到同一巨大接口，形成"假拆分" | P0 | 拆了文件但没拆职责，所有方法共享全部状态 |
-| 3 | **contracts 与 core 类型定义重复**: `PermissionDecisionResult`、`ToolScheduleItem` 等在两处各定义一份，字段不一致 | P0 | 运行时类型不匹配的隐患 |
-| 4 | **deps.ts 集中重导出**: 209 行的重导出文件，让每个 methods 文件都能访问任何依赖 | P1 | 隐式耦合，无法看出真实依赖边界 |
-| 5 | **shared-types 包几乎空壳**: 仅 35 行，4 个类型，与 contracts 职责重叠 | P2 | 认知负担，新开发者不知该放哪个 |
+| #   | 问题                                                                                                              | 严重程度 | 影响                                     |
+| --- | ----------------------------------------------------------------------------------------------------------------- | -------- | ---------------------------------------- |
+| 1   | **AgentRuntime God Object**: 1 个类承载 90+ 方法、40+ 状态字段，通过 prototype 猴子补丁安装                       | P0       | 任何修改都有连锁风险，无法独立测试       |
+| 2   | **Mixin via `this: AgentRuntimeInternal` 模式**: 30+ 方法文件全部绑定到同一巨大接口，形成"假拆分"                 | P0       | 拆了文件但没拆职责，所有方法共享全部状态 |
+| 3   | **contracts 与 core 类型定义重复**: `PermissionDecisionResult`、`ToolScheduleItem` 等在两处各定义一份，字段不一致 | P0       | 运行时类型不匹配的隐患                   |
+| 4   | **deps.ts 集中重导出**: 209 行的重导出文件，让每个 methods 文件都能访问任何依赖                                   | P1       | 隐式耦合，无法看出真实依赖边界           |
+| 5   | **shared-types 包几乎空壳**: 仅 35 行，4 个类型，与 contracts 职责重叠                                            | P2       | 认知负担，新开发者不知该放哪个           |
 
 ### 1.3 建议的目标架构方向
 
@@ -126,7 +126,7 @@ contracts ← core ← bootstrap ← cli
   - `runtime/helpers/model-errors.ts`: 422 行
   - `runtime/helpers/turn-errors.ts`: 408 行
   - `agent/session-history-hydrator.ts`: 403 行
-  - 所有 runtime/methods/*.ts 文件（23 个）平均 300 行，但多个接近 400
+  - 所有 runtime/methods/\*.ts 文件（23 个）平均 300 行，但多个接近 400
 - **建议**: 按项目规范拆分
 
 #### 2.1.4 重构建议
@@ -247,7 +247,7 @@ export function evaluateRewindTarget()                     // → core/runtime/h
 
 ##### P1-6: model/runner 拆分过度 — 30 个文件但高度耦合
 
-- **证据**: `model/` 下有 `runner.ts`、`runner-generate.ts`、`runner-stream.ts`、`runner-retry.ts`、`runner-runtime.ts`、`runner-status.ts`、`runner-debug.ts`、`runner-diagnostics.ts`、`runner-normalization.ts`、`runner-options.ts`、`runner-record.ts` 等 12 个 runner-* 文件
+- **证据**: `model/` 下有 `runner.ts`、`runner-generate.ts`、`runner-stream.ts`、`runner-retry.ts`、`runner-runtime.ts`、`runner-status.ts`、`runner-debug.ts`、`runner-diagnostics.ts`、`runner-normalization.ts`、`runner-options.ts`、`runner-record.ts` 等 12 个 runner-\* 文件
 - **风险**: 拆分粒度过细导致跨文件追踪逻辑困难；runner.ts 仅 200 行但 orchestrate 其他 11 个文件
 - **建议**: 合并为 3-4 个内聚模块：`runner-core.ts`（主循环）、`runner-stream.ts`（流式处理）、`runner-retry.ts`（重试策略）、`runner-normalization.ts`（输入输出归一化）
 
@@ -304,7 +304,7 @@ export function evaluateRewindTarget()                     // → core/runtime/h
 - **风险**: TUI 层不应直接依赖业务核心层，应只依赖 contracts 中的类型
 - **建议**: TUI 通过 contracts 中的接口与 runtime 交互，不直接 import core 实现
 
-##### P2-4: app-*.ts 命名混乱
+##### P2-4: app-\*.ts 命名混乱
 
 - **证据**: 88 个 `app-*.ts` 文件，命名无层级
 - **风险**: 难以定位特定功能的代码
@@ -321,11 +321,11 @@ export function evaluateRewindTarget()                     // → core/runtime/h
 
 #### 2.6.2 问题清单
 
-##### P1-11: cli 包中 tui-* 文件过多
+##### P1-11: cli 包中 tui-\* 文件过多
 
-- **证据**: `cli/src/` 下有 `tui-command.ts`、`tui-command-data.ts`、`tui-command-state.ts`、`tui-login-state.ts`、`tui-prompt-handler.ts`、`tui-runtime-loader.ts`、`tui-startup-locale.ts`、`tui-stderr.ts`、`tui-submit-metadata.ts`、`tui-workflow-panel.ts`、`tui-workspace-git.ts`、`tui-workspace-paths.ts` 共 12 个 tui-* 文件
+- **证据**: `cli/src/` 下有 `tui-command.ts`、`tui-command-data.ts`、`tui-command-state.ts`、`tui-login-state.ts`、`tui-prompt-handler.ts`、`tui-runtime-loader.ts`、`tui-startup-locale.ts`、`tui-stderr.ts`、`tui-submit-metadata.ts`、`tui-workflow-panel.ts`、`tui-workspace-git.ts`、`tui-workspace-paths.ts` 共 12 个 tui-\* 文件
 - **风险**: CLI 包承担了本应在 tui 包中的职责
-- **建议**: 将 tui-* 文件移入 `@zcode/tui` 包，cli 只负责入口编排
+- **建议**: 将 tui-\* 文件移入 `@zcode/tui` 包，cli 只负责入口编排
 
 ##### P2-5: 测试文件过大
 
@@ -372,29 +372,30 @@ export function evaluateRewindTarget()                     // → core/runtime/h
 
 ### 3.1 Dead Code 候选列表
 
-| 候选 | 位置 | 判断依据 | 建议 |
-|------|------|----------|------|
-| `PermissionDecisionResult` (runtime/types.ts) | `runtime/types.ts:266` | 与 permission/service.ts 定义重复，且字段更少（4 vs 9），实际消费方使用 service.ts 版本 | 删除 runtime/types.ts 版本 |
-| `ToolScheduleItem` (turn-state.ts) | `agent/turn-state.ts:126` | 与 tool/scheduler.ts 定义重复，字段更少（3 vs 8） | 删除 turn-state.ts 版本 |
-| `core/src/output.ts` | `output.ts` | 仅导出 `color`, `formatJson`, `supportsColor`，这些是 CLI 层关注点 | 移到 cli 包或删除 |
-| `core/src/environment.ts` | `environment.ts` | 仅导出 `getRuntimeInfo`，返回值类型与 shared-types 中的 `RuntimeInfo` 重复 | 移到 bootstrap 或删除 |
-| `AgentRuntime` 声明合并中的 `PermissionDecisionResult` import | `agent-runtime.ts:79` | 从 deps 导入了 runtime/types.ts 版本，但实际应使用 permission/service.ts 版本 | 统一使用 contracts 版本 |
+| 候选                                                          | 位置                      | 判断依据                                                                                | 建议                       |
+| ------------------------------------------------------------- | ------------------------- | --------------------------------------------------------------------------------------- | -------------------------- |
+| `PermissionDecisionResult` (runtime/types.ts)                 | `runtime/types.ts:266`    | 与 permission/service.ts 定义重复，且字段更少（4 vs 9），实际消费方使用 service.ts 版本 | 删除 runtime/types.ts 版本 |
+| `ToolScheduleItem` (turn-state.ts)                            | `agent/turn-state.ts:126` | 与 tool/scheduler.ts 定义重复，字段更少（3 vs 8）                                       | 删除 turn-state.ts 版本    |
+| `core/src/output.ts`                                          | `output.ts`               | 仅导出 `color`, `formatJson`, `supportsColor`，这些是 CLI 层关注点                      | 移到 cli 包或删除          |
+| `core/src/environment.ts`                                     | `environment.ts`          | 仅导出 `getRuntimeInfo`，返回值类型与 shared-types 中的 `RuntimeInfo` 重复              | 移到 bootstrap 或删除      |
+| `AgentRuntime` 声明合并中的 `PermissionDecisionResult` import | `agent-runtime.ts:79`     | 从 deps 导入了 runtime/types.ts 版本，但实际应使用 permission/service.ts 版本           | 统一使用 contracts 版本    |
 
 ### 3.2 重复逻辑地图
 
-| 重复逻辑 | 位置 A | 位置 B | 差异 | 建议保留 |
-|----------|--------|--------|------|----------|
-| `PermissionDecisionResult` 类型 | `runtime/types.ts` | `permission/service.ts` | 字段数不同 | 移入 contracts，统一为一个 |
-| `ToolScheduleItem` 类型 | `agent/turn-state.ts` | `tool/scheduler.ts` | 字段数不同 | 移入 contracts，统一为一个 |
-| `estimateTokens` | `context/index.ts` | `compact/index.ts` | 可能实现不同 | 统一到 `context/token-estimator.ts` |
-| `formatLocalIsoDate` | `contracts/time/local-date.ts` | `runtime/helpers/` 使用 | 单一定义 | 保留 contracts 版本 |
-| Provider business error 解析 | `runtime/helpers/model-errors.ts` (422行) | `adapters/src/model/provider-finish-business-error.ts` | 两处都在解析 provider 业务错误 | 统一到 contracts 或 core |
+| 重复逻辑                        | 位置 A                                    | 位置 B                                                 | 差异                           | 建议保留                            |
+| ------------------------------- | ----------------------------------------- | ------------------------------------------------------ | ------------------------------ | ----------------------------------- |
+| `PermissionDecisionResult` 类型 | `runtime/types.ts`                        | `permission/service.ts`                                | 字段数不同                     | 移入 contracts，统一为一个          |
+| `ToolScheduleItem` 类型         | `agent/turn-state.ts`                     | `tool/scheduler.ts`                                    | 字段数不同                     | 移入 contracts，统一为一个          |
+| `estimateTokens`                | `context/index.ts`                        | `compact/index.ts`                                     | 可能实现不同                   | 统一到 `context/token-estimator.ts` |
+| `formatLocalIsoDate`            | `contracts/time/local-date.ts`            | `runtime/helpers/` 使用                                | 单一定义                       | 保留 contracts 版本                 |
+| Provider business error 解析    | `runtime/helpers/model-errors.ts` (422行) | `adapters/src/model/provider-finish-business-error.ts` | 两处都在解析 provider 业务错误 | 统一到 contracts 或 core            |
 
 ### 3.3 冗余模式
 
-**模式 1: 每个 methods/*.ts 函数都是 `this: AgentRuntimeInternal` 的方法**
+**模式 1: 每个 methods/\*.ts 函数都是 `this: AgentRuntimeInternal` 的方法**
 
 30+ 个函数文件全部声明 `this: AgentRuntimeInternal`，然后通过 `proto.xxx = xxx` 安装。这意味着：
+
 - 每个函数都能访问全部 40+ 状态字段
 - 每个函数都能调用全部 90+ 方法
 - 实际依赖只是其中一小部分
@@ -501,11 +502,11 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 - **验证**: `pnpm run typecheck` + `pnpm run test:unit`
 - **PR 粒度**: 2 个 PR
 
-#### P1-D: 将 cli 包中 tui-* 文件移入 tui 包
+#### P1-D: 将 cli 包中 tui-\* 文件移入 tui 包
 
 - **改动范围**: `cli/src/tui-*.ts`（12 个文件）、`@zcode/tui`
 - **迁移步骤**:
-  1. 识别 tui-* 文件中对 cli 包其他模块的依赖
+  1. 识别 tui-\* 文件中对 cli 包其他模块的依赖
   2. 通过接口/事件解耦
   3. 逐个迁移
 - **风险**: 低
@@ -535,14 +536,14 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 ### P2 — 风格与工程规范类（可逐步治理）
 
-| P2 项 | 改动范围 | PR 粒度 |
-|-------|----------|---------|
-| P2-A: 超 400 行文件拆分 | 8+ 文件 | 每个 1 PR |
-| P2-B: TUI app-*.ts 按子目录组织 | `@zcode/tui/src/` | 1 PR |
-| P2-C: adapters/model/runner-* 合并 | `adapters/src/model/runner-*.ts` | 1 PR |
-| P2-D: webfetch 9 文件合并为 3 | `core/src/tool/handlers/webfetch*.ts` | 1 PR |
-| P2-E: cli 测试文件拆分 | `cli/tests/cli.unit.test.ts` (4573行) | 1 PR |
-| P2-F: contracts/session-store.port.ts 拆分 | 750 行 | 1 PR |
+| P2 项                                      | 改动范围                              | PR 粒度   |
+| ------------------------------------------ | ------------------------------------- | --------- |
+| P2-A: 超 400 行文件拆分                    | 8+ 文件                               | 每个 1 PR |
+| P2-B: TUI app-\*.ts 按子目录组织           | `@zcode/tui/src/`                     | 1 PR      |
+| P2-C: adapters/model/runner-\* 合并        | `adapters/src/model/runner-*.ts`      | 1 PR      |
+| P2-D: webfetch 9 文件合并为 3              | `core/src/tool/handlers/webfetch*.ts` | 1 PR      |
+| P2-E: cli 测试文件拆分                     | `cli/tests/cli.unit.test.ts` (4573行) | 1 PR      |
+| P2-F: contracts/session-store.port.ts 拆分 | 750 行                                | 1 PR      |
 
 ---
 
@@ -595,14 +596,14 @@ core/src/
 
 ### 5.3 测试策略
 
-| 层级 | 当前 | 建议 |
-|------|------|------|
+| 层级      | 当前                  | 建议                     |
+| --------- | --------------------- | ------------------------ |
 | contracts | ~2K 行，主要测 schema | 补充 Port 接口兼容性测试 |
-| core | ~23K 行，集成测试为主 | 拆分后为每个服务补单测 |
-| adapters | ~12K 行 | 补充 model runner 单测 |
-| bootstrap | ~6.6K 行 | 补充组装逻辑单测 |
-| cli | ~5K 行 | 拆分 4573 行的测试文件 |
-| tui | ~5.5K 行 | 基本合理 |
+| core      | ~23K 行，集成测试为主 | 拆分后为每个服务补单测   |
+| adapters  | ~12K 行               | 补充 model runner 单测   |
+| bootstrap | ~6.6K 行              | 补充组装逻辑单测         |
+| cli       | ~5K 行                | 拆分 4573 行的测试文件   |
+| tui       | ~5.5K 行              | 基本合理                 |
 
 **关键建议**: AgentRuntime 拆分后，每个子服务（CompactManager、PersistenceService 等）都应有独立的单元测试，不再依赖 `this: AgentRuntimeInternal` 的隐式状态。
 
@@ -618,11 +619,11 @@ core/src/
 
 ## 附录: Quick Wins（可立即修复，无需架构调整）
 
-| # | 修复项 | 工作量 | 影响 |
-|---|--------|--------|------|
-| 1 | 删除 `runtime/types.ts` 中重复的 `PermissionDecisionResult`，统一使用 `permission/service.ts` 版本 | 0.5h | 消除类型不一致隐患 |
-| 2 | 删除 `turn-state.ts` 中重复的 `ToolScheduleItem`，统一使用 `scheduler.ts` 版本 | 0.5h | 消除类型不一致隐患 |
-| 3 | 将 `context-usage.ts` 中 `estimatedMetric`/`sumMetrics` 等纯函数提取为独立模块 | 1h | 减少 God Object 方法数 |
-| 4 | 将 `modelAdapter?: any` 改为 `modelAdapter?: ModelPort` | 2h | 恢复类型安全 |
-| 5 | 每个 methods 文件将 `import { ... } from "../deps.js"` 改为直接从 `@zcode/contracts` 导入 | 3h | 提升可读性 |
-| 6 | 合并 `shared-types` 到 `contracts` | 1h | 减少包数量 |
+| #   | 修复项                                                                                             | 工作量 | 影响                   |
+| --- | -------------------------------------------------------------------------------------------------- | ------ | ---------------------- |
+| 1   | 删除 `runtime/types.ts` 中重复的 `PermissionDecisionResult`，统一使用 `permission/service.ts` 版本 | 0.5h   | 消除类型不一致隐患     |
+| 2   | 删除 `turn-state.ts` 中重复的 `ToolScheduleItem`，统一使用 `scheduler.ts` 版本                     | 0.5h   | 消除类型不一致隐患     |
+| 3   | 将 `context-usage.ts` 中 `estimatedMetric`/`sumMetrics` 等纯函数提取为独立模块                     | 1h     | 减少 God Object 方法数 |
+| 4   | 将 `modelAdapter?: any` 改为 `modelAdapter?: ModelPort`                                            | 2h     | 恢复类型安全           |
+| 5   | 每个 methods 文件将 `import { ... } from "../deps.js"` 改为直接从 `@zcode/contracts` 导入          | 3h     | 提升可读性             |
+| 6   | 合并 `shared-types` 到 `contracts`                                                                 | 1h     | 减少包数量             |

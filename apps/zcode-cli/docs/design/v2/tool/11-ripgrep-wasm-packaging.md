@@ -33,19 +33,19 @@ Node adapter 依赖 `ripgrep@0.3.1`。该包以 ESM 形式导出 WASM ripgrep AP
 
 ## 搜索参数映射
 
-| `FileSystemSearchTextRequest` | ripgrep WASM 参数 |
-| --- | --- |
-| `pattern` | `-e <pattern>`，避免以 `-` 开头的 pattern 被解析为 flag。 |
-| `path` | 作为 WASI preopen root 下的搜索目标。 |
-| `glob` | `--glob <glob>`。 |
-| `type` | adapter 转换为 ripgrep `--glob` 扩展名过滤，并在解析结果后再次按 `matchesFileType` 校验，避免 ripgrep 内置 type 别名差异影响契约。 |
-| `ignoreCase` | `-i`。 |
-| `multiline` | `--multiline --multiline-dotall`。 |
-| `outputMode: "content"` | `--json`，解析 match/context event。 |
-| `outputMode: "files_with_matches"` | `--count`，再从非零 count 推导文件列表和匹配数。 |
-| `outputMode: "count"` | `--count`。 |
-| `beforeContext` / `afterContext` / `context` | `-B` / `-A` / `-C`。 |
-| VCS 目录 | adapter 追加排除 `.git`、`.svn`、`.hg`、`.bzr`、`.jj`、`.sl` 的 glob。 |
+| `FileSystemSearchTextRequest`                | ripgrep WASM 参数                                                                                                                  |
+| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `pattern`                                    | `-e <pattern>`，避免以 `-` 开头的 pattern 被解析为 flag。                                                                          |
+| `path`                                       | 作为 WASI preopen root 下的搜索目标。                                                                                              |
+| `glob`                                       | `--glob <glob>`。                                                                                                                  |
+| `type`                                       | adapter 转换为 ripgrep `--glob` 扩展名过滤，并在解析结果后再次按 `matchesFileType` 校验，避免 ripgrep 内置 type 别名差异影响契约。 |
+| `ignoreCase`                                 | `-i`。                                                                                                                             |
+| `multiline`                                  | `--multiline --multiline-dotall`。                                                                                                 |
+| `outputMode: "content"`                      | `--json`，解析 match/context event。                                                                                               |
+| `outputMode: "files_with_matches"`           | `--count`，再从非零 count 推导文件列表和匹配数。                                                                                   |
+| `outputMode: "count"`                        | `--count`。                                                                                                                        |
+| `beforeContext` / `afterContext` / `context` | `-B` / `-A` / `-C`。                                                                                                               |
+| VCS 目录                                     | adapter 追加排除 `.git`、`.svn`、`.hg`、`.bzr`、`.jj`、`.sl` 的 glob。                                                             |
 
 `headLimit` 和 `offset` 仍在 adapter 侧应用，保证三种输出模式的截断语义一致。
 

@@ -36,6 +36,7 @@ When the user provides a reference document (PDF/docx) as a **formatting templat
 ## Decision Tree
 
 ### Cover Page?
+
 - **YES**: Reports, theses, proposals, plans, or 3+ page docs with clear title/author
 - **NO**: Resumes, contracts, official documents, exam papers, short memos
 
@@ -45,22 +46,22 @@ Covers use **7 validated layout recipes (R1–R7)**, auto-selected by `selectCov
 
 **Quick Reference:**
 
-| docType | Recipe | Default Palette |
-|---------|--------|-----------------|
-| contract / official / exam / resume | null (no cover) | — |
-| academic | R5 (Clean White) | ACADEMIC |
-| proposal_report (thesis proposal) | R5 (Clean White) | ACADEMIC |
-| lesson_plan (STEM) | R4 (Top Color Block) | DM-1 |
-| lesson_plan (arts/general) | R6 (Editorial Warm) | ED-1 |
-| creative / branding / design | R3 (Centered Card Frame) | SN-2 |
-| cultural / newsletter / internal | R6 (Editorial Warm) | ED-1 |
-| activity / event | R6 (Editorial Warm) | ED-1 |
-| trend/research (cultural/creative/brand) | R7 (Swiss Tech) | ST-1 |
-| whitepaper | R2 (Double-Rule Frame) | IG-1 / CM-2 |
-| consulting | R2 (Double-Rule Frame) | MIN-1 |
-| proposal / plan | R4 (Top Color Block) | GO-1 |
-| report | R1 (Pure Paragraph Left) | by industry |
-| default | R1 (Pure Paragraph Left) | DS-1 |
+| docType                                  | Recipe                   | Default Palette |
+| ---------------------------------------- | ------------------------ | --------------- |
+| contract / official / exam / resume      | null (no cover)          | —               |
+| academic                                 | R5 (Clean White)         | ACADEMIC        |
+| proposal_report (thesis proposal)        | R5 (Clean White)         | ACADEMIC        |
+| lesson_plan (STEM)                       | R4 (Top Color Block)     | DM-1            |
+| lesson_plan (arts/general)               | R6 (Editorial Warm)      | ED-1            |
+| creative / branding / design             | R3 (Centered Card Frame) | SN-2            |
+| cultural / newsletter / internal         | R6 (Editorial Warm)      | ED-1            |
+| activity / event                         | R6 (Editorial Warm)      | ED-1            |
+| trend/research (cultural/creative/brand) | R7 (Swiss Tech)          | ST-1            |
+| whitepaper                               | R2 (Double-Rule Frame)   | IG-1 / CM-2     |
+| consulting                               | R2 (Double-Rule Frame)   | MIN-1           |
+| proposal / plan                          | R4 (Top Color Block)     | GO-1            |
+| report                                   | R1 (Pure Paragraph Left) | by industry     |
+| default                                  | R1 (Pure Paragraph Left) | DS-1            |
 
 ⚠️ **Long title routing:** After selecting recipe, apply `applyLongTitleOverride(result, titleLength)`. Titles >20 chars on R3/R4/R6 → fall back to R1. Titles >30 chars on R2 → fall back to R1. R5 is never overridden.
 
@@ -69,19 +70,23 @@ Covers use **7 validated layout recipes (R1–R7)**, auto-selected by `selectCov
 ⚠️ **Thesis proposal report (开题报告):** Use `buildProposalCover()` from `scenes/academic.md`. Cover MUST be an independent section. Keywords: "开题报告" (Chinese), "thesis proposal", "research proposal" — NOT the same as business proposals (which use R4).
 
 ### Table of Contents?
+
 - **YES**: 3+ major sections (H1 headings)
 - **NO**: Resumes, exam papers, short docs, contracts (<20 clauses)
 
 → See `references/toc.md` for the complete TOC reference (3-step process, code examples, common bugs).
 
 ### Headers/Footers?
+
 - **YES** by default (page numbers minimum)
 - **NO**: cover page section, official docs (special format)
 
 ### Load Math Formulas?
+
 When: exam papers, academic papers, physics/math/chemistry → load `references/math-formulas.md`
 
 ### Load Chart Templates?
+
 When: data visualization, reports with charts → load `references/chart-templates.md`
 
 ## Outline Rules
@@ -89,6 +94,7 @@ When: data visualization, reports with charts → load `references/chart-templat
 **User provides outline** → Follow EXACTLY. No additions, deletions, or reordering.
 
 **No outline** → Create from scene template:
+
 - **Academic:** Abstract → TOC → Body → References
 - **Report:** Use `selectReportType()` to determine type, then follow template A–F:
   - analysis → Template A (Executive Summary → Background → Scope & Method → Findings → Diagnosis → Conclusions)
@@ -113,6 +119,7 @@ When: data visualization, reports with charts → load `references/chart-templat
 ## Scene Completeness
 
 Include ALL elements a scene specifies:
+
 - **Academic thesis:** Cover (`buildAcademicCover()` in its own section), abstract, TOC, references
 - **Thesis proposal report (thesis proposal / 开题报告):** Cover (`buildProposalCover()` in its own section), body sections per proposal template. Cover MUST be a separate section.
 - **Report:** Cover, executive summary, conclusions
@@ -144,6 +151,7 @@ Generate complete, substantive content — not skeletons.
 → See SKILL.md § Post-Generation checklist for the full set of rules.
 
 Key rules:
+
 1. No double page breaks (SectionType.NEXT_PAGE + PageBreak = blank page)
 2. PageBreak paragraphs should have visible text content
 3. No more than 3 consecutive empty paragraphs
@@ -152,8 +160,17 @@ Key rules:
 ### Builder Pattern Example
 
 ```js
-const { Document, Packer, Paragraph, TextRun, Header, Footer,
-        AlignmentType, HeadingLevel, PageNumber } = require("docx");
+const {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Header,
+  Footer,
+  AlignmentType,
+  HeadingLevel,
+  PageNumber,
+} = require("docx");
 const fs = require("fs");
 
 // 1. Palette
@@ -165,7 +182,14 @@ function heading(text, level = HeadingLevel.HEADING_1) {
   return new Paragraph({
     heading: level,
     spacing: { before: level === HeadingLevel.HEADING_1 ? 360 : 240, after: 120 },
-    children: [new TextRun({ text, bold: true, color: c(P.primary), font: { ascii: "Calibri", eastAsia: "SimHei" } })]
+    children: [
+      new TextRun({
+        text,
+        bold: true,
+        color: c(P.primary),
+        font: { ascii: "Calibri", eastAsia: "SimHei" },
+      }),
+    ],
   });
 }
 
@@ -180,21 +204,43 @@ function body(text) {
 
 // 3. Assembly — cover + body in separate sections
 const doc = new Document({
-  styles: { default: { document: {
-    run: { font: { ascii: "Calibri", eastAsia: "Microsoft YaHei" }, size: 24, color: c(P.body) },
-    paragraph: { spacing: { line: 312 } },
-  }}},
+  styles: {
+    default: {
+      document: {
+        run: {
+          font: { ascii: "Calibri", eastAsia: "Microsoft YaHei" },
+          size: 24,
+          color: c(P.body),
+        },
+        paragraph: { spacing: { line: 312 } },
+      },
+    },
+  },
   sections: [
-    { properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
-      children: buildCoverR1(config) },  // ← use recipe from design-system.md
-    { properties: { page: { margin: { top: 1440, bottom: 1440, left: 1701, right: 1417 } } },
-      footers: { default: new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER,
-        children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })] })] }) },
-      children: [heading("Chapter 1"), body("Content...")] },
+    {
+      properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
+      children: buildCoverR1(config),
+    }, // ← use recipe from design-system.md
+    {
+      properties: { page: { margin: { top: 1440, bottom: 1440, left: 1701, right: 1417 } } },
+      footers: {
+        default: new Footer({
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })],
+            }),
+          ],
+        }),
+      },
+      children: [heading("Chapter 1"), body("Content...")],
+    },
   ],
 });
 
-Packer.toBuffer(doc).then(buf => { fs.writeFileSync("output.docx", buf); });
+Packer.toBuffer(doc).then((buf) => {
+  fs.writeFileSync("output.docx", buf);
+});
 ```
 
 ## Post-Generation
@@ -204,4 +250,5 @@ Packer.toBuffer(doc).then(buf => { fs.writeFileSync("output.docx", buf); });
 ```bash
 python3 "$DOCX_SCRIPTS/postcheck.py" output.docx
 ```
+
 ⚠️ **Running postcheck.py is MANDATORY.** Fix all ❌ errors before delivering.

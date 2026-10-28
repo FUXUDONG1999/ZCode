@@ -1,4 +1,4 @@
-import { defineCollection, z } from "astro:content"
+import { defineCollection, z } from "astro:content";
 
 const docs = defineCollection({
   type: "content",
@@ -15,8 +15,8 @@ const docs = defineCollection({
       })
       .optional(),
   }),
-})
+});
 
 export const collections = {
   docs,
-}
+};

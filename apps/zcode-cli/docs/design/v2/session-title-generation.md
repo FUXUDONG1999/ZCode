@@ -48,11 +48,11 @@ interface SessionInfo {
 
 SQLite `session` 表增加：
 
-| 字段 | 类型 | 说明 |
-| --- | --- | --- |
-| `title_source` | text not null default `first_input` | 标题来源。 |
-| `title_message_id` | text null | 生成/设置标题所依据的 user message。 |
-| `time_title_updated` | integer null | 标题最近更新时间。 |
+| 字段                 | 类型                                | 说明                                 |
+| -------------------- | ----------------------------------- | ------------------------------------ |
+| `title_source`       | text not null default `first_input` | 标题来源。                           |
+| `title_message_id`   | text null                           | 生成/设置标题所依据的 user message。 |
+| `time_title_updated` | integer null                        | 标题最近更新时间。                   |
 
 `SessionStorePort.updateSession` 支持标题 CAS：
 

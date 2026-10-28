@@ -1,6 +1,7 @@
 # Scene: Edit Existing Spreadsheet
 
 ## When This Applies
+
 User provides an existing .xlsx/.xlsm file and wants to modify it — fill data, fix formulas, beautify layout, add sheets, restructure.
 
 ## Core Principle: Preserve First
@@ -8,12 +9,15 @@ User provides an existing .xlsx/.xlsm file and wants to modify it — fill data,
 **Study the existing file before making ANY changes.** The original format, style, and conventions take absolute priority over default guidelines.
 
 ### VBA Preservation Rule
+
 When opening `.xlsm` files, **always** use `keep_vba=True`:
+
 ```python
 wb = load_workbook('file.xlsm', keep_vba=True)
 # Edit data/formatting as usual
 wb.save('output.xlsm')  # VBA modules preserved
 ```
+
 **Never** save a `.xlsm` as `.xlsx` unless the user explicitly requests macro removal. This silently destroys all VBA code.
 
 ## Workflow
@@ -118,6 +122,7 @@ from base import copy_style
 ## Common Edit Operations
 
 ### Fill / Complete Data
+
 ```python
 # Add data to empty cells while preserving existing formatting
 for row in range(start, end + 1):
@@ -129,6 +134,7 @@ for row in range(start, end + 1):
 ```
 
 ### Insert Rows / Columns
+
 ```python
 # Insert 3 rows at position 10
 ws.insert_rows(10, amount=3)
@@ -141,6 +147,7 @@ ws.insert_cols(4)
 **Warning**: Inserting/deleting rows can break chart references and named ranges. Verify after insertion.
 
 ### Restructure Data
+
 ```python
 # Move data from one layout to another
 # Read all data first, then rewrite
@@ -153,6 +160,7 @@ for row in ws.iter_rows(min_row=2, values_only=True):
 ```
 
 ### Fix Formulas
+
 ```python
 # Find cells with errors (after recalc)
 wb_data = load_workbook('input.xlsx', data_only=True)
@@ -178,14 +186,14 @@ When the user asks to "make it look better" or "format nicely":
 
 ## ⚠️ Dangerous Operations
 
-| Operation | Risk | Mitigation |
-|-----------|------|-----------|
-| `load_workbook(data_only=True)` then save | Formulas permanently lost | Never save after data_only read |
-| Delete rows/cols with formula dependencies | #REF! errors | Run audit after deletion |
-| Modify pivot table output with openpyxl | Corrupt pivotCache | Never — regenerate via xlsx.py pivot |
-| Overwrite merged cells | Layout breaks | Check `ws.merged_cells.ranges` first |
-| Manual row sort (swap row data) | Formulas still reference old row numbers | **Regenerate formula strings with target row number** (see Common Patterns → Sort with Formula Rewrite) |
-| Write SUM formula → verify with data_only | Get `None` — formula not evaluated | Compute value in Python for verification; write computed value or use recalc |
+| Operation                                  | Risk                                     | Mitigation                                                                                              |
+| ------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `load_workbook(data_only=True)` then save  | Formulas permanently lost                | Never save after data_only read                                                                         |
+| Delete rows/cols with formula dependencies | #REF! errors                             | Run audit after deletion                                                                                |
+| Modify pivot table output with openpyxl    | Corrupt pivotCache                       | Never — regenerate via xlsx.py pivot                                                                    |
+| Overwrite merged cells                     | Layout breaks                            | Check `ws.merged_cells.ranges` first                                                                    |
+| Manual row sort (swap row data)            | Formulas still reference old row numbers | **Regenerate formula strings with target row number** (see Common Patterns → Sort with Formula Rewrite) |
+| Write SUM formula → verify with data_only  | Get `None` — formula not evaluated       | Compute value in Python for verification; write computed value or use recalc                            |
 
 ---
 

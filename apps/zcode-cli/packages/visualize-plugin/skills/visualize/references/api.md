@@ -55,7 +55,13 @@ The host installs the bridge before your fragment's scripts run. Do not load ano
 Prefer a normal link for navigation:
 
 ```html
-<a class="btn btn-primary" href="https://example.com/subscribe" target="_blank" rel="noopener noreferrer">Subscribe</a>
+<a
+  class="btn btn-primary"
+  href="https://example.com/subscribe"
+  target="_blank"
+  rel="noopener noreferrer"
+  >Subscribe</a
+>
 ```
 
 The inline host opens the destination through the current client's browser entrypoint and keeps the card in place. `target` does not choose a particular browser or tab. Use an absolute `http:` or `https:` URL; `#fragment` links remain within the page. Downloads and other protocols are unsupported.

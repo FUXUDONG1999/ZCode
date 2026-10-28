@@ -13,13 +13,13 @@
 
 输出过程不是一个单层状态机，而是五层状态并行推进：
 
-| 层级 | 主要状态 | 事实来源 | 消费者 |
-| --- | --- | --- | --- |
-| Session projection | `idle`、`running`、`waiting`、`paused`、`completed`、`error` | `EventReducer` 从 `SessionEvent` 重建 | TUI、ZCode app-server、debug panel、session list |
-| Turn phase | `processing_input`、`awaiting_model_response`、`streaming`、`scheduling_tools`、`executing_tools`、`awaiting_permission`、`aggregating_results`、`completing`、`error` | `TurnMachine` 内存状态 | runtime 控制流、错误归属 |
-| Model stream part | `start`、`text_delta`、`reasoning_delta`、`tool_input_delta`、`tool_call`、`finish`、`error` | `model_streaming` 事件 | TUI live assistant text、debug timeline |
-| Tool call | `scheduled`、`waiting_permission`、`running`、`completed`、`failed`、`permission_denied` | `ToolExecutor` 事件和 `TurnMachine` | tool progress、message history、artifact |
-| Background task | `running`、`completed`、`failed`、`timed_out`、`cancelled`、`spawn_error`、`lost` | `background_task_*` 事件 | TUI long-running task view、debug |
+| 层级               | 主要状态                                                                                                                                                               | 事实来源                              | 消费者                                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------ |
+| Session projection | `idle`、`running`、`waiting`、`paused`、`completed`、`error`                                                                                                           | `EventReducer` 从 `SessionEvent` 重建 | TUI、ZCode app-server、debug panel、session list |
+| Turn phase         | `processing_input`、`awaiting_model_response`、`streaming`、`scheduling_tools`、`executing_tools`、`awaiting_permission`、`aggregating_results`、`completing`、`error` | `TurnMachine` 内存状态                | runtime 控制流、错误归属                         |
+| Model stream part  | `start`、`text_delta`、`reasoning_delta`、`tool_input_delta`、`tool_call`、`finish`、`error`                                                                           | `model_streaming` 事件                | TUI live assistant text、debug timeline          |
+| Tool call          | `scheduled`、`waiting_permission`、`running`、`completed`、`failed`、`permission_denied`                                                                               | `ToolExecutor` 事件和 `TurnMachine`   | tool progress、message history、artifact         |
+| Background task    | `running`、`completed`、`failed`、`timed_out`、`cancelled`、`spawn_error`、`lost`                                                                                      | `background_task_*` 事件              | TUI long-running task view、debug                |
 
 设计上应避免把这些状态压扁成一个枚举。推荐做法是：`SessionEvent` 作为事实，`TurnMachine` 管转移合法性，UI 只做投影。
 
@@ -112,11 +112,11 @@ stateDiagram-v2
 
 `ToolScheduler` 产出的是执行计划，不是工具生命周期。计划由三部分组成：
 
-| 字段 | 含义 |
-| --- | --- |
-| `items` | 每个 tool call 的调度条目，包含依赖、是否可并行、只读/破坏性/副作用信息 |
-| `parallelGroups` | 按批次执行的 tool call id 列表，组内可并发，组间串行 |
-| `executionOrder` | `parallelGroups.flat()` 后的模型可解释顺序 |
+| 字段             | 含义                                                                    |
+| ---------------- | ----------------------------------------------------------------------- |
+| `items`          | 每个 tool call 的调度条目，包含依赖、是否可并行、只读/破坏性/副作用信息 |
+| `parallelGroups` | 按批次执行的 tool call id 列表，组内可并发，组间串行                    |
+| `executionOrder` | `parallelGroups.flat()` 后的模型可解释顺序                              |
 
 当前 runtime 传给 scheduler 的 `dependsOn` 还是空数组，依赖能力已经在 scheduler 里存在，但还没有暴露为模型可声明的依赖协议。实际分组主要由 tool 契约决定：
 
@@ -164,14 +164,14 @@ stateDiagram-v2
 
 需要注意：代码里同一件事目前有多套名称。
 
-| 语义 | TurnMachine | Session projection | persisted message part | SessionEvent |
-| --- | --- | --- | --- | --- |
-| 已排队 | `scheduled` | `pending` | `pending` | `tool_call_scheduled` |
-| 等审批 | `waiting_permission` | `pendingPermissions[]` | 仍可显示为 `pending` | `permission_requested` |
-| 执行中 | `running` | `running` | `running` | `tool_call_started` |
-| 成功 | `completed` | `completed` 后通常被 batch 移除 | `completed` | `tool_call_result` |
-| 执行失败 | `failed` | `failed` 后通常被 batch 移除 | `error` | `tool_call_error` 或失败 result |
-| 权限拒绝 | `permission_denied` | `denied` | `error` 或拒绝结果 | `permission_denied` / `permission_resolved` |
+| 语义     | TurnMachine          | Session projection              | persisted message part | SessionEvent                                |
+| -------- | -------------------- | ------------------------------- | ---------------------- | ------------------------------------------- |
+| 已排队   | `scheduled`          | `pending`                       | `pending`              | `tool_call_scheduled`                       |
+| 等审批   | `waiting_permission` | `pendingPermissions[]`          | 仍可显示为 `pending`   | `permission_requested`                      |
+| 执行中   | `running`            | `running`                       | `running`              | `tool_call_started`                         |
+| 成功     | `completed`          | `completed` 后通常被 batch 移除 | `completed`            | `tool_call_result`                          |
+| 执行失败 | `failed`             | `failed` 后通常被 batch 移除    | `error`                | `tool_call_error` 或失败 result             |
+| 权限拒绝 | `permission_denied`  | `denied`                        | `error` 或拒绝结果     | `permission_denied` / `permission_resolved` |
 
 这张表是 UI 和 debug 视图应该使用的翻译层。不要要求所有底层枚举立即同名，但新事件和新 UI 文案应尽量沿用“pending / waiting permission / running / completed / failed / denied”这组用户可见词。
 
@@ -179,24 +179,24 @@ stateDiagram-v2
 
 下面是一次“模型输出 tool call，tool 执行后继续模型输出最终答案”的典型序列：
 
-| 顺序 | 事件 | Turn phase | 用户可见状态 |
-| --- | --- | --- | --- |
-| 1 | `turn_started` | `processing_input` | 收到输入，开始处理 |
-| 2 | `model_request` | `awaiting_model_response` | Calling model |
-| 3 | `model_streaming(start/text_delta/reasoning_delta)` | `streaming` | Assistant 正在输出 |
-| 4 | `model_streaming(tool_input_delta/tool_call)` | `streaming` | 模型正在生成 tool call |
-| 5 | `model_complete` | `streaming` | 本次模型 step 完成 |
-| 6 | `tool_call_scheduled` | `scheduling_tools` | Tool pending |
-| 7 | `permission_requested` 可选 | `awaiting_permission` | 等待用户批准 |
-| 8 | `permission_resolved` 可选 | `executing_tools` | 用户已批准或修改 |
-| 9 | `tool_call_started` | `executing_tools` | Tool running |
-| 10 | `tool_call_result` / `tool_call_error` | `executing_tools` | Tool completed / failed |
-| 11 | `tool_batch_complete` | `aggregating_results` | 当前批次结束 |
-| 12 | tool result 注入 `MessageHistory` | `aggregating_results` | 准备下一次模型请求 |
-| 13 | 回到 `model_request` | `awaiting_model_response` | Calling model |
-| 14 | `model_streaming(text_delta)` | `streaming` | Assistant 继续输出最终答案 |
-| 15 | `model_complete` | `streaming` | 模型完成 |
-| 16 | `turn_complete` | `completing` | 本轮完成 |
+| 顺序 | 事件                                                | Turn phase                | 用户可见状态               |
+| ---- | --------------------------------------------------- | ------------------------- | -------------------------- |
+| 1    | `turn_started`                                      | `processing_input`        | 收到输入，开始处理         |
+| 2    | `model_request`                                     | `awaiting_model_response` | Calling model              |
+| 3    | `model_streaming(start/text_delta/reasoning_delta)` | `streaming`               | Assistant 正在输出         |
+| 4    | `model_streaming(tool_input_delta/tool_call)`       | `streaming`               | 模型正在生成 tool call     |
+| 5    | `model_complete`                                    | `streaming`               | 本次模型 step 完成         |
+| 6    | `tool_call_scheduled`                               | `scheduling_tools`        | Tool pending               |
+| 7    | `permission_requested` 可选                         | `awaiting_permission`     | 等待用户批准               |
+| 8    | `permission_resolved` 可选                          | `executing_tools`         | 用户已批准或修改           |
+| 9    | `tool_call_started`                                 | `executing_tools`         | Tool running               |
+| 10   | `tool_call_result` / `tool_call_error`              | `executing_tools`         | Tool completed / failed    |
+| 11   | `tool_batch_complete`                               | `aggregating_results`     | 当前批次结束               |
+| 12   | tool result 注入 `MessageHistory`                   | `aggregating_results`     | 准备下一次模型请求         |
+| 13   | 回到 `model_request`                                | `awaiting_model_response` | Calling model              |
+| 14   | `model_streaming(text_delta)`                       | `streaming`               | Assistant 继续输出最终答案 |
+| 15   | `model_complete`                                    | `streaming`               | 模型完成                   |
+| 16   | `turn_complete`                                     | `completing`              | 本轮完成                   |
 
 ## 状态边界建议
 
@@ -204,14 +204,14 @@ stateDiagram-v2
 
 `SessionStatus` 只表达粗粒度会话状态，不承载细节：
 
-| 状态 | 建议语义 |
-| --- | --- |
-| `idle` | 没有正在执行的 turn 或后台交互 |
-| `running` | 至少一个 turn 正在推进 |
-| `waiting` | turn 正在等待用户或外部系统，不消耗模型/tool 执行 |
-| `paused` | 用户主动暂停，可恢复 |
-| `completed` | session 被显式结束或归档前的完成态 |
-| `error` | 最近一次 turn 以错误结束 |
+| 状态        | 建议语义                                          |
+| ----------- | ------------------------------------------------- |
+| `idle`      | 没有正在执行的 turn 或后台交互                    |
+| `running`   | 至少一个 turn 正在推进                            |
+| `waiting`   | turn 正在等待用户或外部系统，不消耗模型/tool 执行 |
+| `paused`    | 用户主动暂停，可恢复                              |
+| `completed` | session 被显式结束或归档前的完成态                |
+| `error`     | 最近一次 turn 以错误结束                          |
 
 当前 reducer 已落地 `idle`、`running`、`error` 的主线语义。`tool_batch_complete` 只表示当前并行工具组结束，会从 projection 移除对应 `activeToolCalls`，但不会把 session 从 `running` 切回 `idle`；只有 `turn_complete` 才结束本轮并回到 `idle`。`waiting`、`paused`、`completed` 仍是保留状态，后续接入交互 permission、pause/resume、archive 时再激活。
 

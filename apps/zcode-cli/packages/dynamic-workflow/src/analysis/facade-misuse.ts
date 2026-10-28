@@ -119,7 +119,10 @@ export function collectFacadeMisuse(
       // renamed, nested, or parameter): the container is the binding pattern's type, and a
       // renamed element carries the source property name, a shorthand its own bound name.
       flagExtractedMember(node.propertyName ?? node.name, checker.getTypeAtLocation(node.parent));
-    } else if (ts.isShorthandPropertyAssignment(node) && ts.isBinaryExpression(node.parent.parent)) {
+    } else if (
+      ts.isShorthandPropertyAssignment(node) &&
+      ts.isBinaryExpression(node.parent.parent)
+    ) {
       // Destructuring ASSIGNMENT `({ ask } = planner)`: the object literal is the assignment
       // target (its LHS), and the source property lives on the right-hand side's type.
       const assign = node.parent.parent;

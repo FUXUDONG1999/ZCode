@@ -9,12 +9,14 @@ Also load `engines/vba-templates.md` for ready-to-use code templates.
 ## Core Principles
 
 ### 1. Safety First
+
 - **Never** generate VBA that deletes files, accesses filesystem outside the workbook, or sends data to external URLs without explicit user request
 - **Always** include error handling (`On Error GoTo`)
 - **Always** add `Application.ScreenUpdating` toggle for performance
 - Generated macros must be **read-audit-friendly**: clear naming, comments, structured layout
 
 ### 2. openpyxl VBA Workflow
+
 openpyxl can read/preserve/inject VBA but **cannot execute** it. The workflow:
 
 ```python
@@ -32,11 +34,12 @@ wb.save('output.xlsm')
 ```
 
 ### 3. File Format Rules
-| Need | Format | Extension |
-|------|--------|-----------|
-| Data only, no macros | OpenXML | `.xlsx` |
-| Contains VBA macros | Macro-Enabled | `.xlsm` |
-| Binary with macros | Binary | `.xlsb` |
+
+| Need                 | Format        | Extension |
+| -------------------- | ------------- | --------- |
+| Data only, no macros | OpenXML       | `.xlsx`   |
+| Contains VBA macros  | Macro-Enabled | `.xlsm`   |
+| Binary with macros   | Binary        | `.xlsb`   |
 
 **Critical**: If user gives `.xlsx` but wants macros → output must be `.xlsm`. Always warn about format change.
 
@@ -64,14 +67,14 @@ Public Sub Main()
     On Error GoTo ErrHandler
     Application.ScreenUpdating = False
     Application.Calculation = xlCalculationManual
-    
+
     ' [Main logic here]
-    
+
 CleanUp:
     Application.ScreenUpdating = True
     Application.Calculation = xlCalculationAutomatic
     Exit Sub
-    
+
 ErrHandler:
     MsgBox "Error in " & MODULE_NAME & ": " & Err.Description, _
            vbCritical, "Error"
@@ -80,16 +83,18 @@ End Sub
 ```
 
 ### Naming Conventions
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Sub/Function | PascalCase | `GenerateMonthlyReport` |
-| Variable | camelCase | `lastRow`, `wsData` |
-| Constant | UPPER_SNAKE | `MAX_ROWS`, `REPORT_TITLE` |
-| Module | PascalCase | `ModReport`, `ModUtils` |
-| Worksheet variable | ws + Name | `wsData`, `wsSummary` |
-| Range variable | rng + Desc | `rngData`, `rngHeaders` |
+
+| Element            | Convention  | Example                    |
+| ------------------ | ----------- | -------------------------- |
+| Sub/Function       | PascalCase  | `GenerateMonthlyReport`    |
+| Variable           | camelCase   | `lastRow`, `wsData`        |
+| Constant           | UPPER_SNAKE | `MAX_ROWS`, `REPORT_TITLE` |
+| Module             | PascalCase  | `ModReport`, `ModUtils`    |
+| Worksheet variable | ws + Name   | `wsData`, `wsSummary`      |
+| Range variable     | rng + Desc  | `rngData`, `rngHeaders`    |
 
 ### Variable Declaration Rules
+
 ```vba
 ' Always use explicit types
 Dim lastRow As Long          ' Not Integer (row limit)
@@ -106,6 +111,7 @@ Dim dblAmount As Double
 ## Common Patterns
 
 ### Find Last Row/Column (Robust)
+
 ```vba
 ' Last row with data in column A
 Dim lastRow As Long
@@ -121,6 +127,7 @@ usedRows = ws.UsedRange.Rows.Count
 ```
 
 ### Loop Through Data
+
 ```vba
 ' Row loop
 Dim i As Long
@@ -140,6 +147,7 @@ Next cell
 ```
 
 ### Sheet Operations
+
 ```vba
 ' Reference sheet safely
 Dim ws As Worksheet
@@ -164,6 +172,7 @@ End If
 ```
 
 ### User Interaction
+
 ```vba
 ' Simple input
 Dim userInput As String
@@ -187,6 +196,7 @@ If filePath = False Then Exit Sub
 ## VBA Injection via openpyxl
 
 ### Method 1: Preserve Existing VBA
+
 ```python
 # Open with VBA preserved
 wb = load_workbook('source.xlsm', keep_vba=True)
@@ -195,6 +205,7 @@ wb.save('output.xlsm')  # VBA modules intact
 ```
 
 ### Method 2: Copy VBA from Template
+
 ```python
 # Use a template .xlsm that already has the VBA you need
 import shutil
@@ -205,6 +216,7 @@ wb.save('output.xlsm')
 ```
 
 ### Method 3: Manual vbaProject.bin Injection
+
 ```python
 # For advanced use: inject raw vbaProject.bin
 # 1. Create your VBA in Excel, save as .xlsm
@@ -223,7 +235,7 @@ wb.save('temp.xlsx')
 shutil.copy('temp.xlsx', 'output.xlsm')
 with zipfile.ZipFile('output.xlsm', 'a') as zf:
     zf.write('vbaProject.bin', 'xl/vbaProject.bin')
-    
+
 # Update [Content_Types].xml to register VBA
 # (This is fragile — Method 1 or 2 preferred)
 ```
@@ -264,6 +276,7 @@ Application.ScreenUpdating = True
 ```
 
 ### Array-Based Processing (for large data)
+
 ```vba
 ' Read range into array — much faster than cell-by-cell
 Dim data As Variant

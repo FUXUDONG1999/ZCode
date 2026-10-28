@@ -258,8 +258,8 @@ class ZCodeMcpAuthorizationCodeProvider implements OAuthClientProvider {
       publishedGeneration: published.generation.slice(0, 12),
       refreshTokenRotated: Boolean(
         previousTokens?.refresh_token &&
-          tokens.refresh_token &&
-          previousTokens.refresh_token !== tokens.refresh_token,
+        tokens.refresh_token &&
+        previousTokens.refresh_token !== tokens.refresh_token,
       ),
       status: "completed",
       tokenExpiresInSeconds: tokens.expires_in,
@@ -491,7 +491,6 @@ class ZCodeMcpAuthorizationCodeProvider implements OAuthClientProvider {
     this.storedCredentialPairLoaded = true;
     return this.storedCredentialPair;
   }
-
 
   private resetCredentialSnapshots(): void {
     this.canonicalSnapshot = undefined;

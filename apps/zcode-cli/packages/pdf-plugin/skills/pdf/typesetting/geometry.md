@@ -7,6 +7,7 @@
 ## What Are Visual Anchors
 
 Visual anchors are **non-functional decorative elements** on a page, used to:
+
 - Break the flatness of text-only / data-only layouts
 - Establish a visual center of gravity on the page
 - Convey abstract qualities and design intent
@@ -18,14 +19,14 @@ Visual anchors are **non-functional decorative elements** on a page, used to:
 
 ## Basic Shape Vocabulary
 
-| Shape | SVG | Mood / Character |
-|-------|-----|-----------------|
-| Circle | `<circle>` | Wholeness, inclusivity, softness |
-| Semicircle | `<path d="M0,50 A50,50 0 0,1 100,50">` | Rising, gradual, metaphorical |
-| Triangle | `<polygon>` | Direction, sharpness, modern |
-| Rectangle | `<rect>` | Stability, order, architectural |
-| Line | `<line>` | Connection, guidance, minimalism |
-| Arc | `<path>` + Bézier | Flow, elegance, organic |
+| Shape      | SVG                                    | Mood / Character                 |
+| ---------- | -------------------------------------- | -------------------------------- |
+| Circle     | `<circle>`                             | Wholeness, inclusivity, softness |
+| Semicircle | `<path d="M0,50 A50,50 0 0,1 100,50">` | Rising, gradual, metaphorical    |
+| Triangle   | `<polygon>`                            | Direction, sharpness, modern     |
+| Rectangle  | `<rect>`                               | Stability, order, architectural  |
+| Line       | `<line>`                               | Connection, guidance, minimalism |
+| Arc        | `<path>` + Bézier                      | Flow, elegance, organic          |
 
 ---
 
@@ -113,12 +114,12 @@ Intentional combination of different shapes, like an architectural plan.
 
 ## Placement Guide
 
-| Context | Recommended Position | Recommended Size | Pattern |
-|---------|---------------------|-----------------|---------|
-| Cover | Top-right / bottom-left offset | 120-200px | Offset Stacking, Geometric Collage |
-| Chapter divider | Page center | 80-120px | Scale Contrast, Arc Flow |
-| Header / footer decoration | Corners | 30-50px | Small offset, single circle + line |
-| Whitespace fill | Alongside content | 60-100px | Grid Intersection |
+| Context                    | Recommended Position           | Recommended Size | Pattern                            |
+| -------------------------- | ------------------------------ | ---------------- | ---------------------------------- |
+| Cover                      | Top-right / bottom-left offset | 120-200px        | Offset Stacking, Geometric Collage |
+| Chapter divider            | Page center                    | 80-120px         | Scale Contrast, Arc Flow           |
+| Header / footer decoration | Corners                        | 30-50px          | Small offset, single circle + line |
+| Whitespace fill            | Alongside content              | 60-100px         | Grid Intersection                  |
 
 ---
 

@@ -5,6 +5,7 @@
 > **This is the "too much content" side.** For the mirror problem ("too little content" / empty pages), see `typesetting/fill-engine.md` — the anti-void adaptive engine.
 >
 > Related:
+>
 > - `fill-engine.md` — Anti-void engine (font floor, fill ratio, paragraph inflation, Y-axis anchoring)
 > - `pagination.md` — Pagination & cross-page integrity
 
@@ -82,6 +83,7 @@ doc = SimpleDocTemplate(
 ## 2. Text Overflow: Font Metrics Pre-Calculation
 
 ### The Wrong Way
+
 ```python
 # ❌ NEVER estimate by character count
 if len(text) > 20:
@@ -89,6 +91,7 @@ if len(text) > 20:
 ```
 
 ### The Right Way — ReportLab
+
 ```python
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.platypus import Paragraph
@@ -112,12 +115,14 @@ else:
 ```
 
 ### Key Rules
+
 - **Always use `Paragraph()` for table cell content** — plain strings don't wrap and will overflow
 - **CJK text is wider**: Budget ~12pt per character at 10pt font size (vs ~6pt for Latin)
 - **URLs and long strings**: If a single "word" exceeds column width, enable `wordWrap='CJK'` or split manually
 - **Hyphenation**: For English text, consider `pyphen` for proper hyphenation of long words
 
 ### The Right Way — LaTeX
+
 ```latex
 % Use tabularx for auto-wrapping columns
 \usepackage{tabularx}
@@ -131,9 +136,13 @@ else:
 ```
 
 ### The Right Way — Playwright/HTML
+
 ```css
 /* Global text overflow prevention */
-p, td, li, .content {
+p,
+td,
+li,
+.content {
   overflow-wrap: break-word;
   word-break: break-word;
   hyphens: auto;
@@ -150,7 +159,7 @@ body {
    Multi-line td should use overflow-wrap: break-word, not overflow: hidden,
    otherwise text gets truncated. Especially important in Playwright PDFs. */
 td {
-  max-width: 0;          /* Forces column to respect assigned width */
+  max-width: 0; /* Forces column to respect assigned width */
   overflow: hidden;
   text-overflow: ellipsis; /* Only for single-line cells */
 }
@@ -165,6 +174,7 @@ td {
 > **Never insert an image or chart at its original dimensions. Always compute fit-to-container scaling.**
 
 ### ReportLab Pattern
+
 ```python
 from reportlab.platypus import Image
 from reportlab.lib.units import mm
@@ -190,6 +200,7 @@ story.append(img)
 ```
 
 ### LaTeX Pattern
+
 ```latex
 \usepackage{adjustbox}
 
@@ -203,12 +214,15 @@ story.append(img)
 ```
 
 ### Playwright/HTML Pattern
+
 ```css
-img, svg, .chart-container {
+img,
+svg,
+.chart-container {
   max-width: 100%;
-  max-height: 45vh;    /* Prevent one image from eating an entire page */
+  max-height: 45vh; /* Prevent one image from eating an entire page */
   height: auto;
-  object-fit: contain;  /* Preserve aspect ratio */
+  object-fit: contain; /* Preserve aspect ratio */
 }
 ```
 
@@ -225,28 +239,35 @@ img, svg, .chart-container {
 ### Iron Rules (Direct HTML Flow)
 
 **Rule 3.5.1 — Mandatory `flex-wrap` for ≥3 inline items:**
+
 ```css
 /* Any horizontal row with 3+ children MUST have flex-wrap */
-.flow-bar, .step-row, .tag-row, .icon-grid {
+.flow-bar,
+.step-row,
+.tag-row,
+.icon-grid {
   display: flex;
-  flex-wrap: wrap;          /* MANDATORY for 3+ items */
-  gap: 12px;                /* Consistent spacing */
-  max-width: 100%;          /* Never exceed container */
+  flex-wrap: wrap; /* MANDATORY for 3+ items */
+  gap: 12px; /* Consistent spacing */
+  max-width: 100%; /* Never exceed container */
 }
 ```
 
 **Rule 3.5.2 — Flex children must have `min-width` + `flex-shrink`:**
+
 ```css
-.flow-step, .tag-item {
-  flex: 1 1 auto;           /* Grow, shrink, auto basis */
-  min-width: 80px;          /* Prevent crushing to 0 */
-  max-width: 100%;          /* Never exceed container alone */
+.flow-step,
+.tag-item {
+  flex: 1 1 auto; /* Grow, shrink, auto basis */
+  min-width: 80px; /* Prevent crushing to 0 */
+  max-width: 100%; /* Never exceed container alone */
   overflow-wrap: break-word; /* Break long words */
-  word-break: break-all;    /* CJK fallback */
+  word-break: break-all; /* CJK fallback */
 }
 ```
 
 **Rule 3.5.3 — Arrow/connector separators must not be rigid:**
+
 ```css
 /* ❌ WRONG — rigid arrow div between flex items */
 <div class="step">Step 1</div>
@@ -255,7 +276,7 @@ img, svg, .chart-container {
 
 /* ✅ RIGHT — arrow as pseudo-element, doesn't affect flex layout */
 .flow-step + .flow-step::before {
-  content: '→';
+  content: "→";
   margin: 0 8px;
   color: #999;
   flex-shrink: 0;
@@ -264,16 +285,17 @@ img, svg, .chart-container {
 
 **Rule 3.5.4 — Threshold-based layout switching:**
 
-| Item count | Recommended layout | Notes |
-|------------|-------------------|-------|
-| 1-3 items | Horizontal flex (no wrap needed if items are short) | Still add `max-width: 100%` on container |
-| 4-6 items | Horizontal flex + `flex-wrap: wrap` | Items may wrap to 2 rows |
-| 7+ items | Vertical stack or CSS Grid 2×N | Horizontal becomes unreadable |
-| Items with long text (>15 CJK chars / >25 Latin chars) | Vertical stack regardless of count | Long labels don't fit side-by-side |
+| Item count                                             | Recommended layout                                  | Notes                                    |
+| ------------------------------------------------------ | --------------------------------------------------- | ---------------------------------------- |
+| 1-3 items                                              | Horizontal flex (no wrap needed if items are short) | Still add `max-width: 100%` on container |
+| 4-6 items                                              | Horizontal flex + `flex-wrap: wrap`                 | Items may wrap to 2 rows                 |
+| 7+ items                                               | Vertical stack or CSS Grid 2×N                      | Horizontal becomes unreadable            |
+| Items with long text (>15 CJK chars / >25 Latin chars) | Vertical stack regardless of count                  | Long labels don't fit side-by-side       |
 
 ### Quick Self-Check
 
 Before generating any horizontal flex layout, verify:
+
 ```
 □ Container has max-width: 100% (or explicit width ≤ page width)?
 □ flex-wrap: wrap is set (if ≥3 items)?
@@ -359,6 +381,7 @@ def build_safe_table(data, available_width, font_name='Microsoft YaHei', font_si
 ```
 
 ### LaTeX Table Width Management
+
 ```latex
 % For tables that MUST fit single column
 \begin{tabularx}{\columnwidth}{l X X r}  % X = flexible width columns
@@ -432,11 +455,11 @@ See `academic.md` Rules M1–M4 for full patterns.
 
 ### ⚠️ `\columnwidth` vs `\textwidth` in Two-Column Layouts
 
-| Context | `\columnwidth` | `\textwidth` |
-|---------|---------------|-------------|
-| Single-column doc | = page content width | = page content width (same) |
-| Two-column doc (`table` float) | = **one column** (~252pt) | = **full page** (~504pt) |
-| Two-column doc (`table*` float) | = one column | = full page |
+| Context                         | `\columnwidth`            | `\textwidth`                |
+| ------------------------------- | ------------------------- | --------------------------- |
+| Single-column doc               | = page content width      | = page content width (same) |
+| Two-column doc (`table` float)  | = **one column** (~252pt) | = **full page** (~504pt)    |
+| Two-column doc (`table*` float) | = one column              | = full page                 |
 
 **Rule:** Inside `table` (single-col float), ALWAYS use `\columnwidth`. Inside `table*` (full-width float), use `\textwidth`.
 
@@ -450,16 +473,17 @@ When content doesn't fit even after wrapping and scaling, apply these strategies
 
 ### Automatic Degradation Ladder
 
-| Step | Strategy | Limit | Notes |
-|------|----------|-------|-------|
-| 1 | Wrap text into Paragraph | — | Always do this first |
-| 2 | Shrink font by 1pt | **Min 14pt** (single-col) / **12pt** (dual-col) | ⚠️ Enforced by `fill-engine.md` Safety Net 1 |
-| 3 | Reduce padding/spacing | Min 4pt padding | Don't go below 4pt cell padding |
-| 4 | Switch to landscape | Only if user allows | Never change orientation silently |
-| 5 | Split into multiple elements | — | e.g., one wide table → two tables |
-| 6 | Log warning + render anyway | — | If all else fails, at least don't crash |
+| Step | Strategy                     | Limit                                           | Notes                                        |
+| ---- | ---------------------------- | ----------------------------------------------- | -------------------------------------------- |
+| 1    | Wrap text into Paragraph     | —                                               | Always do this first                         |
+| 2    | Shrink font by 1pt           | **Min 14pt** (single-col) / **12pt** (dual-col) | ⚠️ Enforced by `fill-engine.md` Safety Net 1 |
+| 3    | Reduce padding/spacing       | Min 4pt padding                                 | Don't go below 4pt cell padding              |
+| 4    | Switch to landscape          | Only if user allows                             | Never change orientation silently            |
+| 5    | Split into multiple elements | —                                               | e.g., one wide table → two tables            |
+| 6    | Log warning + render anyway  | —                                               | If all else fails, at least don't crash      |
 
 ### ReportLab Font Degradation
+
 ```python
 def fit_text_with_degradation(text, font_name, base_size, max_width, min_size=14):
     """Try progressively smaller font sizes until text fits.
@@ -475,6 +499,7 @@ def fit_text_with_degradation(text, font_name, base_size, max_width, min_size=14
 ```
 
 ### Table Column Degradation
+
 ```python
 def degrade_table_if_needed(data, available_width, font_name, base_font_size=10):
     """Try fitting table, degrading font size if needed."""
@@ -541,6 +566,7 @@ table = Table(data, repeatRows=1)  # First row repeats on every page
 - ReportLab: `KeepTogether` handles most cases; `allowSplitting=False` for critical blocks
 
 ### LaTeX Vertical Overflow
+
 ```latex
 % Prevent orphans and widows
 \widowpenalty=10000
@@ -602,15 +628,15 @@ Only render after Pass 1 confirms zero violations. If violations found → apply
 
 ## Quick Reference: Which Route Uses What
 
-| Mechanism | ReportLab (Report) | LaTeX (Academic) | Playwright (Creative) |
-|-----------|-------------------|-------------------|----------------------|
-| Text wrapping | `Paragraph()` + `wordWrap='CJK'` | `tabularx` X columns | CSS `overflow-wrap: break-word` |
-| Image scaling | `fit_image()` helper | `\includegraphics[max width=]` | CSS `max-width: 100%` |
-| Table width | `calculate_col_widths()` | `tabularx` / `resizebox` | CSS `table-layout: fixed` |
-| Font degradation | `fit_text_with_degradation()` | `\small` / `\footnotesize` | CSS `font-size` step-down |
-| Page break | `PageBreak()` / `KeepTogether` | `\newpage` / `\FloatBarrier` | CSS `break-before: page` |
-| Header repeat | `Table(repeatRows=1)` | `\endhead` in longtable | `thead { display: table-header-group }` |
-| Orphan/widow | `KeepTogether` | `\widowpenalty=10000` | CSS `orphans: 2; widows: 2` |
+| Mechanism        | ReportLab (Report)               | LaTeX (Academic)               | Playwright (Creative)                   |
+| ---------------- | -------------------------------- | ------------------------------ | --------------------------------------- |
+| Text wrapping    | `Paragraph()` + `wordWrap='CJK'` | `tabularx` X columns           | CSS `overflow-wrap: break-word`         |
+| Image scaling    | `fit_image()` helper             | `\includegraphics[max width=]` | CSS `max-width: 100%`                   |
+| Table width      | `calculate_col_widths()`         | `tabularx` / `resizebox`       | CSS `table-layout: fixed`               |
+| Font degradation | `fit_text_with_degradation()`    | `\small` / `\footnotesize`     | CSS `font-size` step-down               |
+| Page break       | `PageBreak()` / `KeepTogether`   | `\newpage` / `\FloatBarrier`   | CSS `break-before: page`                |
+| Header repeat    | `Table(repeatRows=1)`            | `\endhead` in longtable        | `thead { display: table-header-group }` |
+| Orphan/widow     | `KeepTogether`                   | `\widowpenalty=10000`          | CSS `orphans: 2; widows: 2`             |
 
 ---
 

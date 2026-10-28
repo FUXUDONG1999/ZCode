@@ -37,49 +37,49 @@
 
 ## Frozen Decisions
 
-| ID | Decision |
-| --- | --- |
-| WS-D1 | 外层 provider-visible tool name 是 `WebSearch`，不是 `web_search`。 |
-| WS-D2 | 外层 `WebSearch` 是 client-side tool，必须进入 ToolExecutor、permission、scheduler、hooks、tool part persistence 和 tool result history。 |
-| WS-D3 | 内部 side request 的唯一 tool 是 provider-native `web_search`，由 adapter 映射到 Anthropic provider 的 native web search helper。 |
-| WS-D4 | 外层 public schema 使用 snake_case domain 字段：`query`、`allowed_domains`、`blocked_domains`。 |
-| WS-D5 | 只保留当前 Anthropic provider-native `web_search` 实际消费的 `maxUses` public 可选调参字段，并透传到内部 provider-native args；`searchContextSize` 不再暴露，避免形成 no-op contract。 |
-| WS-D6 | `web_search` 可以作为 legacy allowlist alias 映射到 `WebSearch`，但不得出现在外层 provider-visible `tools[].name`。 |
-| WS-D7 | Provider capability gate 优先在 runtime tool projection 做；handler assertion 继续作为第二道 fail-closed 防线。 |
-| WS-D8 | runtime 只有在能解析 model connection，且 `providerKind === "anthropic"`、baseURL host 为 `bigmodel.cn` / `z.ai` / `deepseek.com` 或其子域时才暴露 `WebSearch`；无法解析时 fail-closed。 |
-| WS-D9 | 先不实现内部 request 的 streaming progress；内部 request 保持 `generateText`，只保证 request shape 与 tool result 格式。 |
-| WS-D10 | 不恢复 BigModel Web Search REST API、DuckDuckGo HTML fallback、`numResults`、`safeSearch`。 |
+| ID     | Decision                                                                                                                                                                                 |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| WS-D1  | 外层 provider-visible tool name 是 `WebSearch`，不是 `web_search`。                                                                                                                      |
+| WS-D2  | 外层 `WebSearch` 是 client-side tool，必须进入 ToolExecutor、permission、scheduler、hooks、tool part persistence 和 tool result history。                                                |
+| WS-D3  | 内部 side request 的唯一 tool 是 provider-native `web_search`，由 adapter 映射到 Anthropic provider 的 native web search helper。                                                        |
+| WS-D4  | 外层 public schema 使用 snake_case domain 字段：`query`、`allowed_domains`、`blocked_domains`。                                                                                          |
+| WS-D5  | 只保留当前 Anthropic provider-native `web_search` 实际消费的 `maxUses` public 可选调参字段，并透传到内部 provider-native args；`searchContextSize` 不再暴露，避免形成 no-op contract。   |
+| WS-D6  | `web_search` 可以作为 legacy allowlist alias 映射到 `WebSearch`，但不得出现在外层 provider-visible `tools[].name`。                                                                      |
+| WS-D7  | Provider capability gate 优先在 runtime tool projection 做；handler assertion 继续作为第二道 fail-closed 防线。                                                                          |
+| WS-D8  | runtime 只有在能解析 model connection，且 `providerKind === "anthropic"`、baseURL host 为 `bigmodel.cn` / `z.ai` / `deepseek.com` 或其子域时才暴露 `WebSearch`；无法解析时 fail-closed。 |
+| WS-D9  | 先不实现内部 request 的 streaming progress；内部 request 保持 `generateText`，只保证 request shape 与 tool result 格式。                                                                 |
+| WS-D10 | 不恢复 BigModel Web Search REST API、DuckDuckGo HTML fallback、`numResults`、`safeSearch`。                                                                                              |
 
 ## File Map
 
-| File | Responsibility in this change |
-| --- | --- |
-| `apps/zcode-cli/docs/design/v2/tool/13-websearch.md` | 正式 spec，从 direct provider-native 改为 public wrapper + internal native side request。 |
-| `apps/zcode-cli/docs/design/v2/tool/00-tool-change-chain.md` | 更新 provider-native/server-side checklist，说明 WebSearch 采用 side request 形态。 |
-| `apps/zcode-cli/docs/design/v2/tool/README.md` | Tool matrix 改为 `WebSearch` client-side wrapper。 |
-| `apps/zcode-cli/docs/design/v2/model/http-proxy.md` | 说明 WebSearch 内部 model request 跟随 provider transport/proxy。 |
-| `apps/zcode-cli/docs/design/v2/compact/plan.md` | WebSearch 有本地 tool result budget。 |
-| `apps/zcode-cli/docs/design/v2/loop/system-prompt-contract.md` | WebSearch 不再是主请求 provider-native tool。 |
-| `apps/zcode-cli/docs/design/v2/loop/architecture.md` | read-only/concurrent tool 调度说明加入 WebSearch。 |
-| `apps/zcode-cli/docs/design/v2/tui-network-status-panel.md` | WebSearch handler 内部 model request 的 network status 说明。 |
-| `apps/zcode-cli/packages/contracts/src/tools/websearch.ts` | 拆 public schema、内部 provider-native args、client contract。 |
-| `apps/zcode-cli/packages/core/src/tool/handlers/websearch.ts` | normalize public snake_case input；内部发起 provider-native `web_search` request。 |
-| `apps/zcode-cli/packages/core/src/tool/handlers/websearch-results.ts` | tool result text、sources reminder、typed result extraction。 |
-| `apps/zcode-cli/packages/core/src/tool/handlers/websearch-support.ts` | 导出 provider support predicate，供 runtime projection 和 handler 共用。 |
-| `apps/zcode-cli/packages/core/src/tool/handlers/index.ts` | 注册 `webSearchToolEntry`。 |
-| `apps/zcode-cli/packages/core/src/runtime/agent-runtime.ts` | 保存 `modelConnectionPort`；allowlist alias normalize；注册/过滤 WebSearch。 |
-| `apps/zcode-cli/packages/core/src/runtime/internal.ts` | `AgentRuntimeInternal` 增加 `modelConnectionPort?: ModelConnectionPort`。 |
-| `apps/zcode-cli/packages/core/src/runtime/methods/config.ts` | 删除 direct append `web_search`，`getTools()` 返回过滤后的 registry contracts。 |
-| `apps/zcode-cli/packages/core/src/tool/scheduler.ts` | `READ_ONLY_TOOLS` 加回 `WebSearch`。 |
-| `apps/zcode-cli/packages/core/src/permission/service.ts` | `isReadOnlyTool()` 加回 `WebSearch`。 |
-| `apps/zcode-cli/packages/adapters/src/model/tool-transform.ts` | 保持 provider-native helper 映射；确认 public `WebSearch` 不进 provider-native branch。 |
-| `apps/zcode-cli/packages/core/tests/websearch.test.ts` | 主红绿测试：schema、registry、runtime projection、handler side request。 |
-| `apps/zcode-cli/packages/core/tests/main-tool-pool.test.ts` | 主请求 tool list 从 `web_search` 改为 `WebSearch`。 |
-| `apps/zcode-cli/packages/core/tests/subagent-explore.test.ts` | Explore child tool list 从 `web_search` 改为 `WebSearch`。 |
-| `apps/zcode-cli/packages/core/tests/scheduler.test.ts` | WebSearch read-only/concurrent scheduling coverage。 |
-| `apps/zcode-cli/packages/adapters/tests/websearch.test.ts` | provider-native mapping 改为内部 `web_search` contract 语义。 |
-| `apps/zcode-cli/packages/adapters/tests/runner.test.ts` | 保持内部 native request body / providerExecuted normalization coverage。 |
-| `apps/zcode-cli/tools/prompt-trajectory/testcases/*` | 增加或更新 WebSearch request-body fixtures。 |
+| File                                                                  | Responsibility in this change                                                             |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `apps/zcode-cli/docs/design/v2/tool/13-websearch.md`                  | 正式 spec，从 direct provider-native 改为 public wrapper + internal native side request。 |
+| `apps/zcode-cli/docs/design/v2/tool/00-tool-change-chain.md`          | 更新 provider-native/server-side checklist，说明 WebSearch 采用 side request 形态。       |
+| `apps/zcode-cli/docs/design/v2/tool/README.md`                        | Tool matrix 改为 `WebSearch` client-side wrapper。                                        |
+| `apps/zcode-cli/docs/design/v2/model/http-proxy.md`                   | 说明 WebSearch 内部 model request 跟随 provider transport/proxy。                         |
+| `apps/zcode-cli/docs/design/v2/compact/plan.md`                       | WebSearch 有本地 tool result budget。                                                     |
+| `apps/zcode-cli/docs/design/v2/loop/system-prompt-contract.md`        | WebSearch 不再是主请求 provider-native tool。                                             |
+| `apps/zcode-cli/docs/design/v2/loop/architecture.md`                  | read-only/concurrent tool 调度说明加入 WebSearch。                                        |
+| `apps/zcode-cli/docs/design/v2/tui-network-status-panel.md`           | WebSearch handler 内部 model request 的 network status 说明。                             |
+| `apps/zcode-cli/packages/contracts/src/tools/websearch.ts`            | 拆 public schema、内部 provider-native args、client contract。                            |
+| `apps/zcode-cli/packages/core/src/tool/handlers/websearch.ts`         | normalize public snake_case input；内部发起 provider-native `web_search` request。        |
+| `apps/zcode-cli/packages/core/src/tool/handlers/websearch-results.ts` | tool result text、sources reminder、typed result extraction。                             |
+| `apps/zcode-cli/packages/core/src/tool/handlers/websearch-support.ts` | 导出 provider support predicate，供 runtime projection 和 handler 共用。                  |
+| `apps/zcode-cli/packages/core/src/tool/handlers/index.ts`             | 注册 `webSearchToolEntry`。                                                               |
+| `apps/zcode-cli/packages/core/src/runtime/agent-runtime.ts`           | 保存 `modelConnectionPort`；allowlist alias normalize；注册/过滤 WebSearch。              |
+| `apps/zcode-cli/packages/core/src/runtime/internal.ts`                | `AgentRuntimeInternal` 增加 `modelConnectionPort?: ModelConnectionPort`。                 |
+| `apps/zcode-cli/packages/core/src/runtime/methods/config.ts`          | 删除 direct append `web_search`，`getTools()` 返回过滤后的 registry contracts。           |
+| `apps/zcode-cli/packages/core/src/tool/scheduler.ts`                  | `READ_ONLY_TOOLS` 加回 `WebSearch`。                                                      |
+| `apps/zcode-cli/packages/core/src/permission/service.ts`              | `isReadOnlyTool()` 加回 `WebSearch`。                                                     |
+| `apps/zcode-cli/packages/adapters/src/model/tool-transform.ts`        | 保持 provider-native helper 映射；确认 public `WebSearch` 不进 provider-native branch。   |
+| `apps/zcode-cli/packages/core/tests/websearch.test.ts`                | 主红绿测试：schema、registry、runtime projection、handler side request。                  |
+| `apps/zcode-cli/packages/core/tests/main-tool-pool.test.ts`           | 主请求 tool list 从 `web_search` 改为 `WebSearch`。                                       |
+| `apps/zcode-cli/packages/core/tests/subagent-explore.test.ts`         | Explore child tool list 从 `web_search` 改为 `WebSearch`。                                |
+| `apps/zcode-cli/packages/core/tests/scheduler.test.ts`                | WebSearch read-only/concurrent scheduling coverage。                                      |
+| `apps/zcode-cli/packages/adapters/tests/websearch.test.ts`            | provider-native mapping 改为内部 `web_search` contract 语义。                             |
+| `apps/zcode-cli/packages/adapters/tests/runner.test.ts`               | 保持内部 native request body / providerExecuted normalization coverage。                  |
+| `apps/zcode-cli/tools/prompt-trajectory/testcases/*`                  | 增加或更新 WebSearch request-body fixtures。                                              |
 
 ## Phase Gate
 
@@ -94,6 +94,7 @@
 ## Phase 0: Spec and Red Tests
 
 **Files:**
+
 - Modify: `apps/zcode-cli/docs/design/v2/tool/13-websearch.md`
 - Modify: `apps/zcode-cli/docs/design/v2/tool/00-tool-change-chain.md`
 - Modify: `apps/zcode-cli/packages/core/tests/websearch.test.ts`
@@ -194,62 +195,70 @@ it("runs an internal provider-native web_search request from the WebSearch handl
   const sessionId = createSessionId("runtime-websearch-handler-side-request");
   const eventStore = createTestSessionEventStore();
   const requests: any[] = [];
-  const runtime = new AgentRuntime(sessionId, { modelRef }, {
-    eventStore,
-    modelAdapter: {
-      async generateText(request: any) {
-        requests.push(request);
-        if (request.metadata?.querySource === "web_search_tool") {
+  const runtime = new AgentRuntime(
+    sessionId,
+    { modelRef },
+    {
+      eventStore,
+      modelAdapter: {
+        async generateText(request: any) {
+          requests.push(request);
+          if (request.metadata?.querySource === "web_search_tool") {
+            return {
+              finishReason: "stop",
+              model: request.model,
+              providerMetadata: undefined,
+              text: "Search summary",
+              toolResults: [
+                {
+                  id: "server_search_1",
+                  name: "web_search",
+                  output: [
+                    { type: "web_search_result", title: "Example", url: "https://example.com" },
+                  ],
+                  providerExecuted: true,
+                },
+              ],
+              sources: [{ sourceType: "url", title: "Example", url: "https://example.com" }],
+              usage: {
+                inputTokens: 5,
+                outputTokens: 7,
+                totalTokens: 12,
+                serverToolUse: { webSearchRequests: 1 },
+              },
+            };
+          }
           return {
-            finishReason: "stop",
+            finishReason: "tool-calls",
             model: request.model,
             providerMetadata: undefined,
-            text: "Search summary",
-            toolResults: [
+            text: "",
+            toolCalls: [
               {
-                id: "server_search_1",
-                name: "web_search",
-                output: [{ type: "web_search_result", title: "Example", url: "https://example.com" }],
-                providerExecuted: true,
+                id: "call_websearch",
+                name: "WebSearch",
+                input: { query: "latest zcode", allowed_domains: ["example.com"] },
               },
             ],
-            sources: [{ sourceType: "url", title: "Example", url: "https://example.com" }],
-            usage: {
-              inputTokens: 5,
-              outputTokens: 7,
-              totalTokens: 12,
-              serverToolUse: { webSearchRequests: 1 },
-            },
+            usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
           };
-        }
-        return {
-          finishReason: "tool-calls",
-          model: request.model,
-          providerMetadata: undefined,
-          text: "",
-          toolCalls: [
-            {
-              id: "call_websearch",
-              name: "WebSearch",
-              input: { query: "latest zcode", allowed_domains: ["example.com"] },
-            },
-          ],
-          usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
-        };
-      },
-      resolveConnection() {
-        return {
-          providerId: "deepseek",
-          providerKind: "anthropic",
-          baseURL: "https://api.deepseek.com/anthropic",
-        };
-      },
-    } as never,
-  });
+        },
+        resolveConnection() {
+          return {
+            providerId: "deepseek",
+            providerKind: "anthropic",
+            baseURL: "https://api.deepseek.com/anthropic",
+          };
+        },
+      } as never,
+    },
+  );
 
   await runtime.executeTurn("Search current ZCode info");
 
-  const innerRequest = requests.find((request) => request.metadata?.querySource === "web_search_tool");
+  const innerRequest = requests.find(
+    (request) => request.metadata?.querySource === "web_search_tool",
+  );
   expect(innerRequest).toBeDefined();
   expect(innerRequest.messages).toEqual([
     { role: "system", content: "You are an assistant for performing a web search tool use." },
@@ -313,6 +322,7 @@ Expected: FAIL with old direct provider-native behavior:
 ## Phase 1: Contract Split
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/contracts/src/tools/websearch.ts`
 - Modify: `apps/zcode-cli/packages/core/src/tool/handlers/websearch.ts`
 - Modify: `apps/zcode-cli/packages/core/src/tool/handlers/websearch-results.ts`
@@ -379,7 +389,8 @@ export const WEBSEARCH_TOOL_CONTRACT: ToolContractDeclaration = {
   outputSchema: WebSearchOutputJsonSchema,
   permission: {
     permission: "websearch",
-    reason: "WebSearch performs read-only provider-native web searches through an internal model request",
+    reason:
+      "WebSearch performs read-only provider-native web searches through an internal model request",
     riskLevel: "low",
     sideEffectScope: "network",
     needsApproval: false,
@@ -434,15 +445,15 @@ providerNative: {
 Replace handler reads:
 
 ```ts
-input.allowedDomains
-input.blockedDomains
+input.allowedDomains;
+input.blockedDomains;
 ```
 
 with:
 
 ```ts
-input.allowed_domains
-input.blocked_domains
+input.allowed_domains;
+input.blocked_domains;
 ```
 
 The handler should still pass provider-native camelCase args to the adapter through `toWebSearchProviderNativeArgs(...)`.
@@ -460,6 +471,7 @@ Expected: schema tests pass; registry/projection tests still fail until Phase 2.
 ## Phase 2: Registry and Runtime Projection Cutover
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/tool/handlers/index.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/agent-runtime.ts`
 - Modify: `apps/zcode-cli/packages/core/src/runtime/internal.ts`
@@ -548,10 +560,7 @@ In `websearch-support.ts`, export:
 export function supportsProviderNativeWebSearch(
   connection: Pick<ModelConnectionInfo, "baseURL" | "providerKind">,
 ): boolean {
-  return (
-    connection.providerKind === "anthropic" &&
-    isWebSearchCapableBaseURL(connection.baseURL)
-  );
+  return connection.providerKind === "anthropic" && isWebSearchCapableBaseURL(connection.baseURL);
 }
 ```
 
@@ -659,6 +668,7 @@ Expected: registry/projection tests pass; handler result formatting tests may st
 ## Phase 3: Handler Result Formatting and Nested Usage
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/tool/handlers/websearch.ts`
 - Modify: `apps/zcode-cli/packages/core/src/tool/handlers/websearch-results.ts`
 - Modify: `apps/zcode-cli/packages/core/tests/websearch.test.ts`
@@ -765,6 +775,7 @@ Expected: WebSearch handler side request, formatter, providerExecuted normalizat
 ## Phase 4: Permission, Scheduler, Hooks, and Lifecycle
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/core/src/tool/scheduler.ts`
 - Modify: `apps/zcode-cli/packages/core/src/permission/service.ts`
 - Modify: `apps/zcode-cli/packages/core/tests/scheduler.test.ts`
@@ -808,8 +819,7 @@ const storedEvents = await eventStore.getEvents(sessionId);
 expect(
   storedEvents.some(
     (event: any) =>
-      event.type === SessionEventType.ToolCallResult &&
-      event.payload?.toolName === "WebSearch",
+      event.type === SessionEventType.ToolCallResult && event.payload?.toolName === "WebSearch",
   ),
 ).toBe(true);
 ```
@@ -827,6 +837,7 @@ Expected: `WebSearch` is treated as read-only/concurrent safe and produces ordin
 ## Phase 5: Adapter Semantics and Prompt Trajectory
 
 **Files:**
+
 - Modify: `apps/zcode-cli/packages/adapters/tests/websearch.test.ts`
 - Modify: `apps/zcode-cli/packages/adapters/tests/runner.test.ts`
 - Modify: `apps/zcode-cli/tools/prompt-trajectory/testcases/p12-tool-surface/main-and-explore/expect.json`
@@ -960,6 +971,7 @@ Expected:
 ## Phase 6: Docs Sweep and Full Validation
 
 **Files:**
+
 - Modify: `apps/zcode-cli/docs/design/v2/tool/README.md`
 - Modify: `apps/zcode-cli/docs/design/v2/model/http-proxy.md`
 - Modify: `apps/zcode-cli/docs/design/v2/compact/plan.md`

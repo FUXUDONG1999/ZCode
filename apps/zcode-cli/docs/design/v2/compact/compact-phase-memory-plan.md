@@ -140,13 +140,13 @@ export const CompactReason = {
 
 映射：
 
-| 当前路径 | trigger | phase | compactReason |
-| --- | --- | --- | --- |
-| `/compact` | `manual` | `standalone_turn` | `user_requested` |
-| 用户消息后、第一轮请求前 auto compact | `auto` | `pre_request` | `context_limit` |
-| tool follow-up 前 auto compact | `auto` | `mid_turn` | `context_limit` |
-| provider overflow 后 compact retry | `reactive` | `reactive` | `provider_overflow` |
-| 未来模型降级/切换小窗模型 | `auto` | `pre_request` | `model_downshift` |
+| 当前路径                              | trigger    | phase             | compactReason       |
+| ------------------------------------- | ---------- | ----------------- | ------------------- |
+| `/compact`                            | `manual`   | `standalone_turn` | `user_requested`    |
+| 用户消息后、第一轮请求前 auto compact | `auto`     | `pre_request`     | `context_limit`     |
+| tool follow-up 前 auto compact        | `auto`     | `mid_turn`        | `context_limit`     |
+| provider overflow 后 compact retry    | `reactive` | `reactive`        | `provider_overflow` |
+| 未来模型降级/切换小窗模型             | `auto`     | `pre_request`     | `model_downshift`   |
 
 `CompactBoundaryPayload` 和 `CompactTimelinePayload` 都应包含 `phase` 与 `compactReason`。旧字段 `trigger` 保留，避免 UI 和 reducer 破坏。Timeline 上已有的 `reason` 字段保留给失败/展示原因，不复用为 compact 触发原因。
 

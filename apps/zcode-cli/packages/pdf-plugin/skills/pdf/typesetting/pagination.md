@@ -3,6 +3,7 @@
 > Core rules for multi-page document layout quality. Must be followed every time a multi-page PDF is generated.
 >
 > Related:
+>
 > - `typesetting/overflow.md` — the comprehensive overflow prevention system covering all three routes (ReportLab, LaTeX, Playwright).
 > - `typesetting/fill-engine.md` — the **anti-void** adaptive engine (handles pages with too little content: font floor, fill ratio, paragraph inflation, Y-axis golden-ratio anchoring).
 
@@ -24,12 +25,14 @@
   5. **Merge small sections**: Combine adjacent sections with little content
 
 **Checking Method (Playwright HTML route)**:
+
 ```css
 /* Check min-content on the last .page element */
 /* If content is less than 25% of page, backtracking is needed */
 ```
 
 **Practical Standards**:
+
 - Last page content ratio >= 40% → ✅ Pass
 - Last page content ratio 25%-40% → ⚠️ Acceptable but optimization recommended
 - Last page content ratio < 25% → ❌ Must adjust
@@ -43,16 +46,18 @@
 **Mandatory Rules**:
 
 ### Playwright HTML Route
+
 ```css
 /* Prevent table splitting */
-table, .table-wrapper {
-  break-inside: avoid;     /* Preferred: keep entire table together */
+table,
+.table-wrapper {
+  break-inside: avoid; /* Preferred: keep entire table together */
   page-break-inside: avoid;
 }
 
 /* If table is too long and must split, ensure header repeats */
 thead {
-  display: table-header-group;  /* Repeat header on each page */
+  display: table-header-group; /* Repeat header on each page */
 }
 
 /* Don't cut table rows in the middle */
@@ -70,6 +75,7 @@ thead + tbody tr:nth-child(2) {
 ```
 
 ### ReportLab Route
+
 ```python
 # Use Table's repeatRows parameter
 table = Table(data, repeatRows=1)  # Repeat header on each page
@@ -80,6 +86,7 @@ elements.append(KeepTogether([table_title, table]))
 ```
 
 **Additional Rules**:
+
 - Table rows ≤ 8: Entire table `break-inside: avoid`, no page splitting allowed
 - Table rows > 8: Splitting allowed, but must use `thead { display: table-header-group }` to repeat header on each page
 - All card-grid / flex-grid layouts follow the same rule: `break-inside: avoid`
@@ -93,28 +100,34 @@ elements.append(KeepTogether([table_title, table]))
 **Mandatory Rules**:
 
 ### Playwright HTML Route (Recommended)
+
 ```css
 /* Global CJK punctuation rules */
 body {
-  line-break: strict;         /* Strict line-break rules */
-  word-break: normal;         /* Don't force word breaks */
-  overflow-wrap: break-word;  /* Allow long words to break */
-  hanging-punctuation: allow-end;  /* Allow punctuation to hang past line end */
+  line-break: strict; /* Strict line-break rules */
+  word-break: normal; /* Don't force word breaks */
+  overflow-wrap: break-word; /* Allow long words to break */
+  hanging-punctuation: allow-end; /* Allow punctuation to hang past line end */
 }
 
 /* For body paragraphs */
-p, .body-text, td, li {
+p,
+.body-text,
+td,
+li {
   line-break: strict;
-  text-align: justify;        /* Justify to reduce line-end gaps */
+  text-align: justify; /* Justify to reduce line-end gaps */
 }
 ```
 
 **Effect of `line-break: strict`**:
+
 - Prevents line-start: ，。、；：！？）】》…—
 - Prevents line-end: （【《
 - Natively supported by Chromium engine, no extra JS needed
 
 ### ReportLab Route
+
 ```python
 # Set in ReportLab Paragraph style
 from reportlab.lib.enums import TA_JUSTIFY
@@ -126,6 +139,7 @@ style = ParagraphStyle(
 ```
 
 **Verification Checklist**:
+
 - [ ] No comma/period appears as the first character of any line
 - [ ] Left parenthesis / left quotation mark does not appear at line end
 - [ ] Ellipsis is not broken in the middle
@@ -138,14 +152,15 @@ style = ParagraphStyle(
 
 **Iron Rule**: When a major section (H1-level heading, e.g., “一、”“二、” or “Chapter 1”) is about to start, check remaining page space:
 
-| Remaining space | Action |
-|----------------|--------|
+| Remaining space          | Action                                                               |
+| ------------------------ | -------------------------------------------------------------------- |
 | **≥ 25% of page height** | Continue on same page — enough room for heading + meaningful content |
-| **< 25% of page height** | Force page break — start the new section on a fresh page |
+| **< 25% of page height** | Force page break — start the new section on a fresh page             |
 
 **Why 25% (not 50%)?** A major heading needs at least its title + 2-3 lines of body text to look intentional. If there’s only enough room for a title and a line or two, it looks like an accident.
 
 ### ReportLab Implementation
+
 ```python
 from reportlab.platypus import CondPageBreak
 
@@ -161,11 +176,13 @@ story.append(h1_paragraph)
 ```
 
 ### Playwright / CSS @page Implementation
+
 ```css
 /* H1-level headings always prefer starting on a new page
    unless there's substantial room remaining */
-h1, .major-section-title {
-  break-before: auto;       /* Default: don't force */
+h1,
+.major-section-title {
+  break-before: auto; /* Default: don't force */
   page-break-before: auto;
 }
 ```
@@ -173,25 +190,26 @@ h1, .major-section-title {
 ```javascript
 // Post-render check: if an H1 starts in the bottom 25% of the viewport,
 // force a page-break-before to avoid orphan headings
-document.querySelectorAll('h1, .major-section-title').forEach(h => {
+document.querySelectorAll("h1, .major-section-title").forEach((h) => {
   const rect = h.getBoundingClientRect();
   // In print context, check if heading is too far down the page
   // This can be verified after Playwright render via page.evaluate()
   const pageHeight = window.innerHeight;
   const relativeY = rect.top / pageHeight;
   if (relativeY > 0.75) {
-    h.style.breakBefore = 'page';
+    h.style.breakBefore = "page";
   }
 });
 ```
-```
+
+````
 
 ### LaTeX Implementation
 ```latex
 % Before each \section{} (H1-level), check remaining space
 \needspace{0.25\textheight}  % requires needspace package
 \section{New Major Section}
-```
+````
 
 **Scope**: This rule applies to **H1-level headings only** (major sections, chapters, top-level numbered items like “一、”“二、”). Sub-sections (H2, H3) follow the standard heading-body binding rule (no orphan headings at page bottom) but do NOT force page breaks.
 
@@ -200,16 +218,25 @@ document.querySelectorAll('h1, .major-section-title').forEach(h => {
 ## 5. Other Anti-Split Rules
 
 ### Heading–Body Binding
+
 ```css
-h1, h2, h3, h4, .section-title {
-  break-after: avoid;       /* Don't page-break after heading */
+h1,
+h2,
+h3,
+h4,
+.section-title {
+  break-after: avoid; /* Don't page-break after heading */
   page-break-after: avoid;
 }
 ```
 
 ### Image / Card Protection
+
 ```css
-figure, .card, .kpi-card, .project-card {
+figure,
+.card,
+.kpi-card,
+.project-card {
   break-inside: avoid;
   page-break-inside: avoid;
 }
@@ -218,6 +245,7 @@ figure, .card, .kpi-card, .project-card {
 > **⚠️ Image `max-height` is critical.** `break-inside: avoid` alone can cause images to occupy an entire page when the image is tall. Always pair with `max-height` from overflow.md (`img { max-height: 45vh }`) to prevent single images from consuming a full page.
 
 ### List Item Binding
+
 ```css
 li {
   break-inside: avoid;
@@ -250,13 +278,13 @@ All multi-page documents MUST follow this five-zone page numbering convention un
 
 ### Zone Definitions
 
-| Zone | Section | Numbering Style | Starts At | Visibility |
-|------|---------|----------------|-----------|------------|
-| **1. Cover** | Title page | — | Logical page 1 | **Hidden** (no visible page number, but counts as page 1 internally) |
-| **2. Front Matter** | Table of Contents, Preface, Abstract, Acknowledgments | **Lowercase Roman** (i, ii, iii, iv, v…) | i | Visible, centered footer |
-| **3. Body** | Main content chapters/sections | **Arabic** (1, 2, 3…) | **Resets to 1** | Visible, centered or outer-edge footer |
-| **4. Appendix** | Appendices (A, B, C…) | **Arabic, continues** from body | Continues | Visible |
-| **5. References / Bibliography** | Works cited, bibliography | **Arabic, continues** from body/appendix | Continues | Visible |
+| Zone                             | Section                                               | Numbering Style                          | Starts At       | Visibility                                                           |
+| -------------------------------- | ----------------------------------------------------- | ---------------------------------------- | --------------- | -------------------------------------------------------------------- |
+| **1. Cover**                     | Title page                                            | —                                        | Logical page 1  | **Hidden** (no visible page number, but counts as page 1 internally) |
+| **2. Front Matter**              | Table of Contents, Preface, Abstract, Acknowledgments | **Lowercase Roman** (i, ii, iii, iv, v…) | i               | Visible, centered footer                                             |
+| **3. Body**                      | Main content chapters/sections                        | **Arabic** (1, 2, 3…)                    | **Resets to 1** | Visible, centered or outer-edge footer                               |
+| **4. Appendix**                  | Appendices (A, B, C…)                                 | **Arabic, continues** from body          | Continues       | Visible                                                              |
+| **5. References / Bibliography** | Works cited, bibliography                             | **Arabic, continues** from body/appendix | Continues       | Visible                                                              |
 
 ### Key Rules
 
@@ -317,7 +345,9 @@ def no_footer(canvas, doc):
 }
 
 /* Zone 2: Front matter — Roman numerals via CSS counter */
-@page :nth(2) { /* Adjust range based on front matter pages */ }
+@page :nth(2) {
+  /* Adjust range based on front matter pages */
+}
 
 /* For Playwright, page numbers are typically added via:
    1. A footer element on each .page div, or
@@ -325,6 +355,7 @@ def no_footer(canvas, doc):
 ```
 
 **Practical approach for Playwright route**: Since CSS `@page` counters with Roman/Arabic switching are poorly supported, the recommended pattern is:
+
 1. Generate the PDF without page numbers
 2. Use pypdf to stamp page numbers in post-processing:
    - Skip page 1 (cover)

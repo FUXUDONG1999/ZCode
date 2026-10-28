@@ -260,6 +260,7 @@ TUI:
   diagnostics.
 
 ZCode app-server:
+
 - ZCode app-server advertises custom prompt commands through `available_commands_update`.
 - ZCode app-server excludes commands with `disable-noninteractive: true`.
 - ZCode app-server `/help` includes only ZCode app-server-advertised built-ins and compatible custom

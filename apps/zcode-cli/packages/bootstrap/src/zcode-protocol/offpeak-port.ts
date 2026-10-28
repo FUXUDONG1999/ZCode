@@ -55,7 +55,8 @@ export function createProtocolOffPeakPort(
             zcodeOffPeakListResultSchema,
           );
           bound = listed.tasks.some(
-            (task) => task.sessionId === boundSessionId && !OFF_PEAK_TERMINAL_STATUSES.has(task.status),
+            (task) =>
+              task.sessionId === boundSessionId && !OFF_PEAK_TERMINAL_STATUSES.has(task.status),
           );
         } catch (error) {
           context.logger?.warn("Failed to check bound idle-time tasks before OffPeakCreate", {

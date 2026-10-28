@@ -222,7 +222,6 @@ function assertForkBundleChildLocal(bundle: ForkCommitBundle): void {
   }
 }
 
-
 export class SqliteSessionStore
   implements
     SessionStorePort,
@@ -247,7 +246,10 @@ export class SqliteSessionStore
     this.forkCommitFaultAt = options.forkCommitFaultAt;
   }
 
-  static async open(options: SqliteSessionStoreOptions = {}, migrationOptions?: AsyncSqliteMigrationOptions): Promise<SqliteSessionStore> {
+  static async open(
+    options: SqliteSessionStoreOptions = {},
+    migrationOptions?: AsyncSqliteMigrationOptions,
+  ): Promise<SqliteSessionStore> {
     const dbPath = options.dbPath ?? getDefaultSessionDbPath();
     const startupLockTimeoutMs =
       options.startupLockTimeoutMs ?? DEFAULT_SQLITE_STARTUP_LOCK_TIMEOUT_MS;
@@ -267,15 +269,26 @@ export class SqliteSessionStore
       });
     }
     try {
-      const migration = await runSqliteSessionMigrationsAsync(db, dbPath, migrationOptions ?? { lockWaitTimeoutMs: startupLockTimeoutMs });
+      const migration = await runSqliteSessionMigrationsAsync(
+        db,
+        dbPath,
+        migrationOptions ?? { lockWaitTimeoutMs: startupLockTimeoutMs },
+      );
       return new SqliteSessionStore(db, dbPath, options, migration);
     } catch (error) {
-      try { db.close(); } catch { /* 关闭失败不能覆盖迁移错误。 */ }
+      try {
+        db.close();
+      } catch {
+        /* 关闭失败不能覆盖迁移错误。 */
+      }
       throw error;
     }
   }
 
-  static async openStartup(options: SqliteSessionStoreOptions = {}, migrationOptions: AsyncSqliteMigrationOptions = {}) {
+  static async openStartup(
+    options: SqliteSessionStoreOptions = {},
+    migrationOptions: AsyncSqliteMigrationOptions = {},
+  ) {
     return SqliteSessionStore.open(options, migrationOptions);
   }
 

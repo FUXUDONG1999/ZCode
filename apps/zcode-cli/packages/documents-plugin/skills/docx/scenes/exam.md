@@ -13,11 +13,11 @@ Exam papers are among the most critical document types in education. Unlike gene
 
 ### Paper Specifications
 
-| Type | Paper | Orientation | Use Case |
-|------|-------|-------------|----------|
-| Practice / Unit quiz | A4 | Portrait | Daily practice, homework, quizzes |
-| Formal exam | A3 | Landscape + 2-column | Midterm / final / standardized (requires OOXML) |
-| Answer sheet | A4 | Portrait | Standalone answer card |
+| Type                 | Paper | Orientation          | Use Case                                        |
+| -------------------- | ----- | -------------------- | ----------------------------------------------- |
+| Practice / Unit quiz | A4    | Portrait             | Daily practice, homework, quizzes               |
+| Formal exam          | A3    | Landscape + 2-column | Midterm / final / standardized (requires OOXML) |
+| Answer sheet         | A4    | Portrait             | Standalone answer card                          |
 
 ### Margins
 
@@ -39,6 +39,7 @@ page: { size: { width: 23812, height: 16838, orientation: PageOrientation.LANDSC
 ### Section Handling
 
 Different parts should use section breaks (`SectionType.NEXT_PAGE`):
+
 - **Header area (full-width):** Title, instructions, score table (no columns)
 - **Content area:** Questions (may use columns)
 - **Composition / answer sheet:** Independent section, independent format
@@ -55,6 +56,7 @@ sections: [
 ### Template-First Principle
 
 ⚠️ **Build framework first, fill content second.** Before writing questions, determine:
+
 1. Paper size + margins
 2. Whether seal line is needed
 3. Whether columns are used
@@ -67,16 +69,17 @@ sections: [
 
 ### When to Use Seal Line
 
-| Scenario | Seal Line | Student Info Position |
-|----------|-----------|---------------------|
-| Formal standardized exam | ✅ Required | Left vertical info column |
-| Midterm / Final | ✅ Recommended | Left vertical info column |
-| Unit quiz | ❌ Optional | Header horizontal info row |
-| Daily practice | ❌ Skip | Header horizontal info row |
+| Scenario                 | Seal Line      | Student Info Position      |
+| ------------------------ | -------------- | -------------------------- |
+| Formal standardized exam | ✅ Required    | Left vertical info column  |
+| Midterm / Final          | ✅ Recommended | Left vertical info column  |
+| Unit quiz                | ❌ Optional    | Header horizontal info row |
+| Daily practice           | ❌ Skip        | Header horizontal info row |
 
 ### Seal Line Implementation
 
 #### Method 1: Header horizontal prompt (simple)
+
 ```js
 headers: { default: new Header({ children: [
   new Paragraph({ alignment: AlignmentType.CENTER,
@@ -87,6 +90,7 @@ headers: { default: new Header({ children: [
 ```
 
 #### Method 2: Vertical text box (OOXML advanced)
+
 ```xml
 <w:txbxContent>
   <w:p><w:pPr><w:jc w:val="center"/></w:pPr>
@@ -104,13 +108,18 @@ headers: { default: new Header({ children: [
 ```js
 // Horizontal info row (when no seal line) — borderless 3-column table
 new Table({
-  alignment: AlignmentType.CENTER, columnWidths: [2800, 2800, 2800],
-  rows: [new TableRow({ children: [
-    cell("Name: ______________"),
-    cell("Class: ______________", AlignmentType.CENTER),
-    cell("ID: ______________", AlignmentType.RIGHT),
-  ] })]
-})
+  alignment: AlignmentType.CENTER,
+  columnWidths: [2800, 2800, 2800],
+  rows: [
+    new TableRow({
+      children: [
+        cell("Name: ______________"),
+        cell("Class: ______________", AlignmentType.CENTER),
+        cell("ID: ______________", AlignmentType.RIGHT),
+      ],
+    }),
+  ],
+});
 ```
 
 Fill lines should be moderate length (10–14 underscore chars). Label order: Name → Class → Student ID.
@@ -132,19 +141,20 @@ Score table (as needed)
 
 ### Font Specifications
 
-| Element | Font | Size | Style |
-|---------|------|------|-------|
-| School name | SimHei | 16pt (size:32) | Bold, centered |
-| Exam title | SimHei | 14pt (size:28) | Bold, centered |
-| Subject title | SimHei | 14pt (size:28) | Bold, centered |
-| Instructions | SimSun | 10pt (size:20) | Grey 333333, centered |
-| Student info | SimSun | 10.5pt (size:21) | Normal |
+| Element       | Font   | Size             | Style                 |
+| ------------- | ------ | ---------------- | --------------------- |
+| School name   | SimHei | 16pt (size:32)   | Bold, centered        |
+| Exam title    | SimHei | 14pt (size:28)   | Bold, centered        |
+| Subject title | SimHei | 14pt (size:28)   | Bold, centered        |
+| Instructions  | SimSun | 10pt (size:20)   | Grey 333333, centered |
+| Student info  | SimSun | 10.5pt (size:21) | Normal                |
 
 ### Instructions Content
 
 Should include: total score, exam duration, answer method, special requirements (e.g., calculator allowed).
 
 ### Score Table
+
 - Header row: light grey background F0F0F0, centered
 - Columns: Question type | Section names... | Total
 - Rows: Points | Section points... | Total points
@@ -162,25 +172,31 @@ Should include: total score, exam duration, answer method, special requirements 
 ```js
 // Exam papers use only black/white/grey for clear photocopying
 const C = {
-  title: "000000", body: "000000", section: "333333",
-  seal: "999999", answerLine: "CCCCCC", headerBg: "F0F0F0", gridLine: "DDDDDD",
+  title: "000000",
+  body: "000000",
+  section: "333333",
+  seal: "999999",
+  answerLine: "CCCCCC",
+  headerBg: "F0F0F0",
+  gridLine: "DDDDDD",
 };
 ```
 
 ### Column Usage
 
-| Subject / Question Type | Recommendation |
-|------------------------|----------------|
+| Subject / Question Type        | Recommendation          |
+| ------------------------------ | ----------------------- |
 | Math multiple choice + fill-in | ✅ Suitable for columns |
-| Physics multiple choice | ✅ Suitable for columns |
-| Chinese reading / composition | ❌ Not suitable |
-| English cloze / reading | ❌ Not suitable |
-| History source-based | ❌ Not suitable |
-| Geography map reading | ❌ Not suitable |
+| Physics multiple choice        | ✅ Suitable for columns |
+| Chinese reading / composition  | ❌ Not suitable         |
+| English cloze / reading        | ❌ Not suitable         |
+| History source-based           | ❌ Not suitable         |
+| Geography map reading          | ❌ Not suitable         |
 
 ### Question Numbering
 
 Entire paper uses consistent three-level numbering:
+
 - **Major sections:** I, II, III, IV... (Chinese: 一、二、三、四…)
 - **Questions:** 1. 2. 3. ... (Arabic + period)
 - **Sub-questions:** (1) (2) (3) ... (parenthesized)
@@ -189,12 +205,18 @@ Entire paper uses consistent three-level numbering:
 
 ```js
 // ✅ Correct — plain TextRun manual numbering
-new Paragraph({ spacing: { before: 120, after: 60, line: 360 },
-  children: [new TextRun({ text: `${i+1}. ${question}`, size: 21, font: { eastAsia: "SimSun" } })] })
+new Paragraph({
+  spacing: { before: 120, after: 60, line: 360 },
+  children: [
+    new TextRun({ text: `${i + 1}. ${question}`, size: 21, font: { eastAsia: "SimSun" } }),
+  ],
+});
 
 // ❌ Wrong — numbering causes Word to add bullets
-new Paragraph({ numbering: { reference: "xxx", level: 0 }, // ← Forbidden!
-  children: [new TextRun({ text: question })] })
+new Paragraph({
+  numbering: { reference: "xxx", level: 0 }, // ← Forbidden!
+  children: [new TextRun({ text: question })],
+});
 ```
 
 ### Question Spacing
@@ -208,6 +230,7 @@ subQuestion: { before: 60, after: 40 }     // Between sub-questions
 ### Page Break Control
 
 ⚠️ Key principles:
+
 - **Question stem and answer area must not split** across pages
 - **Source material and questions on same page**
 - **Figures adjacent to their questions**
@@ -233,36 +256,48 @@ When a question references "underlined part" (划线部分), the relevant text M
 
 ```js
 // ✅ Correct — actual underline on the referenced text
-new Paragraph({ children: [
-  new TextRun({ text: "1. It is ", size: 21, font: { ascii: "Times New Roman" } }),
-  new TextRun({ text: "a butterfly", size: 21, font: { ascii: "Times New Roman" },
-    underline: { type: UnderlineType.SINGLE, color: "000000" } }),
-  new TextRun({ text: ". (Ask about the underlined part)", size: 21, font: { ascii: "Times New Roman" } }),
-]})
+new Paragraph({
+  children: [
+    new TextRun({ text: "1. It is ", size: 21, font: { ascii: "Times New Roman" } }),
+    new TextRun({
+      text: "a butterfly",
+      size: 21,
+      font: { ascii: "Times New Roman" },
+      underline: { type: UnderlineType.SINGLE, color: "000000" },
+    }),
+    new TextRun({
+      text: ". (Ask about the underlined part)",
+      size: 21,
+      font: { ascii: "Times New Roman" },
+    }),
+  ],
+});
 
 // ❌ Wrong — underlined part described as annotation text
-new TextRun({ text: "1. It is a butterfly. (对划线部分提问) 注：划线部分为 a butterfly" })
+new TextRun({ text: "1. It is a butterfly. (对划线部分提问) 注：划线部分为 a butterfly" });
 ```
 
 ### Font Hierarchy
 
-| Element | Font | Size | Style |
-|---------|------|------|-------|
-| Section title | SimHei | 11pt (size:22) | Bold |
-| Question content | SimSun | 10.5pt (size:21) | Normal |
-| Points annotation | SimSun | 10pt (size:20) | In parentheses |
-| Reading material | KaiTi/SimSun | 10.5pt (size:21) | KaiTi to differentiate |
-| Notes/source | SimSun | 9pt (size:18) | Grey 666666 |
-| Seal line | SimSun | 8pt (size:16) | Grey 999999 |
-| Page number | SimSun | 9pt (size:18) | Centered |
+| Element           | Font         | Size             | Style                  |
+| ----------------- | ------------ | ---------------- | ---------------------- |
+| Section title     | SimHei       | 11pt (size:22)   | Bold                   |
+| Question content  | SimSun       | 10.5pt (size:21) | Normal                 |
+| Points annotation | SimSun       | 10pt (size:20)   | In parentheses         |
+| Reading material  | KaiTi/SimSun | 10.5pt (size:21) | KaiTi to differentiate |
+| Notes/source      | SimSun       | 9pt (size:18)    | Grey 666666            |
+| Seal line         | SimSun       | 8pt (size:16)    | Grey 999999            |
+| Page number       | SimSun       | 9pt (size:18)    | Centered               |
 
 ### Line Spacing
+
 ```js
-line: 360  // ~1.5x for readability
-answerLine: 500  // Answer line spacing for writing room
+line: 360; // ~1.5x for readability
+answerLine: 500; // Answer line spacing for writing room
 ```
 
 ### Paragraph Rules
+
 - ⚠️ **Never use consecutive returns for whitespace** — use `spacing.before/after`
 - Chinese questions use Chinese punctuation; English materials use English punctuation
 - Mixed CN/EN: use Times New Roman or Calibri for English text
@@ -281,22 +316,36 @@ answerLine: 500  // Answer line spacing for writing room
 // Short options: 4 columns in 1 row
 new Table({
   columnWidths: [2200, 2200, 2200, 2200],
-  rows: [new TableRow({ children: ["A","B","C","D"].map((label, i) =>
-    new TableCell({ borders: NBs, width: { size: 2200, type: WidthType.DXA },
-      margins: { top: 0, bottom: 0, left: 60, right: 60 },
-      children: [new Paragraph({ spacing: { before: 0, after: 0 },
-        children: [new TextRun({ text: `${label}. ${options[i]}`, size: 21, font: "SimSun" })] })]
-    })
-  ) })]
-})
+  rows: [
+    new TableRow({
+      children: ["A", "B", "C", "D"].map(
+        (label, i) =>
+          new TableCell({
+            borders: NBs,
+            width: { size: 2200, type: WidthType.DXA },
+            margins: { top: 0, bottom: 0, left: 60, right: 60 },
+            children: [
+              new Paragraph({
+                spacing: { before: 0, after: 0 },
+                children: [
+                  new TextRun({ text: `${label}. ${options[i]}`, size: 21, font: "SimSun" }),
+                ],
+              }),
+            ],
+          }),
+      ),
+    }),
+  ],
+});
 // Medium options: 2 columns, 2 rows
 // Long options: 1 column, 4 rows
 ```
 
 ### Option Length Detection
+
 ```js
 function getOptionLayout(options) {
-  const maxLen = Math.max(...options.map(o => o.length));
+  const maxLen = Math.max(...options.map((o) => o.length));
   if (maxLen <= 6) return "4col";
   if (maxLen <= 15) return "2col";
   return "1col";
@@ -312,8 +361,12 @@ function getOptionLayout(options) {
 // Short answer (number/word): 8 underscores
 // Medium (phrase): 14 underscores
 // Long (sentence): 20 underscores
-new Paragraph({ spacing: { before: 140, after: 80, line: 400 },
-  children: [new TextRun({ text: `${num}. Question text ________________.`, size: 21, font: "SimSun" })] })
+new Paragraph({
+  spacing: { before: 140, after: 80, line: 400 },
+  children: [
+    new TextRun({ text: `${num}. Question text ________________.`, size: 21, font: "SimSun" }),
+  ],
+});
 ```
 
 ⚠️ Fill-in lines must not break across lines — if line is too long, put the blank on the next line.
@@ -323,27 +376,40 @@ new Paragraph({ spacing: { before: 140, after: 80, line: 400 },
 ## 8. Short Answer / Problem-Solving Layout
 
 ### Question + Points
+
 ```js
-new Paragraph({ spacing: { before: 200, after: 60, line: 360 }, keepNext: true,
-  children: [new TextRun({ text: `${num}. (${points} pts) ${question}`, size: 21, font: "SimSun" })] })
+new Paragraph({
+  spacing: { before: 200, after: 60, line: 360 },
+  keepNext: true,
+  children: [
+    new TextRun({ text: `${num}. (${points} pts) ${question}`, size: 21, font: "SimSun" }),
+  ],
+});
 ```
 
 ### Answer Lines
+
 ```js
 // Light grey answer lines (CCCCCC), NOT black
 // ⚠️ Answer lines are ONLY for writing space within each question — never as dividers between questions
 function answerLines(count) {
-  return Array(count).fill(null).map(() =>
-    new Paragraph({ spacing: { before: 0, after: 0, line: 500 },
-      borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" } },
-      children: [new TextRun({ text: " ", size: 21 })] })
-  );
+  return Array(count)
+    .fill(null)
+    .map(
+      () =>
+        new Paragraph({
+          spacing: { before: 0, after: 0, line: 500 },
+          borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" } },
+          children: [new TextRun({ text: " ", size: 21 })],
+        }),
+    );
 }
 ```
 
 ⚠️ **Separation between questions:**
 
 Use **only spacing** (`spacing.before: 200`) for visual separation between questions. **Forbidden:**
+
 - ❌ Grey horizontal lines (borders)
 - ❌ Color block dividers (Table-simulated separators)
 - ❌ Symbol dividers (e.g., `───────`)
@@ -351,12 +417,12 @@ Use **only spacing** (`spacing.before: 200`) for visual separation between quest
 
 ### Answer Space vs. Points
 
-| Points | Suggested Lines | Description |
-|--------|----------------|-------------|
-| 2–4 | 3–4 lines | Simple calculation / short answer |
-| 5–8 | 6–8 lines | Medium problem |
-| 10–12 | 8–10 lines | Complex problem |
-| 14–20 | 10–14 lines | Comprehensive / essay question |
+| Points | Suggested Lines | Description                       |
+| ------ | --------------- | --------------------------------- |
+| 2–4    | 3–4 lines       | Simple calculation / short answer |
+| 5–8    | 6–8 lines       | Medium problem                    |
+| 10–12  | 8–10 lines      | Complex problem                   |
+| 14–20  | 10–14 lines     | Comprehensive / essay question    |
 
 ---
 
@@ -366,14 +432,21 @@ Use **only spacing** (`spacing.before: 200`) for visual separation between quest
 
 ```js
 // Material area — indented + KaiTi to differentiate
-new Paragraph({ indent: { left: 420, right: 420 }, spacing: { before: 100, after: 100, line: 380 },
-  children: [new TextRun({ text: materialText, size: 21, font: "KaiTi" })] })
+new Paragraph({
+  indent: { left: 420, right: 420 },
+  spacing: { before: 100, after: 100, line: 380 },
+  children: [new TextRun({ text: materialText, size: 21, font: "KaiTi" })],
+});
 // Source attribution
-new Paragraph({ alignment: AlignmentType.RIGHT, indent: { right: 420 },
-  children: [new TextRun({ text: "— from \"XXX\"", size: 18, color: "666666", font: "SimSun" })] })
+new Paragraph({
+  alignment: AlignmentType.RIGHT,
+  indent: { right: 420 },
+  children: [new TextRun({ text: '— from "XXX"', size: 18, color: "666666", font: "SimSun" })],
+});
 ```
 
 ### Key Principles
+
 - Material title, source, body, and notes use different fonts
 - Long materials: increase line spacing (line: 380–400)
 - Material and corresponding questions on same page
@@ -389,11 +462,11 @@ new Paragraph({ alignment: AlignmentType.RIGHT, indent: { right: 420 },
 ⚠️ **Grid count must exceed required word count by 20–30%** (for title, paragraph indents, line breaks).
 
 | Required Words | Min Grid Count | Recommended Layout |
-|---------------|---------------|-------------------|
-| 400 | 500 | 25 rows × 20 cols |
-| 600 | 750 | 38 rows × 20 cols |
-| 800 | 1000 | 50 rows × 20 cols |
-| 1000 | 1250 | 63 rows × 20 cols |
+| -------------- | -------------- | ------------------ |
+| 400            | 500            | 25 rows × 20 cols  |
+| 600            | 750            | 38 rows × 20 cols  |
+| 800            | 1000           | 50 rows × 20 cols  |
+| 1000           | 1250           | 63 rows × 20 cols  |
 
 ```js
 function calcGridSize(requiredWords, colsPerRow = 20) {
@@ -410,15 +483,24 @@ function compositionGrid(rows, colsPerRow) {
   const cellSize = Math.floor(8800 / colsPerRow);
   return new Table({
     columnWidths: Array(colsPerRow).fill(cellSize),
-    rows: Array(rows).fill(null).map(() =>
-      new TableRow({
-        height: { value: cellSize, rule: HeightRule.EXACT },
-        children: Array(colsPerRow).fill(null).map(() =>
-          new TableCell({ borders: thinBs("DDDDDD"), width: { size: cellSize, type: WidthType.DXA },
-            children: [new Paragraph({ children: [] })] })
-        )
-      })
-    )
+    rows: Array(rows)
+      .fill(null)
+      .map(
+        () =>
+          new TableRow({
+            height: { value: cellSize, rule: HeightRule.EXACT },
+            children: Array(colsPerRow)
+              .fill(null)
+              .map(
+                () =>
+                  new TableCell({
+                    borders: thinBs("DDDDDD"),
+                    width: { size: cellSize, type: WidthType.DXA },
+                    children: [new Paragraph({ children: [] })],
+                  }),
+              ),
+          }),
+      ),
   });
 }
 ```
@@ -429,11 +511,16 @@ function compositionGrid(rows, colsPerRow) {
 
 ```js
 function writingLines(count) {
-  return Array(count).fill(null).map(() =>
-    new Paragraph({ spacing: { before: 0, after: 0, line: 560 },
-      borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" } },
-      children: [new TextRun({ text: " ", size: 21 })] })
-  );
+  return Array(count)
+    .fill(null)
+    .map(
+      () =>
+        new Paragraph({
+          spacing: { before: 0, after: 0, line: 560 },
+          borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" } },
+          children: [new TextRun({ text: " ", size: 21 })],
+        }),
+    );
 }
 ```
 
@@ -446,11 +533,13 @@ function writingLines(count) {
 | 120+ | 15 |
 
 **Rules:**
+
 1. Lines must appear immediately after the writing prompt paragraph
 2. Line color: light grey `CCCCCC` (print-friendly, not visually heavy)
 3. Line spacing: `line: 560` (provides adequate writing room)
 4. Chinese composition uses grid (`compositionGrid`), English uses lines (`writingLines`) — never mix them up
-```
+
+````
 
 ### Composition Area Requirements
 - Independent section or clear separation
@@ -492,9 +581,10 @@ The answer key file should include:
     // ... answer content paragraphs
   ],
 }
-```
+````
 
 ### Rules
+
 1. ⚠️ **Never place answer content directly after the last question without a page/section break**
 2. Answer content should be concise — no answer lines, no grid, plain text only
 3. Calculation/proof questions: show key steps, not just final answer
@@ -505,14 +595,24 @@ The answer key file should include:
 ## 12. Figures & Illustrations
 
 ### Image Insertion
+
 ```js
-new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 100, after: 60 },
-  children: [new ImageRun({ data: imageBuffer, transformation: { width: 300, height: 200 }, type: "png" })] })
-new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 },
-  children: [new TextRun({ text: "(Figure 1)", size: 18, color: "666666", font: "SimSun" })] })
+new Paragraph({
+  alignment: AlignmentType.CENTER,
+  spacing: { before: 100, after: 60 },
+  children: [
+    new ImageRun({ data: imageBuffer, transformation: { width: 300, height: 200 }, type: "png" }),
+  ],
+});
+new Paragraph({
+  alignment: AlignmentType.CENTER,
+  spacing: { after: 100 },
+  children: [new TextRun({ text: "(Figure 1)", size: 18, color: "666666", font: "SimSun" })],
+});
 ```
 
 ### Key Principles
+
 - Images set as inline (default) to prevent floating
 - Resolution sufficient for print clarity
 - **B&W print compatible:** images must remain distinguishable when printed in grayscale
@@ -524,6 +624,7 @@ new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 },
 ### ⚠️ Figure-Text Order (Strictly Enforced)
 
 **For questions with figures, element order must be:**
+
 ```
 1. Question stem (keepNext: true)
 2. Figure (centered, keepNext: true)
@@ -533,6 +634,7 @@ new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 },
 **Forbidden:** answer lines between stem and figure, or figure after answer lines.
 
 ### Figure Content Matching
+
 - **Figures must be semantically consistent with question stem:** if question says "triangle ABC", figure must label vertices A, B, C
 - Geometry annotations must match described angles, side lengths
 - Function graphs must mark key points mentioned in the question
@@ -542,6 +644,7 @@ new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 },
 ### ⚠️ Figure Diversity Rule (Mandatory)
 
 **No duplicate figures in the entire paper.** Even if two questions involve the same type (e.g., both triangles), each must have a distinct figure:
+
 1. Different labels (different vertex letters, angles, side lengths)
 2. Different shapes (acute vs. right vs. obtuse triangle)
 3. Different styling (if applicable)
@@ -550,25 +653,28 @@ If using matplotlib, each call must use **different parameters and data** — ne
 
 ### Subject-Specific Figure Requirements
 
-| Subject | Common Types | Special Requirements |
-|---------|-------------|---------------------|
-| Math | Geometry, functions, coordinates | No distortion, clear labels |
-| Physics | Circuits, mechanics, apparatus | Standard symbols, correct arrows |
-| Chemistry | Apparatus, molecular structures | Reagent names labeled |
-| Biology | Cell, organ, ecosystem diagrams | Labels not too small |
-| Geography | Maps, contour lines, statistics | Legend + scale + north arrow |
+| Subject   | Common Types                     | Special Requirements             |
+| --------- | -------------------------------- | -------------------------------- |
+| Math      | Geometry, functions, coordinates | No distortion, clear labels      |
+| Physics   | Circuits, mechanics, apparatus   | Standard symbols, correct arrows |
+| Chemistry | Apparatus, molecular structures  | Reagent names labeled            |
+| Biology   | Cell, organ, ecosystem diagrams  | Labels not too small             |
+| Geography | Maps, contour lines, statistics  | Legend + scale + north arrow     |
 
 ---
 
 ## 13. Formulas & Special Symbols
 
 ### Formulas
+
 Math/physics/chemistry formulas use **LaTeX → docx-js Math mapping** (see `references/math-formulas.md`):
+
 - Basic (fractions, sub/superscript, roots) → docx-js Math components
 - Complex (3+ nesting, matrices) → matplotlib PNG fallback
 - Never hand-type Unicode formula approximations
 
 ### Common Unicode Math Symbols
+
 ```
 × ÷ ± ∓ ≠ ≈ ≤ ≥ ∞ √ ∑ ∏ ∫ ∂ ∆ ∇
 α β γ δ ε θ λ μ π σ φ ω
@@ -577,6 +683,7 @@ Math/physics/chemistry formulas use **LaTeX → docx-js Math mapping** (see `ref
 ```
 
 ### Chemical Formulas
+
 Subscripts/superscripts must be correct: H₂O, CO₂, Fe₂O₃, Ca(OH)₂
 Reaction arrows: → ⇌ ↑ ↓
 
@@ -585,20 +692,30 @@ Reaction arrows: → ⇌ ↑ ↓
 ## 14. Table Usage Standards
 
 ### Borderless Tables (for alignment)
+
 For: option alignment, info rows, question number + points alignment
+
 ```js
 const NB = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 const NBs = { top: NB, bottom: NB, left: NB, right: NB };
 ```
 
 ### Bordered Tables (for data display)
+
 For: score tables, data tables, statistics
+
 ```js
-const thinB = (c="000000") => ({ style: BorderStyle.SINGLE, size: 1, color: c });
-const thinBs = (c="000000") => ({ top: thinB(c), bottom: thinB(c), left: thinB(c), right: thinB(c) });
+const thinB = (c = "000000") => ({ style: BorderStyle.SINGLE, size: 1, color: c });
+const thinBs = (c = "000000") => ({
+  top: thinB(c),
+  bottom: thinB(c),
+  left: thinB(c),
+  right: thinB(c),
+});
 ```
 
 ### Table Standards
+
 - Cell padding moderate (margins: top/bottom 40–60, left/right 60–80)
 - Consistent border thickness
 - Header row: light grey F0F0F0 background
@@ -610,6 +727,7 @@ const thinBs = (c="000000") => ({ top: thinB(c), bottom: thinB(c), left: thinB(c
 ## 15. Headers & Footers
 
 ### Page Numbers
+
 ```js
 footers: { default: new Footer({ children: [
   new Paragraph({ alignment: AlignmentType.CENTER,
@@ -622,6 +740,7 @@ footers: { default: new Footer({ children: [
 ⚠️ **Denominator FORBIDDEN** — never use `PageNumber.TOTAL_PAGES` or "Page X of Y". Show only current page number.
 
 ### Headers
+
 - May contain seal line prompt or subject name
 - Small font (8–9pt), grey color (999999)
 - Should not be visually heavy — must not compete with content
@@ -631,6 +750,7 @@ footers: { default: new Footer({ children: [
 ## 16. Subject-Specific Standards
 
 ### Chinese Language
+
 - Reading, classical poetry, composition: **no columns**
 - Poetry preserves original line breaks
 - Classical text needs annotation area (smaller font, indented)
@@ -639,6 +759,7 @@ footers: { default: new Footer({ children: [
 - Reading materials: use KaiTi to differentiate
 
 ### Mathematics
+
 - Multiple choice, fill-in: suitable for neat layout
 - Formulas: Unicode symbols or OOXML
 - Geometry/function graphs must be clear, undistorted
@@ -646,6 +767,7 @@ footers: { default: new Footer({ children: [
 - Coordinate graphs: labeled axes, tick marks
 
 ### English
+
 - English font: Times New Roman, moderate character spacing
 - Cloze: numbers in text, options after passage
 - Reading comprehension: material + questions as groups
@@ -653,6 +775,7 @@ footers: { default: new Footer({ children: [
 - Listening (if any): numbers aligned with options
 
 ### Physics / Chemistry / Biology
+
 - Experiment/apparatus diagrams must be clear and accurate
 - Unit symbols standardized (m/s, kg, mol/L, etc.)
 - Chemical formula subscripts correct
@@ -660,6 +783,7 @@ footers: { default: new Footer({ children: [
 - Biology structure diagrams: labels not too small
 
 ### History / Politics
+
 - Source-based questions are lengthy — **no columns**
 - Dates, figures, events clearly labeled
 - Essay questions: more whitespace than multiple choice
@@ -667,6 +791,7 @@ footers: { default: new Footer({ children: [
 - Chart materials in logical order
 
 ### Geography
+
 - Maps are the focus — must be clear
 - Legend, scale bar, north arrow required
 - Map and question close together — avoid page turns

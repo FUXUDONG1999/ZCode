@@ -8,10 +8,7 @@ export function ProjectSidebarNavigation({
   onCreate,
 }: {
   // 个人定制：移除「自动化」「插件市场」侧边栏入口，只保留新建任务与远控设备头；路由与页面实现保留。
-  props: Pick<
-    ProjectSidebarProps,
-    "isWebRemoteControl" | "webRemoteControlWorkspaceSwitcher"
-  >;
+  props: Pick<ProjectSidebarProps, "isWebRemoteControl" | "webRemoteControlWorkspaceSwitcher">;
   onCreate(): void;
 }) {
   const deviceNavigation = props.webRemoteControlWorkspaceSwitcher?.deviceNavigation;

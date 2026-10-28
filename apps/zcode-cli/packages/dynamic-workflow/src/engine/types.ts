@@ -680,7 +680,12 @@ export type RunEvent =
    * （`cause: "world-run"`）。每个 run 最多一条；修订 run 崩溃后 resume 据它恢复「门已关」——这是
    * 关门的**唯一**事实来源，不再由「曾有 ask live」推断。非修订 run 没有表可关，不发。
    */
-  | { type: "import-cache-closed"; instance: InstanceRef; cause: ImportCloseCause; actorName?: string }
+  | {
+      type: "import-cache-closed";
+      instance: InstanceRef;
+      cause: ImportCloseCause;
+      actorName?: string;
+    }
   /**
    * 控制流经过了一个 `phase("…")` 标记。**无站点、无 journal 行、无 driver 往返**——标记不是一步工作，它只是
    * 「跑到哪了」的一个刻度。`name` 是作者的原词（去两端空白，与分析器铸造阶段 id 的键同一）；

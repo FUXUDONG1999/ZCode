@@ -76,12 +76,7 @@ export const WorkflowSettingsAdjustmentSchema = z.object({
     .max(WORKFLOW_SETTINGS_MAX_MODEL_CHARS)
     .nullable()
     .optional(),
-  max_concurrency: z
-    .number()
-    .int()
-    .positive()
-    .nullable()
-    .optional(),
+  max_concurrency: z.number().int().positive().nullable().optional(),
 });
 
 export type WorkflowSettingsAdjustment = z.infer<typeof WorkflowSettingsAdjustmentSchema>;

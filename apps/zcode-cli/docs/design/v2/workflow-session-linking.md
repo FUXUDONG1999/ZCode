@@ -20,12 +20,7 @@ or empty, clients may derive equivalent links from `activities[]`.
 interface WorkflowSessionLink {
   activityId: string;
   attempt: number;
-  kind:
-    | "agent_session"
-    | "planner_agent"
-    | "subplanner_agent"
-    | "actor_agent"
-    | "critic_agent";
+  kind: "agent_session" | "planner_agent" | "subplanner_agent" | "actor_agent" | "critic_agent";
   model?: string;
   nodeId?: string;
   parentSessionId?: string;

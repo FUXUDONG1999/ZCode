@@ -26,22 +26,14 @@ import {
   createWorkflowPhaseAlongside,
   createWorkflowPhaseNames,
 } from "@zcode/contracts";
-import type {
-  ToolApprovalGate,
-  ToolEntry,
-  ToolExecutionContext,
-  ToolHandler,
-} from "../types.js";
+import type { ToolApprovalGate, ToolEntry, ToolExecutionContext, ToolHandler } from "../types.js";
 import { CREATE_WORKFLOW_TOOL_DESCRIPTION } from "./create-workflow-description.js";
 import {
   CREATE_WORKFLOW_FAILURE_CODE,
   resolveCreateWorkflowInput,
   validateCreateWorkflowSource,
 } from "./create-workflow-source.js";
-import {
-  describeWorkflowSubagentModel,
-  parseWorkflowSubagentModel,
-} from "./model-reference.js";
+import { describeWorkflowSubagentModel, parseWorkflowSubagentModel } from "./model-reference.js";
 import { boundGraphOfAnalysis, displayOfAnalysis } from "./workflow-analysis-display.js";
 import { recordAuthoredWorkflowDraft } from "./workflow-draft-read-state.js";
 import { resolveWorkflowDraftName, writeWorkflowDraft } from "./workflow-drafts.js";
@@ -296,9 +288,7 @@ function diagnosticsNote(
       // 定义本身也按模型面的写法给：它接下来若要改定义，走的是 `SaveWorkflow`，但读到一个
       // 绝对路径而其余路径都是工作区相对的，会让人以为那是另一台机器上的东西。
       savedPath:
-        saved.path === undefined
-          ? location.described
-          : describeWorkflowScriptPath(saved.path, cwd),
+        saved.path === undefined ? location.described : describeWorkflowScriptPath(saved.path, cwd),
       draft: location.described,
     });
   }

@@ -10,11 +10,11 @@
 
 ```typescript
 // Brand types
-type SessionId = string & { readonly __brand: 'SessionId' };
-type TurnId = string & { readonly __brand: 'TurnId' };
-type EventId = string & { readonly __brand: 'EventId' };
-type TraceId = string & { readonly __brand: 'TraceId' };
-type ToolCallId = string & { readonly __brand: 'ToolCallId' };
+type SessionId = string & { readonly __brand: "SessionId" };
+type TurnId = string & { readonly __brand: "TurnId" };
+type EventId = string & { readonly __brand: "EventId" };
+type TraceId = string & { readonly __brand: "TraceId" };
+type ToolCallId = string & { readonly __brand: "ToolCallId" };
 
 // Factory functions
 function createSessionId(id?: string): SessionId;
@@ -29,17 +29,17 @@ function createToolCallId(id?: string): ToolCallId;
 ```typescript
 // === Enums ===
 
-type CollaborationMode = 'plan' | 'build' | 'yolo' | 'auto';
-type SessionStatus = 'idle' | 'running' | 'waiting' | 'paused' | 'completed' | 'error';
-type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
-type ToolCallStatus = 'pending' | 'running' | 'completed' | 'failed' | 'denied';
-type InputDelivery = 'auto' | 'start_turn' | 'steer_active_turn';
+type CollaborationMode = "plan" | "build" | "yolo" | "auto";
+type SessionStatus = "idle" | "running" | "waiting" | "paused" | "completed" | "error";
+type RiskLevel = "low" | "medium" | "high" | "critical";
+type ToolCallStatus = "pending" | "running" | "completed" | "failed" | "denied";
+type InputDelivery = "auto" | "start_turn" | "steer_active_turn";
 type TurnSteerRejectReason =
-  | 'no_active_turn'
-  | 'expected_turn_mismatch'
-  | 'turn_not_steerable'
-  | 'empty_input'
-  | 'input_too_large';
+  | "no_active_turn"
+  | "expected_turn_mismatch"
+  | "turn_not_steerable"
+  | "empty_input"
+  | "input_too_large";
 
 // === Session Event Store Port ===
 
@@ -137,13 +137,13 @@ interface TurnSteerInput {
 }
 
 type TurnSteerResult =
-  | { kind: 'queued'; turnId: TurnId; pendingInputId: string; queueLength: number }
-  | { kind: 'rejected'; reason: TurnSteerRejectReason; activeTurnId?: TurnId };
+  | { kind: "queued"; turnId: TurnId; pendingInputId: string; queueLength: number }
+  | { kind: "rejected"; reason: TurnSteerRejectReason; activeTurnId?: TurnId };
 
 type SendInputResult =
-  | { kind: 'started_turn'; result: TurnResult }
-  | { kind: 'queued'; turnId: TurnId; pendingInputId: string; queueLength: number }
-  | { kind: 'rejected'; reason: TurnSteerRejectReason; activeTurnId?: TurnId };
+  | { kind: "started_turn"; result: TurnResult }
+  | { kind: "queued"; turnId: TurnId; pendingInputId: string; queueLength: number }
+  | { kind: "rejected"; reason: TurnSteerRejectReason; activeTurnId?: TurnId };
 
 interface SessionSummary {
   id: SessionId;
@@ -161,45 +161,45 @@ interface SessionSummary {
 // === Event Type ===
 
 const SessionEventType = {
-  SessionCreated: 'session_created',
-  SessionResumed: 'session_resumed',
-  SessionForked: 'session_forked',
-  SessionCompacted: 'session_compacted',
-  SessionEnded: 'session_ended',
-  TurnStarted: 'turn_started',
-  TurnInputReceived: 'turn_input_received',
-  TurnSteerQueued: 'turn_steer_queued',
-  TurnSteerDrained: 'turn_steer_drained',
-  TurnSteerRejected: 'turn_steer_rejected',
-  TurnSteerDiscarded: 'turn_steer_discarded',
-  TurnComplete: 'turn_complete',
-  TurnError: 'turn_error',
-  UserMessage: 'user_message',
-  AssistantMessage: 'assistant_message',
-  SystemMessage: 'system_message',
-  ModelRequest: 'model_request',
-  ModelSelected: 'model_selected',
-  ModelStreaming: 'model_streaming',
-  ModelComplete: 'model_complete',
-  ModelError: 'model_error',
-  ToolCallScheduled: 'tool_call_scheduled',
-  ToolCallStarted: 'tool_call_started',
-  ToolCallResult: 'tool_call_result',
-  ToolCallError: 'tool_call_error',
-  ToolBatchComplete: 'tool_batch_complete',
-  PermissionRequested: 'permission_requested',
-  PermissionResolved: 'permission_resolved',
-  PermissionDenied: 'permission_denied',
-  CompactBoundary: 'compact_boundary',
-  RewindTriggered: 'rewind_triggered',
-  CheckpointCreated: 'checkpoint_created',
-  SubagentSpawned: 'subagent_spawned',
-  SubagentMessage: 'subagent_message',
-  SubagentStopped: 'subagent_stopped',
-  Interrupt: 'interrupt',
-  Cancel: 'cancel',
-  Resume: 'resume',
-  Error: 'error',
+  SessionCreated: "session_created",
+  SessionResumed: "session_resumed",
+  SessionForked: "session_forked",
+  SessionCompacted: "session_compacted",
+  SessionEnded: "session_ended",
+  TurnStarted: "turn_started",
+  TurnInputReceived: "turn_input_received",
+  TurnSteerQueued: "turn_steer_queued",
+  TurnSteerDrained: "turn_steer_drained",
+  TurnSteerRejected: "turn_steer_rejected",
+  TurnSteerDiscarded: "turn_steer_discarded",
+  TurnComplete: "turn_complete",
+  TurnError: "turn_error",
+  UserMessage: "user_message",
+  AssistantMessage: "assistant_message",
+  SystemMessage: "system_message",
+  ModelRequest: "model_request",
+  ModelSelected: "model_selected",
+  ModelStreaming: "model_streaming",
+  ModelComplete: "model_complete",
+  ModelError: "model_error",
+  ToolCallScheduled: "tool_call_scheduled",
+  ToolCallStarted: "tool_call_started",
+  ToolCallResult: "tool_call_result",
+  ToolCallError: "tool_call_error",
+  ToolBatchComplete: "tool_batch_complete",
+  PermissionRequested: "permission_requested",
+  PermissionResolved: "permission_resolved",
+  PermissionDenied: "permission_denied",
+  CompactBoundary: "compact_boundary",
+  RewindTriggered: "rewind_triggered",
+  CheckpointCreated: "checkpoint_created",
+  SubagentSpawned: "subagent_spawned",
+  SubagentMessage: "subagent_message",
+  SubagentStopped: "subagent_stopped",
+  Interrupt: "interrupt",
+  Cancel: "cancel",
+  Resume: "resume",
+  Error: "error",
 } as const;
 
 type SessionEventType = (typeof SessionEventType)[keyof typeof SessionEventType];
@@ -273,13 +273,13 @@ interface PermissionResolvedPayload {
 // === Supporting Types ===
 
 type TurnResultType =
-  | 'success'
-  | 'error_max_turns'
-  | 'error_max_budget'
-  | 'error_during_execution'
-  | 'error_max_tool_calls';
+  | "success"
+  | "error_max_turns"
+  | "error_max_budget"
+  | "error_during_execution"
+  | "error_max_tool_calls";
 
-type PermissionDecision = 'allow' | 'deny' | 'escalate' | 'modify';
+type PermissionDecision = "allow" | "deny" | "escalate" | "modify";
 
 interface ToolSchedulePayload {
   parallelGroups: ToolCallId[][];
@@ -311,7 +311,7 @@ function createSessionEvent<T>(
   type: SessionEventType,
   sessionId: SessionId,
   payload: T,
-  options?: { turnId?: TurnId; traceId?: TraceId; sequenceNumber?: number }
+  options?: { turnId?: TurnId; traceId?: TraceId; sequenceNumber?: number },
 ): SessionEvent;
 ```
 
@@ -337,29 +337,29 @@ function apply(projection: SessionProjection, event: SessionEvent): SessionProje
 // === Error Type ===
 
 const CoreErrorType = {
-  SessionNotFound: 'session_not_found',
-  SessionAlreadyExists: 'session_already_exists',
-  SessionCorrupted: 'session_corrupted',
-  TurnNotFound: 'turn_not_found',
-  TurnInProgress: 'turn_in_progress',
-  InvalidTurnPhase: 'invalid_turn_phase',
-  ModelError: 'model_error',
-  ModelTimeout: 'model_timeout',
-  ModelRateLimited: 'model_rate_limited',
-  ModelContextExceeded: 'model_context_exceeded',
-  ToolNotFound: 'tool_not_found',
-  ToolExecutionFailed: 'tool_execution_failed',
-  ToolTimeout: 'tool_timeout',
-  ToolCancelled: 'tool_cancelled',
-  PermissionDenied: 'permission_denied',
-  PermissionEscalation: 'permission_escalation',
-  PermissionTimeout: 'permission_timeout',
-  InvalidStateTransition: 'invalid_state_transition',
-  EventOutOfOrder: 'event_out_of_order',
-  ProjectionCorrupted: 'projection_corrupted',
-  StorageError: 'storage_error',
-  ConfigurationError: 'configuration_error',
-  UnknownError: 'unknown_error',
+  SessionNotFound: "session_not_found",
+  SessionAlreadyExists: "session_already_exists",
+  SessionCorrupted: "session_corrupted",
+  TurnNotFound: "turn_not_found",
+  TurnInProgress: "turn_in_progress",
+  InvalidTurnPhase: "invalid_turn_phase",
+  ModelError: "model_error",
+  ModelTimeout: "model_timeout",
+  ModelRateLimited: "model_rate_limited",
+  ModelContextExceeded: "model_context_exceeded",
+  ToolNotFound: "tool_not_found",
+  ToolExecutionFailed: "tool_execution_failed",
+  ToolTimeout: "tool_timeout",
+  ToolCancelled: "tool_cancelled",
+  PermissionDenied: "permission_denied",
+  PermissionEscalation: "permission_escalation",
+  PermissionTimeout: "permission_timeout",
+  InvalidStateTransition: "invalid_state_transition",
+  EventOutOfOrder: "event_out_of_order",
+  ProjectionCorrupted: "projection_corrupted",
+  StorageError: "storage_error",
+  ConfigurationError: "configuration_error",
+  UnknownError: "unknown_error",
 } as const;
 
 type CoreErrorType = (typeof CoreErrorType)[keyof typeof CoreErrorType];
@@ -387,7 +387,7 @@ function createCoreError(
     context?: Record<string, unknown>;
     recoverable?: boolean;
     retryable?: boolean;
-  }
+  },
 ): CoreError;
 
 // === Error Creators ===
@@ -418,25 +418,25 @@ interface ModelRef {
   variant?: string;
 }
 
-type ModelProviderId = string & { readonly __brand: 'ModelProviderId' };
-type ModelId = string & { readonly __brand: 'ModelId' };
+type ModelProviderId = string & { readonly __brand: "ModelProviderId" };
+type ModelId = string & { readonly __brand: "ModelId" };
 
 const ModelRole = {
-  Main: 'main',
-  Lite: 'lite',
-  Compact: 'compact',
-  Review: 'review',
-  Subagent: 'subagent',
+  Main: "main",
+  Lite: "lite",
+  Compact: "compact",
+  Review: "review",
+  Subagent: "subagent",
 } as const;
 
 const ModelRefSource = {
-  Default: 'default',
-  Config: 'config',
-  Env: 'env',
-  Cli: 'cli',
-  Session: 'session',
-  Agent: 'agent',
-  Tool: 'tool',
+  Default: "default",
+  Config: "config",
+  Env: "env",
+  Cli: "cli",
+  Session: "session",
+  Agent: "agent",
+  Tool: "tool",
 } as const;
 ```
 
@@ -450,16 +450,16 @@ const ModelRefSource = {
 // === Turn Phase ===
 
 const TurnPhase = {
-  Idle: 'idle',
-  ProcessingInput: 'processing_input',
-  AwaitingModelResponse: 'awaiting_model_response',
-  Streaming: 'streaming',
-  SchedulingTools: 'scheduling_tools',
-  ExecutingTools: 'executing_tools',
-  AggregatingResults: 'aggregating_results',
-  AwaitingPermission: 'awaiting_permission',
-  Completing: 'completing',
-  Error: 'error',
+  Idle: "idle",
+  ProcessingInput: "processing_input",
+  AwaitingModelResponse: "awaiting_model_response",
+  Streaming: "streaming",
+  SchedulingTools: "scheduling_tools",
+  ExecutingTools: "executing_tools",
+  AggregatingResults: "aggregating_results",
+  AwaitingPermission: "awaiting_permission",
+  Completing: "completing",
+  Error: "error",
 } as const;
 
 type TurnPhase = (typeof TurnPhase)[keyof typeof TurnPhase];
@@ -511,12 +511,12 @@ interface ToolCallState {
 }
 
 type ToolCallStateStatus =
-  | 'scheduled'
-  | 'waiting_permission'
-  | 'permission_denied'
-  | 'running'
-  | 'completed'
-  | 'failed';
+  | "scheduled"
+  | "waiting_permission"
+  | "permission_denied"
+  | "running"
+  | "completed"
+  | "failed";
 
 interface ToolResultState {
   success: boolean;
@@ -545,7 +545,7 @@ interface PermissionResultState {
   resolvedAt: Date;
 }
 
-type PermissionDecision = 'allow' | 'deny' | 'escalate' | 'modify';
+type PermissionDecision = "allow" | "deny" | "escalate" | "modify";
 
 // === Factory ===
 
@@ -555,7 +555,7 @@ function createTurnState(
   turnNumber: number,
   traceId: TraceId,
   input: string,
-  attachments?: TurnAttachment[]
+  attachments?: TurnAttachment[],
 ): TurnState;
 
 // === Predicates ===
@@ -580,7 +580,11 @@ interface TurnMachine {
   startToolExecution(): TurnState;
   completeTool(toolCallId: ToolCallId, result: { success: boolean; content: string }): TurnState;
   requestPermission(request: PermissionRequestState): TurnState;
-  resolvePermission(toolCallId: ToolCallId, decision: PermissionDecision, modifiedInput?: unknown): TurnState;
+  resolvePermission(
+    toolCallId: ToolCallId,
+    decision: PermissionDecision,
+    modifiedInput?: unknown,
+  ): TurnState;
   aggregateResults(): TurnState;
   complete(response: string, resultType?: TurnResultType): TurnState;
   fail(error: TurnErrorState): TurnState;
@@ -589,7 +593,12 @@ interface TurnMachine {
 }
 
 class TurnMachineImpl implements TurnMachine {
-  static create(sessionId: SessionId, turnNumber: number, input: string, traceId?: TraceId): TurnMachineImpl;
+  static create(
+    sessionId: SessionId,
+    turnNumber: number,
+    input: string,
+    traceId?: TraceId,
+  ): TurnMachineImpl;
 }
 ```
 
@@ -624,7 +633,7 @@ class ToolScheduler {
 // === Default Instance ===
 
 const defaultToolScheduler: ToolScheduler;
-const READ_ONLY_TOOLS: Set<string>;  // Read, Glob, Grep, WebFetch, TodoRead, TodoWrite, AskUserQuestion
+const READ_ONLY_TOOLS: Set<string>; // Read, Glob, Grep, WebFetch, TodoRead, TodoWrite, AskUserQuestion
 ```
 
 ### 2.4 permission/service.ts
@@ -651,7 +660,10 @@ interface PermissionDecisionResult {
 class PermissionService {
   constructor(config?: PermissionConfig);
 
-  checkPermission(context: PermissionContext, toolCapability?: { riskLevel?: RiskLevel }): PermissionDecisionResult;
+  checkPermission(
+    context: PermissionContext,
+    toolCapability?: { riskLevel?: RiskLevel },
+  ): PermissionDecisionResult;
   requiresApproval(context: PermissionContext, toolCapability?: { riskLevel?: RiskLevel }): boolean;
   getRiskLevel(toolName: string, toolCapability?: { riskLevel?: RiskLevel }): RiskLevel;
 }
@@ -759,15 +771,15 @@ Context Builder 负责组装发送给模型的 system/context prefix。核心要
 
 ### 4.2 Section 组成
 
-| Section | source | 状态 | 说明 |
-|---------|--------|------|------|
-| CLI Prefix | `cli_prefix` | ✅ 已完成 | 固定产品身份前缀 |
-| Agent Identity | `identity` | ✅ 已完成 | fixed `zcode-agent` identity |
-| Dynamic Behavior | `dynamic_behavior` | ✅ 已完成 | communication 与 action-caution 内容 |
-| Environment Info | `env_info` | ✅ 已完成 | cwd, platform, git status |
-| Skills | `skills` | ✅ 已完成 | 以 `<system-reminder>` user 前缀注入 |
+| Section              | source                 | 状态      | 说明                                                    |
+| -------------------- | ---------------------- | --------- | ------------------------------------------------------- |
+| CLI Prefix           | `cli_prefix`           | ✅ 已完成 | 固定产品身份前缀                                        |
+| Agent Identity       | `identity`             | ✅ 已完成 | fixed `zcode-agent` identity                            |
+| Dynamic Behavior     | `dynamic_behavior`     | ✅ 已完成 | communication 与 action-caution 内容                    |
+| Environment Info     | `env_info`             | ✅ 已完成 | cwd, platform, git status                               |
+| Skills               | `skills`               | ✅ 已完成 | 以 `<system-reminder>` user 前缀注入                    |
 | Request User Context | `request_user_context` | ✅ 已完成 | 聚合 resolved instruction files 与 project-memory index |
-| Current Date | `current_date` | ✅ 已完成 | 当前日期 |
+| Current Date         | `current_date`         | ✅ 已完成 | 当前日期                                                |
 
 Provider-visible copy inside dynamic system sections must stay English-only.
 This applies to Environment Info headings, field labels, and enum-like status
@@ -800,34 +812,34 @@ equivalent to:
 ```typescript
 // === Context Source ===
 type ContextSource =
-  | 'cli_prefix'
-  | 'identity'
-  | 'env_info'
-  | 'system_context'
-  | 'skills'
-  | 'tools'
-  | 'request_user_context'
-  | 'memory'
-  | 'current_date'
-  | 'custom_system_prompt'
-  | 'subagent_agent_prompt'
-  | 'subagent_notes'
-  | 'subagent_environment'
-  | 'dynamic_behavior'
-  | 'session_guidance'
-  | 'output_style'
-  | 'context_management';
+  | "cli_prefix"
+  | "identity"
+  | "env_info"
+  | "system_context"
+  | "skills"
+  | "tools"
+  | "request_user_context"
+  | "memory"
+  | "current_date"
+  | "custom_system_prompt"
+  | "subagent_agent_prompt"
+  | "subagent_notes"
+  | "subagent_environment"
+  | "dynamic_behavior"
+  | "session_guidance"
+  | "output_style"
+  | "context_management";
 
 // === Context Section ===
 interface ContextSection {
-  name: string;           // 人类可读的 section 名称
+  name: string; // 人类可读的 section 名称
   source: ContextSource; // 来源标识
-  injectionTarget: 'system' | 'meta_user';
-  cacheHint: 'stable' | 'dynamic';
-  chars: number;         // 字符数
-  tokens: number;        // 估算 token 数
-  content: string;       // 完整内容
-  preview: string;       // 前 100 字符预览
+  injectionTarget: "system" | "meta_user";
+  cacheHint: "stable" | "dynamic";
+  chars: number; // 字符数
+  tokens: number; // 估算 token 数
+  content: string; // 完整内容
+  preview: string; // 前 100 字符预览
 }
 
 // === Context Build Result ===
@@ -835,17 +847,17 @@ interface ContextBuildResult {
   sections: ContextSection[];
   totalChars: number;
   totalTokens: number;
-  messages: ModelInputMessage[];  // stable system + dynamic system + optional meta_user prefix messages
+  messages: ModelInputMessage[]; // stable system + dynamic system + optional meta_user prefix messages
 }
 
 interface ModelCacheControl {
-  type: 'ephemeral';
-  ttl?: '5m' | '1h';
-  scope?: 'global' | 'org';
+  type: "ephemeral";
+  ttl?: "5m" | "1h";
+  scope?: "global" | "org";
 }
 
 interface ModelInputMessage {
-  role: 'system' | 'user' | 'assistant' | 'tool';
+  role: "system" | "user" | "assistant" | "tool";
   content: string;
   cacheControl?: ModelCacheControl; // provider-neutral cache intent, translated by adapters
 }
@@ -853,8 +865,8 @@ interface ModelInputMessage {
 // === Environment Info ===
 interface EnvInfo {
   cwd: string;
-  platform: string;     // 'darwin' | 'linux' | 'win32'
-  shell: string;       // 'zsh' | 'bash' | 'powershell'
+  platform: string; // 'darwin' | 'linux' | 'win32'
+  shell: string; // 'zsh' | 'bash' | 'powershell'
   osVersion: string;
   nodeVersion: string;
   currentModel?: string; // active runtime model id, refreshed after /model changes
@@ -862,32 +874,32 @@ interface EnvInfo {
   gitBranch?: string;
   gitMainBranch?: string;
   gitUser?: string;
-  gitStatus?: 'clean' | 'dirty' | 'not_repo';
+  gitStatus?: "clean" | "dirty" | "not_repo";
   gitStatusLines?: string[]; // session-start status snapshot
-  recentCommits?: string[];  // 最近 5 条 commit
+  recentCommits?: string[]; // 最近 5 条 commit
 }
 
 // === User Instructions ===
 interface UserInstructionsOptions {
-  workingDirectory: string;  // 起始查找目录
-  projectRoot?: string;     // 项目根目录（用于限制向上查找）
+  workingDirectory: string; // 起始查找目录
+  projectRoot?: string; // 项目根目录（用于限制向上查找）
   priorityFiles?: string[]; // 优先级顺序，默认 ['AGENTS.md', 'CLAUDE.md']
-  maxBytes?: number;        // 最大字节数限制
+  maxBytes?: number; // 最大字节数限制
 }
 
 // === Project Context ===
 interface ProjectContext {
-  type: 'node' | 'python' | 'rust' | 'go' | 'java' | 'unknown';
-  packageManager?: 'npm' | 'yarn' | 'pnpm';
-  scripts?: Record<string, string>;  // package.json scripts
-  buildFiles?: string[];  // Makefile, docker-compose.yml 等
-  rootPackage?: string;   // 根目录的 package.json 内容（可选）
+  type: "node" | "python" | "rust" | "go" | "java" | "unknown";
+  packageManager?: "npm" | "yarn" | "pnpm";
+  scripts?: Record<string, string>; // package.json scripts
+  buildFiles?: string[]; // Makefile, docker-compose.yml 等
+  rootPackage?: string; // 根目录的 package.json 内容（可选）
 }
 
 // === Session Context ===
 interface SessionContextOptions {
   sessionId: string;
-  mode: 'plan' | 'build' | 'yolo' | 'auto';
+  mode: "plan" | "build" | "yolo" | "auto";
   userName?: string;
   userRole?: string;
 }
@@ -896,10 +908,10 @@ interface SessionContextOptions {
 interface ContextBuilderConfig {
   workingDirectory: string;
   envInfo: EnvInfo;
-  currentDate?: string;                 // YYYY-MM-DD，由 adapter 解析
-  userInstructions?: UserInstructionsOptions;  // L2
-  projectContext?: ProjectContext;             // TODO - P2
-  sessionContext?: SessionContextOptions;      // TODO - P3
+  currentDate?: string; // YYYY-MM-DD，由 adapter 解析
+  userInstructions?: UserInstructionsOptions; // L2
+  projectContext?: ProjectContext; // TODO - P2
+  sessionContext?: SessionContextOptions; // TODO - P3
 }
 ```
 
@@ -918,13 +930,14 @@ identity.
 
 ```typescript
 // 按顺序查找，第一个存在就停止
-const PRIORITY_FILES = ['AGENTS.md', 'CLAUDE.md'];
+const PRIORITY_FILES = ["AGENTS.md", "CLAUDE.md"];
 
 // 层级查找：从 CWD 向上直到项目根目录
 // 第一个匹配就停止，不堆叠多个文件
 ```
 
 **规则：**
+
 - AGENTS.md 优先级高于 CLAUDE.md
 - 向上查找直到项目根目录
 - 第一个匹配就停止
@@ -940,8 +953,8 @@ const PRIORITY_FILES = ['AGENTS.md', 'CLAUDE.md'];
 
 ```typescript
 interface ProjectContext {
-  type: 'node' | 'python' | 'rust' | 'go' | 'java' | 'unknown';
-  packageManager?: 'npm' | 'yarn' | 'pnpm';
+  type: "node" | "python" | "rust" | "go" | "java" | "unknown";
+  packageManager?: "npm" | "yarn" | "pnpm";
   scripts?: Record<string, string>;
   buildFiles?: string[];
 }
@@ -967,7 +980,7 @@ interface ContextBuilder {
   build(): ContextBuildResult;
 
   // 添加自定义 section
-  addSection(section: Omit<ContextSection, 'chars' | 'tokens'>): this;
+  addSection(section: Omit<ContextSection, "chars" | "tokens">): this;
 
   // 兼容入口；工具说明不进入 context，由 model request tools 承载
   setTools(registry: ToolRegistry): this;
@@ -980,14 +993,16 @@ interface ContextBuilder {
 const ctx = builder.build();
 
 // 打印 section 统计
-console.table(ctx.sections.map(s => ({
-  name: s.name,
-  chars: s.chars,
-  tokens: s.tokens,
-})));
+console.table(
+  ctx.sections.map((s) => ({
+    name: s.name,
+    chars: s.chars,
+    tokens: s.tokens,
+  })),
+);
 
 // 查看某 section 内容
-console.log(ctx.sections.find(s => s.source === 'request_user_context')?.content);
+console.log(ctx.sections.find((s) => s.source === "request_user_context")?.content);
 
 // 测试 context 大小
 expect(ctx.totalTokens).toBeLessThan(100000);
@@ -999,25 +1014,25 @@ expect(ctx.totalTokens).toBeLessThan(100000);
 
 以下 Port 已在 contracts 中定义，但需要 adapter 层实现：
 
-| Port | 用途 | 状态 |
-|------|------|------|
-| `SessionEventStorePort` | Session 事件持久化 | 待实现 |
-| `EventReducerPort` | 事件到投影的转换 | 已实现 (EventReducer) |
-| `SessionManagerPort` | Session 生命周期管理 | 待实现 |
+| Port                    | 用途                 | 状态                  |
+| ----------------------- | -------------------- | --------------------- |
+| `SessionEventStorePort` | Session 事件持久化   | 待实现                |
+| `EventReducerPort`      | 事件到投影的转换     | 已实现 (EventReducer) |
+| `SessionManagerPort`    | Session 生命周期管理 | 待实现                |
 
 ---
 
 ## 五、接口成熟度
 
-| 接口 | 成熟度 | 说明 |
-|------|--------|------|
-| `SessionEvent` / `SessionEventType` | L2 | 已实现，有测试 |
-| `SessionEventStorePort` | L1 | 接口已定义，待实现 |
-| `EventReducer` | L2 | 已实现，有测试 |
-| `TurnState` / `TurnPhase` | L2 | 已实现，有测试 |
-| `TurnMachine` | L2 | 已实现，有测试 |
-| `ToolScheduler` | L2 | 已实现，有测试 |
-| `PermissionService` | L2 | 已实现，待集成测试 |
-| `AgentRuntime` | L1 | 骨架实现，待完整实现 |
-| `CoreError` | L2 | 已实现 |
-| `ModelRef` | L1 | 已定义，待扩展 |
+| 接口                                | 成熟度 | 说明                 |
+| ----------------------------------- | ------ | -------------------- |
+| `SessionEvent` / `SessionEventType` | L2     | 已实现，有测试       |
+| `SessionEventStorePort`             | L1     | 接口已定义，待实现   |
+| `EventReducer`                      | L2     | 已实现，有测试       |
+| `TurnState` / `TurnPhase`           | L2     | 已实现，有测试       |
+| `TurnMachine`                       | L2     | 已实现，有测试       |
+| `ToolScheduler`                     | L2     | 已实现，有测试       |
+| `PermissionService`                 | L2     | 已实现，待集成测试   |
+| `AgentRuntime`                      | L1     | 骨架实现，待完整实现 |
+| `CoreError`                         | L2     | 已实现               |
+| `ModelRef`                          | L1     | 已定义，待扩展       |

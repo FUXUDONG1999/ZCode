@@ -35,14 +35,14 @@ legacy 回放、V4 冷恢复、rewind / fork / checkpoint 提供事件读取。
 
 内存 store 里 `messages` 没有读者：
 
-| 读者 | 用到的字段 |
-| --- | --- |
-| `bootstrap/src/zcode-protocol/session-mapper.ts mapModelRequestPayload` | 只用 `messages.length`（且注释明确不向桌面推全量上下文） |
-| `core/src/runtime/methods/usage-observability.ts` | 只用 timestamp |
-| `tui/src/app-events.ts` | 只设状态 |
-| `server-operations.ts` title 过滤 | 只用 `querySource` |
-| debug analyzer（`packages/debug/server`） | 读 event sink 写出的 JSONL，**不读内存 store**；live sink 仍收到完整事件 |
-| rewind / fork / checkpoint / V4 投影 | 不消费 `model_request` |
+| 读者                                                                    | 用到的字段                                                               |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `bootstrap/src/zcode-protocol/session-mapper.ts mapModelRequestPayload` | 只用 `messages.length`（且注释明确不向桌面推全量上下文）                 |
+| `core/src/runtime/methods/usage-observability.ts`                       | 只用 timestamp                                                           |
+| `tui/src/app-events.ts`                                                 | 只设状态                                                                 |
+| `server-operations.ts` title 过滤                                       | 只用 `querySource`                                                       |
+| debug analyzer（`packages/debug/server`）                               | 读 event sink 写出的 JSONL，**不读内存 store**；live sink 仍收到完整事件 |
+| rewind / fork / checkpoint / V4 投影                                    | 不消费 `model_request`                                                   |
 
 规则：`turn-window` 策略淘汰 sealed turn（同一 turn 滞后 / 时间兜底节拍）时，把该 turn 的 `model_request`
 驻留副本替换为 `payload` 去掉 `messages`、补 `messageCount` 的新对象（`slimRetainedModelRequest`）；事件本身、
@@ -69,16 +69,16 @@ seq  1               2..N+1                              N+3               N+4 (
 
 ## 合同（实现前逐条核实过的依赖）
 
-| 依赖 | 出处 | 约束 |
-| --- | --- | --- |
-| seq 单一来源 | `core/src/runtime/methods/events.ts` `appendEvent`；`v4-gateway.ts normalizeRuntimeEventSequence` 按 raw seq 连续 drain | 瞬态事件仍经 store 分配 seq 并原样交给 live sink |
-| `getLatestSequenceNumber()+1` 追加新事件 | `assistant-feedback-persistence.ts`、`v4-bridge.ts` | 序号来自独立计数器，淘汰不回退 |
-| V4 冷恢复游标 | `v4-bridge.ts loadPersistedEvents`：原用 `max(events.sequenceNumber)` | 改为与 `getEvents` 同步取 `getLatestSequenceNumber`（`Promise.all`，两次调用之间无 await，快照一致） |
-| legacy 协议 seq | `server-operations.ts getProtocolEventSeq` 用 record 级 `seqBySourceEventKey / lastSeq` | 已淘汰事件的协议 seq 仍保留在 record 上，回放只是跳过它们，seq 连续单调 |
-| V4 投影 | `product-projection.ts` 只在 `isRunning()` 消费 `model_streaming`；`cold-event-merge.ts` 把 `model_streaming / model_complete` 列为 transcript-derived，已完成 turn 由 `transcript-hydration.ts synthesizeEventsFromMessages` 从消息合成 | 进行中 turn 必须保留；已完成且已持久化 turn 的瞬态事件冗余 |
-| `model_complete.content` 携带全文 | `contracts/src/events/session.events.ts` | 完成 turn 的文本不依赖 delta |
-| reducer / rewind / fork / checkpoint / file-changes / subagent 子会话 | 各消费者只 filter 低频类型 | 不受影响 |
-| legacy 回放 `session/events` / `session/subscribe afterSeq` | `server-operations.ts readProtocolSessionEvents` | **行为变化**：已完成 turn 的 `model.streaming` 合批不再回放；legacy 文本一直来自 snapshot messages / `session/messages`，`ModelComplete` 本身不映射为协议事件 |
+| 依赖                                                                  | 出处                                                                                                                                                                                                                                     | 约束                                                                                                                                                          |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| seq 单一来源                                                          | `core/src/runtime/methods/events.ts` `appendEvent`；`v4-gateway.ts normalizeRuntimeEventSequence` 按 raw seq 连续 drain                                                                                                                  | 瞬态事件仍经 store 分配 seq 并原样交给 live sink                                                                                                              |
+| `getLatestSequenceNumber()+1` 追加新事件                              | `assistant-feedback-persistence.ts`、`v4-bridge.ts`                                                                                                                                                                                      | 序号来自独立计数器，淘汰不回退                                                                                                                                |
+| V4 冷恢复游标                                                         | `v4-bridge.ts loadPersistedEvents`：原用 `max(events.sequenceNumber)`                                                                                                                                                                    | 改为与 `getEvents` 同步取 `getLatestSequenceNumber`（`Promise.all`，两次调用之间无 await，快照一致）                                                          |
+| legacy 协议 seq                                                       | `server-operations.ts getProtocolEventSeq` 用 record 级 `seqBySourceEventKey / lastSeq`                                                                                                                                                  | 已淘汰事件的协议 seq 仍保留在 record 上，回放只是跳过它们，seq 连续单调                                                                                       |
+| V4 投影                                                               | `product-projection.ts` 只在 `isRunning()` 消费 `model_streaming`；`cold-event-merge.ts` 把 `model_streaming / model_complete` 列为 transcript-derived，已完成 turn 由 `transcript-hydration.ts synthesizeEventsFromMessages` 从消息合成 | 进行中 turn 必须保留；已完成且已持久化 turn 的瞬态事件冗余                                                                                                    |
+| `model_complete.content` 携带全文                                     | `contracts/src/events/session.events.ts`                                                                                                                                                                                                 | 完成 turn 的文本不依赖 delta                                                                                                                                  |
+| reducer / rewind / fork / checkpoint / file-changes / subagent 子会话 | 各消费者只 filter 低频类型                                                                                                                                                                                                               | 不受影响                                                                                                                                                      |
+| legacy 回放 `session/events` / `session/subscribe afterSeq`           | `server-operations.ts readProtocolSessionEvents`                                                                                                                                                                                         | **行为变化**：已完成 turn 的 `model.streaming` 合批不再回放；legacy 文本一直来自 snapshot messages / `session/messages`，`ModelComplete` 本身不映射为协议事件 |
 
 ## 瞬态事件集合
 
@@ -102,17 +102,17 @@ seq  1               2..N+1                              N+3               N+4 (
 
 ## 验收 Case
 
-| Case | Setup | Assertions |
-| --- | --- | --- |
-| RET-001 | turn-window 策略 | turn 进行中的瞬态事件 retain；`turn_complete` 后不淘汰；`turn_started(T+1)` 淘汰 T；非瞬态永不淘汰；`rewind_triggered` 不触发淘汰 |
-| RET-002 | store 追加并淘汰 | `getLatestSequenceNumber` 不回退；`append` 返回 seq 严格递增；`getEvents` 按 seq 有序 |
-| RET-003 | store | `getEventsAfter` 只含窗口内瞬态 ∪ 全部非瞬态；`deleteSession` 后 `getStats` 归零 |
-| RET-004 | unbounded 与 turn-window 跑同一事件序列 | 非瞬态事件与 seq 完全相同，仅瞬态数量不同 |
-| RET-005 | 50 turn × 200 delta | `getStats().events ≤ 非瞬态 + 2 turn 的瞬态` |
-| RET-006 | 协议 server + fake app | 注入的 `createSessionEventStore` 被使用；`session/close` 后 `deleteSession` 被调用 |
-| RET-007 | 协议 server 两个 turn | 第一次 `session/events` 含 turn 1 delta；turn 2 开始后回放不含 turn 1 delta，seq 严格递增，`eventSeq` 不回退 |
-| RET-008 | 策略：sealed turn 无后继 | `collectExpired` 在 grace 内为空，超过 grace 交出该 turn 且只交一次；后继 turn 先到时不再重复交出 |
-| RET-009 | store：一次性 session | `pruneTransientEvents` 在 grace 后淘汰其瞬态事件，序号不回退；进行中 turn 不受影响 |
-| RET-010 | 协议 server：turn 结束无后继 | `pruneSessionEventStores(now + 3min)` 淘汰该 turn 的 delta，`session/events` 回放不再含 `model.streaming` |
-| RET-011 | store：turn-window 两个 turn | turn 2 开始后 turn 1 的 `model_request` 无 `messages`、`messageCount` 等于原长度、其它字段与 seq 不变；turn 2 的 `model_request` 仍含完整 messages；`append` 返回对象含完整 messages；unbounded 模式不瘦身 |
-| RET-012 | session-mapper | 瘦身后的 payload 映射出的 `messageCount` 与完整 payload 相同 |
+| Case    | Setup                                   | Assertions                                                                                                                                                                                                 |
+| ------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RET-001 | turn-window 策略                        | turn 进行中的瞬态事件 retain；`turn_complete` 后不淘汰；`turn_started(T+1)` 淘汰 T；非瞬态永不淘汰；`rewind_triggered` 不触发淘汰                                                                          |
+| RET-002 | store 追加并淘汰                        | `getLatestSequenceNumber` 不回退；`append` 返回 seq 严格递增；`getEvents` 按 seq 有序                                                                                                                      |
+| RET-003 | store                                   | `getEventsAfter` 只含窗口内瞬态 ∪ 全部非瞬态；`deleteSession` 后 `getStats` 归零                                                                                                                           |
+| RET-004 | unbounded 与 turn-window 跑同一事件序列 | 非瞬态事件与 seq 完全相同，仅瞬态数量不同                                                                                                                                                                  |
+| RET-005 | 50 turn × 200 delta                     | `getStats().events ≤ 非瞬态 + 2 turn 的瞬态`                                                                                                                                                               |
+| RET-006 | 协议 server + fake app                  | 注入的 `createSessionEventStore` 被使用；`session/close` 后 `deleteSession` 被调用                                                                                                                         |
+| RET-007 | 协议 server 两个 turn                   | 第一次 `session/events` 含 turn 1 delta；turn 2 开始后回放不含 turn 1 delta，seq 严格递增，`eventSeq` 不回退                                                                                               |
+| RET-008 | 策略：sealed turn 无后继                | `collectExpired` 在 grace 内为空，超过 grace 交出该 turn 且只交一次；后继 turn 先到时不再重复交出                                                                                                          |
+| RET-009 | store：一次性 session                   | `pruneTransientEvents` 在 grace 后淘汰其瞬态事件，序号不回退；进行中 turn 不受影响                                                                                                                         |
+| RET-010 | 协议 server：turn 结束无后继            | `pruneSessionEventStores(now + 3min)` 淘汰该 turn 的 delta，`session/events` 回放不再含 `model.streaming`                                                                                                  |
+| RET-011 | store：turn-window 两个 turn            | turn 2 开始后 turn 1 的 `model_request` 无 `messages`、`messageCount` 等于原长度、其它字段与 seq 不变；turn 2 的 `model_request` 仍含完整 messages；`append` 返回对象含完整 messages；unbounded 模式不瘦身 |
+| RET-012 | session-mapper                          | 瘦身后的 payload 映射出的 `messageCount` 与完整 payload 相同                                                                                                                                               |

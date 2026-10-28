@@ -113,12 +113,12 @@ Validation note: package-level `pnpm --filter @zcode/core lint` still fails on p
 
 ## Postponed
 
-| Item | Why postponed |
-| --- | --- |
-| Adjacent user-message merge | 暂时移除，避免 provider-visible shape churn 和 cache instability；未来如果重新启用，需要单独 phase、单独 cache-stability E2E 和 Anthropic Messages 请求形态 review。 |
+| Item                                                        | Why postponed                                                                                                                                                                                                                                                                                       |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Adjacent user-message merge                                 | 暂时移除，避免 provider-visible shape churn 和 cache instability；未来如果重新启用，需要单独 phase、单独 cache-stability E2E 和 Anthropic Messages 请求形态 review。                                                                                                                                |
 | First-turn attachment vs request-level userContext ordering | 暂时不改；当前同一 real user `content[]` 内的 file/url/local-image attachment 可以位于真实 prompt 前，但无法越过前置 request-level userContext。仅调转 push order 会变成 `userContext -> prompt -> attachment`，更不对；未来需要独立 provider-only split 或 request-local content projection 方案。 |
-| 完整 attachment taxonomy | 只处理当前 ZCode-supported file/image/url/system-reminder context；其他 attachment 类型等有对应 producer 后再纳入。 |
-| Native session store content[] refactor | 当前目标是 request-local provider projection，不改持久化/UI transcript。 |
+| 完整 attachment taxonomy                                    | 只处理当前 ZCode-supported file/image/url/system-reminder context；其他 attachment 类型等有对应 producer 后再纳入。                                                                                                                                                                                 |
+| Native session store content[] refactor                     | 当前目标是 request-local provider projection，不改持久化/UI transcript。                                                                                                                                                                                                                            |
 
 ## Prompt-trajectory Evidence
 

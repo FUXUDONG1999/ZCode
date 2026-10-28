@@ -73,16 +73,16 @@ run_in_background?: boolean
 `AgentOutput` 扩展为 union：
 
 ```ts
-type AgentOutput = AgentCompletedOutput | AgentBackgroundedOutput
+type AgentOutput = AgentCompletedOutput | AgentBackgroundedOutput;
 
 interface AgentBackgroundedOutput {
-  status: "backgrounded"
-  agentId: string
-  agentType: "Explore"
-  description: string
-  prompt: string
-  childSessionId: SessionId
-  backgroundTaskId: string
+  status: "backgrounded";
+  agentId: string;
+  agentType: "Explore";
+  description: string;
+  prompt: string;
+  childSessionId: SessionId;
+  backgroundTaskId: string;
 }
 ```
 
@@ -97,9 +97,12 @@ interface AgentBackgroundedOutput {
 
 ```ts
 interface SubagentPort {
-  run(request: SubagentRunRequest, options?: SubagentRunOptions): Promise<AgentOutput>
-  start?(request: SubagentStartRequest, options?: SubagentStartOptions): Promise<AgentBackgroundedOutput>
-  getTask?(agentId: string): Promise<SubagentTaskSnapshot | undefined>
+  run(request: SubagentRunRequest, options?: SubagentRunOptions): Promise<AgentOutput>;
+  start?(
+    request: SubagentStartRequest,
+    options?: SubagentStartOptions,
+  ): Promise<AgentBackgroundedOutput>;
+  getTask?(agentId: string): Promise<SubagentTaskSnapshot | undefined>;
 }
 ```
 

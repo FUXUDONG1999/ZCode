@@ -232,7 +232,5 @@ export function createQuickPickCommands({
     });
   }
 
-  return commands.filter(
-    (command) => supportsTerminal || command.id !== "toggle-terminal",
-  );
+  return commands.filter((command) => supportsTerminal || command.id !== "toggle-terminal");
 }

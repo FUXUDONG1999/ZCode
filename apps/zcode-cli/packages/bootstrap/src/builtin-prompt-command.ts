@@ -82,13 +82,9 @@ function buildInitAgentsPrompt(params: {
   workingDirectory: string;
 }): string {
   const additionalInstructions = params.args
-    ? [
-        "",
-        "Additional user instructions supplied with /init:",
-        "```text",
-        params.args,
-        "```",
-      ].join("\n")
+    ? ["", "Additional user instructions supplied with /init:", "```text", params.args, "```"].join(
+        "\n",
+      )
     : "";
 
   return [

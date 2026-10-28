@@ -11,13 +11,13 @@ Goal: reduce any MCP problem to a single concrete file-field edit. A person insp
 
 ## 1. Configuration locations and precedence
 
-| Scope | File | Field |
-|---|---|---|
-| User | `~/.zcode/cli/config.json` | `mcp.servers` |
-| User (fallback) | `~/.agents/mcp.json` | `mcpServers` (used only if `~/.zcode/cli/config.json` has no MCP servers) |
-| Workspace | `<repo>/.zcode/config.json` or `<repo>/zcode.json` (every directory from the repository root down to the working directory is read) | `mcp.servers` |
-| Workspace (fallback) | `<repo>/.agents/mcp.json` | `mcpServers` (used only if the workspace `.zcode` has no MCP servers) |
-| Plugin | `<pluginRoot>/.mcp.json` or the manifest's `mcpServers` field | Keys are namespaced as `plugin:<plugin>:<server>` |
+| Scope                | File                                                                                                                                | Field                                                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| User                 | `~/.zcode/cli/config.json`                                                                                                          | `mcp.servers`                                                             |
+| User (fallback)      | `~/.agents/mcp.json`                                                                                                                | `mcpServers` (used only if `~/.zcode/cli/config.json` has no MCP servers) |
+| Workspace            | `<repo>/.zcode/config.json` or `<repo>/zcode.json` (every directory from the repository root down to the working directory is read) | `mcp.servers`                                                             |
+| Workspace (fallback) | `<repo>/.agents/mcp.json`                                                                                                           | `mcpServers` (used only if the workspace `.zcode` has no MCP servers)     |
+| Plugin               | `<pluginRoot>/.mcp.json` or the manifest's `mcpServers` field                                                                       | Keys are namespaced as `plugin:<plugin>:<server>`                         |
 
 Within each scope, `.zcode` takes priority and `.agents/mcp.json` is a same-scope fallback: if that scope's `.zcode` defines any MCP server, its `.agents/mcp.json` is ignored entirely. Note the different key shape — `.zcode` uses nested `mcp.servers`, while `.agents/mcp.json` uses a top-level `mcpServers`.
 

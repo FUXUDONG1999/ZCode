@@ -82,7 +82,14 @@ export function mcpElicitationQuestions(
     const header = field.title ?? field.name;
     const question = field.description ?? `${message}\n\n${header}`;
     if (field.type === "boolean") {
-      return { header, question, options: [{ value: "true", label: "Yes" }, { value: "false", label: "No" }] };
+      return {
+        header,
+        question,
+        options: [
+          { value: "true", label: "Yes" },
+          { value: "false", label: "No" },
+        ],
+      };
     }
     if (field.type === "enum" && field.enumValues && field.enumValues.length > 0) {
       return {
@@ -136,7 +143,8 @@ export function mcpElicitationContentFromAnswers(
       case "number":
       case "integer": {
         const parsed = Number(raw);
-        if (Number.isFinite(parsed)) result[field.name] = field.type === "integer" ? Math.trunc(parsed) : parsed;
+        if (Number.isFinite(parsed))
+          result[field.name] = field.type === "integer" ? Math.trunc(parsed) : parsed;
         return;
       }
       default:

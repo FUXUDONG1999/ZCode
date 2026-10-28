@@ -11,7 +11,6 @@
     "build": "node scripts/check-sdk.mjs",
     "clean": "node ../../scripts/clean-dist.mjs",
     "sync:cache": "node scripts/sync-cache.mjs",
-    "test": "node scripts/check-sdk.mjs",
     "typecheck": "node scripts/check-sdk.mjs"
   },
   "dependencies": {

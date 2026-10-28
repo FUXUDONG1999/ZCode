@@ -23,15 +23,15 @@ for covers. The Creative route still composes its cover inside the same HTML doc
 
 ## When to Include a Cover
 
-| Document Type | Cover Needed | Notes |
-|---------------|-------------|-------|
-| Formal report (annual, research, white paper) | ✅ Required | Conveys professionalism |
-| Proposal / plan | ✅ Required | First impression matters |
-| Resume | ❌ Not needed | Content itself is the cover |
-| Menu / flyer / card | ❌ Not needed | Single page / functional |
-| Invitation | ❌ Not needed | The front side IS the cover |
-| Lab report / academic paper | ⚠️ Situational | Add when template requires it |
-| Portfolio / lookbook | ✅ Required | Cover sets the tone |
+| Document Type                                 | Cover Needed   | Notes                         |
+| --------------------------------------------- | -------------- | ----------------------------- |
+| Formal report (annual, research, white paper) | ✅ Required    | Conveys professionalism       |
+| Proposal / plan                               | ✅ Required    | First impression matters      |
+| Resume                                        | ❌ Not needed  | Content itself is the cover   |
+| Menu / flyer / card                           | ❌ Not needed  | Single page / functional      |
+| Invitation                                    | ❌ Not needed  | The front side IS the cover   |
+| Lab report / academic paper                   | ⚠️ Situational | Add when template requires it |
+| Portfolio / lookbook                          | ✅ Required    | Cover sets the tone           |
 
 ---
 
@@ -74,12 +74,12 @@ their own bounding box; they never push or compress neighbors. This eliminates s
 
 ## A0.2 — Typography weight & spacing system
 
-| Role | Size | Weight | Letter-spacing | Line-height | Purpose |
-|------|------|--------|----------------|-------------|---------|
-| Kicker / Footer | 16pt | Regular | 3pt | — | Wide + muted → recessive |
-| Summary | 16–18pt | Regular | normal | 1.6 | Fills mid-page void (2–4 lines) |
-| Meta / Subtitle | 16–22pt | Light/Regular | normal | 1.4–1.8 | Secondary hierarchy |
-| Hero Title | 45–66pt (CJK) | Heavy | normal | 1.15 | Dominates the page |
+| Role            | Size          | Weight        | Letter-spacing | Line-height | Purpose                         |
+| --------------- | ------------- | ------------- | -------------- | ----------- | ------------------------------- |
+| Kicker / Footer | 16pt          | Regular       | 3pt            | —           | Wide + muted → recessive        |
+| Summary         | 16–18pt       | Regular       | normal         | 1.6         | Fills mid-page void (2–4 lines) |
+| Meta / Subtitle | 16–22pt       | Light/Regular | normal         | 1.4–1.8     | Secondary hierarchy             |
+| Hero Title      | 45–66pt (CJK) | Heavy         | normal         | 1.15        | Dominates the page              |
 
 **Data-to-drawer binding (iron rule):** Hero Title = company/entity name (largest, heaviest).
 Kicker = report type/subtitle (small decorative). Never reverse.
@@ -107,39 +107,48 @@ decorative fills within page bounds:
 
 Rendered by `cover_render.py`. Positions below are fractions of the design canvas.
 
-## 01 — HUD Data Terminal *(light · sans)*
+## 01 — HUD Data Terminal _(light · sans)_
+
 Ultra-thick 6px left vertical anchor line at x=0.12W (0.10H→0.90H) + faint 2% grid. Content left edge x=0.12W+30px. Kicker@0.15H, Hero@0.28H (66pt heavy), Summary@0.48H (w 0.6W), 1pt meta separator@0.72H, Meta@0.74H.
 **Best for:** technology reports, data analysis, dashboards, technical white papers.
 
-## 02 — Corporate Editorial *(light · sans)*
+## 02 — Corporate Editorial _(light · sans)_
+
 Top bar (15px, primary, edge-to-edge) + giant year watermark (180pt, right edge, 5% opacity) + 4px right accent line (0.88W, 0.75H→0.88H). Title group left@0.12W/0.15H (kicker→hero 60pt). Summary@0.50H (w 0.5W). Meta right-aligned to 0.88W−20 @0.70H.
 **Best for:** annual reports, financial summaries, investor / governance docs.
 
-## 03 — Monolith *(light · sans)*
+## 03 — Monolith _(light · sans)_
+
 Hard-left everything + right-side vertical watermark word (rotated, ~4% opacity) as counterweight. Color dash 50×5px@0.12W/0.15H. Kicker@0.20H, Hero@0.28H (60pt), Summary@0.45H (w 0.55W, must not collide with watermark), Meta@0.70H with 2px vertical accent line, Footer@0.90H right-aligned.
 **Best for:** white papers, proposals, government documents, technical standards.
 
-## 04 — Museum Minimal *(light · sans)*
+## 04 — Museum Minimal _(light · sans)_
+
 Four inward L-shaped corner crop marks (inset M=0.08W, arm 30px, 2px, 60% opacity) form a force-field box; all content vertically centered and center-aligned. Kicker→Title→Summary→Meta pre-composed and centered as one block. Summary width ≤ 0.6W; kicker/hero/meta up to 0.84W.
 **Best for:** portfolios, gallery catalogs, exhibition materials, luxury/editorial.
 
-## 05 — Solid Sidebar *(light · sans)*
+## 05 — Solid Sidebar _(light · sans)_
+
 Massive left solid pillar (width 0.1W, full height, primary) with a rotated watermark inside (white 15%, clipped to sidebar). Content block left edge = 0.1W+40px, vertically centered. Bottom 1px line@0.90H (30% opacity); footer left/right on it.
 **Best for:** government/institutional reports, legal docs, bidding documents.
 
-## 06 — Academic Vertical Anchor *(dark · serif title)*
+## 06 — Academic Vertical Anchor _(dark · serif title)_
+
 Dark bg (#162032). Left 2.5px gold vertical accent (76→H−76). Label@132px (9pt, accent, tracked), Title@228px (30pt serif), Subtitle@560px (12pt muted), Authors@700px, Institution@740px, footer split bottom. Bottom 0.5px accent hairline.
 **Best for:** arXiv preprints, technical reports.
 
-## 07 — Academic Symmetric *(dark · serif title)*
+## 07 — Academic Symmetric _(dark · serif title)_
+
 Dark bg. Two 2px accent rules top (114px) and bottom (H−114). Centered block: Label → Title (28pt serif) → Subtitle → short divider → Authors → Institution. Centered footer.
 **Best for:** IEEE/ACM papers, English theses.
 
-## 08 — Academic Journal *(dark · serif title)*
+## 08 — Academic Journal _(dark · serif title)_
+
 Like 07 with a dedicated keywords block (`keywords_lines`) instead of authors/institution, and a wider (152px) divider. Title 30pt serif.
 **Best for:** CJK journal submissions, theses with keywords.
 
-## 09 — Institutional *(white + black frame)*
+## 09 — Institutional _(white + black frame)_
+
 2.5px black border frame (inset 40px L/R, 56px T/B). Centered stack with flex-style spacing: Institution (30pt serif, tracked) → 70%-width 2px divider → Doc type (22pt, tracked) → Title (24pt serif, max-width 520px) → wide gap → structured fields (label + centered underline value, 5–7 rows) → Date pinned near the bottom. Set `style: "kai"` for a KaiTi (楷体) traditional-thesis look.
 **Best for:** thesis proposals (开题报告), dissertations, government/official submissions.
 
@@ -149,23 +158,23 @@ Like 07 with a dedicated keywords block (`keywords_lines`) instead of authors/in
 
 Two-dimensional: **Intent** × **Document Type**. No global default — choose deliberately.
 
-| Intent | Document Type | Recommended | Default |
-|--------|---------------|-------------|---------|
-| Calm | Healthcare / Wellness / Minimalist | 04, 01 | **04** |
-| Calm | Academic / Research | 07, 03 | **07** |
-| Tension | Crisis / Alert / Disruption | 01, 03 | **01** |
-| Energy | Marketing / Creative / Design | 04, 02 | **04** |
-| Energy | Technology / Data | 01, 03 | **01** |
-| Authority | Formal / Corporate / Financial | 02, 03 | **03** |
-| Authority | Government / Bidding | 05, 03, **09** | **05** |
-| Authority | Thesis proposal / Dissertation cover | **09** | **09** |
-| Authority | Luxury / Editorial | 03, 04 | **03** |
-| Warmth | Food / Lifestyle / Home | 04, 02 | **04** |
+| Intent    | Document Type                        | Recommended    | Default |
+| --------- | ------------------------------------ | -------------- | ------- |
+| Calm      | Healthcare / Wellness / Minimalist   | 04, 01         | **04**  |
+| Calm      | Academic / Research                  | 07, 03         | **07**  |
+| Tension   | Crisis / Alert / Disruption          | 01, 03         | **01**  |
+| Energy    | Marketing / Creative / Design        | 04, 02         | **04**  |
+| Energy    | Technology / Data                    | 01, 03         | **01**  |
+| Authority | Formal / Corporate / Financial       | 02, 03         | **03**  |
+| Authority | Government / Bidding                 | 05, 03, **09** | **05**  |
+| Authority | Thesis proposal / Dissertation cover | **09**         | **09**  |
+| Authority | Luxury / Editorial                   | 03, 04         | **03**  |
+| Warmth    | Food / Lifestyle / Home              | 04, 02         | **04**  |
 
 Academic paper selection: arXiv/preprint → **06**; IEEE/ACM/English thesis → **07**; CJK journal / thesis with keywords → **08**; institutional/proposal/government → **09**.
 
 > **Migration note (V4.0):** the old HTML templates were renumbered and two were removed —
-> old *05 Floating Diagonal* and *06 Swiss Grid* are **gone**. Old 07→**05**, 08→**06**, 09→**07**,
+> old _05 Floating Diagonal_ and _06 Swiss Grid_ are **gone**. Old 07→**05**, 08→**06**, 09→**07**,
 > 10→**08**, 11→**09**. Anything that previously selected the Diagonal or Swiss Grid should use
 > **03 Monolith** (structured/authoritative) or **01 HUD** (data/energy) instead.
 
@@ -175,21 +184,22 @@ Academic paper selection: arXiv/preprint → **06**; IEEE/ACM/English thesis →
 
 `cover_render.detect_fonts()` picks **embeddable** fonts present on the host, by role:
 
-| Role | Used by | Priority (first embeddable wins) |
-|------|---------|-----------------------------------|
-| **sans** | Report covers 01–05 (hero/body), academic meta | SimHei → Microsoft YaHei → Heiti SC → WenQuanYi Zen Hei → Arial Unicode → `fc-list` fallback |
-| **serif** | Academic titles 06–08, institutional 09 | Songti SC → SimSun → STSong → AR PL UMing → `fc-list` fallback |
-| **kai** | Institutional 09 when `style:"kai"` | KaiTi / SimKai → Kaiti SC |
-| **latin** | Latin runs | Times New Roman → (falls back to the CJK face, which covers Latin) |
+| Role      | Used by                                        | Priority (first embeddable wins)                                                             |
+| --------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| **sans**  | Report covers 01–05 (hero/body), academic meta | SimHei → Microsoft YaHei → Heiti SC → WenQuanYi Zen Hei → Arial Unicode → `fc-list` fallback |
+| **serif** | Academic titles 06–08, institutional 09        | Songti SC → SimSun → STSong → AR PL UMing → `fc-list` fallback                               |
+| **kai**   | Institutional 09 when `style:"kai"`            | KaiTi / SimKai → Kaiti SC                                                                    |
+| **latin** | Latin runs                                     | Times New Roman → (falls back to the CJK face, which covers Latin)                           |
 
 **Iron rules:**
+
 - **ReportLab can only embed TrueType-outline fonts.** CFF/PostScript-outline fonts —
   **PingFang, Hiragino, Noto Sans/Serif CJK OTC, Source Han** — cannot be embedded via
   `TTFont` and are automatically skipped by `_try_register()`.
 - **Heavy weight:** report heroes need a Black/Heavy look. When no heavy face exists, the engine
   applies **faux-bold** (same-color multi-offset overprint) — do not hand-stroke text.
 - **Missing font role:** fall back per the priority chain; if a whole role is unavailable, the
-  engine reuses another available CJK face rather than rendering tofu. If *no* embeddable CJK
+  engine reuses another available CJK face rather than rendering tofu. If _no_ embeddable CJK
   font exists at all, `detect_fonts()` raises with an install hint (do not silently emit boxes).
 - **Style follows the cover:** sans covers (01–05) use the sans face; academic/institutional
   (06–09) use the serif (or kai) face. This mapping is fixed in the templates.
@@ -228,7 +238,7 @@ palette dict; never hand-pick hex.
 
 # PART 6: CHANGELOG
 
-| Version | Date | Changes |
-|---------|------|---------|
-| V3.0 | 2026-04-07 | HTML/Playwright unified cover system (11 templates). |
-| **V4.0** | **2026-08-17** | **ReportLab cover engine.** All Report/Academic covers now rendered by `scripts/cover_render.py` (pure Python) — HTML/Playwright/Chromium no longer used for covers. Templates renumbered to **01–09**; removed *Floating Diagonal* and *Swiss Grid*. Host-detected, style-driven fonts (CFF fonts skipped; faux-bold for missing heavy weights). Selection matrix remapped. |
+| Version  | Date           | Changes                                                                                                                                                                                                                                                                                                                                                                      |
+| -------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V3.0     | 2026-04-07     | HTML/Playwright unified cover system (11 templates).                                                                                                                                                                                                                                                                                                                         |
+| **V4.0** | **2026-08-17** | **ReportLab cover engine.** All Report/Academic covers now rendered by `scripts/cover_render.py` (pure Python) — HTML/Playwright/Chromium no longer used for covers. Templates renumbered to **01–09**; removed _Floating Diagonal_ and _Swiss Grid_. Host-detected, style-driven fonts (CFF fonts skipped; faux-bold for missing heavy weights). Selection matrix remapped. |

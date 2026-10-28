@@ -38,7 +38,8 @@ export const toolSearchToolEntry: ToolEntry = {
     const { query, max_results } = ToolSearchInputSchema.parse(input);
     const catalog = context.toolSearch.catalog;
     const matches = searchTools(query, catalog, max_results);
-    const residentMatches = matches.length === 0 ? searchResidentTools(query, catalog, max_results) : [];
+    const residentMatches =
+      matches.length === 0 ? searchResidentTools(query, catalog, max_results) : [];
     return {
       query,
       matches,

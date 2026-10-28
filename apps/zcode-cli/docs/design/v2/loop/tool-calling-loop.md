@@ -59,15 +59,15 @@
 
 ## 一、关键组件职责
 
-| 阶段 | 组件 | 职责 |
-|------|------|------|
-| Call Model | `AgentRuntime` | 维护 messages，调用 model adapter |
-| ~~Permission Check~~ | ~~暂跳过，后续实现~~ | |
-| Schedule | `ToolScheduler` | 拓扑排序，确定并行组 |
-| Execute | `ToolExecutor` | 执行工具，返回结果 |
-| Inject Results | `MessageHistory` | 将 tool results 追加到 messages |
-| Drain Pending Input | `AgentRuntime` | 将 active turn queue 中的用户输入追加为 user messages |
-| Continue | Loop | 无 tool calls 时退出 |
+| 阶段                 | 组件                 | 职责                                                  |
+| -------------------- | -------------------- | ----------------------------------------------------- |
+| Call Model           | `AgentRuntime`       | 维护 messages，调用 model adapter                     |
+| ~~Permission Check~~ | ~~暂跳过，后续实现~~ |                                                       |
+| Schedule             | `ToolScheduler`      | 拓扑排序，确定并行组                                  |
+| Execute              | `ToolExecutor`       | 执行工具，返回结果                                    |
+| Inject Results       | `MessageHistory`     | 将 tool results 追加到 messages                       |
+| Drain Pending Input  | `AgentRuntime`       | 将 active turn queue 中的用户输入追加为 user messages |
+| Continue             | Loop                 | 无 tool calls 时退出                                  |
 
 执行器可以因为权限拒绝、取消或高风险失败停止后续批次，但 provider-visible 历史仍必须为本轮 assistant 返回的每个 tool call 注入一个 tool result。若后续批次未实际执行，执行器返回合成的 skipped/error result，避免下一次模型请求出现 dangling tool call。
 
@@ -113,9 +113,9 @@ export class MessageHistoryImpl implements MessageHistory {
 
   addAssistant(content: string, toolCalls?: ToolCall[]): void {
     this.messages.push({
-      role: 'assistant',
+      role: "assistant",
       content,
-      toolCalls: toolCalls?.map(tc => ({
+      toolCalls: toolCalls?.map((tc) => ({
         id: tc.id,
         name: tc.name,
         input: tc.input,
@@ -125,7 +125,7 @@ export class MessageHistoryImpl implements MessageHistory {
 
   addToolResult(toolCallId: string, toolName: string, content: string, success: boolean): void {
     this.messages.push({
-      role: 'tool',
+      role: "tool",
       content: success ? content : JSON.stringify({ error: content }),
       toolCallId,
       toolName,
@@ -271,13 +271,13 @@ async executeTurn(input: string, attachments?: TurnAttachment[]): Promise<TurnRe
 **文件**: `packages/adapters/src/model/transform.ts`
 
 ```typescript
-import type { ToolCall } from '@zcode/core';
+import type { ToolCall } from "@zcode/core";
 
 export function extractToolCalls(result: GenerateTextResult): ToolCall[] {
   const calls: ToolCall[] = [];
 
   for (const response of result.responses ?? []) {
-    if (response.role === 'assistant' && response.toolCalls) {
+    if (response.role === "assistant" && response.toolCalls) {
       for (const tc of response.toolCalls) {
         calls.push({
           id: tc.id,
@@ -505,15 +505,15 @@ Turn Start
 
 ## 七、任务清单
 
-| # | Task | File | 依赖 |
-|---|------|------|------|
-| 1 | MessageHistory 类 | `agent/message-history.ts` | 无 |
-| 2 | extractToolCalls | `adapters/model/transform.ts` | 无 |
-| 3 | Runtime Tool Loop | `runtime.ts` | 1, 2 |
-| 4 | 工具缓存 | `runtime.ts` | 3 |
-| 5 | 权限检查集成 | `runtime.ts` | 3 |
-| 6 | 缓存感知统计 | `agent/cache-aware.ts` | 1 |
-| 7 | 单元测试 | `runtime.test.ts` | 1-5 |
+| #   | Task              | File                          | 依赖 |
+| --- | ----------------- | ----------------------------- | ---- |
+| 1   | MessageHistory 类 | `agent/message-history.ts`    | 无   |
+| 2   | extractToolCalls  | `adapters/model/transform.ts` | 无   |
+| 3   | Runtime Tool Loop | `runtime.ts`                  | 1, 2 |
+| 4   | 工具缓存          | `runtime.ts`                  | 3    |
+| 5   | 权限检查集成      | `runtime.ts`                  | 3    |
+| 6   | 缓存感知统计      | `agent/cache-aware.ts`        | 1    |
+| 7   | 单元测试          | `runtime.test.ts`             | 1-5  |
 
 ---
 

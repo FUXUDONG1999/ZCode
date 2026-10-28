@@ -30,8 +30,8 @@ provider behavior.
 - `contextUsed` and `contextWindow` come from the existing TUI session
   projection and live model-complete usage updates. The composer must not
   locally estimate model-visible tokens or introduce a second context counter.
-The panel is a TUI projection only. It does not read session storage directly
-and does not become a second state owner.
+  The panel is a TUI projection only. It does not read session storage directly
+  and does not become a second state owner.
 
 ## Layout
 

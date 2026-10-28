@@ -40,7 +40,8 @@ export function parseAvds(value: string): Avd[] {
 
 export async function ensureDevice(input: StartInput = {}): Promise<Device> {
   const timeoutMs = input.timeoutMs ?? 180_000;
-  if (input.serial) return waitForReadyTarget(await pickDevice({ serial: input.serial }), timeoutMs);
+  if (input.serial)
+    return waitForReadyTarget(await pickDevice({ serial: input.serial }), timeoutMs);
   const ready = await pickDevice().catch(() => undefined);
   if (ready) return waitForReadyTarget(ready, timeoutMs);
   return startEmulator(input);

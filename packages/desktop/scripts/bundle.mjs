@@ -673,9 +673,7 @@ function verifyPackagedRuntimeDependencies(os, arch) {
   // app.asar（模式未命中），排除目标就静默失效、体积回退。这里机械校验排除确实生效。
   const leakedExcludedPackages = RENDERER_ONLY_EXCLUDED_PACKAGES.filter((packageName) => {
     const moduleRoot = `/node_modules/${packageName}`;
-    return asarEntries.some(
-      (entry) => entry === moduleRoot || entry.startsWith(`${moduleRoot}/`),
-    );
+    return asarEntries.some((entry) => entry === moduleRoot || entry.startsWith(`${moduleRoot}/`));
   });
   if (leakedExcludedPackages.length > 0) {
     throw new Error(

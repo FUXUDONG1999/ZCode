@@ -8,19 +8,19 @@ Every xlsx deliverable is built and verified through a role-based workflow. Thre
 
 All commands: `python3 "$XLSX_SKILL_DIR/xlsx.py" <command> [arguments]`
 
-| Command | Purpose | Called By |
-|---------|---------|-----------|
-| `recalc <file>` | Recalculate formulas via LibreOffice, scan for errors | Builder (self-check) |
-| `audit <file>` | Deep formula error scan + zero-value + implicit array detection | Builder (self-check) |
-| `scan <file>` | Detect out-of-range, header-included, small-aggregate, inconsistent patterns | Builder (self-check) |
-| `inspect <file> --pretty` | Get sheet structure, data ranges, headers (JSON) | Blueprint Architect |
-| `pivot <in> <out> --source --values [--rows --cols --filters --style --chart]` | Create PivotTable | Builder (final step only) |
-| `chart-verify <file>` | Verify embedded charts have data | Builder (self-check) |
-| `validate <file>` | Structural validation (release gate) | Inspector |
+| Command                                                                        | Purpose                                                                      | Called By                 |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------------------------- |
+| `recalc <file>`                                                                | Recalculate formulas via LibreOffice, scan for errors                        | Builder (self-check)      |
+| `audit <file>`                                                                 | Deep formula error scan + zero-value + implicit array detection              | Builder (self-check)      |
+| `scan <file>`                                                                  | Detect out-of-range, header-included, small-aggregate, inconsistent patterns | Builder (self-check)      |
+| `inspect <file> --pretty`                                                      | Get sheet structure, data ranges, headers (JSON)                             | Blueprint Architect       |
+| `pivot <in> <out> --source --values [--rows --cols --filters --style --chart]` | Create PivotTable                                                            | Builder (final step only) |
+| `chart-verify <file>`                                                          | Verify embedded charts have data                                             | Builder (self-check)      |
+| `validate <file>`                                                              | Structural validation (release gate)                                         | Inspector                 |
 
 > 🔴 **`recalc` needs LibreOffice — if it is missing you MUST install it, not substitute it.**
-> Forbidden: skipping recalculation, or handing the workbook to the user's Excel/WPS/Numbers *instead
-> of* installing. A large download is **not** a reason to skip. Required: explain the necessity (it is
+> Forbidden: skipping recalculation, or handing the workbook to the user's Excel/WPS/Numbers _instead
+> of_ installing. A large download is **not** a reason to skip. Required: explain the necessity (it is
 > what actually recalculates the formulas so errors surface), say the package is large, then install
 > it — **preferred source is the Tsinghua TUNA mirror**
 > `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/26.8.0/` (pick the
@@ -30,8 +30,8 @@ All commands: `python3 "$XLSX_SKILL_DIR/xlsx.py" <command> [arguments]`
 > fallbacks. Only after an install attempt has **failed**
 > may you use another program, and you must report which verification steps were skipped.
 > **No install attempt = no substitute program.** After installing, **register `soffice` on `PATH`
-> and re-verify `soffice --version`** (per-OS commands: `env_setup/setup.md` → *"Register the binary
-> on PATH"*) — an install left off the search path reads as "not installed" next time and gets
+> and re-verify `soffice --version`** (per-OS commands: `env_setup/setup.md` → _"Register the binary
+> on PATH"_) — an install left off the search path reads as "not installed" next time and gets
 > reinstalled needlessly. See `env_setup/setup.md`.
 
 ---
@@ -113,11 +113,11 @@ The Inspector runs after all sheets are built. Two levels of inspection: **Seman
 
 When the task involves transforming existing data (not creating from scratch), verify the transformation didn't corrupt meaning:
 
-| Check | Method |
-|-------|--------|
-| **Row count** | Does output have the expected number of rows? (e.g., grouping 15 rows by 5 keys → expect 5 rows) |
-| **Column totals** | Do numeric sums in output match source? (or expected transformation) |
-| **Spot-check** | Compare 2-3 specific rows between source and output |
+| Check                    | Method                                                                                                 |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **Row count**            | Does output have the expected number of rows? (e.g., grouping 15 rows by 5 keys → expect 5 rows)       |
+| **Column totals**        | Do numeric sums in output match source? (or expected transformation)                                   |
+| **Spot-check**           | Compare 2-3 specific rows between source and output                                                    |
 | **Formula evaluability** | Can formulas be verified in Python? If self-referencing or cross-sheet, verify computed values instead |
 
 ```python
@@ -144,22 +144,22 @@ python3 "$XLSX_SKILL_DIR/xlsx.py" validate output.xlsx
 
 These are recurring failure modes. The Builder must internalize them.
 
-| Trap | What Goes Wrong | Countermeasure |
-|------|----------------|----------------|
-| `data_only=True` then save | Formulas permanently replaced with cached values | Never save after opening with `data_only=True` |
-| Column index miscalculation | col 64 ≠ "BK" | Always use `openpyxl.utils.get_column_letter()` |
-| Row offset confusion | DataFrame row 5 = Excel row 6 | Excel is 1-indexed, pandas is 0-indexed |
-| NaN leaks into formulas | `=A1+nan` → broken formula string | Check `pd.notna()` before referencing |
-| Cross-sheet reference typo | `Sheet1!A1` vs `'Sheet 1'!A1` | Quote sheet names containing spaces |
-| Division by zero | `#DIV/0!` in Excel | Wrap with `IFERROR()` or `IF(denom=0,...)` |
-| Text starting with `=` | `#NAME?` error | Prefix descriptive text with `'` |
-| Implicit array formula | `#N/A` in Excel | Avoid `MATCH(TRUE(),range>0,0)`, use `SUMPRODUCT` |
-| Chart renders blank | Formula cells have no cached values | Run `recalc` before creating charts |
-| Hidden rows → empty chart | Chart skips hidden data | Set `chart.plot_visible_only = False` |
-| Overlapping charts | Multiple charts stacked on same cells | Calculate anchor: ~15 rows per chart + 2 rows gap |
+| Trap                                                             | What Goes Wrong                                                                                                          | Countermeasure                                                                                                                                                  |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data_only=True` then save                                       | Formulas permanently replaced with cached values                                                                         | Never save after opening with `data_only=True`                                                                                                                  |
+| Column index miscalculation                                      | col 64 ≠ "BK"                                                                                                            | Always use `openpyxl.utils.get_column_letter()`                                                                                                                 |
+| Row offset confusion                                             | DataFrame row 5 = Excel row 6                                                                                            | Excel is 1-indexed, pandas is 0-indexed                                                                                                                         |
+| NaN leaks into formulas                                          | `=A1+nan` → broken formula string                                                                                        | Check `pd.notna()` before referencing                                                                                                                           |
+| Cross-sheet reference typo                                       | `Sheet1!A1` vs `'Sheet 1'!A1`                                                                                            | Quote sheet names containing spaces                                                                                                                             |
+| Division by zero                                                 | `#DIV/0!` in Excel                                                                                                       | Wrap with `IFERROR()` or `IF(denom=0,...)`                                                                                                                      |
+| Text starting with `=`                                           | `#NAME?` error                                                                                                           | Prefix descriptive text with `'`                                                                                                                                |
+| Implicit array formula                                           | `#N/A` in Excel                                                                                                          | Avoid `MATCH(TRUE(),range>0,0)`, use `SUMPRODUCT`                                                                                                               |
+| Chart renders blank                                              | Formula cells have no cached values                                                                                      | Run `recalc` before creating charts                                                                                                                             |
+| Hidden rows → empty chart                                        | Chart skips hidden data                                                                                                  | Set `chart.plot_visible_only = False`                                                                                                                           |
+| Overlapping charts                                               | Multiple charts stacked on same cells                                                                                    | Calculate anchor: ~15 rows per chart + 2 rows gap                                                                                                               |
 | Verify newly-written formulas with `data_only=True` → get `None` | openpyxl doesn't evaluate formulas; `data_only=True` only reads Excel's cached values which don't exist for new formulas | Compute expected values in Python and compare directly. For TOTAL rows needing verification, write computed values (see SKILL.md Design Principle #1 Exception) |
-| Manual row sort breaks references | Value-swap sorting doesn't update formula references | After sorting by swapping data, regenerate all formula strings with updated row numbers |
-| NBSP (`\xa0`) treated as non-empty | Cells containing `\xa0` or `\u200b` look blank but fail `is None` | Normalize: `\xa0`, `\u200b`, whitespace-only → `None` before comparison or aggregation |
+| Manual row sort breaks references                                | Value-swap sorting doesn't update formula references                                                                     | After sorting by swapping data, regenerate all formula strings with updated row numbers                                                                         |
+| NBSP (`\xa0`) treated as non-empty                               | Cells containing `\xa0` or `\u200b` look blank but fail `is None`                                                        | Normalize: `\xa0`, `\u200b`, whitespace-only → `None` before comparison or aggregation                                                                          |
 
 ---
 
