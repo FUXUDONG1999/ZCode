@@ -69,26 +69,6 @@ export interface LoginEntryAttempt {
 
 const CODE_PREVIEW_SETTINGS_KEY = "zcode-code-preview-settings";
 const PERFORMANCE_MODE_STORAGE_KEY = "zcode-performance-mode";
-export const FILE_MANAGER_NAVIGATION_PREFERENCES_STORAGE_KEY =
-  "zcode-file-manager-navigation-preferences";
-
-function loadFileManagerNavigationPreferences(): Record<string, boolean> {
-  try {
-    const raw = readSafeLocalStorage(FILE_MANAGER_NAVIGATION_PREFERENCES_STORAGE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-
-    return Object.fromEntries(
-      Object.entries(parsed).filter(
-        (entry): entry is [string, boolean] =>
-          entry[0].trim().length > 0 && typeof entry[1] === "boolean",
-      ),
-    );
-  } catch {
-    return {};
-  }
-}
 
 function loadCodePreviewSettings(): CodePreviewSettings {
   try {
@@ -135,10 +115,6 @@ export interface ZCodeState {
   /** 代码预览设置 */
   codePreviewSettings: CodePreviewSettings;
   setCodePreviewSettings: (patch: Partial<CodePreviewSettings>) => void;
-
-  /** 各 workspace 的文件导航显隐偏好；缺席时默认展开。 */
-  fileManagerNavigationOpenByWorkspace: Record<string, boolean>;
-  setFileManagerNavigationOpen: (workspaceKey: string, open: boolean) => void;
 
   /** UI 根 rem 字号（px） */
   uiFontSizePx: number;
@@ -321,23 +297,6 @@ export function createZCodeStore(
         writeSafeLocalStorage(CODE_PREVIEW_SETTINGS_KEY, JSON.stringify(next));
         return { codePreviewSettings: next };
       }),
-
-    fileManagerNavigationOpenByWorkspace: loadFileManagerNavigationPreferences(),
-    setFileManagerNavigationOpen: (workspaceKey, open) => {
-      const normalizedWorkspaceKey = workspaceKey.trim();
-      if (!normalizedWorkspaceKey) return;
-      set((state) => {
-        const next = {
-          ...state.fileManagerNavigationOpenByWorkspace,
-          [normalizedWorkspaceKey]: open,
-        };
-        writeSafeLocalStorage(
-          FILE_MANAGER_NAVIGATION_PREFERENCES_STORAGE_KEY,
-          JSON.stringify(next),
-        );
-        return { fileManagerNavigationOpenByWorkspace: next };
-      });
-    },
 
     uiFontSizePx: loadUiFontSizePx(),
     setUiFontSizePx: (fontSizePx: number) => {

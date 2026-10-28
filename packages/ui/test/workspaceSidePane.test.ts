@@ -31,8 +31,6 @@ import {
   openOrActivateBrowserSidePaneByUrl,
   findBrowserSidePaneTabByUrl,
   openCodeViewerSidePane,
-  openFileManagerSidePane,
-  navigateFileManagerSidePane,
   openCodeViewerSidePanes,
   openTerminalSidePane,
   reorderSidePaneTab,
@@ -52,49 +50,6 @@ import {
 } from "../src/lib/workspaceSidePane.js";
 
 describe("workspaceSidePane", () => {
-  it("keeps a navigated file tab when reopening its original path", () => {
-    const original = { type: "file", title: "one.ts", path: "/workspace/one.ts" } as const;
-    const first = openCodeViewerSidePane(null, original);
-    const tabId = first.activeTabId;
-    const navigated = navigateFileManagerSidePane(first, tabId, {
-      type: "file",
-      title: "two.ts",
-      path: "/workspace/two.ts",
-    });
-    const reopened = openCodeViewerSidePane(navigated, original);
-    expect(reopened.tabs).toHaveLength(2);
-    expect(reopened.tabs[0]).toMatchObject({ id: tabId, source: { path: "/workspace/two.ts" } });
-    expect(reopened.activeTabId).not.toBe(tabId);
-    expect(openCodeViewerSidePane(reopened, original).tabs).toHaveLength(2);
-  });
-
-  it("navigates only the requested file manager and preserves its task scope", () => {
-    const target = {
-      workspacePath: "/workspace",
-      workspaceIdentity: "remote:one",
-      workspaceRemoteSessionId: "session-one",
-    };
-    const first = stampSidePaneTabsOwnership(openFileManagerSidePane(null, target), {
-      ownerTaskId: "task-one",
-      workspaceKey: "remote:one",
-    })!;
-    const second = openFileManagerSidePane(first, target);
-    const next = navigateFileManagerSidePane(second, first.activeTabId, {
-      type: "file",
-      title: "a.ts",
-      path: "/workspace/a.ts",
-    });
-    expect(next?.activeTabId).toBe(second.activeTabId);
-    expect(next?.tabs[0]).toMatchObject({
-      id: first.activeTabId,
-      ownerTaskId: "task-one",
-      workspaceKey: "remote:one",
-      target,
-      source: { path: "/workspace/a.ts" },
-    });
-    expect(next?.tabs[1]).toMatchObject({ source: null });
-  });
-
   it("新标签页支持多开、重新激活与独立关闭", () => {
     const first = activateNewTabSidePane(null);
     const second = activateNewTabSidePane(first);

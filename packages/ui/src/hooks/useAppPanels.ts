@@ -1,9 +1,5 @@
 import { useOptionalTabStore } from "@/store/TabStoreProvider.js";
-import {
-  openFileManagerSidePane,
-  navigateFileManagerSidePane,
-  type FileManagerTarget,
-} from "@/lib/workspaceSidePane.js";
+import { openFileManagerSidePane, type FileManagerTarget } from "@/lib/workspaceSidePane.js";
 /* eslint-disable max-lines */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createUuid } from "@zcode/shared";
@@ -425,13 +421,6 @@ export function useAppPanels(options: {
     });
     handleOpenFileManager(pendingFileManagerTarget);
   }, [pendingFileManagerTarget, activeWorkspaceKey, consumeFileManager, handleOpenFileManager]);
-
-  const handleNavigateFileManager = useCallback(
-    (tabId: string, source: CodeViewerSource) => {
-      commitSidePaneState((current) => navigateFileManagerSidePane(current, tabId, source));
-    },
-    [commitSidePaneState],
-  );
 
   const handleOpenCodeViewer = useCallback(
     (source: CodeViewerSource) => {
@@ -1659,7 +1648,6 @@ export function useAppPanels(options: {
     browserNavigationRequest,
     setBrowserNavigationRequest,
     handleOpenFileManager,
-    handleNavigateFileManager,
     // 回调
     handleOpenCodeViewer,
     handleOpenCodeViewers,

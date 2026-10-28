@@ -409,7 +409,6 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
   handleOpenWhiteboard,
   handleOpenDeveloperTools,
   handleOpenFileManager,
-  handleNavigateFileManager,
   handleOpenPluginMarket,
   handleOpenTerminalTab,
   handleToggleGit,
@@ -1508,11 +1507,6 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
     },
     [handleStartDraftInWorkspace, showChatMainView],
   );
-  const handleCreateProjectDraft = useCallback(
-    (path: string, identity?: string) =>
-      handleStartDraftInWorkspaceInChat(path, identity, undefined, "project"),
-    [handleStartDraftInWorkspaceInChat],
-  );
   const activeWorkspacePurpose =
     workspaceTabs.find(
       (tab) =>
@@ -1915,7 +1909,6 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
       onOpenWhiteboard={handleOpenWhiteboard}
       onOpenDeveloperTools={handleOpenDeveloperTools}
       onOpenFileManager={handleOpenFileManager}
-      onNavigateFileManager={handleNavigateFileManager}
       onOpenPluginMarket={handleOpenPluginMarket}
       onCreateTask={handleCreateTaskInChat}
       isMacDesktop={isMacDesktop}

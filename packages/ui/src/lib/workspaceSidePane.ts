@@ -1690,31 +1690,6 @@ export function openFileManagerSidePane(
   });
 }
 
-export function navigateFileManagerSidePane(
-  current: WorkspaceSidePaneState | null,
-  tabId: string,
-  source: CodeViewerSource,
-): WorkspaceSidePaneState | null {
-  if (!current) return current;
-  const normalizedSource = normalizeCodeViewerSource(source);
-  return {
-    ...current,
-    // 导航只更新目标实例，不激活其他 Tab，也不改变实例 id 和任务归属。
-    tabs: current.tabs.map((tab) => {
-      if (tab.id !== tabId) return tab;
-      if (tab.type === "file-manager") return { ...tab, source: normalizedSource };
-      if (tab.type === "code-viewer") {
-        return {
-          ...tab,
-          source: normalizedSource,
-          sourceKey: getCodeViewerTabSourceKey(normalizedSource),
-        };
-      }
-      return tab;
-    }),
-  };
-}
-
 export function openCodeViewerSidePane(
   current: WorkspaceSidePaneState | null,
   source: CodeViewerSource,

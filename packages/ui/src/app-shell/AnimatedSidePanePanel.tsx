@@ -16,7 +16,7 @@ import {
 } from "@dnd-kit/core";
 import { horizontalListSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import type { BrowserViewScreenshotSurfacePreparePayload, GitChangeSourceId } from "@zcode/shared";
-import { FileManagerPane } from "@/WorkspaceFileTree.js";
+import { FileManagerPane } from "@/FileManagerPane.js";
 import type { FileManagerTarget } from "@/lib/workspaceSidePane.js";
 import { useZCodeSessionStore } from "@/store/zcodeSessionStore.js";
 import { composerScopeKey, resolveComposerScope } from "@/v4/composer/composerDraftStore.js";
@@ -338,7 +338,6 @@ export function AnimatedSidePanePanel({
   onOpenWhiteboard: _onOpenWhiteboard,
   onOpenDeveloperTools,
   onOpenFileManager,
-  onNavigateFileManager,
   onOpenPluginMarket,
   onCreateTask,
   onOpenTerminalTab,
@@ -440,7 +439,6 @@ export function AnimatedSidePanePanel({
   onOpenWhiteboard: () => void;
   onOpenDeveloperTools: () => void;
   onOpenFileManager: (target?: FileManagerTarget) => void;
-  onNavigateFileManager: (tabId: string, source: CodeViewerSource) => void;
   onOpenPluginMarket?: () => void;
   onCreateTask?: (request?: CreateTaskRequest) => void;
   onOpenTerminalTab: () => void;
@@ -1310,6 +1308,7 @@ export function AnimatedSidePanePanel({
                               : { onRevealFileInTree: onRevealGitFileInTree })}
                           />
                         ) : tab.type === "code-viewer" || tab.type === "file-manager" ? (
+                          // 个人定制：文件预览不再带目录树，只渲染文件内容本身。
                           <FileManagerPane
                             markdownSelectionTarget={{
                               sessionId: activeTaskId,
@@ -1317,22 +1316,6 @@ export function AnimatedSidePanePanel({
                               draftScopeKey,
                             }}
                             source={tab.source}
-                            target={
-                              tab.type === "file-manager"
-                                ? tab.target
-                                : {
-                                    workspacePath: tab.source.workspacePath ?? workspaceAbsPath,
-                                    workspaceIdentity: tab.source.workspacePath
-                                      ? tab.source.workspaceIdentity
-                                      : workspaceIdentity,
-                                    workspaceRemoteSessionId: tab.source.workspacePath
-                                      ? tab.source.workspaceRemoteSessionId
-                                      : workspaceRemoteSessionId,
-                                  }
-                            }
-                            mobileOverlay={mobileOverlay}
-                            canOpenLocalFileManager={Boolean(isDesktop)}
-                            onNavigate={(source) => onNavigateFileManager(tab.id, source)}
                             onClose={() => onCloseTab(tab.id)}
                             workspacePath={workspaceAbsPath}
                             onOpenBrowserUrl={onOpenBrowserUrl}

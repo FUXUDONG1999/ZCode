@@ -380,7 +380,8 @@ const enUS: Record<string, string> = {
   "occupationOnboarding.migration": "Migrate conversations",
   "occupationOnboarding.migrationDescription": "Migrate conversation history from Claude Code",
   "occupationOnboarding.memory": "Enable Workspace Memory",
-  "occupationOnboarding.memoryDescription": "Let MyAgent remember your preferences and work context.",
+  "occupationOnboarding.memoryDescription":
+    "Let MyAgent remember your preferences and work context.",
   "occupationOnboarding.suggestions": "Enable proactive task suggestions",
   "occupationOnboarding.suggestionsDescription":
     "Show suggestions in new conversations. Click to fill the composer.",
@@ -679,7 +680,8 @@ const enUS: Record<string, string> = {
   "conversationShare.error.preparationExpired": "Share preparation expired. Generate a new link.",
   "conversationShare.import.notAllowed":
     "This share is view-only. Ask the author to enable importing.",
-  "conversationShare.import.unsupportedVersion": "This share format is unsupported. Update MyAgent.",
+  "conversationShare.import.unsupportedVersion":
+    "This share format is unsupported. Update MyAgent.",
   "conversationShare.issue.ruleLabel": "Validation rule",
   "conversationShare.issue.pathLabel": "Field path",
   "conversationShare.issue.fieldLabel": "Field",
@@ -1932,11 +1934,8 @@ const enUS: Record<string, string> = {
   "gitGraph.refreshFailed": "Git Graph refresh failed: {error}",
   "gitGraph.loadMore": "Load more commits",
   "gitGraph.loadMore.loading": "Loading more...",
-  "fileManager.resizeNavigation": "Resize file navigation",
   "fileManager.title": "Files",
-  "fileManager.showNavigation": "Show file navigation",
-  "fileManager.hideNavigation": "Hide file navigation",
-  "fileManager.empty": "Select a file from the navigation",
+  "fileManager.empty": "No file selected",
   "codeViewer.title": "Code viewer",
   "codeViewer.close": "Close code viewer",
   "codeViewer.loadingFile": "Loading file...",
@@ -4590,7 +4589,8 @@ const enUS: Record<string, string> = {
   "sidebar.usage.plan.toolCalls": "Tool calls",
   "sidebar.usage.plan.mcp": "MyAgent MCP",
   "sidebar.usage.plan.zcodeMcp": "MyAgent MCP",
-  "sidebar.usage.plan.zcodeMcpDescription": "Daily aggregate quota for MyAgent built-in plugin MCPs",
+  "sidebar.usage.plan.zcodeMcpDescription":
+    "Daily aggregate quota for MyAgent built-in plugin MCPs",
   "chat.planUsage.title": "Plan usage",
   "chat.planUsage.titleWithPlan": "{plan} Plan usage",
   "chat.planUsage.providerFallback": "Current provider",

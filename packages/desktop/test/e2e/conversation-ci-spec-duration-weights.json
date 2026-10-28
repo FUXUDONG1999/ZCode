@@ -78,7 +78,6 @@
     "./test/e2e/conversation-session/conversation-session-v4-sendnow.test.ts": 9823,
     "./test/e2e/conversation-session/conversation-session-v4-stop-queue.test.ts": 36390,
     "./test/e2e/conversation-session/conversation-session-v4-turn-navigator.test.ts": 10863,
-    "./test/e2e/conversation-session/conversation-session-v4-vertical-slice.test.ts": 22009,
-    "./test/e2e/workspace-file-tree-refresh.test.ts": 5534
+    "./test/e2e/conversation-session/conversation-session-v4-vertical-slice.test.ts": 22009
   }
 }

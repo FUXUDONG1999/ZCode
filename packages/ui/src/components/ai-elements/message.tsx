@@ -86,7 +86,6 @@ import { stripBalancedAssistantPathQuotes } from "@/lib/assistantPathQuotes.js";
 import { getPathLeaf } from "@/lib/path.js";
 import { getWorkspaceFileRelativePath } from "@/workspace-file-tree/model.js";
 import { resolveWorkspaceEditorSelection } from "@/lib/workspaceEditorSelection.js";
-import { sortInstalledEditorsForFileTree } from "@/workspace-file-tree/helpers.js";
 import type { CodePreviewSettings } from "@/lib/codePreviewSettings.js";
 import { DEFAULT_CODE_PREVIEW_SETTINGS } from "@/lib/codePreviewSettings.js";
 import { useZCodeStore } from "@/store/StoreProvider.js";
