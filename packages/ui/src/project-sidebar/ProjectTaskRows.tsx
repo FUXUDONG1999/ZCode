@@ -16,13 +16,11 @@ export const ProjectTaskRow = memo(function Row({
   onSelect,
   refresh,
   variant,
-  showFiles,
 }: {
   task: ProjectTask;
   onSelect: ProjectSidebarProps["onSelectTask"];
   refresh(): Promise<void>;
   variant: "default" | "timeline";
-  showFiles: boolean;
 }) {
   const presentation = useContext(ProjectTaskListContext);
   const { remoteSessionId, rename, pin, archive, unread } = useProjectTaskActions(task, refresh);
@@ -35,10 +33,6 @@ export const ProjectTaskRow = memo(function Row({
     () =>
       onSelect(task.workspacePath, task.taskId, task.workspaceIdentity, undefined, task.unreadAt),
     [onSelect, task],
-  );
-  const openFiles = useCallback(
-    () => presentation.onOpenTaskFiles?.(task, remoteSessionId ?? undefined),
-    [presentation.onOpenTaskFiles, task, remoteSessionId],
   );
   // 原因：内联 JSX 每次都会创建新引用，导致 TaskList 的 memo 比较失效。
   const organizationActions = useMemo(() => <TaskGroupTaskMenu task={task} />, [task]);
@@ -56,13 +50,6 @@ export const ProjectTaskRow = memo(function Row({
         activeTaskId={activeId}
         isWorkspaceActive={presentation.activeWorkspaceKey === workspaceKey}
         mobileActiveTaskKey={presentation.mobileActiveTaskKey}
-        onOpenFileTree={
-          presentation.onOpenTaskFiles &&
-          showFiles &&
-          (!task.workspaceIdentity?.trim() || remoteSessionId)
-            ? openFiles
-            : undefined
-        }
         showCreateButton={false}
         showFooter={false}
         showEmptyState={false}
@@ -162,7 +149,6 @@ export function ProjectTaskRows({
             onSelect={onSelect}
             refresh={refresh}
             variant={kind === "timeline" ? "timeline" : "default"}
-            showFiles={kind === "pinned"}
           />
         </Fragment>
       ))}

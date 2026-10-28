@@ -55,7 +55,6 @@ function fixture(roots = ["/repo"]) {
     onExpandedChange: vi.fn(),
     tasks: [],
     onCreate: vi.fn(),
-    onViewFiles: vi.fn(),
     onEdit: vi.fn(),
     onDelete: vi.fn(),
     onPin: vi.fn(),
@@ -64,7 +63,7 @@ function fixture(roots = ["/repo"]) {
     refresh: vi.fn(async () => {}),
   };
 }
-it("keeps the three shortcuts and updates folder state", () => {
+it("keeps the menu and create shortcuts; 查看文件入口已随侧面板移除", () => {
   const props = fixture();
   const { rerender } = render(createElement(ProjectNode, props));
   const toggle = screen.getByTestId("virtual-project-toggle");
@@ -74,23 +73,24 @@ it("keeps the three shortcuts and updates folder state", () => {
   rerender(createElement(ProjectNode, { ...props, expanded: false }));
   expect(toggle.querySelector(".lucide-folder")).not.toBeNull();
   expect(screen.getByTestId("virtual-project-menu")).toBeDefined();
-  fireEvent.click(screen.getByTestId("virtual-project-files"));
+  // 个人定制：项目行不再渲染「查看文件」按钮（打开的是已移除的标签式侧面板）。
+  expect(screen.queryByTestId("virtual-project-files")).toBeNull();
   fireEvent.click(screen.getByTestId("virtual-project-create-task"));
-  expect(props.onViewFiles).toHaveBeenCalledWith("/repo");
   expect(props.onCreate).toHaveBeenCalledOnce();
   expect(toggle.getAttribute("aria-expanded")).toBe("false");
   fireEvent.contextMenu(toggle);
   fireEvent.click(screen.getByTestId("virtual-project-context-create-task"));
   expect(props.onCreate).toHaveBeenCalledTimes(2);
 });
-it("offers every root and management action from the context menu", () => {
+it("offers management actions from the context menu without per-root file entries", () => {
   const props = fixture(["/one", "/two"]);
   render(createElement(ProjectNode, props));
   fireEvent.contextMenu(screen.getByTestId("virtual-project-toggle"));
   expect(screen.getByTestId("virtual-project-edit")).toBeDefined();
   expect(screen.getByTestId("virtual-project-delete")).toBeDefined();
-  fireEvent.click(screen.getByTestId("virtual-project-context-files-1"));
-  expect(props.onViewFiles).toHaveBeenCalledWith("/two");
+  // 个人定制：右键菜单不再包含每个 root 的「查看文件」条目。
+  expect(screen.queryByTestId("virtual-project-context-files-0")).toBeNull();
+  expect(screen.queryByTestId("virtual-project-context-files-1")).toBeNull();
 });
 it.each([false, true])("shows action icons for pinned=%s without replacing labels", (pinned) => {
   const props = fixture(["/one", "/two"]);
@@ -99,8 +99,6 @@ it.each([false, true])("shows action icons for pinned=%s without replacing label
   fireEvent.contextMenu(screen.getByTestId("virtual-project-toggle"));
   for (const [id, icon, label] of [
     ["context-create-task", "message-circle-plus", "project.createTask"],
-    ["context-files-0", "list-tree", "workspaceSidebar.showFileTree · /one"],
-    ["context-files-1", "list-tree", "workspaceSidebar.showFileTree · /two"],
     ["edit", "pencil", "project.edit"],
     ["pin", pinned ? "pin-off" : "pin", pinned ? "project.unpin" : "project.pin"],
     ["delete", "trash-2", "project.delete"],
@@ -144,12 +142,10 @@ it("uses stacked closed/open folders for multiple roots and updates when roots c
     expect(toggle.querySelector(".lucide-folders, .lucide-folders-open")).toBeNull();
   }
 });
-it("keeps an empty project's file shortcut disabled without creating a root", () => {
+it("个人定制：空项目不再渲染「查看文件」按钮", () => {
   const props = fixture([]);
   render(createElement(ProjectNode, props));
-  expect((screen.getByTestId("virtual-project-files") as HTMLButtonElement).disabled).toBe(true);
-  fireEvent.click(screen.getByTestId("virtual-project-files"));
-  expect(props.onViewFiles).not.toHaveBeenCalled();
+  expect(screen.queryByTestId("virtual-project-files")).toBeNull();
 });
 
 it("keeps content in the controlled collapsible lifecycle instead of removing it immediately", () => {

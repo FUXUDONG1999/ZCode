@@ -420,12 +420,14 @@ async function renderWorkspaceShell(
 }
 
 describe("WorkspaceShellLayout Web remote control mobile layout", () => {
+  // 个人定制：左侧标签式侧面板永久收起，isSidePaneOpen 入参不再影响 Esc 停靠行为；
+  // 面板对用户恒为关闭，Esc 默认始终停在可见主聊天。
   it.each([
     { mobile: false, sidePaneOpen: false, workspaceVisible: true, expected: true },
-    { mobile: false, sidePaneOpen: true, workspaceVisible: true, expected: false },
+    { mobile: false, sidePaneOpen: true, workspaceVisible: true, expected: true },
     { mobile: false, sidePaneOpen: false, workspaceVisible: false, expected: false },
     { mobile: true, sidePaneOpen: false, workspaceVisible: true, expected: true },
-    { mobile: true, sidePaneOpen: true, workspaceVisible: true, expected: false },
+    { mobile: true, sidePaneOpen: true, workspaceVisible: true, expected: true },
     { mobile: true, sidePaneOpen: false, workspaceVisible: false, expected: false },
   ])(
     "limits default Esc stop to the visible main chat without a side pane: %j",
@@ -584,8 +586,9 @@ describe("WorkspaceShellLayout Web remote control mobile layout", () => {
       isSidePaneOpen: true,
       workspaceMainView: "chat",
     });
+    // 个人定制：面板永久收起；chat 视图下也保持挂载（browser-use 截图合成层）但恒不可见。
     expect(chatHtml.match(/data-testid="side-pane-panel"/gu)).toHaveLength(1);
-    expect(chatHtml).toContain('data-panel-visible="true"');
+    expect(chatHtml).toContain('data-panel-visible="false"');
   });
 
   it.each([true, false])(
@@ -795,11 +798,12 @@ describe("WorkspaceShellLayout Web remote control mobile layout", () => {
     });
 
     expect(html).toContain('data-testid="web-remote-mobile-shell"');
-    expect(html).toContain('data-mobile-side-pane-open="true"');
+    // 个人定制：面板永久收起，即使上游仍报 isSidePaneOpen，手机壳层的抽屉也保持关闭。
+    expect(html).toContain('data-mobile-side-pane-open="false"');
     expect(html).toContain('data-testid="mobile-side-pane-overlay"');
     expect(html).toContain('data-testid="side-pane-panel"');
     expect(html).toContain('data-mobile-overlay="true"');
-    expect(html).toContain('data-panel-visible="true"');
+    expect(html).toContain('data-panel-visible="false"');
 
     const hiddenHtml = await renderWorkspaceShell({
       isWorkspaceVisible: false,

@@ -72,10 +72,15 @@ describe("shortcut settings save admission", () => {
     expect(mocks.update).toHaveBeenCalledTimes(2);
     expect(container.querySelector('[role="alert"]')).toBeNull();
   });
-  // 完整视图只在桌面端提供（docs/ui/side-pane-full-view.md），Web 设置页不展示该命令。
-  it("lists the side pane full view shortcut only on desktop", async () => {
+  // 个人定制：侧面板及其完整视图已移除，设置页不再展示这两个快捷键的改键入口。
+  it("hides the side pane shortcuts from the settings list on every shell", async () => {
     await mount(true);
-    expect(button("settings-shortcut-clear-toggleSidePaneFullView")).toBeTruthy();
+    expect(
+      container.querySelector('[data-testid="settings-shortcut-clear-toggleSidePane"]'),
+    ).toBeNull();
+    expect(
+      container.querySelector('[data-testid="settings-shortcut-clear-toggleSidePaneFullView"]'),
+    ).toBeNull();
     await act(() => root.unmount());
     await mount(false);
     expect(

@@ -47,7 +47,6 @@ type Props = Pick<
     remoteService?: IRemoteProjectService;
     onExpandedChange(project: VirtualProject, expanded: boolean): void;
     onEdit(value: { project: VirtualProject }): void;
-    onViewFiles(project: VirtualProject, rootPath: string): Promise<void>;
     remoteActions(project: VirtualProject): ProjectRowAction[];
   };
 
@@ -65,7 +64,6 @@ export const ProjectSidebarNode = memo(
     onReconnectRemoteWorkspace,
     onExpandedChange,
     onEdit,
-    onViewFiles,
     remoteActions,
     ...display
   }: Props) {
@@ -134,7 +132,6 @@ export const ProjectSidebarNode = memo(
           })
         }
         onEdit={() => onEdit({ project })}
-        onViewFiles={(rootPath) => runProjectAction(() => onViewFiles(project, rootPath))}
         onDelete={() =>
           runProjectAction(async () => {
             await service!.deleteProject(project.id, project.hostId);

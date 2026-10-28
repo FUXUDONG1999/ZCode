@@ -71,10 +71,7 @@ export interface WorkspaceHeaderActionSectionProps {
   isWebRemoteControl?: boolean;
   isDesktop?: boolean;
   isTerminalOpen: boolean;
-  isSidePaneOpen: boolean;
   onToggleTerminal: () => void;
-  onToggleSidePane: () => void;
-  toggleSidePaneShortcutLabel?: string;
   onSelectedEditorChange?: (editor: EditorInfo | null) => void;
   simplifyForNarrowRemote?: boolean;
   hideHelpMenu?: boolean;

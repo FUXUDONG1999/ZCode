@@ -117,9 +117,7 @@ describe("WorkspaceHeaderActionSection", () => {
       withSettingsServices(WorkspaceHeaderActionSection, {
         workspaceAbsPath: "/workspace",
         isTerminalOpen: false,
-        isSidePaneOpen: true,
         onToggleTerminal: vi.fn(),
-        onToggleSidePane: vi.fn(),
       }),
     );
     expect(html).not.toContain("sidePane.collapse");
@@ -136,9 +134,7 @@ describe("WorkspaceHeaderActionSection", () => {
         variant: "draft",
         workspaceAbsPath: "/workspace",
         isTerminalOpen: false,
-        isSidePaneOpen: false,
         onToggleTerminal: vi.fn(),
-        onToggleSidePane: vi.fn(),
       }),
     );
 
@@ -146,7 +142,8 @@ describe("WorkspaceHeaderActionSection", () => {
     expect(html).not.toContain('data-testid="workspace-editor-buttons"');
     expect(html).toContain("workspaceHeader.help.menu");
     expect(html).toContain("terminal.toggle");
-    expect(html).toContain("sidePane.expand");
+    // 个人定制：侧面板切换按钮已移除，头部不再渲染展开面板入口。
+    expect(html).not.toContain("sidePane.expand");
   });
 
   it("只在 Desktop local/SSH/WSL/Docker 已有任务显示分享入口", async () => {
@@ -158,9 +155,7 @@ describe("WorkspaceHeaderActionSection", () => {
           activeTaskId: "task-1",
           workspaceAbsPath: "/workspace",
           isTerminalOpen: false,
-          isSidePaneOpen: false,
           onToggleTerminal: vi.fn(),
-          onToggleSidePane: vi.fn(),
           isDesktop: true,
           user: { id: "user-1" },
           ...extra,
@@ -185,9 +180,7 @@ describe("WorkspaceHeaderActionSection", () => {
         activeTaskId: "task-1",
         workspaceAbsPath: "/workspace",
         isTerminalOpen: false,
-        isSidePaneOpen: false,
         onToggleTerminal: vi.fn(),
-        onToggleSidePane: vi.fn(),
         isDesktop: true,
         user: null,
       }),
@@ -204,9 +197,7 @@ describe("WorkspaceHeaderActionSection", () => {
       withSettingsServices(WorkspaceHeaderActionSection, {
         workspaceAbsPath: "/workspace",
         isTerminalOpen: false,
-        isSidePaneOpen: false,
         onToggleTerminal: vi.fn(),
-        onToggleSidePane: vi.fn(),
       }),
     );
 
@@ -218,7 +209,7 @@ describe("WorkspaceHeaderActionSection", () => {
     expect(html).toContain("workspaceHeader.help.docs");
     expect(html).not.toContain("titleBar.menu.help.exportLogs");
     expect(html).toContain("terminal.toggle");
-    expect(html).toContain("sidePane.expand");
+    expect(html).not.toContain("sidePane.expand");
     expect(html.indexOf("workspaceHeader.help.menu")).toBeLessThan(html.indexOf("terminal.toggle"));
   });
 
@@ -230,9 +221,7 @@ describe("WorkspaceHeaderActionSection", () => {
       withSettingsServices(WorkspaceHeaderActionSection, {
         workspaceAbsPath: "/workspace",
         isTerminalOpen: false,
-        isSidePaneOpen: false,
         onToggleTerminal: vi.fn(),
-        onToggleSidePane: vi.fn(),
         simplifyForNarrowRemote: true,
       }),
     );
@@ -240,7 +229,7 @@ describe("WorkspaceHeaderActionSection", () => {
     expect(html).not.toContain("workspaceHeader.help.menu");
     expect(html).not.toContain("workspaceHeader.help.issueReport");
     expect(html).not.toContain("terminal.toggle");
-    expect(html).toContain("sidePane.expand");
+    expect(html).not.toContain("sidePane.expand");
   });
 
   it("hides only the help menu when Windows caption menu owns help actions", async () => {
@@ -251,9 +240,7 @@ describe("WorkspaceHeaderActionSection", () => {
       withSettingsServices(WorkspaceHeaderActionSection, {
         workspaceAbsPath: "/workspace",
         isTerminalOpen: false,
-        isSidePaneOpen: false,
         onToggleTerminal: vi.fn(),
-        onToggleSidePane: vi.fn(),
         hideHelpMenu: true,
       }),
     );
@@ -261,7 +248,7 @@ describe("WorkspaceHeaderActionSection", () => {
     expect(html).not.toContain("workspaceHeader.help.menu");
     expect(html).not.toContain("workspaceHeader.help.issueReport");
     expect(html).toContain("terminal.toggle");
-    expect(html).toContain("sidePane.expand");
+    expect(html).not.toContain("sidePane.expand");
   });
 
   it("routes help menu items to feedback, community, and docs entries", async () => {
@@ -280,9 +267,7 @@ describe("WorkspaceHeaderActionSection", () => {
       withSettingsServices(WorkspaceHeaderActionSection, {
         workspaceAbsPath: "/workspace",
         isTerminalOpen: false,
-        isSidePaneOpen: false,
         onToggleTerminal: vi.fn(),
-        onToggleSidePane: vi.fn(),
       }),
     );
 
@@ -326,9 +311,7 @@ describe("WorkspaceHeaderActionSection", () => {
           "remote:ssh:jumpserver.example.com:2222:asset01@root@192.168.100.166:/root/demo-project",
         remoteTarget,
         isTerminalOpen: false,
-        isSidePaneOpen: false,
         onToggleTerminal: vi.fn(),
-        onToggleSidePane: vi.fn(),
       }),
     );
 

@@ -96,7 +96,9 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
     ),
   );
   const [remotePicker, setRemotePicker] = useState<RemoteProjectHost | null>(null);
-  const { openFiles, openTaskFiles } = useProjectFileTree(props, directory, remoteService);
+  // 个人定制：「查看文件」入口已随左侧标签式侧面板移除；hook 仅保留手机端 fileTreeOpenRequest
+  // 深链消费（面板收起后无可见效果），项目行/任务行不再提供打开文件树的回调。
+  useProjectFileTree(props, directory, remoteService);
   const remoteControlEnabled = useWebRemoteControlFeatureEnabled();
   const mobileStatus = useWebRemoteControlStatus({
     enabled: Boolean(props.isDesktop && remoteControlEnabled),
@@ -112,16 +114,8 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
       activeWorkspaceKey: props.workspaceIdentity?.trim() || props.workspacePath,
       mobileActiveTaskKey,
       onPin: pin,
-      onOpenTaskFiles: openTaskFiles,
     }),
-    [
-      props.isWebRemoteControl,
-      props.workspacePath,
-      props.workspaceIdentity,
-      mobileActiveTaskKey,
-      pin,
-      openTaskFiles,
-    ],
+    [props.isWebRemoteControl, props.workspacePath, props.workspaceIdentity, mobileActiveTaskKey, pin],
   );
   const msg = (id: string) => intl.formatMessage({ id: `project.${id}` });
   const start = async (projectId?: string, hostId?: string, taskGroupId?: string | null) => {
@@ -189,7 +183,6 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
       onCreateTask={props.onCreateTask}
       onReconnectRemoteWorkspace={props.onReconnectRemoteWorkspace}
       onEdit={setEditor}
-      onViewFiles={openFiles}
       remoteActions={remoteSync.actions}
     />
   );

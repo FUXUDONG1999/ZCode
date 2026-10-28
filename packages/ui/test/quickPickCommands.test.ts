@@ -21,10 +21,6 @@ function createHandlers() {
     logout: vi.fn(),
     toggleSidebar: vi.fn(),
     toggleTerminal: vi.fn(),
-    togglePreview: vi.fn(),
-    openTerminalTab: vi.fn(),
-    openBrowserTab: vi.fn(),
-    openReviewTab: vi.fn(),
   };
 }
 
@@ -36,14 +32,13 @@ const shortcuts = {
 };
 
 describe("createQuickPickCommands", () => {
-  it("通用模式过滤技术面板命令并保留浏览器和普通命令", () => {
+  it("通用模式过滤终端命令；侧面板命令随面板移除始终不存在", () => {
     const commands = createQuickPickCommands({
       allowOpenWorkspace: true,
       canOpenCommunity: true,
       isSidebarVisible: true,
       isLoggedIn: false,
       supportsTerminal: false,
-      supportsReview: false,
       themeTarget: "dark",
       shortcuts,
       handlers: createHandlers(),
@@ -52,7 +47,9 @@ describe("createQuickPickCommands", () => {
     expect(ids).not.toContain("toggle-terminal");
     expect(ids).not.toContain("add-terminal-tab");
     expect(ids).not.toContain("add-review-tab");
-    expect(ids).toContain("add-browser-tab");
+    // 个人定制：左侧标签式侧面板已移除，面板类命令不再注册。
+    expect(ids).not.toContain("toggle-preview");
+    expect(ids).not.toContain("add-browser-tab");
     expect(ids).toContain("new-task");
     expect(ids).toContain("settings");
   });
@@ -74,10 +71,6 @@ describe("createQuickPickCommands", () => {
       "suggested-settings",
       "toggle-sidebar",
       "toggle-terminal",
-      "toggle-preview",
-      "add-terminal-tab",
-      "add-browser-tab",
-      "add-review-tab",
       "settings",
       "switch-theme",
       "skills-settings",
@@ -120,18 +113,6 @@ describe("createQuickPickCommands", () => {
     expect(commands.find((command) => command.id === "toggle-terminal")).toMatchObject({
       sectionId: "panels",
     });
-    expect(commands.find((command) => command.id === "toggle-preview")).toMatchObject({
-      sectionId: "panels",
-    });
-    expect(commands.find((command) => command.id === "add-terminal-tab")).toMatchObject({
-      sectionId: "panels",
-    });
-    expect(commands.find((command) => command.id === "add-browser-tab")).toMatchObject({
-      sectionId: "panels",
-    });
-    expect(commands.find((command) => command.id === "add-review-tab")).toMatchObject({
-      sectionId: "panels",
-    });
     expect(commands.find((command) => command.id === "product-docs")).toMatchObject({
       sectionId: "app",
     });
@@ -169,13 +150,12 @@ describe("createQuickPickCommands", () => {
     });
   });
 
-  it("omits embedded browser commands when the shell does not support browser tabs", () => {
+  it("个人定制：不再注册任何打开侧面板的命令", () => {
     const commands = createQuickPickCommands({
       allowOpenWorkspace: true,
       canOpenCommunity: true,
       isSidebarVisible: true,
       isLoggedIn: false,
-      supportsEmbeddedBrowser: false,
       themeTarget: "dark",
       shortcuts,
       handlers: createHandlers(),
@@ -195,11 +175,11 @@ describe("createQuickPickCommands", () => {
       themeTarget: "dark",
       shortcuts,
       handlers,
-    }).find((item) => item.id === "add-browser-tab");
+    }).find((item) => item.id === "toggle-terminal");
 
     command?.run();
 
-    expect(handlers.openBrowserTab).toHaveBeenCalledTimes(1);
+    expect(handlers.toggleTerminal).toHaveBeenCalledTimes(1);
   });
 
   it("runs configure and app handlers", () => {

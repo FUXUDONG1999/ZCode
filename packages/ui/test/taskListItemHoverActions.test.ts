@@ -327,48 +327,8 @@ describe("TaskListItem hover action rendering", () => {
     delete (globalThis as { IS_REACT_ACT_ENVIRONMENT?: unknown }).IS_REACT_ACT_ENVIRONMENT;
   });
 
-  it("opens pinned files on touch without selecting the task", async () => {
-    const { MemoTaskItem } = await import("@/TaskListItem.js");
-    const container = installMinimalDom(true);
-    const root = createRoot(container);
-    const onOpenFileTree = vi.fn(async () => {});
-    const onSelectTask = vi.fn();
-    act(() =>
-      root.render(
-        createElement(MemoTaskItem, {
-          intl: stableIntl,
-          isActive: false,
-          isArchiveConfirming: false,
-          isPinned: true,
-          onArchiveTask: vi.fn(),
-          onArchiveTaskInline: vi.fn(),
-          onCancelArchiveConfirm: vi.fn(),
-          onMarkTaskAsUnread: vi.fn(),
-          onSelectTask,
-          onStartRenameTask: vi.fn(),
-          onTogglePinTask: vi.fn(),
-          onOpenFileTree,
-          task: createTask(),
-          workspacePath: "/workspace",
-        }),
-      ),
-    );
-    const button = findByAttributeValue(container, "data-testid", "task-files-task-1");
-    expect(button).not.toBeNull();
-    const stopPropagation = vi.fn();
-    await act(async () => {
-      button?.dispatchEvent({
-        type: "click",
-        bubbles: true,
-        preventDefault: vi.fn(),
-        stopPropagation,
-      } as TestEvent);
-    });
-    expect(onOpenFileTree).toHaveBeenCalledOnce();
-    expect(stopPropagation).toHaveBeenCalled();
-    expect(onSelectTask).not.toHaveBeenCalled();
-    act(() => root.unmount());
-  });
+  // 个人定制：置顶任务行「查看文件」按钮（task-files-*）已随左侧标签式侧面板移除，
+  // 对应用例（opens pinned files on touch without selecting the task）一并删除。
 
   it.each([false, true])(
     "hoverEnabled=%s controls synthetic mouse and focus presentation",
