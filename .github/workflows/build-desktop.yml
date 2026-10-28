@@ -70,6 +70,10 @@ jobs:
       - name: Publish installer to GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+        # windows-latest 默认用 pwsh 执行 run 步骤，bash 的 for/do、续行与 glob 语法解析失败
+        # （ParserError: Missing opening '(' after keyword 'for'），显式指定 bash 修复；
+        # runner 自带 Git Bash，macOS 侧默认即 bash，行为不变。
+        shell: bash
         run: |
           TAG="build-${{ github.run_number }}"
           # win/mac 两个 job 并行发布同一个 release，首次 create 可能撞车：
@@ -128,6 +132,10 @@ jobs:
       - name: Publish installer to GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+        # windows-latest 默认用 pwsh 执行 run 步骤，bash 的 for/do、续行与 glob 语法解析失败
+        # （ParserError: Missing opening '(' after keyword 'for'），显式指定 bash 修复；
+        # runner 自带 Git Bash，macOS 侧默认即 bash，行为不变。
+        shell: bash
         run: |
           TAG="build-${{ github.run_number }}"
           # 与 Windows job 相同的撞车重试策略，两个 job 各自上传本平台产物。
