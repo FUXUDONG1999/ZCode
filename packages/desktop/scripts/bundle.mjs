@@ -103,6 +103,11 @@ const requiredRuntimeModules = [
   // 但如果生产包没把该 peer 运行时带进 app.asar，已安装应用会在主进程启动阶段直接崩溃。
   // 这里把 @babel/runtime 纳入 bundle 后机械校验，防止坏包继续流出。
   "@babel/runtime",
+  // Bugfix: @arms/rum-electron 被 tsup 默认外置（desktop dependencies），out/main 运行时
+  // 裸 import；曾被 renderer-only 排除名单裁出 app.asar，安装后主进程启动即
+  // ERR_MODULE_NOT_FOUND。与 REQUIRED_ASAR_RUNTIME_MODULES 同口径纳入机械校验，
+  // 缺包产物在 bundle 阶段直接失败，不再流出。
+  "@arms/rum-electron",
   // services 里的代理探测会在运行时 require("undici")。
   // 如果这里只校验 pngjs/ssh2 依赖，打包链路就会放过“产物能生成但主进程启动即缺 undici”的坏包。
   // 这里把 undici 纳入机械校验，让 bundle 阶段就能把问题拦下来。

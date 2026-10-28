@@ -116,6 +116,12 @@ const REQUIRED_ASAR_RUNTIME_MODULES = [
   // 线上已出现安装包启动即报 Cannot find module '@babel/runtime/helpers/interopRequireDefault'，
   // 这里显式把 @babel/runtime 作为闭包根注入，确保 ARMS 主进程埋点链路在生产包内可解析。
   "@babel/runtime",
+  // Bugfix: @arms/rum-electron 是 desktop dependencies，tsup 对 dependencies 默认外置
+  // （noExternal 未收录），out/main 顶部保留静态裸 import，运行时必须从 app.asar 的
+  // node_modules 解析。曾因被误加进 renderer-only 排除名单而裁出产物，安装包主进程
+  // 启动即报 Cannot find package '@arms/rum-electron'（ERR_MODULE_NOT_FOUND）。
+  // 这里作为闭包根注入，同时让 afterPack 的排除冲突校验能机械拦截同类回归。
+  "@arms/rum-electron",
   // Bugfix: @zcode/services 的代理连通性探测会动态 require("undici") 取 ProxyAgent。
   // tsup 虽然把 services 代码并进了主/host 产物，但不会把这个运行时 require 的包内联进去，
   // electron-builder 产物又可能漏掉 hoisted 的 undici，最终 mac 安装包启动即报 Cannot find module "undici"。
