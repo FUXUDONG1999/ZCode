@@ -327,6 +327,7 @@ export function AnimatedSidePanePanel({
   onCloseGit,
   onActivateTab,
   onOpenNewTab,
+  showAddTabButton,
   onReorderTab,
   onCloseTab,
   onCloseOtherTabs,
@@ -422,6 +423,12 @@ export function AnimatedSidePanePanel({
   onCloseGit: () => void;
   onActivateTab: (tabId: string) => void;
   onOpenNewTab: () => void;
+  /**
+   * 个人定制：是否渲染标签栏「+」新建标签按钮。
+   * 新标签页 hub 已随外部标签页一起移除；面板仅承载子智能体 / 调用轨迹时传 false，
+   * 避免点开后因 hub 不在可展开类型里面板整体收起、表现为点击无响应。
+   */
+  showAddTabButton?: boolean;
   /** "插件"分组打开面板 tab；缺省不渲染分组（web / 无宿主）。 */
   onReorderTab: (activeTabId: string, overTabId: string) => void;
   onCloseTab: (tabId: string) => void;
@@ -767,23 +774,24 @@ export function AnimatedSidePanePanel({
     };
   }, [visibleActiveTabId, visibleTabs]);
 
-  const addTabButton = (
-    <Button
-      type="button"
-      variant="ghost"
-      size="icon-md"
-      className="shrink-0"
-      data-side-pane-add-trigger
-      data-side-pane-add-tab-trigger=""
-      aria-label={intl.formatMessage({ id: "sidePane.addTab" })}
-      onClick={() => {
-        fullView?.onSelectSurface("side-pane");
-        onOpenNewTab();
-      }}
-    >
-      <PlusIcon className="size-4" />
-    </Button>
-  );
+  const addTabButton =
+    showAddTabButton === false ? null : (
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-md"
+        className="shrink-0"
+        data-side-pane-add-trigger
+        data-side-pane-add-tab-trigger=""
+        aria-label={intl.formatMessage({ id: "sidePane.addTab" })}
+        onClick={() => {
+          fullView?.onSelectSurface("side-pane");
+          onOpenNewTab();
+        }}
+      >
+        <PlusIcon className="size-4" />
+      </Button>
+    );
   const openTabLauncherItemById: Record<OpenTabLauncherItemId, OpenTabLauncherItem> = {
     "selection-side-conversation": {
       id: "selection-side-conversation",

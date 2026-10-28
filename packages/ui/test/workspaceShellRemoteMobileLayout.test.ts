@@ -820,6 +820,128 @@ describe("WorkspaceShellLayout Web remote control mobile layout", () => {
     vi.unstubAllGlobals();
   });
 
+  // 个人定制：侧面板仅对子智能体 / 调用轨迹 / 聊天内文件预览标签放开——上游展开且激活
+  // tab 属于这几类时可见，其余类型（文件树/浏览器/审查等已移除的外部标签页）即使被
+  // 后台打开也保持不可见。
+  describe("personal-edition side pane gate for subagent and model trajectory tabs", () => {
+    const subagentTabState = {
+      activeTabId: "subagent-session:root:child",
+      tabs: [
+        {
+          childSessionId: "child",
+          id: "subagent-session:root:child",
+          ownerTaskId: null,
+          parentSessionId: "root",
+          rootSessionId: "root",
+          type: "subagent-session",
+          workspaceKey: "/tmp/project",
+        },
+      ],
+    } as never;
+
+    const modelTrajectoryTabState = {
+      activeTabId: "model-trajectory:task-1",
+      tabs: [{ id: "model-trajectory:task-1", taskId: "task-1", type: "model-trajectory" }],
+    } as never;
+
+    it("expands the desktop side pane when a subagent session tab is active", async () => {
+      const html = await renderWorkspaceShell({
+        isSidePaneOpen: true,
+        sidePaneState: subagentTabState,
+        workspaceMainView: "chat",
+      });
+
+      expect(html.match(/data-testid="side-pane-panel"/gu)).toHaveLength(1);
+      expect(html).toContain('data-panel-visible="true"');
+    });
+
+    it("expands the desktop side pane when a model trajectory tab is active", async () => {
+      const html = await renderWorkspaceShell({
+        isSidePaneOpen: true,
+        sidePaneState: modelTrajectoryTabState,
+        workspaceMainView: "chat",
+      });
+
+      expect(html).toContain('data-panel-visible="true"');
+    });
+
+    it("expands the desktop side pane when a chat file code-viewer tab is active", async () => {
+      const html = await renderWorkspaceShell({
+        isSidePaneOpen: true,
+        sidePaneState: {
+          activeTabId: "code-viewer:file-1",
+          tabs: [
+            {
+              id: "code-viewer:file-1",
+              ownerTaskId: null,
+              source: { path: "/tmp/project/src/main.ts", title: "main.ts" },
+              sourceKey: "path:/tmp/project/src/main.ts",
+              type: "code-viewer",
+              workspaceKey: "/tmp/project",
+            },
+          ],
+        } as never,
+        workspaceMainView: "chat",
+      });
+
+      expect(html).toContain('data-panel-visible="true"');
+    });
+
+    it("keeps the desktop side pane hidden for removed external tab types", async () => {
+      const html = await renderWorkspaceShell({
+        isSidePaneOpen: true,
+        sidePaneState: {
+          activeTabId: "file-manager",
+          tabs: [{ id: "file-manager", type: "file-manager" }],
+        } as never,
+        workspaceMainView: "chat",
+      });
+
+      expect(html).toContain('data-panel-visible="false"');
+      expect(html).not.toContain('data-panel-visible="true"');
+    });
+
+    it("keeps the side pane hidden while the user has manually collapsed it", async () => {
+      const html = await renderWorkspaceShell({
+        isSidePaneOpen: false,
+        sidePaneState: subagentTabState,
+        workspaceMainView: "chat",
+      });
+
+      expect(html).toContain('data-panel-visible="false"');
+      expect(html).not.toContain('data-panel-visible="true"');
+    });
+
+    it("opens the mobile drawer for an active subagent session tab", async () => {
+      vi.stubGlobal("window", {
+        innerHeight: 800,
+        matchMedia: vi.fn(() => ({
+          matches: true,
+          addEventListener: vi.fn(),
+          addListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          removeListener: vi.fn(),
+        })),
+        sessionStorage: { getItem: vi.fn(() => null), removeItem: vi.fn(), setItem: vi.fn() },
+      });
+      try {
+        const html = await renderWorkspaceShell({
+          isSidePaneOpen: true,
+          sidePaneState: subagentTabState,
+          webRemoteControlWorkspaceSwitcher: {
+            listWorkspaces: vi.fn(async () => ({ workspaces: [] })),
+            switchWorkspace: vi.fn(async () => {}),
+          },
+        });
+
+        expect(html).toContain('data-mobile-side-pane-open="true"');
+        expect(html).toContain('data-panel-visible="true"');
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+  });
+
   it("routes mobile task find through the shell overlay instead of chat content", async () => {
     vi.stubGlobal("window", {
       innerHeight: 800,
