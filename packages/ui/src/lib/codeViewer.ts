@@ -27,6 +27,8 @@ export interface FileCodeViewerSource extends CodeViewerWorkspaceScope {
     type: "file";
     title: string;
     path: string;
+    /** 文件链接 `path:line` 后缀携带的定位行；代码视图打开后滚动并高亮该行，不参与 tab 身份。 */
+    revealLine?: number;
 }
 
 export interface CodeReviewAnchor {

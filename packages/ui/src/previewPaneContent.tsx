@@ -10,6 +10,7 @@ import type { CodePreviewSettings } from "@/store/index.js";
 import type { CodeCommentLabels } from "@/components/ui/code-viewer.js";
 import { MarkdownPreviewContent } from "@/previewPaneMarkdownContent.js";
 import { CodeContent } from "@/previewPaneCodeContent.js";
+import { HtmlPreviewContent } from "@/previewPaneHtmlContent.js";
 import { ImagePreviewContent, SvgPreviewContent } from "@/previewPaneImageContent.js";
 import type { WorkspaceFileDragPayload } from "@/lib/workspaceFileDrag.js";
 import { PreviewPaneMediaContent } from "@/previewPaneMediaContent.js";
@@ -64,6 +65,7 @@ interface PreviewPaneContentProps {
     markdownSelectionTarget?: MarkdownSelectionTarget;
     markdownViewMode: "preview" | "code";
     svgViewMode: "preview" | "code";
+    htmlViewMode: "preview" | "code";
     wrapLongLines: boolean;
     codeComments: readonly CodeCommentPreview[];
     enableCodeLineSelection?: boolean;
@@ -81,6 +83,15 @@ interface PreviewPaneContentProps {
 
 function isSvgPath(path?: string): boolean {
     return path?.toLowerCase().endsWith(".svg") ?? false;
+}
+
+function isHtmlPath(path?: string): boolean {
+    if (!path) {
+        return false;
+    }
+
+    const normalizedPath = path.toLowerCase();
+    return normalizedPath.endsWith(".html") || normalizedPath.endsWith(".htm");
 }
 
 export function getPreviewPaneErrorTextClass(
@@ -126,6 +137,7 @@ export function PreviewPaneContent({
     markdownSelectionTarget,
     markdownViewMode,
     svgViewMode,
+    htmlViewMode,
     wrapLongLines,
     codeComments,
     enableCodeLineSelection = false,
@@ -432,6 +444,7 @@ export function PreviewPaneContent({
             : null;
     const isMarkdownFile = fileLanguage === "markdown";
     const isSvgFile = isSvgPath(source.path);
+    const isHtmlFile = isHtmlPath(source.path);
     if (source.type !== "code-review" && isMarkdownFile && markdownViewMode === "preview") {
         return (
             <MarkdownPreviewContent
@@ -458,6 +471,32 @@ export function PreviewPaneContent({
         );
     }
 
+    if (source.type !== "code-review" && isHtmlFile && htmlViewMode === "preview") {
+        return (
+            <HtmlPreviewContent
+                title={source.title}
+                htmlContent={filePreview.content}
+                sourcePath={source.path}
+            />
+        );
+    }
+
+    // `path:line` 链接的定位行：复用 code-review 的行定位链路（高亮 + 滚动到目标行）。
+    // requestId 用路径+行号的稳定值，同值重开不重复滚动，换行号后重新定位。
+    const revealLine =
+        source.type === "file" &&
+        Number.isInteger(source.revealLine) &&
+        (source.revealLine as number) > 0
+            ? (source.revealLine as number)
+            : null;
+    const revealFocus =
+        source.type !== "code-review" && revealLine !== null
+            ? {
+                  focusedRange: { startLine: revealLine, endLine: revealLine },
+                  focusRequestId: `reveal:${source.path ?? source.title}:${revealLine}`,
+              }
+            : null;
+
     return (
         <CodeContent
             code={filePreview.content}
@@ -474,8 +513,12 @@ export function PreviewPaneContent({
                     ? intl.formatMessage({ id: "codeViewer.review.targetLineMissing" })
                     : undefined
             }
-            focusedRange={codeReviewProjection?.focusedRange}
-            focusRequestId={source.type === "code-review" ? source.review.requestId : undefined}
+            focusedRange={codeReviewProjection?.focusedRange ?? revealFocus?.focusedRange ?? null}
+            focusRequestId={
+                source.type === "code-review"
+                    ? source.review.requestId
+                    : (revealFocus?.focusRequestId ?? undefined)
+            }
             enableLineSelection={source.type === "code-review" ? false : enableCodeLineSelection}
             enableGutterUtility={source.type === "code-review" ? false : enableCodeGutterUtility}
             labels={codeCommentLabels}

@@ -14,6 +14,8 @@ export interface MarkdownFileLinkResolveOptions {
 
 const LINE_AND_COLUMN_SUFFIX_RE = /^(?<path>.+):(?<line>\d+):(?<column>\d+)$/;
 const LINE_SUFFIX_RE = /^(?<path>.+):(?<line>\d+)$/;
+// 模型常用 `path:12-34` 引用行区间；取起始行定位，区间本身不参与解析。
+const LINE_RANGE_SUFFIX_RE = /^(?<path>.+):(?<line>\d+)-\d+$/;
 const HASH_LINE_SUFFIX_RE = /^(?<path>.+)#L(?<line>\d+)(?:-L?\d+)?$/i;
 const FILE_URL_PROTOCOL_RE = /^file:\/\//i;
 const HARDEN_SAFE_WINDOWS_ABSOLUTE_PATH_RE = /^\/[a-zA-Z]:\//;
@@ -207,6 +209,18 @@ export function parseMarkdownFileLinkTarget(href: string): ParsedMarkdownFileLin
     const withLineMatch = normalizedHref.match(LINE_SUFFIX_RE);
     if (withLineMatch?.groups) {
         const { path, line } = withLineMatch.groups;
+        if (path && line) {
+            return {
+                path: normalizeMarkdownFilePath(path),
+                lineNumber: Number.parseInt(line, 10),
+                columnNumber: null,
+            };
+        }
+    }
+
+    const withLineRangeMatch = normalizedHref.match(LINE_RANGE_SUFFIX_RE);
+    if (withLineRangeMatch?.groups) {
+        const { path, line } = withLineRangeMatch.groups;
         if (path && line) {
             return {
                 path: normalizeMarkdownFilePath(path),

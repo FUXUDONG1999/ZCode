@@ -23,6 +23,69 @@ interface OpenInEditorResult {
 
 const VSCODE_EDITOR_IDS = new Set(["vscode", "vscode-insiders"]);
 
+// Cursor 是 VS Code fork，CLI 同样支持 `--goto path:line:column`。
+const VSCODE_GOTO_EDITOR_IDS = new Set(["vscode", "vscode-insiders", "cursor"]);
+
+// JetBrains 系 launcher 支持 `--line <line> [<column>] <path>`。
+const JETBRAINS_LINE_EDITOR_IDS = new Set([
+    "idea",
+    "idea-ce",
+    "webstorm",
+    "pycharm",
+    "goland",
+    "phpstorm",
+    "rider",
+    "clion",
+    "rubymine",
+    "datagrip",
+]);
+
+function hasValidRevealPosition(options: OpenInEditorOptions | undefined): boolean {
+    return Number.isInteger(options?.line) && (options?.line as number) > 0;
+}
+
+/**
+ * 本地路径 + 行号定位的编辑器 CLI 参数。
+ *
+ * 聊天里的 `path:line` 文件链接此前只把路径交给编辑器，打开后还要手动找行。
+ * 只有 CLI 明确支持定位参数的编辑器会带上行号；其余编辑器保持原样打开，
+ * 避免把 `--goto`/`--line` 当作通用参数传给不认识的 launcher。
+ */
+function buildLocalEditorOpenArgs(
+    editorId: string,
+    path: string,
+    options: OpenInEditorOptions | undefined,
+): string[] {
+    const line = options?.line;
+    const column = options?.column;
+    if (!hasValidRevealPosition(options)) {
+        return [path];
+    }
+
+    if (VSCODE_GOTO_EDITOR_IDS.has(editorId)) {
+        // Windows 盘符路径含 `C:`，VS Code CLI 对 `--goto` 会从右侧解析行/列，盘符不受影响。
+        return ["--goto", column ? `${path}:${line}:${column}` : `${path}:${line}`];
+    }
+
+    if (JETBRAINS_LINE_EDITOR_IDS.has(editorId)) {
+        return column
+            ? ["--line", String(line), String(column), path]
+            : ["--line", String(line), path];
+    }
+
+    return [path];
+}
+
+/**
+ * macOS `open -a` 的参数：无定位参数时保持 `open -a App path`（LaunchServices 文档打开），
+ * 只有带行号定位时才改走 `--args` 把 CLI 参数（如 `--goto path:line`）透传给应用。
+ */
+function buildMacOpenEditorArgs(appPath: string, openArgs: string[]): string[] {
+    return openArgs.length > 1
+        ? ["-a", appPath, "--args", ...openArgs]
+        : ["-a", appPath, ...openArgs];
+}
+
 const stringifyError = (error: unknown): string =>
     error instanceof Error ? error.message : String(error);
 
@@ -206,7 +269,10 @@ async function openVSCodeRemoteWslFolder(
 ): Promise<OpenInEditorResult> {
     const folderUri = await buildVSCodeWslFolderUri(path, remoteTarget);
     if (!folderUri.uri) {
-        return { success: false, error: folderUri.error ?? "invalid WSL folder URI" };
+        return {
+            success: false,
+            error: folderUri.error ?? "invalid WSL folder URI",
+        };
     }
 
     const args = [pathKind === "file" ? "--file-uri" : "--folder-uri", folderUri.uri];
@@ -288,7 +354,10 @@ async function openWslPathInExplorer(
         candidates,
         error: lastError,
     });
-    return { success: false, error: lastError || "failed to open WSL path in Explorer" };
+    return {
+        success: false,
+        error: lastError || "failed to open WSL path in Explorer",
+    };
 }
 
 async function openWindowsEditor(
@@ -428,16 +497,17 @@ export async function openInEditor(
     }
 
     if (def.command) {
+        const openArgs = buildLocalEditorOpenArgs(editorId, path, options);
         try {
-            await execFileAsync(def.command, [path]);
+            await execFileAsync(def.command, openArgs);
             return { success: true };
         } catch (error) {
             if (process.platform === "win32") {
-                return openWindowsEditor(editorId, appPath, [path], error);
+                return openWindowsEditor(editorId, appPath, openArgs, error);
             }
 
             try {
-                await execFileAsync("open", ["-a", appPath, path]);
+                await execFileAsync("open", buildMacOpenEditorArgs(appPath, openArgs));
                 return { success: true };
             } catch (fallbackError) {
                 logger.warn("[editors] 打开编辑器失败", {
@@ -451,11 +521,12 @@ export async function openInEditor(
         }
     }
 
+    const fallbackOpenArgs = buildLocalEditorOpenArgs(editorId, path, options);
     try {
         if (process.platform === "win32") {
-            await execFileAsync(appPath, [path]);
+            await execFileAsync(appPath, fallbackOpenArgs);
         } else {
-            await execFileAsync("open", ["-a", appPath, path]);
+            await execFileAsync("open", buildMacOpenEditorArgs(appPath, fallbackOpenArgs));
         }
         return { success: true };
     } catch (error) {
