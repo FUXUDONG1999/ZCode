@@ -32,23 +32,23 @@ const ELLIPSIS = "…";
  * 引擎不解析站点 id：留白 id 是名字键，对引擎只是一个串。
  */
 export interface HoleFill {
-  siteId: string;
-  /** 有效脚本的 `holeBodies[siteId]`：`(async () => { … })` 的文本。 */
-  code: string;
-  /** 有效脚本（两列同一笔写回 run 行）。 */
-  script: { text: string; hash: string };
-  /** 有效脚本的 ask 规格表（原表的超集）。 */
-  askSpecs: ReadonlyMap<string, AskSpec>;
-  /** 有效脚本的站点 → 词法出生阶段表。 */
-  sitePhases: ReadonlyMap<string, string>;
-  /** 有效脚本的阶段表，留白按名字占位（`hole-filled` 原样携带）。 */
-  phaseNames: string[];
-  /** `phaseNames` 里仍未补全的留白下标。 */
-  holes?: number[];
-  /** 补全它的会话。 */
-  filledBy?: string;
-  /** 这次补全为没有草稿的 run 铸下的草稿路径（原样进 `hole-filled`，见事件字段注释）。 */
-  scriptPath?: string;
+    siteId: string;
+    /** 有效脚本的 `holeBodies[siteId]`：`(async () => { … })` 的文本。 */
+    code: string;
+    /** 有效脚本（两列同一笔写回 run 行）。 */
+    script: { text: string; hash: string };
+    /** 有效脚本的 ask 规格表（原表的超集）。 */
+    askSpecs: ReadonlyMap<string, AskSpec>;
+    /** 有效脚本的站点 → 词法出生阶段表。 */
+    sitePhases: ReadonlyMap<string, string>;
+    /** 有效脚本的阶段表，留白按名字占位（`hole-filled` 原样携带）。 */
+    phaseNames: string[];
+    /** `phaseNames` 里仍未补全的留白下标。 */
+    holes?: number[];
+    /** 补全它的会话。 */
+    filledBy?: string;
+    /** 这次补全为没有草稿的 run 铸下的草稿路径（原样进 `hole-filled`，见事件字段注释）。 */
+    scriptPath?: string;
 }
 
 /**
@@ -59,110 +59,114 @@ export type FillHoleResult = { ok: true } | { ok: false; reason: "not_waiting" |
 
 /** 一处仍在等的留白（快照投影用，docs/execution-engine.md「The run snapshot」）。 */
 export interface OpenHole {
-  siteId: string;
-  ordinal: number;
-  name: string;
-  /** 停驻时刻（epoch 毫秒），读者据它算「等了多久」。 */
-  since: number;
+    siteId: string;
+    ordinal: number;
+    name: string;
+    /** 停驻时刻（epoch 毫秒），读者据它算「等了多久」。 */
+    since: number;
 }
 
 /** 一处本世已补全的留白。 */
 export interface FilledHole {
-  siteId: string;
-  filledAt: number;
-  filledBy?: string;
+    siteId: string;
+    filledAt: number;
+    filledBy?: string;
 }
 
 interface ParkedHole {
-  instance: InstanceRef;
-  name: string;
-  since: number;
-  resolve: (value: { code: string }) => void;
-  reject: (reason: WorkflowError) => void;
+    instance: InstanceRef;
+    name: string;
+    since: number;
+    resolve: (value: { code: string }) => void;
+    reject: (reason: WorkflowError) => void;
 }
 
 interface RememberedFill {
-  code: string;
-  filledAt: number;
-  filledBy?: string;
+    code: string;
+    filledAt: number;
+    filledBy?: string;
 }
 
 /** 引擎的留白状态：按站点的停驻表与本世的补全记忆。纯内存、随引擎实例而生，resume 从空表起。 */
 export class HoleRegistry {
-  /** 站点 → 停在它下面的分支（一个站点可以同时停着好几个序号）。 */
-  private readonly parked = new Map<string, ParkedHole[]>();
-  /** 站点 → 本世记住的补全（后到的 `hole` 直接作答、不停驻）。 */
-  private readonly filled = new Map<string, RememberedFill>();
+    /** 站点 → 停在它下面的分支（一个站点可以同时停着好几个序号）。 */
+    private readonly parked = new Map<string, ParkedHole[]>();
+    /** 站点 → 本世记住的补全（后到的 `hole` 直接作答、不停驻）。 */
+    private readonly filled = new Map<string, RememberedFill>();
 
-  constructor(private readonly now: () => number) {}
+    constructor(private readonly now: () => number) {}
 
-  /** 站点已补全时返回记住的代码，否则 undefined。 */
-  remembered(siteId: string): string | undefined {
-    return this.filled.get(siteId)?.code;
-  }
-
-  /** 把一个分支停在站点下，返回它的 promise。 */
-  park(instance: InstanceRef, name: string): Promise<{ code: string }> {
-    return new Promise<{ code: string }>((resolve, reject) => {
-      const list = this.parked.get(instance.siteId) ?? [];
-      list.push({ instance, name, since: this.now(), resolve, reject });
-      this.parked.set(instance.siteId, list);
-    });
-  }
-
-  /** 这个站点是否有停驻的分支或已记住的补全（`fillHole` 的 not_waiting 判据的反面）。 */
-  isWaitingOrFilled(siteId: string): boolean {
-    return (this.parked.get(siteId)?.length ?? 0) > 0 || this.filled.has(siteId);
-  }
-
-  /** 现在的时刻（epoch 毫秒）：`hole-filled` 的 `filledAt` 与记忆里的同一个瞬间。 */
-  clock(): number {
-    return this.now();
-  }
-
-  /** 记住补全并放行站点下的每一个分支。 */
-  release(siteId: string, code: string, filledAt: number, filledBy: string | undefined): void {
-    this.filled.set(siteId, { code, filledAt, ...(filledBy === undefined ? {} : { filledBy }) });
-    const list = this.parked.get(siteId) ?? [];
-    this.parked.delete(siteId);
-    for (const entry of list) entry.resolve({ code });
-  }
-
-  /** run 结算：停驻的分支一律以结算错误拒绝（与 ask 的取消同姿态）；补全记忆保留。 */
-  rejectAll(error: WorkflowError): void {
-    const lists = [...this.parked.values()];
-    this.parked.clear();
-    for (const list of lists) for (const entry of list) entry.reject(error);
-  }
-
-  open(): OpenHole[] {
-    const out: OpenHole[] = [];
-    for (const list of this.parked.values()) {
-      for (const entry of list) {
-        out.push({
-          siteId: entry.instance.siteId,
-          ordinal: entry.instance.ordinal,
-          name: entry.name,
-          since: entry.since,
-        });
-      }
+    /** 站点已补全时返回记住的代码，否则 undefined。 */
+    remembered(siteId: string): string | undefined {
+        return this.filled.get(siteId)?.code;
     }
-    return out;
-  }
 
-  filledList(): FilledHole[] {
-    return [...this.filled.entries()].map(([siteId, fill]) => ({
-      siteId,
-      filledAt: fill.filledAt,
-      ...(fill.filledBy === undefined ? {} : { filledBy: fill.filledBy }),
-    }));
-  }
+    /** 把一个分支停在站点下，返回它的 promise。 */
+    park(instance: InstanceRef, name: string): Promise<{ code: string }> {
+        return new Promise<{ code: string }>((resolve, reject) => {
+            const list = this.parked.get(instance.siteId) ?? [];
+            list.push({ instance, name, since: this.now(), resolve, reject });
+            this.parked.set(instance.siteId, list);
+        });
+    }
+
+    /** 这个站点是否有停驻的分支或已记住的补全（`fillHole` 的 not_waiting 判据的反面）。 */
+    isWaitingOrFilled(siteId: string): boolean {
+        return (this.parked.get(siteId)?.length ?? 0) > 0 || this.filled.has(siteId);
+    }
+
+    /** 现在的时刻（epoch 毫秒）：`hole-filled` 的 `filledAt` 与记忆里的同一个瞬间。 */
+    clock(): number {
+        return this.now();
+    }
+
+    /** 记住补全并放行站点下的每一个分支。 */
+    release(siteId: string, code: string, filledAt: number, filledBy: string | undefined): void {
+        this.filled.set(siteId, {
+            code,
+            filledAt,
+            ...(filledBy === undefined ? {} : { filledBy }),
+        });
+        const list = this.parked.get(siteId) ?? [];
+        this.parked.delete(siteId);
+        for (const entry of list) entry.resolve({ code });
+    }
+
+    /** run 结算：停驻的分支一律以结算错误拒绝（与 ask 的取消同姿态）；补全记忆保留。 */
+    rejectAll(error: WorkflowError): void {
+        const lists = [...this.parked.values()];
+        this.parked.clear();
+        for (const list of lists) for (const entry of list) entry.reject(error);
+    }
+
+    open(): OpenHole[] {
+        const out: OpenHole[] = [];
+        for (const list of this.parked.values()) {
+            for (const entry of list) {
+                out.push({
+                    siteId: entry.instance.siteId,
+                    ordinal: entry.instance.ordinal,
+                    name: entry.name,
+                    since: entry.since,
+                });
+            }
+        }
+        return out;
+    }
+
+    filledList(): FilledHole[] {
+        return [...this.filled.entries()].map(([siteId, fill]) => ({
+            siteId,
+            filledAt: fill.filledAt,
+            ...(fill.filledBy === undefined ? {} : { filledBy: fill.filledBy }),
+        }));
+    }
 }
 
 /** 记录前把 prompt 截到上限（超出的以 `…` 收尾，截后总长恰为上限）。 */
 export function boundHolePrompt(prompt: string): string {
-  if (prompt.length <= HOLE_PROMPT_MAX_CHARS) return prompt;
-  return prompt.slice(0, HOLE_PROMPT_MAX_CHARS - ELLIPSIS.length) + ELLIPSIS;
+    if (prompt.length <= HOLE_PROMPT_MAX_CHARS) return prompt;
+    return prompt.slice(0, HOLE_PROMPT_MAX_CHARS - ELLIPSIS.length) + ELLIPSIS;
 }
 
 /**
@@ -172,25 +176,25 @@ export function boundHolePrompt(prompt: string): string {
  * ——resume 重放有效脚本时 shim 本就不过线，这里只是引擎侧的同一条规则。
  */
 export function reachHole(
-  state: EngineState,
-  holes: HoleRegistry,
-  siteId: string,
-  name: string,
-  prompt: string | undefined,
+    state: EngineState,
+    holes: HoleRegistry,
+    siteId: string,
+    name: string,
+    prompt: string | undefined,
 ): Promise<{ code: string }> {
-  if (state.isRunSettled()) return Promise.reject(state.runError());
-  const ordinal = state.nextOrdinal(siteId);
-  const remembered = holes.remembered(siteId);
-  if (remembered !== undefined) return Promise.resolve({ code: remembered });
-  const instance: InstanceRef = { siteId, ordinal };
-  const promise = holes.park(instance, name);
-  state.record({
-    type: "hole-reached",
-    instance,
-    name,
-    ...(prompt === undefined ? {} : { prompt: boundHolePrompt(prompt) }),
-  });
-  return promise;
+    if (state.isRunSettled()) return Promise.reject(state.runError());
+    const ordinal = state.nextOrdinal(siteId);
+    const remembered = holes.remembered(siteId);
+    if (remembered !== undefined) return Promise.resolve({ code: remembered });
+    const instance: InstanceRef = { siteId, ordinal };
+    const promise = holes.park(instance, name);
+    state.record({
+        type: "hole-reached",
+        instance,
+        name,
+        ...(prompt === undefined ? {} : { prompt: boundHolePrompt(prompt) }),
+    });
+    return promise;
 }
 
 /**
@@ -199,28 +203,28 @@ export function reachHole(
  * 每一个分支。两条 no-op 不写不发。
  */
 export function fillHole(
-  state: EngineState,
-  holes: HoleRegistry,
-  fill: HoleFill,
-  swapTables: (
-    askSpecs: ReadonlyMap<string, AskSpec>,
-    sitePhases: ReadonlyMap<string, string>,
-  ) => void,
+    state: EngineState,
+    holes: HoleRegistry,
+    fill: HoleFill,
+    swapTables: (
+        askSpecs: ReadonlyMap<string, AskSpec>,
+        sitePhases: ReadonlyMap<string, string>,
+    ) => void,
 ): FillHoleResult {
-  if (state.isRunSettled()) return { ok: false, reason: "settled" };
-  if (!holes.isWaitingOrFilled(fill.siteId)) return { ok: false, reason: "not_waiting" };
-  swapTables(fill.askSpecs, fill.sitePhases);
-  state.journal.updateRunScript(state.runId, fill.script.text, fill.script.hash);
-  const filledAt = holes.clock();
-  state.record({
-    type: "hole-filled",
-    siteId: fill.siteId,
-    filledAt,
-    ...(fill.filledBy === undefined ? {} : { filledBy: fill.filledBy }),
-    phaseNames: fill.phaseNames,
-    ...(fill.holes === undefined ? {} : { holes: fill.holes }),
-    ...(fill.scriptPath === undefined ? {} : { scriptPath: fill.scriptPath }),
-  });
-  holes.release(fill.siteId, fill.code, filledAt, fill.filledBy);
-  return { ok: true };
+    if (state.isRunSettled()) return { ok: false, reason: "settled" };
+    if (!holes.isWaitingOrFilled(fill.siteId)) return { ok: false, reason: "not_waiting" };
+    swapTables(fill.askSpecs, fill.sitePhases);
+    state.journal.updateRunScript(state.runId, fill.script.text, fill.script.hash);
+    const filledAt = holes.clock();
+    state.record({
+        type: "hole-filled",
+        siteId: fill.siteId,
+        filledAt,
+        ...(fill.filledBy === undefined ? {} : { filledBy: fill.filledBy }),
+        phaseNames: fill.phaseNames,
+        ...(fill.holes === undefined ? {} : { holes: fill.holes }),
+        ...(fill.scriptPath === undefined ? {} : { scriptPath: fill.scriptPath }),
+    });
+    holes.release(fill.siteId, fill.code, filledAt, fill.filledBy);
+    return { ok: true };
 }

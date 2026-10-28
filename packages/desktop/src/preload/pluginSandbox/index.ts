@@ -10,26 +10,26 @@ import { PluginSandboxChannels } from "@zcode/shared";
 const PLUGIN_SANDBOX_SCHEME = "zcode-sandbox:";
 
 if (window.location.protocol === PLUGIN_SANDBOX_SCHEME && window.top === window) {
-  ipcRenderer.on(
-    PluginSandboxChannels.Init,
-    (event, payload: { sandboxId?: unknown; initId?: unknown; allow?: unknown }) => {
-      if (
-        typeof payload?.sandboxId !== "string" ||
-        typeof payload?.initId !== "number" ||
-        event.ports.length !== 1
-      ) {
-        return;
-      }
-      window.postMessage(
-        {
-          type: "init",
-          sandboxId: payload.sandboxId,
-          initId: payload.initId,
-          ...(typeof payload.allow === "string" ? { allow: payload.allow } : {}),
+    ipcRenderer.on(
+        PluginSandboxChannels.Init,
+        (event, payload: { sandboxId?: unknown; initId?: unknown; allow?: unknown }) => {
+            if (
+                typeof payload?.sandboxId !== "string" ||
+                typeof payload?.initId !== "number" ||
+                event.ports.length !== 1
+            ) {
+                return;
+            }
+            window.postMessage(
+                {
+                    type: "init",
+                    sandboxId: payload.sandboxId,
+                    initId: payload.initId,
+                    ...(typeof payload.allow === "string" ? { allow: payload.allow } : {}),
+                },
+                window.location.origin,
+                event.ports,
+            );
         },
-        window.location.origin,
-        event.ports,
-      );
-    },
-  );
+    );
 }

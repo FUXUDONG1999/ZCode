@@ -97,23 +97,23 @@ When: data visualization, reports with charts → load `references/chart-templat
 
 - **Academic:** Abstract → TOC → Body → References
 - **Report:** Use `selectReportType()` to determine type, then follow template A–F:
-  - analysis → Template A (Executive Summary → Background → Scope & Method → Findings → Diagnosis → Conclusions)
-  - experiment → Template B (Abstract → Objective & Hypothesis → Environment → Procedure → Results → Error Analysis → Conclusions)
-  - testing → Template C (Overview → Scope & Environment → Test Plan → Results → Defects → Risks → Conclusions)
-  - research → Template D (Summary → Background → Subjects & Method → Sample → Findings → Synthesis → Recommendations)
-  - review → Template E (Overview → Goals → Review → Results → Issues → Lessons → Action Plan)
-  - proposal → Template F (Summary → Status → Goals → Solution → Roadmap → Resources → Risks → Benefits)
+    - analysis → Template A (Executive Summary → Background → Scope & Method → Findings → Diagnosis → Conclusions)
+    - experiment → Template B (Abstract → Objective & Hypothesis → Environment → Procedure → Results → Error Analysis → Conclusions)
+    - testing → Template C (Overview → Scope & Environment → Test Plan → Results → Defects → Risks → Conclusions)
+    - research → Template D (Summary → Background → Subjects & Method → Sample → Findings → Synthesis → Recommendations)
+    - review → Template E (Overview → Goals → Review → Results → Issues → Lessons → Action Plan)
+    - proposal → Template F (Summary → Status → Goals → Solution → Roadmap → Resources → Risks → Benefits)
 - **Contract:** Use `selectContractType()` then follow template A–E:
-  - bilateral → Template A (Header → Parties → Recitals → Definitions → Subject → Price → Rights → Delivery → Tax → IP → Breach → Force Majeure → Termination → Notices → Dispute → Miscellaneous → Signature)
-  - transfer → Template B (Header → Recitals → Definitions → Subject → Consideration → Closing → Representations → Tax → Breach → Dispute → Signature)
-  - nda → Template C (Header → Recitals → Definition → Obligations → Use Restrictions → Return/Destroy → Exceptions → Duration → Breach → Dispute → Signature)
-  - framework → Template D (Header → Recitals → Purpose → Scope → Division → Mechanism → Commercial → Confidentiality → Term → Breach → Dispute → Signature)
-  - terms → Template E (Title → Definitions → Services → Rights → Liability → Fees → IP → Termination → Notices → Dispute → Miscellaneous)
+    - bilateral → Template A (Header → Parties → Recitals → Definitions → Subject → Price → Rights → Delivery → Tax → IP → Breach → Force Majeure → Termination → Notices → Dispute → Miscellaneous → Signature)
+    - transfer → Template B (Header → Recitals → Definitions → Subject → Consideration → Closing → Representations → Tax → Breach → Dispute → Signature)
+    - nda → Template C (Header → Recitals → Definition → Obligations → Use Restrictions → Return/Destroy → Exceptions → Duration → Breach → Dispute → Signature)
+    - framework → Template D (Header → Recitals → Purpose → Scope → Division → Mechanism → Commercial → Confidentiality → Term → Breach → Dispute → Signature)
+    - terms → Template E (Title → Definitions → Services → Rights → Liability → Fees → IP → Termination → Notices → Dispute → Miscellaneous)
 - **Official:** Use `selectOfficialType()` + `needsRedHeader()`:
-  - notice → Template A ([Red header] → [Doc number] → Title → Addressee → Reason → Items → Requirements → [Attachments] → [Signature] → [Date] → [Colophon])
-  - letter → Template B ([Red header] → [Doc number] → Title → Addressee → Reason → Negotiation/Reply → Closing → [Signature] → [Date])
-  - reply → Template C ([Red header] → [Doc number] → Title → Addressee → Reference → Reply → "This is the reply." → Signature → Date)
-  - minutes → Template D (Title → Meeting Overview → Agreed Items → Responsibilities → [Distribution]) — typically no red header
+    - notice → Template A ([Red header] → [Doc number] → Title → Addressee → Reason → Items → Requirements → [Attachments] → [Signature] → [Date] → [Colophon])
+    - letter → Template B ([Red header] → [Doc number] → Title → Addressee → Reason → Negotiation/Reply → Closing → [Signature] → [Date])
+    - reply → Template C ([Red header] → [Doc number] → Title → Addressee → Reference → Reply → "This is the reply." → Signature → Date)
+    - minutes → Template D (Title → Meeting Overview → Agreed Items → Responsibilities → [Distribution]) — typically no red header
 - Present outline to user before generating when possible
 
 ## Scene Completeness
@@ -161,15 +161,15 @@ Key rules:
 
 ```js
 const {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  Header,
-  Footer,
-  AlignmentType,
-  HeadingLevel,
-  PageNumber,
+    Document,
+    Packer,
+    Paragraph,
+    TextRun,
+    Header,
+    Footer,
+    AlignmentType,
+    HeadingLevel,
+    PageNumber,
 } = require("docx");
 const fs = require("fs");
 
@@ -179,67 +179,67 @@ const c = (hex) => hex.replace("#", "");
 
 // 2. Component builders
 function heading(text, level = HeadingLevel.HEADING_1) {
-  return new Paragraph({
-    heading: level,
-    spacing: { before: level === HeadingLevel.HEADING_1 ? 360 : 240, after: 120 },
-    children: [
-      new TextRun({
-        text,
-        bold: true,
-        color: c(P.primary),
-        font: { ascii: "Calibri", eastAsia: "SimHei" },
-      }),
-    ],
-  });
+    return new Paragraph({
+        heading: level,
+        spacing: { before: level === HeadingLevel.HEADING_1 ? 360 : 240, after: 120 },
+        children: [
+            new TextRun({
+                text,
+                bold: true,
+                color: c(P.primary),
+                font: { ascii: "Calibri", eastAsia: "SimHei" },
+            }),
+        ],
+    });
 }
 
 function body(text) {
-  return new Paragraph({
-    alignment: AlignmentType.JUSTIFIED,
-    indent: { firstLine: 480 },
-    spacing: { line: 312 },
-    children: [new TextRun({ text, size: 24, color: c(P.body) })],
-  });
+    return new Paragraph({
+        alignment: AlignmentType.JUSTIFIED,
+        indent: { firstLine: 480 },
+        spacing: { line: 312 },
+        children: [new TextRun({ text, size: 24, color: c(P.body) })],
+    });
 }
 
 // 3. Assembly — cover + body in separate sections
 const doc = new Document({
-  styles: {
-    default: {
-      document: {
-        run: {
-          font: { ascii: "Calibri", eastAsia: "Microsoft YaHei" },
-          size: 24,
-          color: c(P.body),
+    styles: {
+        default: {
+            document: {
+                run: {
+                    font: { ascii: "Calibri", eastAsia: "Microsoft YaHei" },
+                    size: 24,
+                    color: c(P.body),
+                },
+                paragraph: { spacing: { line: 312 } },
+            },
         },
-        paragraph: { spacing: { line: 312 } },
-      },
     },
-  },
-  sections: [
-    {
-      properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
-      children: buildCoverR1(config),
-    }, // ← use recipe from design-system.md
-    {
-      properties: { page: { margin: { top: 1440, bottom: 1440, left: 1701, right: 1417 } } },
-      footers: {
-        default: new Footer({
-          children: [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })],
-            }),
-          ],
-        }),
-      },
-      children: [heading("Chapter 1"), body("Content...")],
-    },
-  ],
+    sections: [
+        {
+            properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
+            children: buildCoverR1(config),
+        }, // ← use recipe from design-system.md
+        {
+            properties: { page: { margin: { top: 1440, bottom: 1440, left: 1701, right: 1417 } } },
+            footers: {
+                default: new Footer({
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })],
+                        }),
+                    ],
+                }),
+            },
+            children: [heading("Chapter 1"), body("Content...")],
+        },
+    ],
 });
 
 Packer.toBuffer(doc).then((buf) => {
-  fs.writeFileSync("output.docx", buf);
+    fs.writeFileSync("output.docx", buf);
 });
 ```
 

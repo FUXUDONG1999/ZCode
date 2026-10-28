@@ -13,20 +13,20 @@ import type { IterationCandidate } from "./sites.js";
 
 /** Resolve a node's symbol, following one alias hop (imports never occur here). */
 export function resolveSymbol(node: ts.Node, checker: ts.TypeChecker): ts.Symbol | undefined {
-  const symbol = checker.getSymbolAtLocation(node);
-  if (symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) !== 0) {
-    return checker.getAliasedSymbol(symbol);
-  }
-  return symbol;
+    const symbol = checker.getSymbolAtLocation(node);
+    if (symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) !== 0) {
+        return checker.getAliasedSymbol(symbol);
+    }
+    return symbol;
 }
 
 /** True iff any of the symbol's declarations lives in the facade `.d.ts`. */
 export function isFacadeDeclared(symbol: ts.Symbol | undefined): boolean {
-  return (
-    symbol?.declarations?.some(
-      (declaration) => declaration.getSourceFile().fileName === FACADE_FILE_NAME,
-    ) ?? false
-  );
+    return (
+        symbol?.declarations?.some(
+            (declaration) => declaration.getSourceFile().fileName === FACADE_FILE_NAME,
+        ) ?? false
+    );
 }
 
 /**
@@ -38,7 +38,7 @@ export function isFacadeDeclared(symbol: ts.Symbol | undefined): boolean {
  * 无插值的反引号串。
  */
 export function literalText(expr: ts.Expression | undefined): string | undefined {
-  return expr !== undefined && ts.isStringLiteralLike(expr) ? expr.text : undefined;
+    return expr !== undefined && ts.isStringLiteralLike(expr) ? expr.text : undefined;
 }
 
 /**
@@ -54,25 +54,25 @@ export function literalText(expr: ts.Expression | undefined): string | undefined
  * 全局 `order` 不在这里：它是文本输出的归并键，穿过函数体连续计数。
  */
 export class SiteCounters {
-  private readonly counts = new Map<string, number>();
+    private readonly counts = new Map<string, number>();
 
-  constructor(
-    private readonly prefix = "",
-    /** 这套计数器所在的留白函数体（顶层没有）。 */
-    readonly holeId?: string,
-  ) {}
+    constructor(
+        private readonly prefix = "",
+        /** 这套计数器所在的留白函数体（顶层没有）。 */
+        readonly holeId?: string,
+    ) {}
 
-  /** 铸下一个 `<prefix><kind>#<n>`。 */
-  next(kind: string): string {
-    const n = (this.counts.get(kind) ?? 0) + 1;
-    this.counts.set(kind, n);
-    return `${this.prefix}${kind}#${n}`;
-  }
+    /** 铸下一个 `<prefix><kind>#<n>`。 */
+    next(kind: string): string {
+        const n = (this.counts.get(kind) ?? 0) + 1;
+        this.counts.set(kind, n);
+        return `${this.prefix}${kind}#${n}`;
+    }
 
-  /** 进入留白 `holeId` 的函数体：全新一套计数器，前缀就是这个留白的 id（不叠加外层的）。 */
-  child(holeId: string): SiteCounters {
-    return new SiteCounters(`${holeId}/`, holeId);
-  }
+    /** 进入留白 `holeId` 的函数体：全新一套计数器，前缀就是这个留白的 id（不叠加外层的）。 */
+    child(holeId: string): SiteCounters {
+        return new SiteCounters(`${holeId}/`, holeId);
+    }
 }
 
 /**
@@ -80,12 +80,12 @@ export class SiteCounters {
  * a plain identifier receiver contributes its text; otherwise `"ask"`.
  */
 export function askLabel(receiver: ts.Expression, checker: ts.TypeChecker): string {
-  if (ts.isCallExpression(receiver) && isActorCall(receiver, checker)) {
-    const first = receiver.arguments[0];
-    if (first !== undefined && ts.isStringLiteralLike(first)) return first.text;
-  }
-  if (ts.isIdentifier(receiver)) return receiver.text;
-  return "ask";
+    if (ts.isCallExpression(receiver) && isActorCall(receiver, checker)) {
+        const first = receiver.arguments[0];
+        if (first !== undefined && ts.isStringLiteralLike(first)) return first.text;
+    }
+    if (ts.isIdentifier(receiver)) return receiver.text;
+    return "ask";
 }
 
 /**
@@ -94,17 +94,17 @@ export function askLabel(receiver: ts.Expression, checker: ts.TypeChecker): stri
  * identifier receiver already produced a real label, so there is nothing to reconstruct.
  */
 export function askLabelPattern(
-  receiver: ts.Expression,
-  checker: ts.TypeChecker,
+    receiver: ts.Expression,
+    checker: ts.TypeChecker,
 ): NamePattern | undefined {
-  if (!ts.isCallExpression(receiver) || !isActorCall(receiver, checker)) return undefined;
-  return templateAffixes(receiver.arguments[0]);
+    if (!ts.isCallExpression(receiver) || !isActorCall(receiver, checker)) return undefined;
+    return templateAffixes(receiver.arguments[0]);
 }
 
 function isActorCall(call: ts.CallExpression, checker: ts.TypeChecker): boolean {
-  if (ts.isPropertyAccessExpression(call.expression)) return false;
-  const symbol = resolveSymbol(call.expression, checker);
-  return isFacadeDeclared(symbol) && symbol?.name === "agent";
+    if (ts.isPropertyAccessExpression(call.expression)) return false;
+    const symbol = resolveSymbol(call.expression, checker);
+    return isFacadeDeclared(symbol) && symbol?.name === "agent";
 }
 
 /**
@@ -112,17 +112,17 @@ function isActorCall(call: ts.CallExpression, checker: ts.TypeChecker): boolean 
  * directly initializes a variable declaration, else undefined.
  */
 export function actorName(call: ts.CallExpression): string | undefined {
-  const first = call.arguments[0];
-  if (first !== undefined && ts.isStringLiteralLike(first)) return first.text;
-  const parent = call.parent;
-  if (
-    ts.isVariableDeclaration(parent) &&
-    parent.initializer === call &&
-    ts.isIdentifier(parent.name)
-  ) {
-    return parent.name.text;
-  }
-  return undefined;
+    const first = call.arguments[0];
+    if (first !== undefined && ts.isStringLiteralLike(first)) return first.text;
+    const parent = call.parent;
+    if (
+        ts.isVariableDeclaration(parent) &&
+        parent.initializer === call &&
+        ts.isIdentifier(parent.name)
+    ) {
+        return parent.name.text;
+    }
+    return undefined;
 }
 
 /**
@@ -131,7 +131,7 @@ export function actorName(call: ts.CallExpression): string | undefined {
  * binding name are both real names, and a pattern must never displace one.
  */
 export function actorNamePattern(call: ts.CallExpression): NamePattern | undefined {
-  return templateAffixes(call.arguments[0]);
+    return templateAffixes(call.arguments[0]);
 }
 
 /**
@@ -144,14 +144,14 @@ export function actorNamePattern(call: ts.CallExpression): NamePattern | undefin
  * 上的标签，不是产生它的那个表达式的渲染。
  */
 function templateAffixes(arg: ts.Expression | undefined): NamePattern | undefined {
-  if (arg === undefined || !ts.isTemplateExpression(arg)) return undefined;
-  const head = meaningfulAffix(arg.head.text);
-  const tail = meaningfulAffix(arg.templateSpans.at(-1)?.literal.text);
-  if (head === undefined && tail === undefined) return undefined;
-  return {
-    ...(head === undefined ? {} : { head }),
-    ...(tail === undefined ? {} : { tail }),
-  };
+    if (arg === undefined || !ts.isTemplateExpression(arg)) return undefined;
+    const head = meaningfulAffix(arg.head.text);
+    const tail = meaningfulAffix(arg.templateSpans.at(-1)?.literal.text);
+    if (head === undefined && tail === undefined) return undefined;
+    return {
+        ...(head === undefined ? {} : { head }),
+        ...(tail === undefined ? {} : { tail }),
+    };
 }
 
 /**
@@ -161,57 +161,57 @@ function templateAffixes(arg: ts.Expression | undefined): NamePattern | undefine
  * 更差，读者既得不到名字，还多了一串标点。`\p{L}` 覆盖 CJK，所以「研究员」照常通过。
  */
 function meaningfulAffix(text: string | undefined): string | undefined {
-  const trimmed = text?.trim();
-  if (trimmed === undefined || trimmed === "") return undefined;
-  return /[\p{L}\p{N}]/u.test(trimmed) ? trimmed : undefined;
+    const trimmed = text?.trim();
+    if (trimmed === undefined || trimmed === "") return undefined;
+    return /[\p{L}\p{N}]/u.test(trimmed) ? trimmed : undefined;
 }
 
 /** world-read label: the op name, plus a string-literal first argument when present. */
 export function worldReadLabel(op: WorldReadOp, arg: ts.Expression | undefined): string {
-  if (arg !== undefined && ts.isStringLiteralLike(arg)) return `${op} ${arg.text}`;
-  return op;
+    if (arg !== undefined && ts.isStringLiteralLike(arg)) return `${op} ${arg.text}`;
+    return op;
 }
 
 export function eachCandidate(
-  call: ts.CallExpression,
-  semantics: CallbackSemantics,
-  order: number,
-  loc: ScriptLoc,
+    call: ts.CallExpression,
+    semantics: CallbackSemantics,
+    order: number,
+    loc: ScriptLoc,
 ): IterationCandidate | undefined {
-  const index = semantics.callbacks[0];
-  const argument = index === undefined ? undefined : call.arguments[index];
-  const iterated = semantics.iterated;
-  if (argument === undefined || iterated === undefined) return undefined;
-  const literal = ts.isArrowFunction(argument) || ts.isFunctionExpression(argument);
-  return {
-    body: literal ? argument.body : argument,
-    ...(literal ? { callback: argument } : { callbackExpr: argument }),
-    call,
-    element: literal ? argument.parameters[semantics.elementParams?.[0] ?? 0]?.name : undefined,
-    form: "array-method",
-    iterated,
-    loc,
-    method: semantics.label,
-    order,
-    semantics,
-  };
+    const index = semantics.callbacks[0];
+    const argument = index === undefined ? undefined : call.arguments[index];
+    const iterated = semantics.iterated;
+    if (argument === undefined || iterated === undefined) return undefined;
+    const literal = ts.isArrowFunction(argument) || ts.isFunctionExpression(argument);
+    return {
+        body: literal ? argument.body : argument,
+        ...(literal ? { callback: argument } : { callbackExpr: argument }),
+        call,
+        element: literal ? argument.parameters[semantics.elementParams?.[0] ?? 0]?.name : undefined,
+        form: "array-method",
+        iterated,
+        loc,
+        method: semantics.label,
+        order,
+        semantics,
+    };
 }
 
 export function forOfCandidate(
-  statement: ts.ForOfStatement,
-  order: number,
-  loc: ScriptLoc,
+    statement: ts.ForOfStatement,
+    order: number,
+    loc: ScriptLoc,
 ): IterationCandidate {
-  let element: ts.BindingName | undefined;
-  if (ts.isVariableDeclarationList(statement.initializer)) {
-    element = statement.initializer.declarations[0]?.name;
-  }
-  return {
-    body: statement.statement,
-    element,
-    form: "for-of",
-    iterated: statement.expression,
-    loc,
-    order,
-  };
+    let element: ts.BindingName | undefined;
+    if (ts.isVariableDeclarationList(statement.initializer)) {
+        element = statement.initializer.declarations[0]?.name;
+    }
+    return {
+        body: statement.statement,
+        element,
+        form: "for-of",
+        iterated: statement.expression,
+        loc,
+        order,
+    };
 }

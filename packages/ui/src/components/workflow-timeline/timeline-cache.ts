@@ -21,19 +21,19 @@ const BY_RUN = new WeakMap<object, WeakMap<object, unknown>>();
 const NO_RUN: object = {};
 
 export function sharedTimelineModel<Model>(
-  graph: WorkflowCausalityGraphData,
-  run: WorkflowRunState | undefined,
-  build: () => Model,
+    graph: WorkflowCausalityGraphData,
+    run: WorkflowRunState | undefined,
+    build: () => Model,
 ): Model {
-  const runKey: object = run ?? NO_RUN;
-  let byGraph = BY_RUN.get(runKey);
-  if (byGraph === undefined) {
-    byGraph = new WeakMap<object, unknown>();
-    BY_RUN.set(runKey, byGraph);
-  }
-  // `has` 而不是 `get() !== undefined`：模型恒是对象，但判定不该依赖这一点。
-  if (byGraph.has(graph)) return byGraph.get(graph) as Model;
-  const model = build();
-  byGraph.set(graph, model);
-  return model;
+    const runKey: object = run ?? NO_RUN;
+    let byGraph = BY_RUN.get(runKey);
+    if (byGraph === undefined) {
+        byGraph = new WeakMap<object, unknown>();
+        BY_RUN.set(runKey, byGraph);
+    }
+    // `has` 而不是 `get() !== undefined`：模型恒是对象，但判定不该依赖这一点。
+    if (byGraph.has(graph)) return byGraph.get(graph) as Model;
+    const model = build();
+    byGraph.set(graph, model);
+    return model;
 }

@@ -29,7 +29,7 @@
 
 ```json
 {
-  "canvas": { "width": 720, "height": 960 }
+    "canvas": { "width": 720, "height": 960 }
 }
 ```
 
@@ -56,10 +56,10 @@ Default dimensions can be overridden via the `canvas` field in the Blueprint. `d
 - **No large blank space at top/header** — the first content component's `grid_area` should start at row 1, not row 3 or 4
 - **No large blank space on left/right sides** — components should utilize full column width (most should span 1→13 columns)
 - If content is insufficient to fill 12 rows, use these strategies (by priority):
-  1. **Increase font size**: Hero from scale 5 → 6, body font +2pt
-  2. **Increase component spacing**: grid gap from 16px → 24px
-  3. **Insert decorative components**: `Hairline_Divider`, `Page_Ghost_Number`
-  4. **Expand stat block / hero grid row count**
+    1. **Increase font size**: Hero from scale 5 → 6, body font +2pt
+    2. **Increase component spacing**: grid gap from 16px → 24px
+    3. **Insert decorative components**: `Hairline_Divider`, `Page_Ghost_Number`
+    4. **Expand stat block / hero grid row count**
 
 ### 2.3 Grid Area Allocation Iron Rule
 
@@ -201,9 +201,9 @@ LLMs naturally tend to "classify information → put each category in a box → 
 1. **Single-page posters must not have more than 3 containers with `background` + `border`.** If information needs grouping, use whitespace (margin/padding) and thin lines (1px, opacity < 10%) instead of bordered cards.
 2. **No 2×2 / 2×3 grid card layouts** (unless it's a pure data scenario with `data_dashboard` archetype). Information flows in a single column; multiple items in the same row use `flex + gap` horizontal layout without borders.
 3. **Information hierarchy must be established through typography properties**, not through "different colored/backgrounded boxes":
-   - Primary information: large font (≥48px) + heavy weight (900)
-   - Secondary information: medium font (18-24px) + medium weight (700)
-   - Tertiary information: small font (12-14px) + light weight (300-400) + reduced opacity
+    - Primary information: large font (≥48px) + heavy weight (900)
+    - Secondary information: medium font (18-24px) + medium weight (700)
+    - Tertiary information: small font (12-14px) + light weight (300-400) + reduced opacity
 4. **Glass_Canvas may be used at most once in a single-page poster.** If multiple text sections are needed, use direct HTML typography instead of wrapping each paragraph in a Glass_Canvas.
 5. **Bottom action information (price/address/QR code) should not be wrapped in a separate color block.** Use larger font + heavier weight to emphasize, keeping it unified with the overall composition.
 
@@ -212,30 +212,30 @@ LLMs naturally tend to "classify information → put each category in a box → 
 ```html
 <!-- ❌ Wrong: card wall -->
 <div
-  class="card"
-  style="background:rgba(255,255,255,0.5); border-radius:12px; border:1px solid #ddd;"
+    class="card"
+    style="background:rgba(255,255,255,0.5); border-radius:12px; border:1px solid #ddd;"
 >
-  <h3>📅 展期</h3>
-  <p>7.15 — 8.30</p>
+    <h3>📅 展期</h3>
+    <p>7.15 — 8.30</p>
 </div>
 <div
-  class="card"
-  style="background:rgba(255,255,255,0.5); border-radius:12px; border:1px solid #ddd;"
+    class="card"
+    style="background:rgba(255,255,255,0.5); border-radius:12px; border:1px solid #ddd;"
 >
-  <h3>📍 地点</h3>
-  <p>城市艺术中心</p>
+    <h3>📍 地点</h3>
+    <p>城市艺术中心</p>
 </div>
 
 <!-- ✅ Correct: pure typography, no borders -->
 <div class="info-row" style="display:flex; gap:48px;">
-  <div>
-    <div style="font-size:10px; letter-spacing:3px; opacity:0.45;">展期</div>
-    <div style="font-size:20px; font-weight:700;">7.15 — 8.30</div>
-  </div>
-  <div>
-    <div style="font-size:10px; letter-spacing:3px; opacity:0.45;">地点</div>
-    <div style="font-size:20px; font-weight:700;">城市艺术中心</div>
-  </div>
+    <div>
+        <div style="font-size:10px; letter-spacing:3px; opacity:0.45;">展期</div>
+        <div style="font-size:20px; font-weight:700;">7.15 — 8.30</div>
+    </div>
+    <div>
+        <div style="font-size:10px; letter-spacing:3px; opacity:0.45;">地点</div>
+        <div style="font-size:20px; font-weight:700;">城市艺术中心</div>
+    </div>
 </div>
 ```
 
@@ -335,11 +335,11 @@ When content is minimal, prioritize the following compact forms:
 ## 6.5 Icons and Illustrations
 
 - Use **Material Design Icons** (Google Fonts method):
-  ```html
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
-  <!-- Usage: -->
-  <i class="material-icons">icon_name</i>
-  ```
+    ```html
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <!-- Usage: -->
+    <i class="material-icons">icon_name</i>
+    ```
 - Icon color: Use the **theme color** (not random colors)
 - Icon size and position: Aligned with surrounding elements, never stretched
 - If positioned beside text: **center-aligned with the first line of text**
@@ -531,14 +531,14 @@ It will automatically:
 /* ✅ CORRECT CSS for poster HTML (html2poster.js handles the rest): */
 html,
 body {
-  margin: 0;
-  padding: 0;
-  background: var(--c-bg);
+    margin: 0;
+    padding: 0;
+    background: var(--c-bg);
 }
 .poster {
-  width: 720px;
-  position: relative;
-  background: var(--c-bg);
+    width: 720px;
+    position: relative;
+    background: var(--c-bg);
 }
 /* Note: overflow:hidden on .poster is auto-injected by html2poster.js,
    but including it in CSS is fine too */
@@ -549,44 +549,44 @@ body {
 ```css
 html,
 body {
-  margin: 0;
-  padding: 0;
-  background: var(--c-bg);
+    margin: 0;
+    padding: 0;
+    background: var(--c-bg);
 }
 
 /* Single poster canvas — NO fixed height */
 .poster {
-  width: 720px;
-  position: relative;
-  overflow: hidden;
-  background: var(--c-bg);
-  /* Height is determined by content, measured at render time */
+    width: 720px;
+    position: relative;
+    overflow: hidden;
+    background: var(--c-bg);
+    /* Height is determined by content, measured at render time */
 }
 
 /* Card/content block */
 .card {
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 24px 28px;
-  margin-bottom: 20px;
-  /* No height, no max-height, no overflow:hidden */
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    /* No height, no max-height, no overflow:hidden */
 }
 
 /* CJK text iron rules */
 .card,
 .card p,
 .card li {
-  text-align: left; /* Absolutely no justify! CJK stretches letter-spacing */
-  line-height: 1.6;
-  word-break: break-all; /* CJK natural line break */
+    text-align: left; /* Absolutely no justify! CJK stretches letter-spacing */
+    line-height: 1.6;
+    word-break: break-all; /* CJK natural line break */
 }
 
 /* Image */
 .hero-image {
-  width: 100%;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  display: block;
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: block;
 }
 ```
 
@@ -594,24 +594,24 @@ body {
 
 ```html
 <div class="poster">
-  <!-- Hero section -->
-  <div class="hero">...</div>
+    <!-- Hero section -->
+    <div class="hero">...</div>
 
-  <!-- City 1 -->
-  <div class="city-section">
-    <h2>南京</h2>
-    <div class="items-row">... attractions ...</div>
-    <div class="food-row">... food ...</div>
-  </div>
+    <!-- City 1 -->
+    <div class="city-section">
+        <h2>南京</h2>
+        <div class="items-row">... attractions ...</div>
+        <div class="food-row">... food ...</div>
+    </div>
 
-  <!-- City separator (thin line, NOT page-break) -->
-  <div class="city-sep"></div>
+    <!-- City separator (thin line, NOT page-break) -->
+    <div class="city-sep"></div>
 
-  <!-- City 2 -->
-  <div class="city-section">...</div>
+    <!-- City 2 -->
+    <div class="city-section">...</div>
 
-  <!-- Footer -->
-  <div class="poster-footer">...</div>
+    <!-- Footer -->
+    <div class="poster-footer">...</div>
 </div>
 ```
 
@@ -649,13 +649,13 @@ Add `scene: "poster"` marker in `art_direction` so `design_engine.py` can identi
 
 ```json
 {
-  "art_direction": {
-    "scene": "poster",
-    "palette_mode": "minimal",
-    "color_harmony": "auto",
-    "background_svg": "flow",
-    "design_rationale": "..."
-  }
+    "art_direction": {
+        "scene": "poster",
+        "palette_mode": "minimal",
+        "color_harmony": "auto",
+        "background_svg": "flow",
+        "design_rationale": "..."
+    }
 }
 ```
 
@@ -671,7 +671,7 @@ Add `scene: "poster"` marker in `art_direction` so `design_engine.py` can identi
 /* Must ensure html/body background = poster canvas background */
 html,
 body {
-  background: var(--c-bg); /* Same color as .canvas background */
+    background: var(--c-bg); /* Same color as .canvas background */
 }
 ```
 
@@ -715,12 +715,12 @@ Common drift causes and fixes:
 - Content must make full use of page area, no more than 20% unused space within safe-zone
 - If excess whitespace exists, enlarge font sizes or modules to balance the layout
 - Checklist:
-  - [ ] Poster height defined by content (no hardcoded height)?
-  - [ ] PDF generated via `html2poster.js` (not html2pdf-next.js)?
-  - [ ] First component starts from the top?
-  - [ ] Last component reaches the bottom with proper padding?
-  - [ ] Left-right margins symmetric?
-  - [ ] No blank space at bottom of PDF?
+    - [ ] Poster height defined by content (no hardcoded height)?
+    - [ ] PDF generated via `html2poster.js` (not html2pdf-next.js)?
+    - [ ] First component starts from the top?
+    - [ ] Last component reaches the bottom with proper padding?
+    - [ ] Left-right margins symmetric?
+    - [ ] No blank space at bottom of PDF?
 
 ---
 

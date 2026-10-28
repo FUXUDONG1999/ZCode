@@ -36,10 +36,10 @@ Choose the appropriate strategy based on the completeness of the information pro
 1. **Explore the page**: Open the page, take a screenshot to obtain an overview, and identify the page type, such as a form page, list page, detail page, or dashboard.
 2. **Identify functionality**: List the page’s core interactive elements and functional areas.
 3. **Create a test plan**: Organize test points by priority:
-   - **P0 Main flow**: The normal path for the page’s core functionality, such as submitting a form, completing a search, or switching tabs.
-   - **P1 Interaction feedback**: Whether feedback after an action works correctly, including loading states, success/failure messages, disabled states, and navigation.
-   - **P2 Input boundaries**: Empty input, excessively long input, special characters, duplicate submissions, and similar cases.
-   - **P3 Layout and styling**: Element overlap, text overflow, alignment consistency, visual quality, and similar issues.
+    - **P0 Main flow**: The normal path for the page’s core functionality, such as submitting a form, completing a search, or switching tabs.
+    - **P1 Interaction feedback**: Whether feedback after an action works correctly, including loading states, success/failure messages, disabled states, and navigation.
+    - **P2 Input boundaries**: Empty input, excessively long input, special characters, duplicate submissions, and similar cases.
+    - **P3 Layout and styling**: Element overlap, text overflow, alignment consistency, visual quality, and similar issues.
 4. **Present the plan and begin immediately**: Show the test plan to the user, then start with P0 without waiting for confirmation. The user may interrupt or adjust the plan at any time. Exception: If the page requires login credentials or testing involves writing real data, such as placing an order, making a payment, or deleting data, stop and ask the user for confirmation before continuing.
 
 ---
@@ -77,10 +77,10 @@ Before formal testing begins, any necessary method may be used to prepare the te
 - Locate elements based on actual observations of the page (DOM snapshots, accessibility trees, screenshots, or whatever ground truth the tooling provides). Never guess selectors, label text, or URL patterns.
 - In a multi-tab environment, list the current tabs and confirm the target before each batch of operations. Do not assume the target page from memory or by position.
 - **Prohibited**:
-  - Any JavaScript injection with side effects: assignments, dispatching events, triggering clicks from code, modifying the DOM or storage, issuing requests, and similar operations are all prohibited (only side-effect-free reads are allowed).
-  - Bypassing page interactions by constructing or modifying URLs.
-  - Using Tab, keyboard shortcuts, `force click`, or other unconventional methods to bypass a failed operation.
-  - Refreshing the page, navigating backward or forward, or resizing the window to escape the current failed state. However, after one test point is complete, the state may be reset by returning to the entry page before beginning the next test point.
+    - Any JavaScript injection with side effects: assignments, dispatching events, triggering clicks from code, modifying the DOM or storage, issuing requests, and similar operations are all prohibited (only side-effect-free reads are allowed).
+    - Bypassing page interactions by constructing or modifying URLs.
+    - Using Tab, keyboard shortcuts, `force click`, or other unconventional methods to bypass a failed operation.
+    - Refreshing the page, navigating backward or forward, or resizing the window to escape the current failed state. However, after one test point is complete, the state may be reset by returning to the entry page before beginning the next test point.
 - **When element location fails**: Do not retry unchanged. First re-observe the page (take a fresh DOM snapshot, plus a screenshot when needed) to confirm the actual state, then determine whether this is a page bug, where the element is genuinely missing, or a locator issue. If it is a page bug, record it and skip the test point. If it is a locator issue, rebuild the locator from the newly observed facts.
 - **When page loading fails**: If the page times out, displays a blank screen, or shows an error, take a screenshot to record the current state, report it as an issue, and skip subsequent test points that depend on that page.
 - **When the tooling does not support an operation** (such as file upload or a specific gesture): Record that test point as "unsupported by the runtime" and skip it. Never fake success, and never work around it via injection.

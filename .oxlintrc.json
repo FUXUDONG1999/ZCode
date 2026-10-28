@@ -1,259 +1,259 @@
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": null,
-  "categories": {},
-  "rules": {
-    "max-lines": ["error", { "max": 800, "skipBlankLines": true, "skipComments": true }]
-  },
-  "overrides": [
-    {
-      // 文件名校验刻意匹配控制字符（NUL/C0 区间）做合法性检查与清洗，非坏味道；
-      // 规则只对这两个文件关闭，其余代码仍受 no-control-regex 约束。
-      "files": [
-        "packages/shared/src/zcode-protocol-v4/transport.ts",
-        "packages/ui/src/plugin-ui/domain/pluginUiDownloadFile.ts"
-      ],
-      "rules": {
-        "no-control-regex": "off"
-      }
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "plugins": null,
+    "categories": {},
+    "rules": {
+        "max-lines": ["error", { "max": 800, "skipBlankLines": true, "skipComments": true }]
     },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/desktop/scripts/node-pty-rebuild.mjs",
-        "packages/desktop/src/main/desktopHostProcess.ts",
-        "packages/desktop/src/main/desktopMainIpcPlatform.ts",
-        "packages/desktop/src/main/index.ts",
-        "packages/desktop/test/autoUpdaterReadyState.test.ts",
-        "packages/desktop/test/desktopRemoteSessions.test.ts",
-        "packages/desktop/test/e2e/conversation-session/conversation-session-assistant-preview-cards.test.ts",
-        "packages/desktop/test/e2e/conversation-session/conversation-session-background-bash-output.test.ts",
-        "packages/desktop/test/e2e/conversation-session/conversation-session-pasted-image-path-edge-cases.test.ts",
-        "packages/desktop/test/e2e/conversation-session/conversation-session-ssh-remote-p0.test.ts",
-        "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-file-local-actions.test.ts",
-        "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-mobile-permission.test.ts",
-        "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-soak-dual.test.ts",
-        "packages/desktop/test/e2e/ui-shell/marketing-touch-entitlement.test.ts",
-        "packages/desktop/test/e2e/workspace-agent-warmup-small-set.test.ts",
-        "packages/desktop/test/e2e/workspace-passive-agent-startup.test.ts",
-        "packages/desktop/wdio.conf.ts",
-        "packages/provider/test/registry-service.test.ts",
-        "packages/provider/test/todo21-source-contracts.test.ts",
-        "packages/rpc/examples/04-remote-connection.ts",
-        "packages/rpc/src/proxy-channel.ts",
-        "packages/services/src/node.ts",
-        "packages/services/src/output-style/outputStyleService.ts",
-        "packages/services/src/session/taskChangeSummary.ts",
-        "packages/services/src/session/taskIndexRepo.ts",
-        "packages/services/src/session/tasksDatabase/migrations.ts",
-        "packages/shared/src/validation.ts",
-        "packages/shared/src/validationAppSettings.ts",
-        "packages/shared/src/web-remote-control.ts",
-        "packages/ui/src/BotsDialog/shared.tsx",
-        "packages/ui/src/Root.tsx",
-        "packages/ui/src/SettingsPage.tsx",
-        "packages/ui/src/WorkspaceSidebarFooter.tsx",
-        "packages/ui/src/lib/askUserQuestion.ts",
-        "packages/ui/src/lib/fileDisplay.tsx",
-        "packages/ui/src/lib/keyboardShortcuts.ts",
-        "packages/ui/src/lib/treemappingActivity.ts",
-        "packages/ui/src/project-sidebar/index.tsx",
-        "packages/ui/src/root/useRootWorkspaceActions.ts",
-        "packages/ui/src/settings/AutomationsSection.tsx",
-        "packages/ui/src/settings/model-provider-section/StatusCards.tsx",
-        "packages/ui/test/browser/manual-review/pending/composer-toolbar-fit.test.mjs",
-        "packages/ui/test/chatWorkspaceDeviceNames.test.ts"
-      ],
-      "rules": {
-        "no-unused-vars": "off"
-      }
+    "overrides": [
+        {
+            // 文件名校验刻意匹配控制字符（NUL/C0 区间）做合法性检查与清洗，非坏味道；
+            // 规则只对这两个文件关闭，其余代码仍受 no-control-regex 约束。
+            "files": [
+                "packages/shared/src/zcode-protocol-v4/transport.ts",
+                "packages/ui/src/plugin-ui/domain/pluginUiDownloadFile.ts"
+            ],
+            "rules": {
+                "no-control-regex": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": [
+                "packages/desktop/scripts/node-pty-rebuild.mjs",
+                "packages/desktop/src/main/desktopHostProcess.ts",
+                "packages/desktop/src/main/desktopMainIpcPlatform.ts",
+                "packages/desktop/src/main/index.ts",
+                "packages/desktop/test/autoUpdaterReadyState.test.ts",
+                "packages/desktop/test/desktopRemoteSessions.test.ts",
+                "packages/desktop/test/e2e/conversation-session/conversation-session-assistant-preview-cards.test.ts",
+                "packages/desktop/test/e2e/conversation-session/conversation-session-background-bash-output.test.ts",
+                "packages/desktop/test/e2e/conversation-session/conversation-session-pasted-image-path-edge-cases.test.ts",
+                "packages/desktop/test/e2e/conversation-session/conversation-session-ssh-remote-p0.test.ts",
+                "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-file-local-actions.test.ts",
+                "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-mobile-permission.test.ts",
+                "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-soak-dual.test.ts",
+                "packages/desktop/test/e2e/ui-shell/marketing-touch-entitlement.test.ts",
+                "packages/desktop/test/e2e/workspace-agent-warmup-small-set.test.ts",
+                "packages/desktop/test/e2e/workspace-passive-agent-startup.test.ts",
+                "packages/desktop/wdio.conf.ts",
+                "packages/provider/test/registry-service.test.ts",
+                "packages/provider/test/todo21-source-contracts.test.ts",
+                "packages/rpc/examples/04-remote-connection.ts",
+                "packages/rpc/src/proxy-channel.ts",
+                "packages/services/src/node.ts",
+                "packages/services/src/output-style/outputStyleService.ts",
+                "packages/services/src/session/taskChangeSummary.ts",
+                "packages/services/src/session/taskIndexRepo.ts",
+                "packages/services/src/session/tasksDatabase/migrations.ts",
+                "packages/shared/src/validation.ts",
+                "packages/shared/src/validationAppSettings.ts",
+                "packages/shared/src/web-remote-control.ts",
+                "packages/ui/src/BotsDialog/shared.tsx",
+                "packages/ui/src/Root.tsx",
+                "packages/ui/src/SettingsPage.tsx",
+                "packages/ui/src/WorkspaceSidebarFooter.tsx",
+                "packages/ui/src/lib/askUserQuestion.ts",
+                "packages/ui/src/lib/fileDisplay.tsx",
+                "packages/ui/src/lib/keyboardShortcuts.ts",
+                "packages/ui/src/lib/treemappingActivity.ts",
+                "packages/ui/src/project-sidebar/index.tsx",
+                "packages/ui/src/root/useRootWorkspaceActions.ts",
+                "packages/ui/src/settings/AutomationsSection.tsx",
+                "packages/ui/src/settings/model-provider-section/StatusCards.tsx",
+                "packages/ui/test/browser/manual-review/pending/composer-toolbar-fit.test.mjs",
+                "packages/ui/test/chatWorkspaceDeviceNames.test.ts"
+            ],
+            "rules": {
+                "no-unused-vars": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": [
+                "packages/desktop/src/host/startupDiskSampler.ts",
+                "packages/rpc/src/foundation.ts",
+                "packages/ui/src/project-sidebar/useProjectUnreadSignals.ts",
+                "packages/ui/src/v4/taskListMembershipVersion.ts",
+                "packages/ui/test/highspeed/sessionPaneHighspeedActivation.test.ts",
+                "packages/ui/test/v4ConversationTurnGroup.test.ts",
+                "packages/ui/test/v4DraftRuntimeRebuildGate.test.ts"
+            ],
+            "rules": {
+                "no-useless-spread": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": [
+                "packages/shared/src/zcode-protocol-v4/transport.ts",
+                "packages/ui/src/plugin-ui/domain/pluginUiDownloadFile.ts"
+            ],
+            "rules": {
+                "no-control-regex": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": [
+                "apps/zcode-cli/packages/dynamic-workflow/tests/smoke/xiangqi-two-agent-match-b.dwf.ts",
+                "packages/services/src/conversation-share/conversationShareService.ts"
+            ],
+            "rules": {
+                "no-new-array": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": [
+                "packages/ui/test/feedbackSubmitFormRetry.test.ts",
+                "packages/ui/test/pluginStoreCardRestorable.test.ts"
+            ],
+            "rules": {
+                "no-unsafe-optional-chaining": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": ["apps/zcode-cli/packages/dynamic-workflow/tests/lowering/expected/holes.js"],
+            "rules": {
+                "no-eval": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": ["packages/rpc/src/ipc.ts"],
+            "rules": {
+                "no-this-alias": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": ["packages/services/src/project-storage/startup.ts"],
+            "rules": {
+                "no-unsafe-finally": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": ["packages/services/src/zcode-agent/zcodeTaskIndexSyncer.ts"],
+            "rules": {
+                "no-unused-vars": "off",
+                "no-useless-spread": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": [
+                "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-subagent.test.ts"
+            ],
+            "rules": {
+                "no-useless-escape": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": ["packages/ui/src/settings/RemotePluginSyncDialog.tsx"],
+            "rules": {
+                "no-useless-fallback-in-spread": "off"
+            }
+        },
+        {
+            // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
+            "files": [
+                "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-attachments.test.ts"
+            ],
+            "rules": {
+                "no-useless-length-check": "off"
+            }
+        },
+        {
+            // 本次上游整合保留既有职责完整的实现；这些文件超 800 行只告警，不机械拆分。
+            "files": [
+                // 插件市场沿用上游存量大文件，只补充目录字段投影；不为行数机械拆分安装流程。
+                "**/apps/zcode-cli/packages/adapters/src/plugins/marketplace.ts",
+                // MCP 连接入口沿用上游存量实现；连接屏障修复不为行数重排整个 adapter。
+                "**/apps/zcode-cli/packages/adapters/src/mcp/index.ts",
+                "**/apps/zcode-cli/packages/bootstrap/src/plugins.ts",
+                "**/apps/zcode-cli/packages/adapters/src/storage/session-store/migrations.ts",
+                "**/apps/zcode-cli/packages/adapters/src/storage/session-store/sqlite-session-store.ts",
+                "**/apps/zcode-cli/packages/bootstrap/src/app/create-app.ts",
+                "**/apps/zcode-cli/packages/bootstrap/src/app/session-facade.ts",
+                "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol-v4/v4-gateway.ts",
+                "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/server.ts",
+                "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/session-mapper.ts",
+                "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/v4-bridge.ts",
+                "**/apps/zcode-cli/packages/contracts/src/interfaces/session-store.port.ts",
+                "**/apps/zcode-cli/packages/core/src/runtime/methods/steering.ts",
+                "**/apps/zcode-cli/packages/core/src/runtime/methods/turn.ts",
+                "**/apps/zcode-cli/packages/core/src/runtime/methods/turn-model-step.ts",
+                // core 包内以 --no-ignore 运行时，oxlint 按 cwd 相对路径匹配同一组存量文件。
+                "src/runtime/methods/steering.ts",
+                "src/runtime/methods/turn.ts",
+                "src/runtime/methods/turn-model-step.ts",
+                "**/packages/ui/src/remote-connection-flow/index.ts"
+            ],
+            "rules": {
+                "max-lines": "off"
+            }
+        },
+        {
+            // 测试文件天然会堆叠大量场景与断言，继续复用生产代码的行数上限会造成误报，
+            // 因此只对 test/spec 文件关闭 max-lines，避免放宽业务代码约束。
+            "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+            "rules": {
+                "max-lines": "off"
+            }
+        },
+        {
+            "files": ["**/i18n/locales/*.ts"],
+            "rules": {
+                "max-lines": "off"
+            }
+        }
+    ],
+    "settings": {
+        "jsx-a11y": {
+            "polymorphicPropName": null,
+            "components": {},
+            "attributes": {}
+        },
+        "next": {
+            "rootDir": []
+        },
+        "react": {
+            "formComponents": [],
+            "linkComponents": [],
+            "version": null,
+            "componentWrapperFunctions": []
+        },
+        "jsdoc": {
+            "ignorePrivate": false,
+            "ignoreInternal": false,
+            "ignoreReplacesDocs": true,
+            "overrideReplacesDocs": true,
+            "augmentsExtendsReplacesDocs": false,
+            "implementsReplacesDocs": false,
+            "exemptDestructuredRootsFromChecks": false,
+            "tagNamePreference": {}
+        },
+        "vitest": {
+            "typecheck": false
+        }
     },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/desktop/src/host/startupDiskSampler.ts",
-        "packages/rpc/src/foundation.ts",
-        "packages/ui/src/project-sidebar/useProjectUnreadSignals.ts",
-        "packages/ui/src/v4/taskListMembershipVersion.ts",
-        "packages/ui/test/highspeed/sessionPaneHighspeedActivation.test.ts",
-        "packages/ui/test/v4ConversationTurnGroup.test.ts",
-        "packages/ui/test/v4DraftRuntimeRebuildGate.test.ts"
-      ],
-      "rules": {
-        "no-useless-spread": "off"
-      }
+    "env": {
+        "builtin": true
     },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/shared/src/zcode-protocol-v4/transport.ts",
-        "packages/ui/src/plugin-ui/domain/pluginUiDownloadFile.ts"
-      ],
-      "rules": {
-        "no-control-regex": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "apps/zcode-cli/packages/dynamic-workflow/tests/smoke/xiangqi-two-agent-match-b.dwf.ts",
-        "packages/services/src/conversation-share/conversationShareService.ts"
-      ],
-      "rules": {
-        "no-new-array": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/ui/test/feedbackSubmitFormRetry.test.ts",
-        "packages/ui/test/pluginStoreCardRestorable.test.ts"
-      ],
-      "rules": {
-        "no-unsafe-optional-chaining": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": ["apps/zcode-cli/packages/dynamic-workflow/tests/lowering/expected/holes.js"],
-      "rules": {
-        "no-eval": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": ["packages/rpc/src/ipc.ts"],
-      "rules": {
-        "no-this-alias": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": ["packages/services/src/project-storage/startup.ts"],
-      "rules": {
-        "no-unsafe-finally": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": ["packages/services/src/zcode-agent/zcodeTaskIndexSyncer.ts"],
-      "rules": {
-        "no-unused-vars": "off",
-        "no-useless-spread": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-subagent.test.ts"
-      ],
-      "rules": {
-        "no-useless-escape": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": ["packages/ui/src/settings/RemotePluginSyncDialog.tsx"],
-      "rules": {
-        "no-useless-fallback-in-spread": "off"
-      }
-    },
-    {
-      // 存量告警豁免：历史问题暂不逐文件修复，规则只对这些文件关闭，新增代码仍受全局规则约束。
-      "files": [
-        "packages/desktop/test/e2e/conversation-session/manual-review/pending/conversation-session-r3-attachments.test.ts"
-      ],
-      "rules": {
-        "no-useless-length-check": "off"
-      }
-    },
-    {
-      // 本次上游整合保留既有职责完整的实现；这些文件超 800 行只告警，不机械拆分。
-      "files": [
-        // 插件市场沿用上游存量大文件，只补充目录字段投影；不为行数机械拆分安装流程。
-        "**/apps/zcode-cli/packages/adapters/src/plugins/marketplace.ts",
-        // MCP 连接入口沿用上游存量实现；连接屏障修复不为行数重排整个 adapter。
-        "**/apps/zcode-cli/packages/adapters/src/mcp/index.ts",
-        "**/apps/zcode-cli/packages/bootstrap/src/plugins.ts",
-        "**/apps/zcode-cli/packages/adapters/src/storage/session-store/migrations.ts",
-        "**/apps/zcode-cli/packages/adapters/src/storage/session-store/sqlite-session-store.ts",
-        "**/apps/zcode-cli/packages/bootstrap/src/app/create-app.ts",
-        "**/apps/zcode-cli/packages/bootstrap/src/app/session-facade.ts",
-        "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol-v4/v4-gateway.ts",
-        "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/server.ts",
-        "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/session-mapper.ts",
-        "**/apps/zcode-cli/packages/bootstrap/src/zcode-protocol/v4-bridge.ts",
-        "**/apps/zcode-cli/packages/contracts/src/interfaces/session-store.port.ts",
-        "**/apps/zcode-cli/packages/core/src/runtime/methods/steering.ts",
-        "**/apps/zcode-cli/packages/core/src/runtime/methods/turn.ts",
-        "**/apps/zcode-cli/packages/core/src/runtime/methods/turn-model-step.ts",
-        // core 包内以 --no-ignore 运行时，oxlint 按 cwd 相对路径匹配同一组存量文件。
-        "src/runtime/methods/steering.ts",
-        "src/runtime/methods/turn.ts",
-        "src/runtime/methods/turn-model-step.ts",
-        "**/packages/ui/src/remote-connection-flow/index.ts"
-      ],
-      "rules": {
-        "max-lines": "off"
-      }
-    },
-    {
-      // 测试文件天然会堆叠大量场景与断言，继续复用生产代码的行数上限会造成误报，
-      // 因此只对 test/spec 文件关闭 max-lines，避免放宽业务代码约束。
-      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
-      "rules": {
-        "max-lines": "off"
-      }
-    },
-    {
-      "files": ["**/i18n/locales/*.ts"],
-      "rules": {
-        "max-lines": "off"
-      }
-    }
-  ],
-  "settings": {
-    "jsx-a11y": {
-      "polymorphicPropName": null,
-      "components": {},
-      "attributes": {}
-    },
-    "next": {
-      "rootDir": []
-    },
-    "react": {
-      "formComponents": [],
-      "linkComponents": [],
-      "version": null,
-      "componentWrapperFunctions": []
-    },
-    "jsdoc": {
-      "ignorePrivate": false,
-      "ignoreInternal": false,
-      "ignoreReplacesDocs": true,
-      "overrideReplacesDocs": true,
-      "augmentsExtendsReplacesDocs": false,
-      "implementsReplacesDocs": false,
-      "exemptDestructuredRootsFromChecks": false,
-      "tagNamePreference": {}
-    },
-    "vitest": {
-      "typecheck": false
-    }
-  },
-  "env": {
-    "builtin": true
-  },
-  "globals": {},
-  "ignorePatterns": [
-    "dist-release",
-    "packages/ui/src/components/ui",
-    "packages/ui/src/components/ai-elements",
-    ".claude/skills",
-    ".agents/skills",
-    "packages/formal-proof",
-    "apps/zcode-cli",
-    "packages/zcode-cua",
-    "docs/electron"
-  ]
+    "globals": {},
+    "ignorePatterns": [
+        "dist-release",
+        "packages/ui/src/components/ui",
+        "packages/ui/src/components/ai-elements",
+        ".claude/skills",
+        ".agents/skills",
+        "packages/formal-proof",
+        "apps/zcode-cli",
+        "packages/zcode-cua",
+        "docs/electron"
+    ]
 }

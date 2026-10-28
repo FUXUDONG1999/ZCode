@@ -25,16 +25,16 @@ export const HOLE_SITE_ID_PATTERN = /^hole#[0-9a-f]{8}$/u;
 
 /** 从留白的名字铸站点 id。名字先 trim（唯一性也按 trim 后比较）。 */
 export function holeSiteId(name: string): string {
-  let hash = FNV_OFFSET;
-  for (const char of name.trim()) {
-    hash ^= char.codePointAt(0) ?? 0;
-    hash = Math.imul(hash, FNV_PRIME) >>> 0;
-  }
-  return `hole#${hash.toString(16).padStart(HOLE_ID_HEX_LENGTH, "0")}`;
+    let hash = FNV_OFFSET;
+    for (const char of name.trim()) {
+        hash ^= char.codePointAt(0) ?? 0;
+        hash = Math.imul(hash, FNV_PRIME) >>> 0;
+    }
+    return `hole#${hash.toString(16).padStart(HOLE_ID_HEX_LENGTH, "0")}`;
 }
 
 export function isHoleSiteId(id: string): boolean {
-  return HOLE_SITE_ID_PATTERN.test(id);
+    return HOLE_SITE_ID_PATTERN.test(id);
 }
 
 /**
@@ -42,6 +42,6 @@ export function isHoleSiteId(id: string): boolean {
  * 只看一层前缀（id 里只有一层）；留白自己属于哪个留白要问站点表的 `fill`。
  */
 export function holePrefixOf(siteId: string): string | undefined {
-  const cut = siteId.indexOf("/");
-  return cut < 0 ? undefined : siteId.slice(0, cut);
+    const cut = siteId.indexOf("/");
+    return cut < 0 ? undefined : siteId.slice(0, cut);
 }

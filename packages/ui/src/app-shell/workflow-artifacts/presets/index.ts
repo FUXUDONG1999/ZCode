@@ -12,12 +12,12 @@
 
 export { type ArtifactItem } from "@/app-shell/workflow-artifacts/presets/apply.js";
 export {
-  parseArtifactPresetSpec,
-  type ArtifactPresetKind,
-  type BoardSpec,
-  type ChartSpec,
-  type MetricsSpec,
-  type TableSpec,
+    parseArtifactPresetSpec,
+    type ArtifactPresetKind,
+    type BoardSpec,
+    type ChartSpec,
+    type MetricsSpec,
+    type TableSpec,
 } from "@/app-shell/workflow-artifacts/presets/spec.js";
 
 export { type PresetLabels } from "@/app-shell/workflow-artifacts/presets/parts.js";

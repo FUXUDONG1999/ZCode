@@ -23,10 +23,10 @@ import path from "node:path";
  * `cwd` 缺席即宿主没有工作目录概念（部分端口 stub / 无会话上下文），此时无从相对化。
  */
 export function describeWorkflowScriptPath(absolutePath: string, cwd: string | undefined): string {
-  if (cwd === undefined || cwd === "") return absolutePath;
-  const relative = path.relative(cwd, absolutePath);
-  if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) {
-    return absolutePath;
-  }
-  return relative;
+    if (cwd === undefined || cwd === "") return absolutePath;
+    const relative = path.relative(cwd, absolutePath);
+    if (relative === "" || relative.startsWith("..") || path.isAbsolute(relative)) {
+        return absolutePath;
+    }
+    return relative;
 }

@@ -7,8 +7,11 @@ const AUXILIARY_MAX_OUTPUT_TOKENS = 5_000;
  * 不能再按 disabled/off 等名字推断协议行为。
  */
 export function auxiliaryModelOptions(model: Model): Required<ModelOptions> {
-  return {
-    reasoningLevel: model.optionSpecs.reasoningLevel.values[0]!,
-    maxOutputTokens: Math.min(AUXILIARY_MAX_OUTPUT_TOKENS, model.optionSpecs.maxOutputTokens.max),
-  };
+    return {
+        reasoningLevel: model.optionSpecs.reasoningLevel.values[0]!,
+        maxOutputTokens: Math.min(
+            AUXILIARY_MAX_OUTPUT_TOKENS,
+            model.optionSpecs.maxOutputTokens.max,
+        ),
+    };
 }

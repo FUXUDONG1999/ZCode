@@ -22,9 +22,9 @@ export type NamePattern = NonNullable<WorkflowCausalityGraphData["lanes"][number
  * 上 `{}` 是能通过 `.strict()` 的，这里不替它兜着就会在画面上留一个没有意义的省略号。
  */
 export function formatNamePattern(pattern: NamePattern | undefined): string | undefined {
-  if (pattern === undefined) return undefined;
-  const head = pattern.head ?? "";
-  const tail = pattern.tail ?? "";
-  if (head === "" && tail === "") return undefined;
-  return `${head}${ELLIPSIS}${tail}`;
+    if (pattern === undefined) return undefined;
+    const head = pattern.head ?? "";
+    const tail = pattern.tail ?? "";
+    if (head === "" && tail === "") return undefined;
+    return `${head}${ELLIPSIS}${tail}`;
 }

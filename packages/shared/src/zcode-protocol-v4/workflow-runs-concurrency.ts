@@ -6,9 +6,9 @@
 // `cooldownMs` 是相对量，deadline 由 UI 按收到状态的时刻推算。
 
 import {
-  WORKFLOW_RUNS_LIMITS,
-  type WorkflowRunConcurrency,
-  type WorkflowRunState,
+    WORKFLOW_RUNS_LIMITS,
+    type WorkflowRunConcurrency,
+    type WorkflowRunState,
 } from "./workflow-runs.js";
 
 /** 事件里的 `reason` 值：桶空闲重置回默认并发——它不是冷却，收到即清掉旧的 cooldown。 */
@@ -28,29 +28,30 @@ const CONCURRENCY_IDLE_RESET_REASON = "idle_reset";
  * 或放开一个 provider key，不会改变用户给这次 run 定的上限。
  */
 export function reduceConcurrencyChanged(
-  run: WorkflowRunState,
-  payload: Record<string, unknown>,
+    run: WorkflowRunState,
+    payload: Record<string, unknown>,
 ): WorkflowRunState {
-  const next = positiveInteger(payload.next);
-  if (next === undefined) return run;
-  const previous = positiveInteger(payload.previous) ?? next;
-  const ceiling = run.concurrencyCeiling ?? Math.max(run.concurrency?.ceiling ?? 0, previous, next);
-  const key = nonEmptyString(payload.key);
-  const limit = run.concurrency?.limit;
-  const cooldownMs =
-    payload.reason === CONCURRENCY_IDLE_RESET_REASON
-      ? undefined
-      : nonNegativeInteger(payload.cooldownMs);
-  const concurrency: WorkflowRunConcurrency = {
-    ...(key === undefined || key.length > WORKFLOW_RUNS_LIMITS.maxConcurrencyKeyLength
-      ? {}
-      : { key }),
-    cap: next,
-    ceiling,
-    ...(limit === undefined ? {} : { limit }),
-    ...(cooldownMs === undefined ? {} : { cooldownMs }),
-  };
-  return { ...run, concurrency };
+    const next = positiveInteger(payload.next);
+    if (next === undefined) return run;
+    const previous = positiveInteger(payload.previous) ?? next;
+    const ceiling =
+        run.concurrencyCeiling ?? Math.max(run.concurrency?.ceiling ?? 0, previous, next);
+    const key = nonEmptyString(payload.key);
+    const limit = run.concurrency?.limit;
+    const cooldownMs =
+        payload.reason === CONCURRENCY_IDLE_RESET_REASON
+            ? undefined
+            : nonNegativeInteger(payload.cooldownMs);
+    const concurrency: WorkflowRunConcurrency = {
+        ...(key === undefined || key.length > WORKFLOW_RUNS_LIMITS.maxConcurrencyKeyLength
+            ? {}
+            : { key }),
+        cap: next,
+        ceiling,
+        ...(limit === undefined ? {} : { limit }),
+        ...(cooldownMs === undefined ? {} : { cooldownMs }),
+    };
+    return { ...run, concurrency };
 }
 
 /**
@@ -69,31 +70,31 @@ export function reduceConcurrencyChanged(
  * 抬回一个假值。
  */
 export function reduceRunStartedConcurrency(
-  run: WorkflowRunState,
-  payload: Record<string, unknown>,
+    run: WorkflowRunState,
+    payload: Record<string, unknown>,
 ): WorkflowRunState {
-  const limit = positiveInteger(plainRecord(payload.caps)?.maxConcurrency);
-  const readCeiling = positiveInteger(payload.concurrencyCeiling);
-  const ceiling =
-    readCeiling !== undefined && readCeiling <= WORKFLOW_RUNS_LIMITS.maxConcurrencyCeiling
-      ? readCeiling
-      : undefined;
-  // D 本身单独记一份（`run.concurrencyCeiling`）：「配置」弹层要写「默认 N」、判「等于默认 = 不设
-  // 自己的界」，而跑在默认上的 run 没有 `concurrency` 可挂。读不出就沿用已知值——与 subagentModel
-  // 同一条退化规则。
-  const withCeiling =
-    ceiling === undefined || run.concurrencyCeiling === ceiling
-      ? run
-      : { ...run, concurrencyCeiling: ceiling };
-  if (limit === undefined || ceiling === undefined || limit === ceiling) return withCeiling;
-  const existing = withCeiling.concurrency;
-  const concurrency: WorkflowRunConcurrency = {
-    // 没有共享桶读数时，cap 从 D 起步——桶本来就是从那里开始的。
-    ...(existing ?? { cap: ceiling }),
-    ceiling,
-    limit,
-  };
-  return { ...withCeiling, concurrency };
+    const limit = positiveInteger(plainRecord(payload.caps)?.maxConcurrency);
+    const readCeiling = positiveInteger(payload.concurrencyCeiling);
+    const ceiling =
+        readCeiling !== undefined && readCeiling <= WORKFLOW_RUNS_LIMITS.maxConcurrencyCeiling
+            ? readCeiling
+            : undefined;
+    // D 本身单独记一份（`run.concurrencyCeiling`）：「配置」弹层要写「默认 N」、判「等于默认 = 不设
+    // 自己的界」，而跑在默认上的 run 没有 `concurrency` 可挂。读不出就沿用已知值——与 subagentModel
+    // 同一条退化规则。
+    const withCeiling =
+        ceiling === undefined || run.concurrencyCeiling === ceiling
+            ? run
+            : { ...run, concurrencyCeiling: ceiling };
+    if (limit === undefined || ceiling === undefined || limit === ceiling) return withCeiling;
+    const existing = withCeiling.concurrency;
+    const concurrency: WorkflowRunConcurrency = {
+        // 没有共享桶读数时，cap 从 D 起步——桶本来就是从那里开始的。
+        ...(existing ?? { cap: ceiling }),
+        ceiling,
+        limit,
+    };
+    return { ...withCeiling, concurrency };
 }
 
 /**
@@ -113,43 +114,43 @@ export function reduceRunStartedConcurrency(
  * 本来就没有 `limit` 时一个字不动（幂等的支点）。
  */
 export function reduceRunCapsChanged(
-  run: WorkflowRunState,
-  payload: Record<string, unknown>,
+    run: WorkflowRunState,
+    payload: Record<string, unknown>,
 ): WorkflowRunState {
-  const maxConcurrency = positiveInteger(plainRecord(payload.caps)?.maxConcurrency);
-  const readCeiling = positiveInteger(payload.concurrencyCeiling);
-  const payloadCeiling =
-    readCeiling !== undefined && readCeiling <= WORKFLOW_RUNS_LIMITS.maxConcurrencyCeiling
-      ? readCeiling
-      : undefined;
-  const withCeiling =
-    payloadCeiling === undefined || run.concurrencyCeiling === payloadCeiling
-      ? run
-      : { ...run, concurrencyCeiling: payloadCeiling };
-  const ceiling = payloadCeiling ?? withCeiling.concurrencyCeiling;
-  if (maxConcurrency === undefined || ceiling === undefined) return withCeiling;
-  const existing = withCeiling.concurrency;
-  if (maxConcurrency !== ceiling) {
-    const concurrency: WorkflowRunConcurrency = {
-      // 没有共享桶读数时 cap 从 D 起步——与 reduceRunStartedConcurrency 同一条依据。
-      ...(existing ?? { cap: ceiling }),
-      ceiling,
-      limit: maxConcurrency,
-    };
-    return { ...withCeiling, concurrency };
-  }
-  if (existing?.limit === undefined) return withCeiling;
-  const { limit: _lifted, ...rest } = existing;
-  const shared: WorkflowRunConcurrency = { ...rest, ceiling };
-  return shared.cooldownMs === undefined && shared.cap >= shared.ceiling
-    ? withoutConcurrency(withCeiling)
-    : { ...withCeiling, concurrency: shared };
+    const maxConcurrency = positiveInteger(plainRecord(payload.caps)?.maxConcurrency);
+    const readCeiling = positiveInteger(payload.concurrencyCeiling);
+    const payloadCeiling =
+        readCeiling !== undefined && readCeiling <= WORKFLOW_RUNS_LIMITS.maxConcurrencyCeiling
+            ? readCeiling
+            : undefined;
+    const withCeiling =
+        payloadCeiling === undefined || run.concurrencyCeiling === payloadCeiling
+            ? run
+            : { ...run, concurrencyCeiling: payloadCeiling };
+    const ceiling = payloadCeiling ?? withCeiling.concurrencyCeiling;
+    if (maxConcurrency === undefined || ceiling === undefined) return withCeiling;
+    const existing = withCeiling.concurrency;
+    if (maxConcurrency !== ceiling) {
+        const concurrency: WorkflowRunConcurrency = {
+            // 没有共享桶读数时 cap 从 D 起步——与 reduceRunStartedConcurrency 同一条依据。
+            ...(existing ?? { cap: ceiling }),
+            ceiling,
+            limit: maxConcurrency,
+        };
+        return { ...withCeiling, concurrency };
+    }
+    if (existing?.limit === undefined) return withCeiling;
+    const { limit: _lifted, ...rest } = existing;
+    const shared: WorkflowRunConcurrency = { ...rest, ceiling };
+    return shared.cooldownMs === undefined && shared.cap >= shared.ceiling
+        ? withoutConcurrency(withCeiling)
+        : { ...withCeiling, concurrency: shared };
 }
 
 /** 摘掉整个 `concurrency` 键（不是留一个空对象）：协议上「跑在默认上、无话可说」就是这个键不在。 */
 function withoutConcurrency(run: WorkflowRunState): WorkflowRunState {
-  const { concurrency: _cleared, ...rest } = run;
-  return rest;
+    const { concurrency: _cleared, ...rest } = run;
+    return rest;
 }
 
 /**
@@ -158,25 +159,25 @@ function withoutConcurrency(run: WorkflowRunState): WorkflowRunState {
  * 它们是这次 run 跑在什么并发下的历史事实。
  */
 export function withoutCooldown(run: WorkflowRunState): WorkflowRunState {
-  if (run.concurrency?.cooldownMs === undefined) return run;
-  const { cooldownMs: _expired, ...rest } = run.concurrency;
-  return { ...run, concurrency: rest };
+    if (run.concurrency?.cooldownMs === undefined) return run;
+    const { cooldownMs: _expired, ...rest } = run.concurrency;
+    return { ...run, concurrency: rest };
 }
 
 function positiveInteger(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
+    return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
 }
 
 function nonNegativeInteger(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
+    return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
 }
 
 function nonEmptyString(value: unknown): string | undefined {
-  return typeof value === "string" && value.length > 0 ? value : undefined;
+    return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
 function plainRecord(value: unknown): Record<string, unknown> | undefined {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
+    return typeof value === "object" && value !== null && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : undefined;
 }

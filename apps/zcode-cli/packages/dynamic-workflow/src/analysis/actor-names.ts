@@ -58,56 +58,56 @@ export const FANOUT_ACTOR_NAME_CODE = 9006;
  * 的编译期规则同席）。
  */
 export function collectDuplicateActorNames(
-  workflow: WorkflowProgram,
-  table: SiteTable,
+    workflow: WorkflowProgram,
+    table: SiteTable,
 ): CompileDiagnostic[] {
-  const diagnostics: CompileDiagnostic[] = [];
-  const claimed = new Map<string, ts.CallExpression>();
-  // fan-out 体的集合来自站点表的 IterationCandidate（数组方法的内联回调体 + for...of 的
-  // 循环体），与 `ActorNode.fanOutId` 判定「站点是否落在 fan-out 体内」用的是同一个概念。
-  const fanOutBodies = new Set<ts.Node>(table.iterations.map((iteration) => iteration.body));
-  for (const site of table.actors) {
-    // 站点表的 `site.name` 在这里**用不得**：它会退回到绑定名（`const planner = agent()`
-    // 记作 "planner"），那是给图用的展示标签，不是运行期的有效名。这里要的是引擎会看见的
-    // 那个值，所以自己从实参读。
-    const name = staticEffectiveName(site.call);
-    if (name === undefined || name === "") continue;
-    const first = claimed.get(name);
-    if (first === undefined) claimed.set(name, site.call);
-    const loc = workflow.toScriptLoc(site.call.getStart(workflow.scriptFile));
-    // 一个站点最多报一条：fan-out 子句更具体（它连修法都不同——逐元素名而不是换个名字），
-    // 所以它优先。名字仍照常登记，后面同名的站点该报还报。
-    if (isInsideFanOut(site.call, fanOutBodies)) {
-      diagnostics.push({
-        code: FANOUT_ACTOR_NAME_CODE,
-        column: loc.column,
-        line: loc.line,
-        message:
-          `this agent(...) runs once per element of a fan-out but its name "${name}" is a fixed ` +
-          `string, so every element creates a different actor under the same name — the run ` +
-          `fails with DuplicateActorName as soon as the collection holds more than one item. ` +
-          `An actor name must be unique within a run: it is the identity key an amended re-run ` +
-          `matches its imported cache against. Build a per-element name (\`${name}-\${item}\`), ` +
-          `or drop the name — anonymous actors are legal (they just never reuse cached work).`,
-      });
-      continue;
+    const diagnostics: CompileDiagnostic[] = [];
+    const claimed = new Map<string, ts.CallExpression>();
+    // fan-out 体的集合来自站点表的 IterationCandidate（数组方法的内联回调体 + for...of 的
+    // 循环体），与 `ActorNode.fanOutId` 判定「站点是否落在 fan-out 体内」用的是同一个概念。
+    const fanOutBodies = new Set<ts.Node>(table.iterations.map((iteration) => iteration.body));
+    for (const site of table.actors) {
+        // 站点表的 `site.name` 在这里**用不得**：它会退回到绑定名（`const planner = agent()`
+        // 记作 "planner"），那是给图用的展示标签，不是运行期的有效名。这里要的是引擎会看见的
+        // 那个值，所以自己从实参读。
+        const name = staticEffectiveName(site.call);
+        if (name === undefined || name === "") continue;
+        const first = claimed.get(name);
+        if (first === undefined) claimed.set(name, site.call);
+        const loc = workflow.toScriptLoc(site.call.getStart(workflow.scriptFile));
+        // 一个站点最多报一条：fan-out 子句更具体（它连修法都不同——逐元素名而不是换个名字），
+        // 所以它优先。名字仍照常登记，后面同名的站点该报还报。
+        if (isInsideFanOut(site.call, fanOutBodies)) {
+            diagnostics.push({
+                code: FANOUT_ACTOR_NAME_CODE,
+                column: loc.column,
+                line: loc.line,
+                message:
+                    `this agent(...) runs once per element of a fan-out but its name "${name}" is a fixed ` +
+                    `string, so every element creates a different actor under the same name — the run ` +
+                    `fails with DuplicateActorName as soon as the collection holds more than one item. ` +
+                    `An actor name must be unique within a run: it is the identity key an amended re-run ` +
+                    `matches its imported cache against. Build a per-element name (\`${name}-\${item}\`), ` +
+                    `or drop the name — anonymous actors are legal (they just never reuse cached work).`,
+            });
+            continue;
+        }
+        if (first === undefined) continue;
+        // 诊断落在**后一处**：先出现的那个名字是既有事实，要改的是后来的这一个。
+        const firstLoc = workflow.toScriptLoc(first.getStart(workflow.scriptFile));
+        diagnostics.push({
+            code: DUPLICATE_ACTOR_NAME_CODE,
+            column: loc.column,
+            line: loc.line,
+            message:
+                `two actors are named "${name}" (the first is on line ${firstLoc.line}): an actor name ` +
+                `must be unique within a run. The name is the identity key an amended re-run matches ` +
+                `its imported cache against, and any run can become the predecessor of one, so a ` +
+                `repeated name makes that match ambiguous. Give this one its own name, or drop the ` +
+                `name entirely — anonymous actors are legal (they just never reuse cached work).`,
+        });
     }
-    if (first === undefined) continue;
-    // 诊断落在**后一处**：先出现的那个名字是既有事实，要改的是后来的这一个。
-    const firstLoc = workflow.toScriptLoc(first.getStart(workflow.scriptFile));
-    diagnostics.push({
-      code: DUPLICATE_ACTOR_NAME_CODE,
-      column: loc.column,
-      line: loc.line,
-      message:
-        `two actors are named "${name}" (the first is on line ${firstLoc.line}): an actor name ` +
-        `must be unique within a run. The name is the identity key an amended re-run matches ` +
-        `its imported cache against, and any run can become the predecessor of one, so a ` +
-        `repeated name makes that match ambiguous. Give this one its own name, or drop the ` +
-        `name entirely — anonymous actors are legal (they just never reuse cached work).`,
-    });
-  }
-  return diagnostics;
+    return diagnostics;
 }
 
 /**
@@ -115,10 +115,10 @@ export function collectDuplicateActorNames(
  * `paths.map((p) => agent("x"))` 的箭头简写体），命中任一候选体即是。
  */
 function isInsideFanOut(call: ts.CallExpression, fanOutBodies: ReadonlySet<ts.Node>): boolean {
-  for (let node: ts.Node | undefined = call; node !== undefined; node = node.parent) {
-    if (fanOutBodies.has(node)) return true;
-  }
-  return false;
+    for (let node: ts.Node | undefined = call; node !== undefined; node = node.parent) {
+        if (fanOutBodies.has(node)) return true;
+    }
+    return false;
 }
 
 /**
@@ -133,26 +133,29 @@ function isInsideFanOut(call: ts.CallExpression, fanOutBodies: ReadonlySet<ts.No
  * 的 actor 就会被**误报**，而误报会挡住合法脚本（漏报没有代价：引擎运行期兜底）。
  */
 function staticEffectiveName(call: ts.CallExpression): string | undefined {
-  const [nameArg, personaArg] = call.arguments;
-  if (personaArg !== undefined && !ts.isStringLiteralLike(personaArg)) {
-    if (!ts.isObjectLiteralExpression(personaArg)) return undefined; // 动态 persona：可能带 name
-    for (const property of personaArg.properties) {
-      // 展开可能带进一个 name，静态说不准。
-      if (ts.isSpreadAssignment(property)) return undefined;
-      // 计算键（`{ ["na" + "me"]: … }`）也说不准：它**可能就是** name。这里必须整体放弃而
-      // 不是 `continue`——continue 会落回 name 实参，等于断言 persona 没有改名，那是一次
-      // 猜测，而猜错的方向恰好是误报（挡住合法脚本）。
-      if (property.name !== undefined && ts.isComputedPropertyName(property.name)) return undefined;
-      if (property.name === undefined || !isNameKey(property.name)) continue;
-      if (!ts.isPropertyAssignment(property)) return undefined; // shorthand / 方法：动态
-      return ts.isStringLiteralLike(property.initializer) ? property.initializer.text : undefined;
+    const [nameArg, personaArg] = call.arguments;
+    if (personaArg !== undefined && !ts.isStringLiteralLike(personaArg)) {
+        if (!ts.isObjectLiteralExpression(personaArg)) return undefined; // 动态 persona：可能带 name
+        for (const property of personaArg.properties) {
+            // 展开可能带进一个 name，静态说不准。
+            if (ts.isSpreadAssignment(property)) return undefined;
+            // 计算键（`{ ["na" + "me"]: … }`）也说不准：它**可能就是** name。这里必须整体放弃而
+            // 不是 `continue`——continue 会落回 name 实参，等于断言 persona 没有改名，那是一次
+            // 猜测，而猜错的方向恰好是误报（挡住合法脚本）。
+            if (property.name !== undefined && ts.isComputedPropertyName(property.name))
+                return undefined;
+            if (property.name === undefined || !isNameKey(property.name)) continue;
+            if (!ts.isPropertyAssignment(property)) return undefined; // shorthand / 方法：动态
+            return ts.isStringLiteralLike(property.initializer)
+                ? property.initializer.text
+                : undefined;
+        }
+        // 对象字面量里没有 name，落回 name 实参。
     }
-    // 对象字面量里没有 name，落回 name 实参。
-  }
-  return nameArg !== undefined && ts.isStringLiteralLike(nameArg) ? nameArg.text : undefined;
+    return nameArg !== undefined && ts.isStringLiteralLike(nameArg) ? nameArg.text : undefined;
 }
 
 /** 属性键是否**静态确定**就是 `name`（计算键在调用点已整体放弃，不走这里）。 */
 function isNameKey(key: ts.PropertyName): boolean {
-  return (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) && key.text === "name";
+    return (ts.isIdentifier(key) || ts.isStringLiteralLike(key)) && key.text === "name";
 }

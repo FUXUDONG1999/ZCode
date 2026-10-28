@@ -5,25 +5,25 @@ import { ChevronLeftIcon, ChevronRightIcon, CopyIcon, FolderOpenIcon } from "luc
 import { Button } from "@/components/ui/button.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import {
-  ArtifactKindIcon,
-  artifactDisplayTitle,
-  artifactKindMessageId,
-  artifactOpenAsFileName,
-  canRevealArtifactInWorkspace,
-  isArtifactPresetKind,
-  isTextArtifactContentType,
+    ArtifactKindIcon,
+    artifactDisplayTitle,
+    artifactKindMessageId,
+    artifactOpenAsFileName,
+    canRevealArtifactInWorkspace,
+    isArtifactPresetKind,
+    isTextArtifactContentType,
 } from "@/app-shell/workflow-artifacts/artifactPresentation.js";
 import {
-  ArtifactOpenAsFileButton,
-  useCanOpenArtifactAsFile,
+    ArtifactOpenAsFileButton,
+    useCanOpenArtifactAsFile,
 } from "@/app-shell/workflow-artifacts/ArtifactOpenAsFileButton.js";
 import { WorkflowArtifactBody } from "@/app-shell/workflow-artifacts/WorkflowArtifactBody.js";
 import { artifactPresetFieldPaths } from "@/app-shell/workflow-artifacts/presets/spec.js";
 import { useWorkflowRunArtifactBytes } from "@/hooks/useWorkflowRunArtifactBytes.js";
 import { useWorkflowRunArtifactData } from "@/hooks/useWorkflowRunArtifactData.js";
 import {
-  useWorkflowRunArtifacts,
-  type WorkflowRunArtifactView,
+    useWorkflowRunArtifacts,
+    type WorkflowRunArtifactView,
 } from "@/hooks/useWorkflowRunArtifacts.js";
 import { joinFilePath } from "@/lib/path.js";
 import type { WorkflowArtifactSidePaneTab } from "@/lib/workspaceSidePane.js";
@@ -41,86 +41,86 @@ import { useV4Conversation, V4PaneConversationProvider } from "@/v4/V4Conversati
 const EMPTY_SUMMARIES: readonly WorkflowRunArtifactSummary[] = [];
 
 const WorkflowArtifactContent = memo(function WorkflowArtifactContent({
-  tab,
-  onOpenBrowserUrl,
-  onRevealFileInTree,
+    tab,
+    onOpenBrowserUrl,
+    onRevealFileInTree,
 }: {
-  tab: WorkflowArtifactSidePaneTab;
-  onOpenBrowserUrl?: (url: string) => void;
-  onRevealFileInTree?: (path: string) => void;
+    tab: WorkflowArtifactSidePaneTab;
+    onOpenBrowserUrl?: (url: string) => void;
+    onRevealFileInTree?: (path: string) => void;
 }) {
-  const { intl } = useZCodeIntl();
-  const { layer } = useV4Conversation();
-  const [lease, setLease] = useState<SessionLease | null>(null);
-  const theme = useZCodeStoreWithDefault((state) => state.theme, "system");
+    const { intl } = useZCodeIntl();
+    const { layer } = useV4Conversation();
+    const [lease, setLease] = useState<SessionLease | null>(null);
+    const theme = useZCodeStoreWithDefault((state) => state.theme, "system");
 
-  // 订阅**父会话**的投影（照 PlanDetail / WorkflowRun 详情页）：产物的新鲜元数据是父会话
-  // 投影的一部分，不是这个面板的本地缓存。
-  useEffect(() => {
-    const nextLease = layer.acquire(tab.parentSessionId);
-    setLease(nextLease);
-    return () => nextLease.release();
-  }, [layer, tab.parentSessionId]);
-  const state = useConversationProjection(lease);
-  const run = useMemo(
-    () => state.snapshot?.workflowRuns?.runs.find((candidate) => candidate.runId === tab.runId),
-    [state.snapshot?.workflowRuns, tab.runId],
-  );
-  // run 不在活投影里（冷恢复 / 被 8-run 上限淘汰）⇒ 整份清单走 journal；在场但零产物 ⇒ 空数组。
-  const live = run === undefined ? undefined : (run.artifacts ?? EMPTY_SUMMARIES);
-  const {
-    artifacts,
-    loading: metadataLoading,
-    unavailable,
-  } = useWorkflowRunArtifacts({
-    sessionId: tab.parentSessionId,
-    runId: tab.runId,
-    ...(live === undefined ? {} : { live }),
-  });
+    // 订阅**父会话**的投影（照 PlanDetail / WorkflowRun 详情页）：产物的新鲜元数据是父会话
+    // 投影的一部分，不是这个面板的本地缓存。
+    useEffect(() => {
+        const nextLease = layer.acquire(tab.parentSessionId);
+        setLease(nextLease);
+        return () => nextLease.release();
+    }, [layer, tab.parentSessionId]);
+    const state = useConversationProjection(lease);
+    const run = useMemo(
+        () => state.snapshot?.workflowRuns?.runs.find((candidate) => candidate.runId === tab.runId),
+        [state.snapshot?.workflowRuns, tab.runId],
+    );
+    // run 不在活投影里（冷恢复 / 被 8-run 上限淘汰）⇒ 整份清单走 journal；在场但零产物 ⇒ 空数组。
+    const live = run === undefined ? undefined : (run.artifacts ?? EMPTY_SUMMARIES);
+    const {
+        artifacts,
+        loading: metadataLoading,
+        unavailable,
+    } = useWorkflowRunArtifacts({
+        sessionId: tab.parentSessionId,
+        runId: tab.runId,
+        ...(live === undefined ? {} : { live }),
+    });
 
-  const artifact = useMemo(
-    () => artifacts.find((candidate) => candidate.id === tab.artifactId),
-    [artifacts, tab.artifactId],
-  );
+    const artifact = useMemo(
+        () => artifacts.find((candidate) => candidate.id === tab.artifactId),
+        [artifacts, tab.artifactId],
+    );
 
-  return (
-    <div
-      className="flex h-full min-h-0 flex-col bg-background"
-      data-artifact-source={live === undefined ? "journal" : "live"}
-      data-testid={TID_WORKFLOW_ARTIFACT_PANE}
-      data-workflow-artifact-id={tab.artifactId}
-      data-workflow-run-id={tab.runId}
-    >
-      {artifact === undefined ? (
-        // 三态必须分开：还在读 / 这个会话读不到产物详情（老 CLI）/ 读完了但这个 id 不在
-        // （run 的 journal 已被清理，或 chip 指向的产物不存在）。合并成一句「正在读取」的
-        // 结果是最后一种情形永远停在加载文案上。
-        <div className="flex h-full items-center justify-center p-6 text-center">
-          <p
-            className="text-ui-base text-foreground-subtle"
-            data-testid="workflow-artifact-placeholder"
-          >
-            {intl.formatMessage({
-              id: metadataLoading
-                ? "chat.toolCall.workflow.run.artifacts.loading"
-                : unavailable
-                  ? "chat.toolCall.workflow.run.artifacts.unavailable"
-                  : "chat.toolCall.workflow.run.artifacts.missing",
-            })}
-          </p>
+    return (
+        <div
+            className="flex h-full min-h-0 flex-col bg-background"
+            data-artifact-source={live === undefined ? "journal" : "live"}
+            data-testid={TID_WORKFLOW_ARTIFACT_PANE}
+            data-workflow-artifact-id={tab.artifactId}
+            data-workflow-run-id={tab.runId}
+        >
+            {artifact === undefined ? (
+                // 三态必须分开：还在读 / 这个会话读不到产物详情（老 CLI）/ 读完了但这个 id 不在
+                // （run 的 journal 已被清理，或 chip 指向的产物不存在）。合并成一句「正在读取」的
+                // 结果是最后一种情形永远停在加载文案上。
+                <div className="flex h-full items-center justify-center p-6 text-center">
+                    <p
+                        className="text-ui-base text-foreground-subtle"
+                        data-testid="workflow-artifact-placeholder"
+                    >
+                        {intl.formatMessage({
+                            id: metadataLoading
+                                ? "chat.toolCall.workflow.run.artifacts.loading"
+                                : unavailable
+                                  ? "chat.toolCall.workflow.run.artifacts.unavailable"
+                                  : "chat.toolCall.workflow.run.artifacts.missing",
+                        })}
+                    </p>
+                </div>
+            ) : (
+                <WorkflowArtifactView
+                    artifact={artifact}
+                    metadataLoading={metadataLoading}
+                    tab={tab}
+                    theme={theme}
+                    {...(onOpenBrowserUrl === undefined ? {} : { onOpenBrowserUrl })}
+                    {...(onRevealFileInTree === undefined ? {} : { onRevealFileInTree })}
+                />
+            )}
         </div>
-      ) : (
-        <WorkflowArtifactView
-          artifact={artifact}
-          metadataLoading={metadataLoading}
-          tab={tab}
-          theme={theme}
-          {...(onOpenBrowserUrl === undefined ? {} : { onOpenBrowserUrl })}
-          {...(onRevealFileInTree === undefined ? {} : { onRevealFileInTree })}
-        />
-      )}
-    </div>
-  );
+    );
 });
 
 /**
@@ -128,205 +128,213 @@ const WorkflowArtifactContent = memo(function WorkflowArtifactContent({
  * （产物缺席那一帧根本不渲染这个组件，hooks 数量因此恒定）。
  */
 function WorkflowArtifactView({
-  artifact,
-  metadataLoading,
-  tab,
-  theme,
-  onOpenBrowserUrl,
-  onRevealFileInTree,
+    artifact,
+    metadataLoading,
+    tab,
+    theme,
+    onOpenBrowserUrl,
+    onRevealFileInTree,
 }: {
-  artifact: WorkflowRunArtifactView;
-  /** 元数据（含预置看板的 spec）还在读；正文据此区分「还没到」与「真的没有」。 */
-  metadataLoading: boolean;
-  tab: WorkflowArtifactSidePaneTab;
-  theme: Theme;
-  onOpenBrowserUrl?: (url: string) => void;
-  onRevealFileInTree?: (path: string) => void;
+    artifact: WorkflowRunArtifactView;
+    /** 元数据（含预置看板的 spec）还在读；正文据此区分「还没到」与「真的没有」。 */
+    metadataLoading: boolean;
+    tab: WorkflowArtifactSidePaneTab;
+    theme: Theme;
+    onOpenBrowserUrl?: (url: string) => void;
+    onRevealFileInTree?: (path: string) => void;
 }) {
-  const { intl } = useZCodeIntl();
-  const preset = isArtifactPresetKind(artifact.kind);
+    const { intl } = useZCodeIntl();
+    const preset = isArtifactPresetKind(artifact.kind);
 
-  // 版本步进器的落点。tab 上的 `version` 只是**打开时**的初始值（chip 从不带版本号，
-  // 缺席即最新版）；之后由用户翻。产物换了（同一个 tab 不会，但组件可能被复用）或最新版
-  // 抬升时重置回最新版——正在看历史版本时新版落地，跳走会很突兀，所以只在 id 变化时重置。
-  const [selectedVersion, setSelectedVersion] = useState<number | undefined>(tab.version);
-  useEffect(() => {
-    setSelectedVersion(tab.version);
-  }, [artifact.id, tab.version]);
+    // 版本步进器的落点。tab 上的 `version` 只是**打开时**的初始值（chip 从不带版本号，
+    // 缺席即最新版）；之后由用户翻。产物换了（同一个 tab 不会，但组件可能被复用）或最新版
+    // 抬升时重置回最新版——正在看历史版本时新版落地，跳走会很突兀，所以只在 id 变化时重置。
+    const [selectedVersion, setSelectedVersion] = useState<number | undefined>(tab.version);
+    useEffect(() => {
+        setSelectedVersion(tab.version);
+    }, [artifact.id, tab.version]);
 
-  const availableVersions = useMemo(() => {
-    if (artifact.versions !== undefined && artifact.versions.length > 0) {
-      return artifact.versions.map((entry) => entry.version);
-    }
-    // journal 读不到（老 CLI / 读失败）时只有最新版可看——不要凭 `version` 编造 1..n，
-    // 那会让步进器指向一批取不到字节的版本号。
-    return [artifact.version];
-  }, [artifact.version, artifact.versions]);
+    const availableVersions = useMemo(() => {
+        if (artifact.versions !== undefined && artifact.versions.length > 0) {
+            return artifact.versions.map((entry) => entry.version);
+        }
+        // journal 读不到（老 CLI / 读失败）时只有最新版可看——不要凭 `version` 编造 1..n，
+        // 那会让步进器指向一批取不到字节的版本号。
+        return [artifact.version];
+    }, [artifact.version, artifact.versions]);
 
-  const version =
-    selectedVersion !== undefined && availableVersions.includes(selectedVersion)
-      ? selectedVersion
-      : artifact.version;
-  const versionIndex = availableVersions.indexOf(version);
-  const isLatestVersion = version === artifact.version;
+    const version =
+        selectedVersion !== undefined && availableVersions.includes(selectedVersion)
+            ? selectedVersion
+            : artifact.version;
+    const versionIndex = availableVersions.indexOf(version);
+    const isLatestVersion = version === artifact.version;
 
-  const bytesState = useWorkflowRunArtifactBytes({
-    sessionId: tab.parentSessionId,
-    runId: tab.runId,
-    artifactId: artifact.id,
-    version,
-    enabled: !preset,
-  });
-  // 看板只让 CLI 取 spec 点名的字段；spec 还没到或画不了时不取数——正文此时本来也画不出图。
-  const fields = useMemo(
-    () =>
-      isArtifactPresetKind(artifact.kind)
-        ? artifactPresetFieldPaths(artifact.kind, artifact.spec)
-        : undefined,
-    [artifact.kind, artifact.spec],
-  );
-  const dataState = useWorkflowRunArtifactData({
-    sessionId: tab.parentSessionId,
-    runId: tab.runId,
-    artifactId: artifact.id,
-    itemCount: artifact.itemCount,
-    enabled: fields !== undefined,
-    ...(fields === undefined ? {} : { fields }),
-  });
+    const bytesState = useWorkflowRunArtifactBytes({
+        sessionId: tab.parentSessionId,
+        runId: tab.runId,
+        artifactId: artifact.id,
+        version,
+        enabled: !preset,
+    });
+    // 看板只让 CLI 取 spec 点名的字段；spec 还没到或画不了时不取数——正文此时本来也画不出图。
+    const fields = useMemo(
+        () =>
+            isArtifactPresetKind(artifact.kind)
+                ? artifactPresetFieldPaths(artifact.kind, artifact.spec)
+                : undefined,
+        [artifact.kind, artifact.spec],
+    );
+    const dataState = useWorkflowRunArtifactData({
+        sessionId: tab.parentSessionId,
+        runId: tab.runId,
+        artifactId: artifact.id,
+        itemCount: artifact.itemCount,
+        enabled: fields !== undefined,
+        ...(fields === undefined ? {} : { fields }),
+    });
 
-  // 「在工作区显示」与 html 的「在浏览器中打开」共用这一条路径：工作区相对的 `sourcePath`
-  // 拼上 workspacePath 才是本机上真实存在的位置。远程 workspace 与无出处的产物都得不到它。
-  const sourcePath = artifact.sourcePath;
-  const localSourcePath =
-    sourcePath !== undefined &&
-    canRevealArtifactInWorkspace({
-      sourcePath,
-      ...(tab.workspaceIdentity === undefined ? {} : { workspaceIdentity: tab.workspaceIdentity }),
-      ...(tab.remoteSessionId === undefined ? {} : { remoteSessionId: tab.remoteSessionId }),
-    })
-      ? joinFilePath(tab.workspacePath, sourcePath)
-      : undefined;
+    // 「在工作区显示」与 html 的「在浏览器中打开」共用这一条路径：工作区相对的 `sourcePath`
+    // 拼上 workspacePath 才是本机上真实存在的位置。远程 workspace 与无出处的产物都得不到它。
+    const sourcePath = artifact.sourcePath;
+    const localSourcePath =
+        sourcePath !== undefined &&
+        canRevealArtifactInWorkspace({
+            sourcePath,
+            ...(tab.workspaceIdentity === undefined
+                ? {}
+                : { workspaceIdentity: tab.workspaceIdentity }),
+            ...(tab.remoteSessionId === undefined ? {} : { remoteSessionId: tab.remoteSessionId }),
+        })
+            ? joinFilePath(tab.workspacePath, sourcePath)
+            : undefined;
 
-  // 头部只留一个文件控件：能「作为文件打开」时「在工作区显示」收进它的菜单，否则独立成按钮。
-  const canOpenAsFile = useCanOpenArtifactAsFile();
-  const openAsFile = !preset && canOpenAsFile;
-  const reveal =
-    localSourcePath !== undefined && onRevealFileInTree !== undefined
-      ? () => onRevealFileInTree(localSourcePath)
-      : undefined;
+    // 头部只留一个文件控件：能「作为文件打开」时「在工作区显示」收进它的菜单，否则独立成按钮。
+    const canOpenAsFile = useCanOpenArtifactAsFile();
+    const openAsFile = !preset && canOpenAsFile;
+    const reveal =
+        localSourcePath !== undefined && onRevealFileInTree !== undefined
+            ? () => onRevealFileInTree(localSourcePath)
+            : undefined;
 
-  const [copied, setCopied] = useState(false);
-  useEffect(() => {
-    if (!copied) return;
-    const timer = setTimeout(() => setCopied(false), 1500);
-    return () => clearTimeout(timer);
-  }, [copied]);
-  const copyable =
-    !preset && bytesState.bytes !== null && isTextArtifactContentType(artifact.contentType);
-  const handleCopy = useCallback(() => {
-    if (bytesState.bytes === null) return;
-    void navigator.clipboard
-      ?.writeText(new TextDecoder().decode(bytesState.bytes))
-      .then(() => setCopied(true))
-      .catch(() => undefined);
-  }, [bytesState.bytes]);
+    const [copied, setCopied] = useState(false);
+    useEffect(() => {
+        if (!copied) return;
+        const timer = setTimeout(() => setCopied(false), 1500);
+        return () => clearTimeout(timer);
+    }, [copied]);
+    const copyable =
+        !preset && bytesState.bytes !== null && isTextArtifactContentType(artifact.contentType);
+    const handleCopy = useCallback(() => {
+        if (bytesState.bytes === null) return;
+        void navigator.clipboard
+            ?.writeText(new TextDecoder().decode(bytesState.bytes))
+            .then(() => setCopied(true))
+            .catch(() => undefined);
+    }, [bytesState.bytes]);
 
-  const title = artifactDisplayTitle(artifact);
-  const kindLabel = intl.formatMessage({ id: artifactKindMessageId(artifact.kind) });
+    const title = artifactDisplayTitle(artifact);
+    const kindLabel = intl.formatMessage({ id: artifactKindMessageId(artifact.kind) });
 
-  return (
-    <>
-      <header className="shrink-0 border-b border-border px-4 py-3">
-        <div className="flex min-w-0 items-center gap-2">
-          {/* 与产物药丸同一枚方形瓦片：tab 头就是那枚药丸长大了。 */}
-          <span className="flex size-[22px] shrink-0 items-center justify-center rounded-md bg-surface-hover text-foreground-subtle">
-            <ArtifactKindIcon className="size-3.5" kind={artifact.kind} />
-          </span>
-          <h2
-            className="min-w-0 flex-1 truncate text-ui-base font-medium text-foreground"
-            data-testid="workflow-artifact-title"
-            title={title}
-          >
-            {title}
-          </h2>
-        </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <span className="text-ui-sm text-foreground-subtle">{kindLabel}</span>
-          <ArtifactVersionStepper
-            availableVersions={availableVersions}
-            onSelect={setSelectedVersion}
-            version={version}
-            versionIndex={versionIndex}
-          />
-          <div className="ml-auto flex items-center gap-1">
-            {openAsFile ? (
-              <ArtifactOpenAsFileButton
-                artifactId={artifact.id}
-                // 只交**属于这一版**的字节：换版本那一帧 bytes 还是旧版的，而副本只写一次。
-                bytes={bytesState.bytesVersion === version ? bytesState.bytes : null}
-                fileName={artifactOpenAsFileName(artifact, version)}
-                runId={tab.runId}
-                version={version}
-                {...(reveal === undefined ? {} : { onReveal: reveal })}
-              />
-            ) : null}
-            {!openAsFile && reveal !== undefined ? (
-              <Button
-                data-testid="workflow-artifact-reveal"
-                onClick={reveal}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                <FolderOpenIcon aria-hidden="true" className="size-3.5" />
-                {intl.formatMessage({ id: "chat.toolCall.workflow.run.artifacts.reveal" })}
-              </Button>
-            ) : null}
-            {copyable ? (
-              <Button
-                data-testid="workflow-artifact-copy"
-                onClick={handleCopy}
-                size="sm"
-                type="button"
-                variant="ghost"
-              >
-                <CopyIcon aria-hidden="true" className="size-3.5" />
-                {intl.formatMessage({
-                  id: copied
-                    ? "chat.toolCall.workflow.run.artifacts.copied"
-                    : "chat.toolCall.workflow.run.artifacts.copy",
-                })}
-              </Button>
-            ) : null}
-          </div>
-        </div>
-        {/* 作者写的说明（用户语言）；缺席即整行不渲染。 */}
-        {artifact.description === undefined ? null : (
-          <p className="mt-1.5 text-ui-sm text-foreground-subtle">{artifact.description}</p>
-        )}
-      </header>
+    return (
+        <>
+            <header className="shrink-0 border-b border-border px-4 py-3">
+                <div className="flex min-w-0 items-center gap-2">
+                    {/* 与产物药丸同一枚方形瓦片：tab 头就是那枚药丸长大了。 */}
+                    <span className="flex size-[22px] shrink-0 items-center justify-center rounded-md bg-surface-hover text-foreground-subtle">
+                        <ArtifactKindIcon className="size-3.5" kind={artifact.kind} />
+                    </span>
+                    <h2
+                        className="min-w-0 flex-1 truncate text-ui-base font-medium text-foreground"
+                        data-testid="workflow-artifact-title"
+                        title={title}
+                    >
+                        {title}
+                    </h2>
+                </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    <span className="text-ui-sm text-foreground-subtle">{kindLabel}</span>
+                    <ArtifactVersionStepper
+                        availableVersions={availableVersions}
+                        onSelect={setSelectedVersion}
+                        version={version}
+                        versionIndex={versionIndex}
+                    />
+                    <div className="ml-auto flex items-center gap-1">
+                        {openAsFile ? (
+                            <ArtifactOpenAsFileButton
+                                artifactId={artifact.id}
+                                // 只交**属于这一版**的字节：换版本那一帧 bytes 还是旧版的，而副本只写一次。
+                                bytes={
+                                    bytesState.bytesVersion === version ? bytesState.bytes : null
+                                }
+                                fileName={artifactOpenAsFileName(artifact, version)}
+                                runId={tab.runId}
+                                version={version}
+                                {...(reveal === undefined ? {} : { onReveal: reveal })}
+                            />
+                        ) : null}
+                        {!openAsFile && reveal !== undefined ? (
+                            <Button
+                                data-testid="workflow-artifact-reveal"
+                                onClick={reveal}
+                                size="sm"
+                                type="button"
+                                variant="ghost"
+                            >
+                                <FolderOpenIcon aria-hidden="true" className="size-3.5" />
+                                {intl.formatMessage({
+                                    id: "chat.toolCall.workflow.run.artifacts.reveal",
+                                })}
+                            </Button>
+                        ) : null}
+                        {copyable ? (
+                            <Button
+                                data-testid="workflow-artifact-copy"
+                                onClick={handleCopy}
+                                size="sm"
+                                type="button"
+                                variant="ghost"
+                            >
+                                <CopyIcon aria-hidden="true" className="size-3.5" />
+                                {intl.formatMessage({
+                                    id: copied
+                                        ? "chat.toolCall.workflow.run.artifacts.copied"
+                                        : "chat.toolCall.workflow.run.artifacts.copy",
+                                })}
+                            </Button>
+                        ) : null}
+                    </div>
+                </div>
+                {/* 作者写的说明（用户语言）；缺席即整行不渲染。 */}
+                {artifact.description === undefined ? null : (
+                    <p className="mt-1.5 text-ui-sm text-foreground-subtle">
+                        {artifact.description}
+                    </p>
+                )}
+            </header>
 
-      <div className="min-h-0 flex-1">
-        <WorkflowArtifactBody
-          artifact={artifact}
-          blob={bytesState.blob}
-          bytes={bytesState.bytes}
-          error={bytesState.error}
-          isLatestVersion={isLatestVersion}
-          items={dataState.items}
-          loading={bytesState.loading}
-          metadataLoading={metadataLoading}
-          objectUrl={bytesState.objectUrl}
-          resolvedTheme={resolveTheme(theme)}
-          theme={theme}
-          version={version}
-          {...(localSourcePath === undefined ? {} : { localSourcePath })}
-          {...(onOpenBrowserUrl === undefined ? {} : { onOpenBrowserUrl })}
-          {...(reveal === undefined ? {} : { onReveal: reveal })}
-        />
-      </div>
-    </>
-  );
+            <div className="min-h-0 flex-1">
+                <WorkflowArtifactBody
+                    artifact={artifact}
+                    blob={bytesState.blob}
+                    bytes={bytesState.bytes}
+                    error={bytesState.error}
+                    isLatestVersion={isLatestVersion}
+                    items={dataState.items}
+                    loading={bytesState.loading}
+                    metadataLoading={metadataLoading}
+                    objectUrl={bytesState.objectUrl}
+                    resolvedTheme={resolveTheme(theme)}
+                    theme={theme}
+                    version={version}
+                    {...(localSourcePath === undefined ? {} : { localSourcePath })}
+                    {...(onOpenBrowserUrl === undefined ? {} : { onOpenBrowserUrl })}
+                    {...(reveal === undefined ? {} : { onReveal: reveal })}
+                />
+            </div>
+        </>
+    );
 }
 
 /**
@@ -336,69 +344,71 @@ function WorkflowArtifactView({
  * 那时步进器自然消失，而不是给出一批取不到字节的版本号。
  */
 function ArtifactVersionStepper({
-  availableVersions,
-  version,
-  versionIndex,
-  onSelect,
+    availableVersions,
+    version,
+    versionIndex,
+    onSelect,
 }: {
-  availableVersions: readonly number[];
-  version: number;
-  versionIndex: number;
-  onSelect: (version: number) => void;
+    availableVersions: readonly number[];
+    version: number;
+    versionIndex: number;
+    onSelect: (version: number) => void;
 }) {
-  const { intl } = useZCodeIntl();
-  if (availableVersions.length <= 1) {
+    const { intl } = useZCodeIntl();
+    if (availableVersions.length <= 1) {
+        return (
+            <span
+                className="font-mono text-ui-xs text-foreground-subtlest"
+                data-testid="workflow-artifact-version"
+            >
+                {intl.formatMessage(
+                    { id: "chat.toolCall.workflow.run.artifacts.version" },
+                    { version: String(version) },
+                )}
+            </span>
+        );
+    }
+    const previous = availableVersions[versionIndex - 1];
+    const next = availableVersions[versionIndex + 1];
     return (
-      <span
-        className="font-mono text-ui-xs text-foreground-subtlest"
-        data-testid="workflow-artifact-version"
-      >
-        {intl.formatMessage(
-          { id: "chat.toolCall.workflow.run.artifacts.version" },
-          { version: String(version) },
-        )}
-      </span>
+        <div className="flex items-center gap-0.5" data-testid="workflow-artifact-version-stepper">
+            <Button
+                aria-label={intl.formatMessage({
+                    id: "chat.toolCall.workflow.run.artifacts.previousVersion",
+                })}
+                data-testid="workflow-artifact-version-previous"
+                disabled={previous === undefined}
+                onClick={() => (previous === undefined ? undefined : onSelect(previous))}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+            >
+                <ChevronLeftIcon aria-hidden="true" className="size-3.5" />
+            </Button>
+            <span
+                className="font-mono text-ui-xs text-foreground-subtle"
+                data-testid="workflow-artifact-version"
+            >
+                {intl.formatMessage(
+                    { id: "chat.toolCall.workflow.run.artifacts.versionOf" },
+                    { total: String(availableVersions.length), version: String(version) },
+                )}
+            </span>
+            <Button
+                aria-label={intl.formatMessage({
+                    id: "chat.toolCall.workflow.run.artifacts.nextVersion",
+                })}
+                data-testid="workflow-artifact-version-next"
+                disabled={next === undefined}
+                onClick={() => (next === undefined ? undefined : onSelect(next))}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+            >
+                <ChevronRightIcon aria-hidden="true" className="size-3.5" />
+            </Button>
+        </div>
     );
-  }
-  const previous = availableVersions[versionIndex - 1];
-  const next = availableVersions[versionIndex + 1];
-  return (
-    <div className="flex items-center gap-0.5" data-testid="workflow-artifact-version-stepper">
-      <Button
-        aria-label={intl.formatMessage({
-          id: "chat.toolCall.workflow.run.artifacts.previousVersion",
-        })}
-        data-testid="workflow-artifact-version-previous"
-        disabled={previous === undefined}
-        onClick={() => (previous === undefined ? undefined : onSelect(previous))}
-        size="icon-sm"
-        type="button"
-        variant="ghost"
-      >
-        <ChevronLeftIcon aria-hidden="true" className="size-3.5" />
-      </Button>
-      <span
-        className="font-mono text-ui-xs text-foreground-subtle"
-        data-testid="workflow-artifact-version"
-      >
-        {intl.formatMessage(
-          { id: "chat.toolCall.workflow.run.artifacts.versionOf" },
-          { total: String(availableVersions.length), version: String(version) },
-        )}
-      </span>
-      <Button
-        aria-label={intl.formatMessage({ id: "chat.toolCall.workflow.run.artifacts.nextVersion" })}
-        data-testid="workflow-artifact-version-next"
-        disabled={next === undefined}
-        onClick={() => (next === undefined ? undefined : onSelect(next))}
-        size="icon-sm"
-        type="button"
-        variant="ghost"
-      >
-        <ChevronRightIcon aria-hidden="true" className="size-3.5" />
-      </Button>
-    </div>
-  );
 }
 
 /**
@@ -413,32 +423,32 @@ function ArtifactVersionStepper({
  * 所以一个看板永远不会去读字节，一份 pdf 也永远不会去翻 journal 的 report 行。
  */
 export const WorkflowArtifactSidePane = memo(function WorkflowArtifactSidePane({
-  tab,
-  onOpenBrowserUrl,
-  onRevealFileInTree,
+    tab,
+    onOpenBrowserUrl,
+    onRevealFileInTree,
 }: {
-  tab: WorkflowArtifactSidePaneTab;
-  /** html 产物的「在浏览器中打开」。 */
-  onOpenBrowserUrl?: (url: string) => void;
-  /** 「在工作区显示」：复用既有的文件树 reveal（与 Git 面板同一条路径）。 */
-  onRevealFileInTree?: (path: string) => void;
+    tab: WorkflowArtifactSidePaneTab;
+    /** html 产物的「在浏览器中打开」。 */
+    onOpenBrowserUrl?: (url: string) => void;
+    /** 「在工作区显示」：复用既有的文件树 reveal（与 Git 面板同一条路径）。 */
+    onRevealFileInTree?: (path: string) => void;
 }) {
-  const scope = useMemo<PaneWorkspaceScope>(
-    () => ({
-      workspacePath: tab.workspacePath,
-      ...(tab.workspaceIdentity ? { workspaceIdentity: tab.workspaceIdentity } : {}),
-      ...(tab.remoteSessionId ? { remoteSessionId: tab.remoteSessionId } : {}),
-    }),
-    [tab.remoteSessionId, tab.workspaceIdentity, tab.workspacePath],
-  );
+    const scope = useMemo<PaneWorkspaceScope>(
+        () => ({
+            workspacePath: tab.workspacePath,
+            ...(tab.workspaceIdentity ? { workspaceIdentity: tab.workspaceIdentity } : {}),
+            ...(tab.remoteSessionId ? { remoteSessionId: tab.remoteSessionId } : {}),
+        }),
+        [tab.remoteSessionId, tab.workspaceIdentity, tab.workspacePath],
+    );
 
-  return (
-    <V4PaneConversationProvider scope={scope}>
-      <WorkflowArtifactContent
-        tab={tab}
-        {...(onOpenBrowserUrl === undefined ? {} : { onOpenBrowserUrl })}
-        {...(onRevealFileInTree === undefined ? {} : { onRevealFileInTree })}
-      />
-    </V4PaneConversationProvider>
-  );
+    return (
+        <V4PaneConversationProvider scope={scope}>
+            <WorkflowArtifactContent
+                tab={tab}
+                {...(onOpenBrowserUrl === undefined ? {} : { onOpenBrowserUrl })}
+                {...(onRevealFileInTree === undefined ? {} : { onRevealFileInTree })}
+            />
+        </V4PaneConversationProvider>
+    );
 });

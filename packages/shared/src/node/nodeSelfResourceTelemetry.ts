@@ -11,83 +11,83 @@ import { bytesToKb } from "../memoryDiagnostics.js";
 import type { NodeSelfResourceSample } from "../validation.js";
 
 interface NodeCpuUsageSnapshot {
-  user: number;
-  system: number;
+    user: number;
+    system: number;
 }
 
 /** Node 进程自采周期：60 秒，与本地内存诊断日志同节拍。 */
 export const NODE_SELF_RESOURCE_SAMPLE_INTERVAL_MS = 60_000;
 
 export interface NodeSelfResourceSamplerOptions {
-  readCpuUsage?: () => NodeCpuUsageSnapshot;
-  readMonotonicTimeNs?: () => bigint;
-  logicalCpuCount?: number;
+    readCpuUsage?: () => NodeCpuUsageSnapshot;
+    readMonotonicTimeNs?: () => bigint;
+    logicalCpuCount?: number;
 }
 
 export interface NodeSelfResourceSampler {
-  /**
-   * 用调用方刚读到的 `memoryUsage` 换算一条样本。
-   * 基线不可用（首次读数失败、时钟未前进、CPU 计数回退）时返回 null，只丢当前样本。
-   */
-  sample(memoryUsage: NodeJS.MemoryUsage): NodeSelfResourceSample | null;
+    /**
+     * 用调用方刚读到的 `memoryUsage` 换算一条样本。
+     * 基线不可用（首次读数失败、时钟未前进、CPU 计数回退）时返回 null，只丢当前样本。
+     */
+    sample(memoryUsage: NodeJS.MemoryUsage): NodeSelfResourceSample | null;
 }
 
 interface SamplerBaseline {
-  cpu: NodeCpuUsageSnapshot;
-  monotonicTimeNs: bigint;
+    cpu: NodeCpuUsageSnapshot;
+    monotonicTimeNs: bigint;
 }
 
 /** CPU 百分比保留 4 位小数，与 CLI 自采样本同口径。 */
 function roundResourceMetric(value: number): number {
-  return Math.round(value * 10_000) / 10_000;
+    return Math.round(value * 10_000) / 10_000;
 }
 
 export function createNodeSelfResourceSampler(
-  options: NodeSelfResourceSamplerOptions = {},
+    options: NodeSelfResourceSamplerOptions = {},
 ): NodeSelfResourceSampler {
-  const readCpuUsage = options.readCpuUsage ?? (() => process.cpuUsage());
-  const readMonotonicTimeNs = options.readMonotonicTimeNs ?? (() => process.hrtime.bigint());
-  const logicalCpuCount = Math.max(
-    1,
-    Math.min(4_096, Math.trunc(options.logicalCpuCount ?? availableParallelism())),
-  );
+    const readCpuUsage = options.readCpuUsage ?? (() => process.cpuUsage());
+    const readMonotonicTimeNs = options.readMonotonicTimeNs ?? (() => process.hrtime.bigint());
+    const logicalCpuCount = Math.max(
+        1,
+        Math.min(4_096, Math.trunc(options.logicalCpuCount ?? availableParallelism())),
+    );
 
-  const readBaseline = (): SamplerBaseline | null => {
-    try {
-      return { cpu: readCpuUsage(), monotonicTimeNs: readMonotonicTimeNs() };
-    } catch {
-      return null;
-    }
-  };
+    const readBaseline = (): SamplerBaseline | null => {
+        try {
+            return { cpu: readCpuUsage(), monotonicTimeNs: readMonotonicTimeNs() };
+        } catch {
+            return null;
+        }
+    };
 
-  // 构造时就建立基线，第一个 60 秒 tick 才能直接产出样本而不是空转一轮。
-  let baseline = readBaseline();
+    // 构造时就建立基线，第一个 60 秒 tick 才能直接产出样本而不是空转一轮。
+    let baseline = readBaseline();
 
-  return {
-    sample(memoryUsage) {
-      const next = readBaseline();
-      if (!next) {
-        return null;
-      }
-      const previous = baseline;
-      baseline = next;
-      if (!previous) {
-        return null;
-      }
+    return {
+        sample(memoryUsage) {
+            const next = readBaseline();
+            if (!next) {
+                return null;
+            }
+            const previous = baseline;
+            baseline = next;
+            if (!previous) {
+                return null;
+            }
 
-      const elapsedNs = next.monotonicTimeNs - previous.monotonicTimeNs;
-      const cpuDeltaUs =
-        next.cpu.user - previous.cpu.user + (next.cpu.system - previous.cpu.system);
-      if (elapsedNs <= 0n || cpuDeltaUs < 0) {
-        return null;
-      }
+            const elapsedNs = next.monotonicTimeNs - previous.monotonicTimeNs;
+            const cpuDeltaUs =
+                next.cpu.user - previous.cpu.user + (next.cpu.system - previous.cpu.system);
+            if (elapsedNs <= 0n || cpuDeltaUs < 0) {
+                return null;
+            }
 
-      const cpuCores = cpuDeltaUs / (Number(elapsedNs) / 1_000);
-      return {
-        cpuPercent: roundResourceMetric((cpuCores / logicalCpuCount) * 100),
-        rssKb: bytesToKb(memoryUsage.rss),
-        heapUsedKb: bytesToKb(memoryUsage.heapUsed),
-      };
-    },
-  };
+            const cpuCores = cpuDeltaUs / (Number(elapsedNs) / 1_000);
+            return {
+                cpuPercent: roundResourceMetric((cpuCores / logicalCpuCount) * 100),
+                rssKb: bytesToKb(memoryUsage.rss),
+                heapUsedKb: bytesToKb(memoryUsage.heapUsed),
+            };
+        },
+    };
 }

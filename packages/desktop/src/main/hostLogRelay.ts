@@ -1,24 +1,24 @@
 type HostStructuredLogLevel = "info" | "warn" | "error";
 
 interface HostStructuredLog {
-  level: HostStructuredLogLevel;
-  source: string;
-  message: string;
+    level: HostStructuredLogLevel;
+    source: string;
+    message: string;
 }
 
 interface HostLogger {
-  info: (...args: unknown[]) => void;
-  warn: (...args: unknown[]) => void;
-  error: (...args: unknown[]) => void;
+    info: (...args: unknown[]) => void;
+    warn: (...args: unknown[]) => void;
+    error: (...args: unknown[]) => void;
 }
 
 interface RawStreamLog {
-  kind: "stdout" | "stderr";
-  message: string;
+    kind: "stdout" | "stderr";
+    message: string;
 }
 
 interface EmitStructuredLogEntry extends HostStructuredLog {
-  timestamp: string;
+    timestamp: string;
 }
 
 /**
@@ -28,99 +28,99 @@ interface EmitStructuredLogEntry extends HostStructuredLog {
  * 才把早期缓存的 stdout/stderr 当兜底日志回放出来。
  */
 export function createHostLogRelay(
-  label: string,
-  logger: HostLogger,
-  emitStructuredLogToRenderer?: (entry: EmitStructuredLogEntry) => void,
+    label: string,
+    logger: HostLogger,
+    emitStructuredLogToRenderer?: (entry: EmitStructuredLogEntry) => void,
 ) {
-  let hasStructuredLog = false;
-  const rawLogs: RawStreamLog[] = [];
+    let hasStructuredLog = false;
+    const rawLogs: RawStreamLog[] = [];
 
-  function emitRawLog(rawLog: RawStreamLog): void {
-    if (rawLog.kind === "stderr") {
-      if (isNodeWarning(rawLog.message)) {
-        logger.warn(`[host-stderr] (${label}):`, formatNodeWarning(rawLog.message));
-        return;
-      }
+    function emitRawLog(rawLog: RawStreamLog): void {
+        if (rawLog.kind === "stderr") {
+            if (isNodeWarning(rawLog.message)) {
+                logger.warn(`[host-stderr] (${label}):`, formatNodeWarning(rawLog.message));
+                return;
+            }
 
-      logger.error(`[host-stderr] (${label}):`, rawLog.message);
-      return;
+            logger.error(`[host-stderr] (${label}):`, rawLog.message);
+            return;
+        }
+
+        logger.info(`[host-stdout] (${label}):`, rawLog.message);
     }
 
-    logger.info(`[host-stdout] (${label}):`, rawLog.message);
-  }
+    function emitStructuredLog(entry: EmitStructuredLogEntry): void {
+        const line = `[host-log] (${label}) [${entry.source}] ${entry.message}`;
+        if (entry.level === "error") {
+            logger.error(line);
+            return;
+        }
 
-  function emitStructuredLog(entry: EmitStructuredLogEntry): void {
-    const line = `[host-log] (${label}) [${entry.source}] ${entry.message}`;
-    if (entry.level === "error") {
-      logger.error(line);
-      return;
+        if (entry.level === "warn") {
+            logger.warn(line);
+            return;
+        }
+
+        logger.info(line);
     }
 
-    if (entry.level === "warn") {
-      logger.warn(line);
-      return;
-    }
+    return {
+        onStdout(message: string): void {
+            if (hasStructuredLog) {
+                return;
+            }
 
-    logger.info(line);
-  }
+            rawLogs.push({ kind: "stdout", message });
+        },
 
-  return {
-    onStdout(message: string): void {
-      if (hasStructuredLog) {
-        return;
-      }
+        onStderr(message: string): void {
+            if (hasStructuredLog) {
+                return;
+            }
 
-      rawLogs.push({ kind: "stdout", message });
-    },
+            rawLogs.push({ kind: "stderr", message });
+        },
 
-    onStderr(message: string): void {
-      if (hasStructuredLog) {
-        return;
-      }
+        onStructuredLog(entry: HostStructuredLog): void {
+            hasStructuredLog = true;
+            rawLogs.length = 0;
+            const structuredEntry = {
+                ...entry,
+                timestamp: new Date().toLocaleTimeString(undefined, {
+                    hour12: false,
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                }),
+            } satisfies EmitStructuredLogEntry;
+            emitStructuredLog(structuredEntry);
+            emitStructuredLogToRenderer?.(structuredEntry);
+        },
 
-      rawLogs.push({ kind: "stderr", message });
-    },
+        flushRawLogs(): void {
+            if (hasStructuredLog) {
+                rawLogs.length = 0;
+                return;
+            }
 
-    onStructuredLog(entry: HostStructuredLog): void {
-      hasStructuredLog = true;
-      rawLogs.length = 0;
-      const structuredEntry = {
-        ...entry,
-        timestamp: new Date().toLocaleTimeString(undefined, {
-          hour12: false,
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-        }),
-      } satisfies EmitStructuredLogEntry;
-      emitStructuredLog(structuredEntry);
-      emitStructuredLogToRenderer?.(structuredEntry);
-    },
-
-    flushRawLogs(): void {
-      if (hasStructuredLog) {
-        rawLogs.length = 0;
-        return;
-      }
-
-      for (const rawLog of rawLogs) {
-        emitRawLog(rawLog);
-      }
-      rawLogs.length = 0;
-    },
-  };
+            for (const rawLog of rawLogs) {
+                emitRawLog(rawLog);
+            }
+            rawLogs.length = 0;
+        },
+    };
 }
 
 function isNodeWarning(message: string): boolean {
-  // Electron utility process 启动早期的 Node warning 只会出现在 stderr。
-  // 这类 warning 不是连接失败，兜底回放时应保持 warn 语义，避免远端连接日志被误染成 error。
-  return /^\(node:\d+\)\s+(?:ExperimentalWarning|DeprecationWarning|Warning):/u.test(
-    message.trimStart(),
-  );
+    // Electron utility process 启动早期的 Node warning 只会出现在 stderr。
+    // 这类 warning 不是连接失败，兜底回放时应保持 warn 语义，避免远端连接日志被误染成 error。
+    return /^\(node:\d+\)\s+(?:ExperimentalWarning|DeprecationWarning|Warning):/u.test(
+        message.trimStart(),
+    );
 }
 
 function formatNodeWarning(message: string): string {
-  // Node warning 的第二行通常只是 --trace-warnings 提示，连接页展示它会显得像错误详情。
-  // 远端连接日志只保留首行核心 warning，完整排查可通过开发启动参数再开启 trace。
-  return message.trimStart().split(/\r?\n/u)[0]?.trimEnd() ?? message.trim();
+    // Node warning 的第二行通常只是 --trace-warnings 提示，连接页展示它会显得像错误详情。
+    // 远端连接日志只保留首行核心 warning，完整排查可通过开发启动参数再开启 trace。
+    return message.trimStart().split(/\r?\n/u)[0]?.trimEnd() ?? message.trim();
 }

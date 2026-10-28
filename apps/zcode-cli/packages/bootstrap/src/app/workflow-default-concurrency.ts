@@ -28,12 +28,12 @@ export const WORKFLOW_CONCURRENCY_AUTO_GROWTH_FACTOR = 2;
  * CPU 推导的默认并发。`availableParallelism` 可注入，供测试固定核数（地板/硬顶两条用例）。
  */
 export function resolveWorkflowDefaultConcurrency(
-  availableParallelism: () => number = osAvailableParallelism,
+    availableParallelism: () => number = osAvailableParallelism,
 ): number {
-  return Math.max(
-    WORKFLOW_DEFAULT_CONCURRENCY_FLOOR,
-    Math.min(WORKFLOW_DEFAULT_CONCURRENCY_MAX, availableParallelism() - RESERVED_PARALLELISM),
-  );
+    return Math.max(
+        WORKFLOW_DEFAULT_CONCURRENCY_FLOOR,
+        Math.min(WORKFLOW_DEFAULT_CONCURRENCY_MAX, availableParallelism() - RESERVED_PARALLELISM),
+    );
 }
 
 /**
@@ -47,9 +47,9 @@ export function resolveWorkflowDefaultConcurrency(
  * 落成两个数），而那两条路分居 run service 与 retune 两个模块，所以它住在这里。
  */
 export function normalizeRunConcurrency(
-  requested: number | undefined,
-  defaultConcurrency: number,
+    requested: number | undefined,
+    defaultConcurrency: number,
 ): number {
-  if (requested === undefined || !Number.isFinite(requested)) return defaultConcurrency;
-  return Math.max(1, Math.floor(requested));
+    if (requested === undefined || !Number.isFinite(requested)) return defaultConcurrency;
+    return Math.max(1, Math.floor(requested));
 }

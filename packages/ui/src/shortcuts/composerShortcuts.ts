@@ -8,8 +8,8 @@ import { matchesShortcutBinding } from "./bindings.js";
 
 /** composer 作用域命令在生效表中的切片（只关心这两条，避免拉全量表的类型依赖）。 */
 export interface ComposerEffectiveBindings {
-  readonly composerSend: readonly string[];
-  readonly composerInsertNewline: readonly string[];
+    readonly composerSend: readonly string[];
+    readonly composerInsertNewline: readonly string[];
 }
 
 /** Enter 族事件在 composer 内的最终动作。 */
@@ -26,21 +26,24 @@ export type ComposerKeyAction = "send" | "newline";
  * 反转投递让位）由调用方执行，本函数只回答"键位表说了算"的部分。
  */
 export function resolveComposerKeyAction(
-  event: Pick<ShortcutBindingEvent, "key" | "code" | "metaKey" | "ctrlKey" | "shiftKey" | "altKey">,
-  effective: ComposerEffectiveBindings,
-  platformInfo?: { platform?: string; userAgent?: string },
+    event: Pick<
+        ShortcutBindingEvent,
+        "key" | "code" | "metaKey" | "ctrlKey" | "shiftKey" | "altKey"
+    >,
+    effective: ComposerEffectiveBindings,
+    platformInfo?: { platform?: string; userAgent?: string },
 ): ComposerKeyAction | null {
-  for (const binding of effective.composerInsertNewline ?? []) {
-    if (matchesShortcutBinding(event, binding, platformInfo)) {
-      return "newline";
+    for (const binding of effective.composerInsertNewline ?? []) {
+        if (matchesShortcutBinding(event, binding, platformInfo)) {
+            return "newline";
+        }
     }
-  }
-  for (const binding of effective.composerSend ?? []) {
-    if (matchesShortcutBinding(event, binding, platformInfo)) {
-      return "send";
+    for (const binding of effective.composerSend ?? []) {
+        if (matchesShortcutBinding(event, binding, platformInfo)) {
+            return "send";
+        }
     }
-  }
-  return null;
+    return null;
 }
 
 /**
@@ -49,5 +52,5 @@ export function resolveComposerKeyAction(
  * 裸 Enter 不再代表发送，放行 Lexical 换行——"Ctrl+Enter 党"改绑后的预期行为。
  */
 export function shouldBareEnterFallThroughToNewline(effective: ComposerEffectiveBindings): boolean {
-  return !effective.composerSend.includes("Enter");
+    return !effective.composerSend.includes("Enter");
 }

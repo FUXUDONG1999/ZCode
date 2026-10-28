@@ -8,8 +8,8 @@ import { createAgentSessionsIndexTransport } from "@/v4/agentSessionsIndexTransp
 import { SessionsIndexStore, type SessionsIndexStoreStatus } from "@/v4/sessionsIndexStore.js";
 
 export interface UseSessionsIndexResult {
-  sessions: SessionSummary[];
-  status: SessionsIndexStoreStatus;
+    sessions: SessionSummary[];
+    status: SessionsIndexStoreStatus;
 }
 
 /**
@@ -17,30 +17,30 @@ export interface UseSessionsIndexResult {
  * 生命周期：workspace 变化时重建 store + 重连；卸载时 close（退订 + 解监听）。
  */
 export function useSessionsIndex(
-  workspacePath: string,
-  workspaceIdentity?: string,
+    workspacePath: string,
+    workspaceIdentity?: string,
 ): UseSessionsIndexResult {
-  const { zcodeAgentService } = useServices();
+    const { zcodeAgentService } = useServices();
 
-  const store = useMemo(
-    () => new SessionsIndexStore(),
-    // 每个 workspace 一个 store 实例（依赖变化 → 全新 store 冷启动）。
-    [workspacePath, workspaceIdentity, zcodeAgentService],
-  );
+    const store = useMemo(
+        () => new SessionsIndexStore(),
+        // 每个 workspace 一个 store 实例（依赖变化 → 全新 store 冷启动）。
+        [workspacePath, workspaceIdentity, zcodeAgentService],
+    );
 
-  useEffect(() => {
-    const transport = createAgentSessionsIndexTransport(zcodeAgentService, {
-      workspacePath,
-      ...(workspaceIdentity ? { workspaceIdentity } : {}),
-    });
-    void store.connect(transport, { forceSnapshot: true });
-    return () => store.close();
-  }, [store, workspacePath, workspaceIdentity, zcodeAgentService]);
+    useEffect(() => {
+        const transport = createAgentSessionsIndexTransport(zcodeAgentService, {
+            workspacePath,
+            ...(workspaceIdentity ? { workspaceIdentity } : {}),
+        });
+        void store.connect(transport, { forceSnapshot: true });
+        return () => store.close();
+    }, [store, workspacePath, workspaceIdentity, zcodeAgentService]);
 
-  // useSyncExternalStore：store.subscribe/getState 是类字段箭头函数，引用稳定。
-  const state = useSyncExternalStore(store.subscribe, store.getState);
-  // state 变化即代表列表可能变化；getSessions 内部缓存稳定引用。
-  const sessions = useMemo(() => store.getSessions(), [store, state]);
+    // useSyncExternalStore：store.subscribe/getState 是类字段箭头函数，引用稳定。
+    const state = useSyncExternalStore(store.subscribe, store.getState);
+    // state 变化即代表列表可能变化；getSessions 内部缓存稳定引用。
+    const sessions = useMemo(() => store.getSessions(), [store, state]);
 
-  return { sessions, status: store.getStatus() };
+    return { sessions, status: store.getStatus() };
 }

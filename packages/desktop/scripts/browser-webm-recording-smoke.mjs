@@ -9,11 +9,11 @@ const OUTPUT_PATH = process.env.ZCODE_WEBM_SMOKE_OUTPUT_PATH;
 const CAPTURE_MS = Number(process.env.ZCODE_WEBM_SMOKE_CAPTURE_MS) || 1_500;
 
 function htmlDataUrl(html) {
-  return `data:text/html;base64,${Buffer.from(html).toString("base64")}`;
+    return `data:text/html;base64,${Buffer.from(html).toString("base64")}`;
 }
 
 function targetHtml() {
-  return `<!doctype html>
+    return `<!doctype html>
 <html>
   <head>
     <style>
@@ -36,7 +36,7 @@ function targetHtml() {
 }
 
 function hostHtml(targetUrl) {
-  return `<!doctype html>
+    return `<!doctype html>
 <html>
   <head>
     <style>
@@ -57,19 +57,19 @@ function hostHtml(targetUrl) {
 }
 
 async function validatePlayback(root, outputPath) {
-  const validationHtmlPath = join(root, "validate.html");
-  await writeFile(
-    validationHtmlPath,
-    `<!doctype html><video id="video" src="${pathToFileURL(outputPath).href}" muted></video>`,
-    "utf8",
-  );
-  const validationWindow = new BrowserWindow({
-    show: false,
-    webPreferences: { backgroundThrottling: false },
-  });
-  try {
-    await validationWindow.loadFile(validationHtmlPath);
-    return await validationWindow.webContents.executeJavaScript(`(async () => {
+    const validationHtmlPath = join(root, "validate.html");
+    await writeFile(
+        validationHtmlPath,
+        `<!doctype html><video id="video" src="${pathToFileURL(outputPath).href}" muted></video>`,
+        "utf8",
+    );
+    const validationWindow = new BrowserWindow({
+        show: false,
+        webPreferences: { backgroundThrottling: false },
+    });
+    try {
+        await validationWindow.loadFile(validationHtmlPath);
+        return await validationWindow.webContents.executeJavaScript(`(async () => {
       const video = document.querySelector("#video");
       await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error("WebM playback metadata timeout")), 10000);
@@ -161,123 +161,129 @@ async function validatePlayback(root, outputPath) {
         sampledFps: sampledMs > 0 ? sampledFrames / (sampledMs / 1000) : 0,
       };
     })()`);
-  } finally {
-    if (!validationWindow.isDestroyed()) validationWindow.destroy();
-  }
+    } finally {
+        if (!validationWindow.isDestroyed()) validationWindow.destroy();
+    }
 }
 
 async function run() {
-  let hostWindow;
-  let root;
-  let exitCode = 0;
-  try {
-    await app.whenReady();
-    root = await mkdtemp(join(tmpdir(), "zcode-browser-webm-smoke-"));
-    const outputPath = OUTPUT_PATH || join(root, "recording.webm");
-    hostWindow = new BrowserWindow({
-      show: true,
-      focusable: false,
-      skipTaskbar: true,
-      width: 1280,
-      height: 720,
-      useContentSize: true,
-      webPreferences: { webviewTag: true, backgroundThrottling: false },
-    });
-    hostWindow.showInactive();
-    await hostWindow.loadURL(htmlDataUrl(hostHtml(htmlDataUrl(targetHtml()))));
-    const guestId = await hostWindow.webContents.executeJavaScript("window.guestReady", true);
-    const guest = webContents.fromId(guestId);
-    if (!guest) throw new Error(`target guest ${guestId} was not found`);
-    await hostWindow.webContents.executeJavaScript(
-      "new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))",
-    );
-    guest.debugger.attach("1.3");
-    await guest.debugger.sendCommand("Emulation.setDeviceMetricsOverride", {
-      width: 1280,
-      height: 720,
-      deviceScaleFactor: 1,
-      mobile: false,
-      dontSetVisibleSize: true,
-    });
-    const hostRect = await hostWindow.webContents.executeJavaScript(
-      `(() => { const r = document.querySelector("#guest").getBoundingClientRect(); return { width: r.width, height: r.height, dpr: devicePixelRatio }; })()`,
-    );
-    const guestViewport = await guest.executeJavaScript(
-      `({ width: innerWidth, height: innerHeight, dpr: devicePixelRatio })`,
-    );
-    process.stderr.write(
-      `[browser-recording] smoke target guestId=${guestId} frame=${guest.mainFrame.processId}:${guest.mainFrame.routingId} hostRect=${JSON.stringify(hostRect)} guestViewport=${JSON.stringify(guestViewport)}\n`,
-    );
+    let hostWindow;
+    let root;
+    let exitCode = 0;
+    try {
+        await app.whenReady();
+        root = await mkdtemp(join(tmpdir(), "zcode-browser-webm-smoke-"));
+        const outputPath = OUTPUT_PATH || join(root, "recording.webm");
+        hostWindow = new BrowserWindow({
+            show: true,
+            focusable: false,
+            skipTaskbar: true,
+            width: 1280,
+            height: 720,
+            useContentSize: true,
+            webPreferences: { webviewTag: true, backgroundThrottling: false },
+        });
+        hostWindow.showInactive();
+        await hostWindow.loadURL(htmlDataUrl(hostHtml(htmlDataUrl(targetHtml()))));
+        const guestId = await hostWindow.webContents.executeJavaScript("window.guestReady", true);
+        const guest = webContents.fromId(guestId);
+        if (!guest) throw new Error(`target guest ${guestId} was not found`);
+        await hostWindow.webContents.executeJavaScript(
+            "new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))",
+        );
+        guest.debugger.attach("1.3");
+        await guest.debugger.sendCommand("Emulation.setDeviceMetricsOverride", {
+            width: 1280,
+            height: 720,
+            deviceScaleFactor: 1,
+            mobile: false,
+            dontSetVisibleSize: true,
+        });
+        const hostRect = await hostWindow.webContents.executeJavaScript(
+            `(() => { const r = document.querySelector("#guest").getBoundingClientRect(); return { width: r.width, height: r.height, dpr: devicePixelRatio }; })()`,
+        );
+        const guestViewport = await guest.executeJavaScript(
+            `({ width: innerWidth, height: innerHeight, dpr: devicePixelRatio })`,
+        );
+        process.stderr.write(
+            `[browser-recording] smoke target guestId=${guestId} frame=${guest.mainFrame.processId}:${guest.mainFrame.routingId} hostRect=${JSON.stringify(hostRect)} guestViewport=${JSON.stringify(guestViewport)}\n`,
+        );
 
-    const controller = new AbortController();
-    const recorder = await createElectronBrowserWebmRecorder(
-      {
-        outputPath,
-        targetFrame: guest.mainFrame,
-        viewport: { width: 1280, height: 720 },
-        fps: 25,
-        signal: controller.signal,
-      },
-      (message) => process.stderr.write(`${message}\n`),
-    );
-    const captureStartedAt = Date.now();
-    await new Promise((resolve) => setTimeout(resolve, CAPTURE_MS));
-    await recorder.stop();
-    const capturedMs = Date.now() - captureStartedAt;
+        const controller = new AbortController();
+        const recorder = await createElectronBrowserWebmRecorder(
+            {
+                outputPath,
+                targetFrame: guest.mainFrame,
+                viewport: { width: 1280, height: 720 },
+                fps: 25,
+                signal: controller.signal,
+            },
+            (message) => process.stderr.write(`${message}\n`),
+        );
+        const captureStartedAt = Date.now();
+        await new Promise((resolve) => setTimeout(resolve, CAPTURE_MS));
+        await recorder.stop();
+        const capturedMs = Date.now() - captureStartedAt;
 
-    const info = await stat(outputPath);
-    const header = (await readFile(outputPath)).subarray(0, 4).toString("hex");
-    if (info.size <= 4 || header !== "1a45dfa3") {
-      throw new Error(`invalid WebM artifact: size=${info.size}, header=${header}`);
-    }
-    const playback = await validatePlayback(root, outputPath);
-    if (playback.width !== 1280 || playback.height !== 720) {
-      throw new Error(`WebM dimensions mismatch: ${JSON.stringify(playback)}`);
-    }
-    // 时长必须来自真实容器，而不是 main 侧推算：偏离取景 wall clock 太多说明丢帧或提前截断。
-    const durationMs = playback.durationSeconds * 1000;
-    if (durationMs < capturedMs * 0.5 || durationMs > capturedMs * 1.5 + 500) {
-      throw new Error(
-        `WebM duration ${durationMs.toFixed(0)}ms is not consistent with ${capturedMs}ms of capture`,
-      );
-    }
-    // 只验证尺寸会让全黑或全静止的录制也通过；这里要求画面真的在动且不是黑屏。
-    if (playback.changedPixelRatio < 0.02) {
-      throw new Error(
-        `recorded frames are static: changedPixelRatio=${playback.changedPixelRatio.toFixed(4)}`,
-      );
-    }
-    if (playback.litPixelRatio < 0.5) {
-      throw new Error(
-        `recorded frames are mostly black: litPixelRatio=${playback.litPixelRatio.toFixed(4)}`,
-      );
-    }
-    if (playback.sampledFps < 8) {
-      throw new Error(
-        `decoded frame rate too low: ${playback.sampledFps.toFixed(1)}fps over ${playback.sampledFrames} frames`,
-      );
-    }
-    console.log(
-      JSON.stringify({ ok: true, path: outputPath, size: info.size, capturedMs, ...playback }),
-    );
-  } catch (error) {
-    exitCode = 1;
-    await new Promise((resolve) => process.stderr.write(`${error.stack ?? error}\n`, resolve));
-  } finally {
-    for (const contents of webContents.getAllWebContents()) {
-      if (contents.getType() === "webview" && contents.debugger.isAttached()) {
-        try {
-          contents.debugger.detach();
-        } catch {
-          // smoke 已进入退出清理，不覆盖更早的验证错误。
+        const info = await stat(outputPath);
+        const header = (await readFile(outputPath)).subarray(0, 4).toString("hex");
+        if (info.size <= 4 || header !== "1a45dfa3") {
+            throw new Error(`invalid WebM artifact: size=${info.size}, header=${header}`);
         }
-      }
+        const playback = await validatePlayback(root, outputPath);
+        if (playback.width !== 1280 || playback.height !== 720) {
+            throw new Error(`WebM dimensions mismatch: ${JSON.stringify(playback)}`);
+        }
+        // 时长必须来自真实容器，而不是 main 侧推算：偏离取景 wall clock 太多说明丢帧或提前截断。
+        const durationMs = playback.durationSeconds * 1000;
+        if (durationMs < capturedMs * 0.5 || durationMs > capturedMs * 1.5 + 500) {
+            throw new Error(
+                `WebM duration ${durationMs.toFixed(0)}ms is not consistent with ${capturedMs}ms of capture`,
+            );
+        }
+        // 只验证尺寸会让全黑或全静止的录制也通过；这里要求画面真的在动且不是黑屏。
+        if (playback.changedPixelRatio < 0.02) {
+            throw new Error(
+                `recorded frames are static: changedPixelRatio=${playback.changedPixelRatio.toFixed(4)}`,
+            );
+        }
+        if (playback.litPixelRatio < 0.5) {
+            throw new Error(
+                `recorded frames are mostly black: litPixelRatio=${playback.litPixelRatio.toFixed(4)}`,
+            );
+        }
+        if (playback.sampledFps < 8) {
+            throw new Error(
+                `decoded frame rate too low: ${playback.sampledFps.toFixed(1)}fps over ${playback.sampledFrames} frames`,
+            );
+        }
+        console.log(
+            JSON.stringify({
+                ok: true,
+                path: outputPath,
+                size: info.size,
+                capturedMs,
+                ...playback,
+            }),
+        );
+    } catch (error) {
+        exitCode = 1;
+        await new Promise((resolve) => process.stderr.write(`${error.stack ?? error}\n`, resolve));
+    } finally {
+        for (const contents of webContents.getAllWebContents()) {
+            if (contents.getType() === "webview" && contents.debugger.isAttached()) {
+                try {
+                    contents.debugger.detach();
+                } catch {
+                    // smoke 已进入退出清理，不覆盖更早的验证错误。
+                }
+            }
+        }
+        if (hostWindow && !hostWindow.isDestroyed()) hostWindow.destroy();
+        if (root && !OUTPUT_PATH) await rm(root, { recursive: true, force: true });
+        process.exitCode = exitCode;
+        app.exit(exitCode);
     }
-    if (hostWindow && !hostWindow.isDestroyed()) hostWindow.destroy();
-    if (root && !OUTPUT_PATH) await rm(root, { recursive: true, force: true });
-    process.exitCode = exitCode;
-    app.exit(exitCode);
-  }
 }
 
 void run();

@@ -8,7 +8,7 @@
 import type { ZCodeTaskMeta } from "@zcode/shared";
 
 export function buildTaskListItemIdentityKey(meta: ZCodeTaskMeta): string {
-  return `${meta.workspaceIdentity?.trim() || meta.workspacePath}::${meta.taskId}`;
+    return `${meta.workspaceIdentity?.trim() || meta.workspacePath}::${meta.taskId}`;
 }
 
 /**
@@ -20,53 +20,55 @@ export function buildTaskListItemIdentityKey(meta: ZCodeTaskMeta): string {
  * 逐字段比较让等价判断不依赖构造顺序这一隐式假设，顺带在首个差异处短路。
  */
 export function areStabilizedValuesEquivalent(left: unknown, right: unknown): boolean {
-  if (left === right) {
-    return true;
-  }
-  if (typeof left !== "object" || left === null || typeof right !== "object" || right === null) {
-    return false;
-  }
-  if (Array.isArray(left) || Array.isArray(right)) {
-    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
-      return false;
+    if (left === right) {
+        return true;
     }
-    return left.every((value, index) => areStabilizedValuesEquivalent(value, right[index]));
-  }
-  const leftRecord = left as Record<string, unknown>;
-  const rightRecord = right as Record<string, unknown>;
-  const leftKeys = Object.keys(leftRecord).filter((key) => leftRecord[key] !== undefined);
-  const rightKeys = Object.keys(rightRecord).filter((key) => rightRecord[key] !== undefined);
-  if (leftKeys.length !== rightKeys.length) {
-    return false;
-  }
-  return leftKeys.every((key) => areStabilizedValuesEquivalent(leftRecord[key], rightRecord[key]));
+    if (typeof left !== "object" || left === null || typeof right !== "object" || right === null) {
+        return false;
+    }
+    if (Array.isArray(left) || Array.isArray(right)) {
+        if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+            return false;
+        }
+        return left.every((value, index) => areStabilizedValuesEquivalent(value, right[index]));
+    }
+    const leftRecord = left as Record<string, unknown>;
+    const rightRecord = right as Record<string, unknown>;
+    const leftKeys = Object.keys(leftRecord).filter((key) => leftRecord[key] !== undefined);
+    const rightKeys = Object.keys(rightRecord).filter((key) => rightRecord[key] !== undefined);
+    if (leftKeys.length !== rightKeys.length) {
+        return false;
+    }
+    return leftKeys.every((key) =>
+        areStabilizedValuesEquivalent(leftRecord[key], rightRecord[key]),
+    );
 }
 
 /** 逐字段等价（嵌套字段结构比较；task meta 是小对象，代价可忽略）。 */
 export function areTaskListItemsEquivalent(left: ZCodeTaskMeta, right: ZCodeTaskMeta): boolean {
-  return areStabilizedValuesEquivalent(left, right);
+    return areStabilizedValuesEquivalent(left, right);
 }
 
 /** 引用稳定化：等价条目复用旧对象；顺序与内容全等时复用整个旧数组。 */
 export function stabilizeTaskListItems<T extends ZCodeTaskMeta>(previous: T[], next: T[]): T[] {
-  if (previous.length === 0) {
-    // 空快照仍然等价；每次返回新空数组会使无任务项目的整棵目录失效。
-    return next.length === 0 ? previous : next;
-  }
-  const previousByKey = new Map(
-    previous.map((meta) => [buildTaskListItemIdentityKey(meta), meta] as const),
-  );
-  let identical = previous.length === next.length;
-  const stabilized = next.map((meta, index) => {
-    const previousMeta = previousByKey.get(buildTaskListItemIdentityKey(meta));
-    if (previousMeta && areTaskListItemsEquivalent(previousMeta, meta)) {
-      if (identical && previous[index] !== previousMeta) {
-        identical = false;
-      }
-      return previousMeta;
+    if (previous.length === 0) {
+        // 空快照仍然等价；每次返回新空数组会使无任务项目的整棵目录失效。
+        return next.length === 0 ? previous : next;
     }
-    identical = false;
-    return meta;
-  });
-  return identical ? previous : stabilized;
+    const previousByKey = new Map(
+        previous.map((meta) => [buildTaskListItemIdentityKey(meta), meta] as const),
+    );
+    let identical = previous.length === next.length;
+    const stabilized = next.map((meta, index) => {
+        const previousMeta = previousByKey.get(buildTaskListItemIdentityKey(meta));
+        if (previousMeta && areTaskListItemsEquivalent(previousMeta, meta)) {
+            if (identical && previous[index] !== previousMeta) {
+                identical = false;
+            }
+            return previousMeta;
+        }
+        identical = false;
+        return meta;
+    });
+    return identical ? previous : stabilized;
 }

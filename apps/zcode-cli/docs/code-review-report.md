@@ -85,10 +85,10 @@ contracts ← core ← bootstrap ← cli
 ##### P0-3: 重复类型定义 — `PermissionDecisionResult` 等
 
 - **证据**:
-  - `runtime/types.ts:266` 定义 `interface PermissionDecisionResult { allowed, reason, modifiedInput, permissionUpdates }`
-  - `permission/service.ts:37` 定义 `interface PermissionDecisionResult { decision, allowed, reason, modifiedInput, escalated, mode, ruleId, riskLevel, sideEffectScope }`
-  - 两处字段完全不同！`runtime/types.ts` 的版本只有 4 个字段，`permission/service.ts` 的版本有 9 个字段
-  - 同理 `ToolScheduleItem` 在 `agent/turn-state.ts:126` 和 `tool/scheduler.ts:18` 各有一份，字段不同（前者无 toolName，后者有）
+    - `runtime/types.ts:266` 定义 `interface PermissionDecisionResult { allowed, reason, modifiedInput, permissionUpdates }`
+    - `permission/service.ts:37` 定义 `interface PermissionDecisionResult { decision, allowed, reason, modifiedInput, escalated, mode, ruleId, riskLevel, sideEffectScope }`
+    - 两处字段完全不同！`runtime/types.ts` 的版本只有 4 个字段，`permission/service.ts` 的版本有 9 个字段
+    - 同理 `ToolScheduleItem` 在 `agent/turn-state.ts:126` 和 `tool/scheduler.ts:18` 各有一份，字段不同（前者无 toolName，后者有）
 - **风险**: 运行时可能因类型不匹配导致静默数据丢失
 - **建议**: 统一到 `@zcode/contracts`，删除 core 内重复定义
 
@@ -119,14 +119,14 @@ contracts ← core ← bootstrap ← cli
 ##### P2-1: 文件超出 400 行限制
 
 - **证据**: 以下文件超过项目 AGENTS.md 规定的 400 行上限：
-  - `workflow/lifecycle.ts`: 590 行
-  - `subagent/runner.ts`: 557 行
-  - `permission/service.ts`: 453 行
-  - `runtime/types.ts`: 431 行
-  - `runtime/helpers/model-errors.ts`: 422 行
-  - `runtime/helpers/turn-errors.ts`: 408 行
-  - `agent/session-history-hydrator.ts`: 403 行
-  - 所有 runtime/methods/\*.ts 文件（23 个）平均 300 行，但多个接近 400
+    - `workflow/lifecycle.ts`: 590 行
+    - `subagent/runner.ts`: 557 行
+    - `permission/service.ts`: 453 行
+    - `runtime/types.ts`: 431 行
+    - `runtime/helpers/model-errors.ts`: 422 行
+    - `runtime/helpers/turn-errors.ts`: 408 行
+    - `agent/session-history-hydrator.ts`: 403 行
+    - 所有 runtime/methods/\*.ts 文件（23 个）平均 300 行，但多个接近 400
 - **建议**: 按项目规范拆分
 
 #### 2.1.4 重构建议
@@ -144,29 +144,29 @@ core/src/context/
 ```typescript
 // 目标结构（示意）
 class TurnOrchestrator {
-  constructor(
-    private contextManager: ContextManager,
-    private toolDispatcher: ToolDispatcher,
-    private compactManager: CompactManager,
-    private persistence: PersistenceService,
-  ) {}
+    constructor(
+        private contextManager: ContextManager,
+        private toolDispatcher: ToolDispatcher,
+        private compactManager: CompactManager,
+        private persistence: PersistenceService,
+    ) {}
 }
 
 class CompactManager {
-  constructor(
-    private messageHistory: MessageHistory,
-    private modelPort: ModelPort,
-    private persistence: PersistenceService,
-  ) {}
-  // autoCompactIfNeeded, compactActiveConversation, etc.
+    constructor(
+        private messageHistory: MessageHistory,
+        private modelPort: ModelPort,
+        private persistence: PersistenceService,
+    ) {}
+    // autoCompactIfNeeded, compactActiveConversation, etc.
 }
 
 class PersistenceService {
-  constructor(
-    private sessionStore: SessionStorePort,
-    private eventStore: SessionEventStorePort,
-  ) {}
-  // persistUserPrompt, persistAssistantMessage, etc.
+    constructor(
+        private sessionStore: SessionStorePort,
+        private eventStore: SessionEventStorePort,
+    ) {}
+    // persistUserPrompt, persistAssistantMessage, etc.
 }
 ```
 
@@ -195,9 +195,9 @@ class PersistenceService {
 ##### P0-4: contracts 包含业务逻辑函数
 
 - **证据**:
-  - `contracts/src/memory/index.ts` 导出 `formatGoalCompletionVerificationPrompt`、`formatGoalCompletionVerificationFailurePrompt`、`escapeGoalPromptText` 等格式化函数
-  - `contracts/src/compact/index.ts` 包含 `getAutoCompactThreshold`、`shouldAutoCompact` 等策略函数
-  - `contracts/src/rewind/index.ts` 包含 `evaluateRewindTarget` 等决策函数
+    - `contracts/src/memory/index.ts` 导出 `formatGoalCompletionVerificationPrompt`、`formatGoalCompletionVerificationFailurePrompt`、`escapeGoalPromptText` 等格式化函数
+    - `contracts/src/compact/index.ts` 包含 `getAutoCompactThreshold`、`shouldAutoCompact` 等策略函数
+    - `contracts/src/rewind/index.ts` 包含 `evaluateRewindTarget` 等决策函数
 - **风险**: contracts 修改可能影响所有下游；业务逻辑混入契约层增加理解成本
 - **建议**: 将策略/格式化函数移入 core 对应模块，contracts 只保留纯类型和 schema
 
@@ -424,9 +424,9 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `core/src/runtime/types.ts`、`core/src/permission/service.ts`、`core/src/agent/turn-state.ts`、`core/src/tool/scheduler.ts`
 - **迁移步骤**:
-  1. 在 `@zcode/contracts` 中定义权威的 `PermissionDecisionResult`、`ToolScheduleItem`
-  2. core 中所有消费方改为从 contracts 导入
-  3. 删除 core 中的重复定义
+    1. 在 `@zcode/contracts` 中定义权威的 `PermissionDecisionResult`、`ToolScheduleItem`
+    2. core 中所有消费方改为从 contracts 导入
+    3. 删除 core 中的重复定义
 - **风险**: 低 — 纯类型迁移，编译器会捕获遗漏
 - **验证**: `pnpm run typecheck`
 - **PR 粒度**: 1 个 PR
@@ -435,9 +435,9 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `core/src/runtime/agent-runtime.ts`、`core/src/runtime/types.ts`
 - **迁移步骤**:
-  1. 确认 `ModelPort` 接口（contracts 中已定义）满足 core 的全部调用需求
-  2. 将 `modelAdapter?: any` 改为 `modelAdapter?: ModelPort`
-  3. 修复所有类型错误
+    1. 确认 `ModelPort` 接口（contracts 中已定义）满足 core 的全部调用需求
+    2. 将 `modelAdapter?: any` 改为 `modelAdapter?: ModelPort`
+    3. 修复所有类型错误
 - **风险**: 中 — 需确认 ModelPort 接口完整覆盖
 - **验证**: `pnpm run typecheck` + 相关集成测试
 - **PR 粒度**: 1 个 PR
@@ -446,10 +446,10 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `contracts/src/memory/index.ts`、`contracts/src/compact/index.ts`、`contracts/src/rewind/index.ts`
 - **迁移步骤**:
-  1. 识别 contracts 中所有非纯类型/schema 导出
-  2. 在 core 中创建对应模块接收这些函数
-  3. contracts 保留 re-export 一段时间（过渡期），标记 `@deprecated`
-  4. 下个版本删除 contracts 中的 re-export
+    1. 识别 contracts 中所有非纯类型/schema 导出
+    2. 在 core 中创建对应模块接收这些函数
+    3. contracts 保留 re-export 一段时间（过渡期），标记 `@deprecated`
+    4. 下个版本删除 contracts 中的 re-export
 - **风险**: 中 — 需更新所有下游 import 路径
 - **验证**: `pnpm run typecheck` + 全量测试
 - **PR 粒度**: 按子域拆 3 个 PR（memory、compact、rewind）
@@ -460,21 +460,21 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `core/src/runtime/` 全部
 - **迁移步骤**:
-  1. **Phase 1**: 提取纯计算模块（无状态依赖）
-     - `context-usage.ts` → `context/usage-metrics.ts`
-     - `compact/policy.ts` 中的阈值计算 → `compact/calculator.ts`
-  2. **Phase 2**: 提取 PersistenceService
-     - 从 methods 中提取所有 `persist*` 方法
-     - 注入 `SessionStorePort` + `SessionEventStorePort`
-  3. **Phase 3**: 提取 CompactManager
-     - 从 methods 中提取 `compact*.ts`、`microcompact.ts`
-     - 注入 `MessageHistory`、`ModelPort`、`PersistenceService`
-  4. **Phase 4**: 提取 TurnOrchestrator
-     - 从 methods 中提取 `turn.ts`、`turn-loop.ts`、`turn-model-step.ts`、`turn-tools.ts`
-     - 编排 CompactManager、ToolDispatcher、ContextManager
-  5. **Phase 5**: AgentRuntime 变为薄 Facade
-     - 只持有各服务的引用
-     - 公开 API 不变，内部委托给各服务
+    1. **Phase 1**: 提取纯计算模块（无状态依赖）
+        - `context-usage.ts` → `context/usage-metrics.ts`
+        - `compact/policy.ts` 中的阈值计算 → `compact/calculator.ts`
+    2. **Phase 2**: 提取 PersistenceService
+        - 从 methods 中提取所有 `persist*` 方法
+        - 注入 `SessionStorePort` + `SessionEventStorePort`
+    3. **Phase 3**: 提取 CompactManager
+        - 从 methods 中提取 `compact*.ts`、`microcompact.ts`
+        - 注入 `MessageHistory`、`ModelPort`、`PersistenceService`
+    4. **Phase 4**: 提取 TurnOrchestrator
+        - 从 methods 中提取 `turn.ts`、`turn-loop.ts`、`turn-model-step.ts`、`turn-tools.ts`
+        - 编排 CompactManager、ToolDispatcher、ContextManager
+    5. **Phase 5**: AgentRuntime 变为薄 Facade
+        - 只持有各服务的引用
+        - 公开 API 不变，内部委托给各服务
 - **风险**: 高 — 核心架构变更，需逐步推进
 - **回滚策略**: 每个 Phase 独立可回滚；AgentRuntime Facade 保持 API 兼容
 - **验证**: 每个 Phase 后运行全量测试 + 手动冒烟测试
@@ -484,9 +484,9 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `core/src/runtime/deps.ts`、所有 `methods/*.ts`
 - **迁移步骤**:
-  1. 每个 methods 文件改为直接从 `@zcode/contracts` 导入所需类型
-  2. 从自身模块导入所需实现
-  3. 逐步缩小 deps.ts，最终删除
+    1. 每个 methods 文件改为直接从 `@zcode/contracts` 导入所需类型
+    2. 从自身模块导入所需实现
+    3. 逐步缩小 deps.ts，最终删除
 - **风险**: 低 — 纯 import 路径变更
 - **验证**: `pnpm run typecheck`
 - **PR 粒度**: 2-3 个 PR（按 methods 文件分批）
@@ -495,9 +495,9 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `bootstrap/src/app/script-workflow-*.ts`、`bootstrap/src/zcode-protocol/`
 - **迁移步骤**:
-  1. script-workflow → `@zcode/workflow-runner` 包
-  2. zcode-protocol → `@zcode/protocol-server` 包
-  3. bootstrap 通过依赖引用
+    1. script-workflow → `@zcode/workflow-runner` 包
+    2. zcode-protocol → `@zcode/protocol-server` 包
+    3. bootstrap 通过依赖引用
 - **风险**: 中 — 需调整包间依赖
 - **验证**: `pnpm run typecheck` + `pnpm run test:unit`
 - **PR 粒度**: 2 个 PR
@@ -506,9 +506,9 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `cli/src/tui-*.ts`（12 个文件）、`@zcode/tui`
 - **迁移步骤**:
-  1. 识别 tui-\* 文件中对 cli 包其他模块的依赖
-  2. 通过接口/事件解耦
-  3. 逐个迁移
+    1. 识别 tui-\* 文件中对 cli 包其他模块的依赖
+    2. 通过接口/事件解耦
+    3. 逐个迁移
 - **风险**: 低
 - **验证**: `pnpm run typecheck` + `pnpm run test:unit`
 - **PR 粒度**: 1 个 PR
@@ -517,8 +517,8 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `@zcode/tui` 的 import 语句
 - **迁移步骤**:
-  1. 审计 tui 对 core 的所有 import
-  2. 逐个替换为从 contracts 导入类型 + 通过事件/接口交互
+    1. 审计 tui 对 core 的所有 import
+    2. 逐个替换为从 contracts 导入类型 + 通过事件/接口交互
 - **风险**: 中 — 可能需要新增 contracts 接口
 - **验证**: `pnpm run typecheck`
 - **PR 粒度**: 1 个 PR
@@ -527,9 +527,9 @@ webfetch.ts → webfetch-cache.ts, webfetch-constants.ts, webfetch-content.ts,
 
 - **改动范围**: `@zcode/shared-types`、所有引用方
 - **迁移步骤**:
-  1. 将 `JsonValue`、`RunContext`、`GlobalLocale`、`GlobalOptions`、`RuntimeInfo` 移入 contracts
-  2. shared-types 保留 re-export 标记 deprecated
-  3. 更新所有 import
+    1. 将 `JsonValue`、`RunContext`、`GlobalLocale`、`GlobalOptions`、`RuntimeInfo` 移入 contracts
+    2. shared-types 保留 re-export 标记 deprecated
+    3. 更新所有 import
 - **风险**: 低
 - **验证**: `pnpm run typecheck`
 - **PR 粒度**: 1 个 PR
@@ -589,10 +589,10 @@ core/src/
 
 - 当前已有 `oxlint` + `oxfmt`，覆盖基本规范
 - **建议增加**:
-  - `eslint-plugin-max-lines` 或自定义 lint rule：单文件不超过 400 行
-  - `eslint-plugin-boundaries`：禁止 tui 直接 import core 实现
-  - `tsc --noEmit` 作为 CI 门禁（当前已配置）
-  - `knip` 检测 unused exports（当前已配置但未在 CI 执行）
+    - `eslint-plugin-max-lines` 或自定义 lint rule：单文件不超过 400 行
+    - `eslint-plugin-boundaries`：禁止 tui 直接 import core 实现
+    - `tsc --noEmit` 作为 CI 门禁（当前已配置）
+    - `knip` 检测 unused exports（当前已配置但未在 CI 执行）
 
 ### 5.3 测试策略
 
@@ -611,9 +611,9 @@ core/src/
 
 - 当前已有 `TraceContext` 传播和结构化日志，设计良好
 - **建议增加**:
-  - 每个 Phase 1-5 拆分完成后，为新服务添加独立的 `module` 标识
-  - 在 `runtime-facade.ts` 中记录方法委托日志，便于追踪调用链
-  - 为 `modelAdapter` 增加调用计时 metric（当前仅 `runner-record.ts` 有部分记录）
+    - 每个 Phase 1-5 拆分完成后，为新服务添加独立的 `module` 标识
+    - 在 `runtime-facade.ts` 中记录方法委托日志，便于追踪调用链
+    - 为 `modelAdapter` 增加调用计时 metric（当前仅 `runner-record.ts` 有部分记录）
 
 ---
 

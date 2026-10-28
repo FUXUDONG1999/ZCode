@@ -1,16 +1,16 @@
 export interface SettingUpdatedEvent {
-  readonly keys: readonly string[];
+    readonly keys: readonly string[];
 }
 
 interface AccountProviderInvalidationOptions {
-  readonly onDidUpdateSetting: (listener: (event: SettingUpdatedEvent) => void) => () => void;
-  readonly refresh: (reason: string) => Promise<unknown>;
+    readonly onDidUpdateSetting: (listener: (event: SettingUpdatedEvent) => void) => () => void;
+    readonly refresh: (reason: string) => Promise<unknown>;
 }
 
 const ACCOUNT_PROVIDER_SETTING_KEYS = new Set([
-  "providerFamilyDomain",
-  "providerFamilyConnectionSelections",
-  "zcodeEndpointOrigin",
+    "providerFamilyDomain",
+    "providerFamilyConnectionSelections",
+    "zcodeEndpointOrigin",
 ]);
 
 /**
@@ -20,21 +20,21 @@ const ACCOUNT_PROVIDER_SETTING_KEYS = new Set([
  * 订阅已退役旧 Registry 的事件，避免重新引入并行事实源。
  */
 export function bindAccountProviderInvalidation(
-  options: AccountProviderInvalidationOptions,
+    options: AccountProviderInvalidationOptions,
 ): () => void {
-  const requestRefresh = (reason: string): void => {
-    void options.refresh(reason).catch(() => {
-      // AccountProviderService 通过 onDidRefreshError 统一记录失败并保留 last-known-good。
+    const requestRefresh = (reason: string): void => {
+        void options.refresh(reason).catch(() => {
+            // AccountProviderService 通过 onDidRefreshError 统一记录失败并保留 last-known-good。
+        });
+    };
+    const disposeSetting = options.onDidUpdateSetting((event) => {
+        const keys = event.keys.filter((key) => ACCOUNT_PROVIDER_SETTING_KEYS.has(key));
+        if (keys.length > 0) {
+            requestRefresh(`settings:${keys.join(",")}`);
+        }
     });
-  };
-  const disposeSetting = options.onDidUpdateSetting((event) => {
-    const keys = event.keys.filter((key) => ACCOUNT_PROVIDER_SETTING_KEYS.has(key));
-    if (keys.length > 0) {
-      requestRefresh(`settings:${keys.join(",")}`);
-    }
-  });
 
-  return () => {
-    disposeSetting();
-  };
+    return () => {
+        disposeSetting();
+    };
 }

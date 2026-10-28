@@ -18,9 +18,9 @@
 - 只登记 pnpm 在当前宿主上会安装的包：锁文件 `packages` 段的 `os`/`cpu`/`libc` 约束与 `pnpm-workspace.yaml` 的 `supportedArchitectures`（`current` 取宿主值）按 pnpm 的可安装规则比对。不可安装的平台包及只经由它们引入的依赖不安装、不分发，不进生产图，也不作为缺失安装报错；不再维护按包名的例外名单。
 - pnpm 只在 Linux 宿主上检查 `libc`，因此在 macOS / Windows 上生成的声明包含 glibc 与 musl 两类 Linux 平台包，是最全的集合；正式生成声明在 macOS 上执行。
 - 非宽松许可的生产依赖只按包名逐项登记人工复核结论，登记同时绑定许可类别，许可变化后重新阻断：
-  - LGPL：只允许以独立、可替换的动态库形式分发的 libvips（sharp 的 `@img/sharp-libvips-*` 与内含 libvips DLL 的 `@img/sharp-win32-*`，只由真实 Computer Use 包引入），声明中附原文。
-  - 内部应用独有且不随产品分发的依赖（当前为 `apps/dev-docs` 的 `elkjs`，按 EPL-2.0 使用）。
-  - 其余 LGPL/GPL/EPL 等仍按类别阻断。
+    - LGPL：只允许以独立、可替换的动态库形式分发的 libvips（sharp 的 `@img/sharp-libvips-*` 与内含 libvips DLL 的 `@img/sharp-win32-*`，只由真实 Computer Use 包引入），声明中附原文。
+    - 内部应用独有且不随产品分发的依赖（当前为 `apps/dev-docs` 的 `elkjs`，按 EPL-2.0 使用）。
+    - 其余 LGPL/GPL/EPL 等仍按类别阻断。
 - 开源导出树的工作区与锁文件不同于闭源，其声明与 inventory 由导出流程在开源依赖树上重新生成，不沿用闭源声明。
 - 文档查看器随包分发的 `@fontsource/noto-sans-sc@5.3.1` 单独按精确包名、版本与 `OFL-1.1` 许可登记；其他字体、版本或许可仍阻断。构建原样复制字体分片，并将随包版权及完整许可写入插件 `THIRD_PARTY_NOTICES.txt`。该记录不将 OFL 加入通用宽松许可名单，也不关闭其他材料缺口。
 

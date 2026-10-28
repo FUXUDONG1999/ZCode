@@ -75,9 +75,9 @@ Todo 工具把长任务计划变成 session 级一等状态，而不是只靠 as
 
 ```ts
 type TodoItem = {
-  content: string;
-  status: "pending" | "in_progress" | "completed";
-  priority: "high" | "medium" | "low";
+    content: string;
+    status: "pending" | "in_progress" | "completed";
+    priority: "high" | "medium" | "low";
 };
 ```
 
@@ -150,12 +150,12 @@ ZCode app-server 投影：
 
 ```ts
 {
-  sessionUpdate: "plan";
-  entries: Array<{
-    content: string;
-    priority: "high" | "medium" | "low";
-    status: "pending" | "in_progress" | "completed";
-  }>;
+    sessionUpdate: "plan";
+    entries: Array<{
+        content: string;
+        priority: "high" | "medium" | "low";
+        status: "pending" | "in_progress" | "completed";
+    }>;
 }
 ```
 

@@ -14,8 +14,8 @@
 
 ```json
 {
-  "features": { "memory": false },
-  "memory": { "use": false }
+    "features": { "memory": false },
+    "memory": { "use": false }
 }
 ```
 

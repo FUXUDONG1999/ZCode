@@ -38,14 +38,14 @@ import type { ChildPayload } from "./protocol.js";
 
 /** {@link childMain} 用到的 `node:vm` 全部表面（窄到只有两个函数——这就是子进程的 vm 契约）。 */
 export interface ChildVmModule {
-  createContext(sandbox: object, options?: { name?: string }): object;
-  runInContext(code: string, sandbox: object, options?: { filename?: string }): unknown;
+    createContext(sandbox: object, options?: { name?: string }): object;
+    runInContext(code: string, sandbox: object, options?: { filename?: string }): unknown;
 }
 
 /** {@link childMain} 用到的 `readline.Interface` 表面。 */
 export interface ChildReadlineInterface {
-  on(event: "line", listener: (line: string) => void): unknown;
-  close(): void;
+    on(event: "line", listener: (line: string) => void): unknown;
+    close(): void;
 }
 
 /**
@@ -53,25 +53,25 @@ export interface ChildReadlineInterface {
  * `node:vm` / `node:readline` / `process` 现取，SEA 子命令从 CLI 进程现取。
  */
 export interface ChildMainDeps {
-  vm: ChildVmModule;
-  createInterface(options: { input: NodeJS.ReadableStream }): ChildReadlineInterface;
-  /** 入站 response 的来源（父进程 stdin 管道）。持有它也让事件循环保持存活。 */
-  stdin: NodeJS.ReadableStream;
-  /** 出站 NDJSON 的去处；{@link childMain} 自己补换行。 */
-  stdout: { write(chunk: string): unknown };
-  /**
-   * 本次 run 的 payload（{@link import("./protocol.js").ChildPayload}）。入口文件把它当 JSON
-   * 字面量内嵌并原样递进来——不再经 argv、不再 base64。
-   */
-  payload: ChildPayload;
-  /**
-   * cell 的第二段引导脚本：channel / future 与停滞检测（child-cell-streams.ts 的
-   * {@link import("./child-cell-streams.js").CELL_STREAMS_BOOTSTRAP}）。与 payload 同路——
-   * 入口文件把它当字符串字面量内嵌、`start` 原样递进来——因为 childMain 的自包含约束不许它
-   * 引用模块作用域的绑定，而把它留在本文件里会顶穿单文件行数上限。它在 BOOTSTRAP 之后、
-   * lowered 体之前于同一 context 内运行，读写 BOOTSTRAP 用 `var` 建下的 context 全局。
-   */
-  streamsBootstrap: string;
+    vm: ChildVmModule;
+    createInterface(options: { input: NodeJS.ReadableStream }): ChildReadlineInterface;
+    /** 入站 response 的来源（父进程 stdin 管道）。持有它也让事件循环保持存活。 */
+    stdin: NodeJS.ReadableStream;
+    /** 出站 NDJSON 的去处；{@link childMain} 自己补换行。 */
+    stdout: { write(chunk: string): unknown };
+    /**
+     * 本次 run 的 payload（{@link import("./protocol.js").ChildPayload}）。入口文件把它当 JSON
+     * 字面量内嵌并原样递进来——不再经 argv、不再 base64。
+     */
+    payload: ChildPayload;
+    /**
+     * cell 的第二段引导脚本：channel / future 与停滞检测（child-cell-streams.ts 的
+     * {@link import("./child-cell-streams.js").CELL_STREAMS_BOOTSTRAP}）。与 payload 同路——
+     * 入口文件把它当字符串字面量内嵌、`start` 原样递进来——因为 childMain 的自包含约束不许它
+     * 引用模块作用域的绑定，而把它留在本文件里会顶穿单文件行数上限。它在 BOOTSTRAP 之后、
+     * lowered 体之前于同一 context 内运行，读写 BOOTSTRAP 用 `var` 建下的 context 全局。
+     */
+    streamsBootstrap: string;
 }
 
 /**
@@ -91,12 +91,12 @@ export interface ChildMainDeps {
  * 两条约束都需要在真实打包/压缩形态下验证，光靠源码测试抓不到这类回归。
  */
 export function childMain(deps: ChildMainDeps): Promise<void> {
-  /**
-   * 在 vm context 内运行的引导脚本（纯 JS，无 backtick / ${}，以便安全内嵌）。
-   * 定义 `__host`（Boundary A shims）、`__deliver`（消费入站 response）、`__execute`（跑 lowered fn），
-   * 并施加运行期禁令（Date.now / argless new Date() / Math.random）——belt；编译期诊断是 suspenders。
-   */
-  const BOOTSTRAP = String.raw`
+    /**
+     * 在 vm context 内运行的引导脚本（纯 JS，无 backtick / ${}，以便安全内嵌）。
+     * 定义 `__host`（Boundary A shims）、`__deliver`（消费入站 response）、`__execute`（跑 lowered fn），
+     * 并施加运行期禁令（Date.now / argless new Date() / Math.random）——belt；编译期诊断是 suspenders。
+     */
+    const BOOTSTRAP = String.raw`
 "use strict";
 
 var __nextLocal = 0;
@@ -299,93 +299,93 @@ Math.random = function () {
 };
 `;
 
-  // ⚠ 自包含约束的第二条（见函数上方注释），比"别 import"更容易踩：**内层函数一律不许有名字**。
-  // 根因（本条测试写出来之前真踩到过）：CLI 的 desktop-agent 构建用 `minify + keepNames`，
-  // 那个组合下 esbuild 会把**能推导出名字**的内层函数（变量声明 `const send = …`、函数声明、
-  // 对象字面量属性）改写成 `__name(fn, "send")`，而 `__name` 是注入在模块作用域的 helper。
-  // 它一旦出现在 `toString()` 的文本里，内嵌出的子进程程序就会 ReferenceError——**只在压缩过的
-  // 发布产物里坏**，源码测试全绿。成员赋值（`sandbox.__send = …`）与实参位置的匿名函数不被改写，
-  // 所以下面一律用这两种形态。验证时需要运行真实打包、压缩后的产物。
+    // ⚠ 自包含约束的第二条（见函数上方注释），比"别 import"更容易踩：**内层函数一律不许有名字**。
+    // 根因（本条测试写出来之前真踩到过）：CLI 的 desktop-agent 构建用 `minify + keepNames`，
+    // 那个组合下 esbuild 会把**能推导出名字**的内层函数（变量声明 `const send = …`、函数声明、
+    // 对象字面量属性）改写成 `__name(fn, "send")`，而 `__name` 是注入在模块作用域的 helper。
+    // 它一旦出现在 `toString()` 的文本里，内嵌出的子进程程序就会 ReferenceError——**只在压缩过的
+    // 发布产物里坏**，源码测试全绿。成员赋值（`sandbox.__send = …`）与实参位置的匿名函数不被改写，
+    // 所以下面一律用这两种形态。验证时需要运行真实打包、压缩后的产物。
 
-  const payload = deps.payload;
+    const payload = deps.payload;
 
-  // 独立 realm：裸 context 只有 ES intrinsics，注入 __send 传输 + 实参 JSON。
-  // 实参缺席（内联 run、老 journal 行）编码成 "{}"：`args` 恒有定义是脚本侧的不变式，
-  // 沙箱这一侧就是它成立的地方。
-  const sandbox = {
-    __argsJson: JSON.stringify(payload.args ?? {}),
-  } as {
-    __send: (line: string) => void;
-    __argsJson: string;
-    __deliver: (line: string) => void;
-    __execute: (runFn: unknown) => Promise<void>;
-    __checkStalled: () => boolean;
-  };
-  sandbox.__send = (line) => {
-    deps.stdout.write(`${line}\n`);
-  };
-  deps.vm.createContext(sandbox, { name: "workflow-sandbox" });
-  deps.vm.runInContext(BOOTSTRAP, sandbox, { filename: "workflow-bootstrap.js" });
-  deps.vm.runInContext(deps.streamsBootstrap, sandbox, { filename: "workflow-streams.js" });
+    // 独立 realm：裸 context 只有 ES intrinsics，注入 __send 传输 + 实参 JSON。
+    // 实参缺席（内联 run、老 journal 行）编码成 "{}"：`args` 恒有定义是脚本侧的不变式，
+    // 沙箱这一侧就是它成立的地方。
+    const sandbox = {
+        __argsJson: JSON.stringify(payload.args ?? {}),
+    } as {
+        __send: (line: string) => void;
+        __argsJson: string;
+        __deliver: (line: string) => void;
+        __execute: (runFn: unknown) => Promise<void>;
+        __checkStalled: () => boolean;
+    };
+    sandbox.__send = (line) => {
+        deps.stdout.write(`${line}\n`);
+    };
+    deps.vm.createContext(sandbox, { name: "workflow-sandbox" });
+    deps.vm.runInContext(BOOTSTRAP, sandbox, { filename: "workflow-bootstrap.js" });
+    deps.vm.runInContext(deps.streamsBootstrap, sandbox, { filename: "workflow-streams.js" });
 
-  // 编译 lowered 函数体（context-native async fn；其 await 产生 context Promise，import() 无回调将抛错）。
-  let runFn: unknown;
-  try {
-    runFn = deps.vm.runInContext(`(async (__host) => {\n${payload.lowered}\n})`, sandbox, {
-      filename: "workflow-script.js",
+    // 编译 lowered 函数体（context-native async fn；其 await 产生 context Promise，import() 无回调将抛错）。
+    let runFn: unknown;
+    try {
+        runFn = deps.vm.runInContext(`(async (__host) => {\n${payload.lowered}\n})`, sandbox, {
+            filename: "workflow-script.js",
+        });
+    } catch (error) {
+        // lowered 体编译失败：发 error-complete 后直接终结。刻意**不**调 process.exit——写往管道的
+        // stdout 是异步的，立即 exit 会截断刚发出的那条 complete（父进程转而只看到"退出而未完成"，
+        // 丢掉 SyntaxError 明细）。此时事件循环里没有 reader，子进程冲刷完就自然退出。
+        const err = error as { name?: string; message?: string; stack?: string } | undefined;
+        deps.stdout.write(
+            `${JSON.stringify({
+                kind: "complete",
+                ok: false,
+                error: {
+                    name: err?.name ?? "SyntaxError",
+                    message: err?.message ?? String(error),
+                    stack: err?.stack,
+                },
+            })}\n`,
+        );
+        return Promise.resolve();
+    }
+
+    // stdin 持有事件循环存活；每行喂给 context 的 __deliver。
+    const reader = deps.createInterface({ input: deps.stdin });
+    // 停滞检测（execution-engine.md「The vm cell」）：每条 response 投递后、以及脚本起步后，
+    // 各在 **setImmediate** 上问一次 cell「还有事可做吗」。setImmediate 排在本轮全部微任务
+    // 之后——response 能触发的每个 continuation 都已跑完——而 cell 内没有定时器与 I/O，所以
+    // 「无在飞请求且未完成」在这一刻成立就永远成立。命中时 cell 已发 error-complete；这里只
+    // 收 reader（__execute 永远不会兑现，收尾得由这条路来做）。setImmediate 是 Node 全局，
+    // 两条启动路（入口文件自启 / SEA 子命令）都在 Node 里，符合本函数的自包含约束。
+    // ⚠ 两处直接内联 setImmediate 而不是抽成 `const scheduleStallCheck = …`：一个能推导出名字的
+    // 内层函数会被 minify + keepNames 套上模块作用域的 `__name` helper（见函数上方那条注释），
+    // tests/child-source-bundled.test.ts 抓过这一条。
+    reader.on("line", (line: string) => {
+        if (!line.trim()) return;
+        sandbox.__deliver(line);
+        setImmediate(() => {
+            if (sandbox.__checkStalled()) reader.close();
+        });
     });
-  } catch (error) {
-    // lowered 体编译失败：发 error-complete 后直接终结。刻意**不**调 process.exit——写往管道的
-    // stdout 是异步的，立即 exit 会截断刚发出的那条 complete（父进程转而只看到"退出而未完成"，
-    // 丢掉 SyntaxError 明细）。此时事件循环里没有 reader，子进程冲刷完就自然退出。
-    const err = error as { name?: string; message?: string; stack?: string } | undefined;
-    deps.stdout.write(
-      `${JSON.stringify({
-        kind: "complete",
-        ok: false,
-        error: {
-          name: err?.name ?? "SyntaxError",
-          message: err?.message ?? String(error),
-          stack: err?.stack,
-        },
-      })}\n`,
+
+    // 跑脚本；收尾时关 stdin，进程随空闲事件循环自然退出（父进程亦会在收到 complete 后 kill）。
+    const execution = sandbox.__execute(runFn).then(
+        () => reader.close(),
+        () => reader.close(),
     );
-    return Promise.resolve();
-  }
-
-  // stdin 持有事件循环存活；每行喂给 context 的 __deliver。
-  const reader = deps.createInterface({ input: deps.stdin });
-  // 停滞检测（execution-engine.md「The vm cell」）：每条 response 投递后、以及脚本起步后，
-  // 各在 **setImmediate** 上问一次 cell「还有事可做吗」。setImmediate 排在本轮全部微任务
-  // 之后——response 能触发的每个 continuation 都已跑完——而 cell 内没有定时器与 I/O，所以
-  // 「无在飞请求且未完成」在这一刻成立就永远成立。命中时 cell 已发 error-complete；这里只
-  // 收 reader（__execute 永远不会兑现，收尾得由这条路来做）。setImmediate 是 Node 全局，
-  // 两条启动路（入口文件自启 / SEA 子命令）都在 Node 里，符合本函数的自包含约束。
-  // ⚠ 两处直接内联 setImmediate 而不是抽成 `const scheduleStallCheck = …`：一个能推导出名字的
-  // 内层函数会被 minify + keepNames 套上模块作用域的 `__name` helper（见函数上方那条注释），
-  // tests/child-source-bundled.test.ts 抓过这一条。
-  reader.on("line", (line: string) => {
-    if (!line.trim()) return;
-    sandbox.__deliver(line);
     setImmediate(() => {
-      if (sandbox.__checkStalled()) reader.close();
+        if (sandbox.__checkStalled()) reader.close();
     });
-  });
-
-  // 跑脚本；收尾时关 stdin，进程随空闲事件循环自然退出（父进程亦会在收到 complete 后 kill）。
-  const execution = sandbox.__execute(runFn).then(
-    () => reader.close(),
-    () => reader.close(),
-  );
-  setImmediate(() => {
-    if (sandbox.__checkStalled()) reader.close();
-  });
-  return execution;
+    return execution;
 }
 
 /** 入口文件名里 runId 的安全字符集之外一律换成 `_`（文件名与头注释共用同一份净化）。 */
 function safeRunId(runId: string): string {
-  return runId.replace(/[^A-Za-z0-9._-]/g, "_");
+    return runId.replace(/[^A-Za-z0-9._-]/g, "_");
 }
 
 /**
@@ -405,8 +405,8 @@ function safeRunId(runId: string): string {
  * 那一侧（见其注释）。生成的顶层代码刻意不用模板字面量，免得与外层的 `${}` 打架。
  */
 export function renderChildEntry(payload: ChildPayload, meta: { runId: string }): string {
-  const runId = safeRunId(meta.runId);
-  return `// zcode dynamic workflow run ${runId}
+    const runId = safeRunId(meta.runId);
+    return `// zcode dynamic workflow run ${runId}
 // Generated by @zcode/dynamic-workflow-runtime before every launch; safe to delete once the run has settled.
 import { realpathSync } from "node:fs";
 import { createInterface } from "node:readline";

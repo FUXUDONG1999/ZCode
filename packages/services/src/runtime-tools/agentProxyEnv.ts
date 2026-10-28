@@ -1,8 +1,8 @@
 import {
-  ZCODE_AGENT_CA_CERT_ENV_KEY,
-  ZCODE_HTTP_PROXY_ENV_KEY,
-  ZCODE_NO_PROXY_ENV_KEY,
-  ZCODE_WORKSPACE_IDENTITY_ENV,
+    ZCODE_AGENT_CA_CERT_ENV_KEY,
+    ZCODE_HTTP_PROXY_ENV_KEY,
+    ZCODE_NO_PROXY_ENV_KEY,
+    ZCODE_WORKSPACE_IDENTITY_ENV,
 } from "@zcode/shared";
 
 // 把设置页的 HTTP 代理、No Proxy 和自定义 CA 翻译成 agent 子进程的环境变量补丁。
@@ -18,48 +18,48 @@ import {
 // 在 Node 启动时信任它，同时用 ZCODE_AGENT_CA_CERT 给 adapter 和工具子进程补齐跨运行时 CA 变量。
 
 const PROXY_ENV_KEYS = [
-  "HTTP_PROXY",
-  "HTTPS_PROXY",
-  "ALL_PROXY",
-  ZCODE_HTTP_PROXY_ENV_KEY,
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "ALL_PROXY",
+    ZCODE_HTTP_PROXY_ENV_KEY,
 ] as const;
 const NO_PROXY_ENV_KEYS = ["NO_PROXY", "no_proxy", ZCODE_NO_PROXY_ENV_KEY] as const;
 
 export function buildAgentProxyEnv(httpProxy: string | undefined): Record<string, string> {
-  const normalized = normalizeProxyValue(httpProxy);
-  if (!normalized) {
-    return {};
-  }
-  const env: Record<string, string> = {};
-  for (const key of PROXY_ENV_KEYS) {
-    env[key] = normalized;
-  }
-  return env;
+    const normalized = normalizeProxyValue(httpProxy);
+    if (!normalized) {
+        return {};
+    }
+    const env: Record<string, string> = {};
+    for (const key of PROXY_ENV_KEYS) {
+        env[key] = normalized;
+    }
+    return env;
 }
 
 export function buildAgentCaCertEnv(caCertPath: string | undefined): Record<string, string> {
-  const trimmed = caCertPath?.trim();
-  if (!trimmed) {
-    return {};
-  }
-  return {
-    // NODE_EXTRA_CA_CERTS 必须在 Node 进程启动前存在；ZCODE_AGENT_CA_CERT 则给运行时配置、
-    // provider fetch 和工具子进程使用，避免清洗标准 CA 环境后丢失 app 显式注入的证书路径。
-    NODE_EXTRA_CA_CERTS: trimmed,
-    [ZCODE_AGENT_CA_CERT_ENV_KEY]: trimmed,
-  };
+    const trimmed = caCertPath?.trim();
+    if (!trimmed) {
+        return {};
+    }
+    return {
+        // NODE_EXTRA_CA_CERTS 必须在 Node 进程启动前存在；ZCODE_AGENT_CA_CERT 则给运行时配置、
+        // provider fetch 和工具子进程使用，避免清洗标准 CA 环境后丢失 app 显式注入的证书路径。
+        NODE_EXTRA_CA_CERTS: trimmed,
+        [ZCODE_AGENT_CA_CERT_ENV_KEY]: trimmed,
+    };
 }
 
 export function buildAgentNoProxyEnv(noProxy: string | undefined): Record<string, string> {
-  const normalized = normalizeNoProxyValue(noProxy);
-  if (!normalized) {
-    return {};
-  }
-  const env: Record<string, string> = {};
-  for (const key of NO_PROXY_ENV_KEYS) {
-    env[key] = normalized;
-  }
-  return env;
+    const normalized = normalizeNoProxyValue(noProxy);
+    if (!normalized) {
+        return {};
+    }
+    const env: Record<string, string> = {};
+    for (const key of NO_PROXY_ENV_KEYS) {
+        env[key] = normalized;
+    }
+    return env;
 }
 
 /**
@@ -67,16 +67,16 @@ export function buildAgentNoProxyEnv(noProxy: string | undefined): Record<string
  * 这些值都只来自 AppSettings 显式配置；用户 shell 里的标准代理/证书变量已经在上游清洗。
  */
 export function buildAgentRuntimeEnv(input: {
-  httpProxy: string | undefined;
-  noProxy?: string | undefined;
-  caCertPath?: string | undefined;
+    httpProxy: string | undefined;
+    noProxy?: string | undefined;
+    caCertPath?: string | undefined;
 }): Record<string, string> {
-  const proxyEnv = buildAgentProxyEnv(input.httpProxy);
-  return {
-    ...proxyEnv,
-    ...buildAgentNoProxyEnv(input.noProxy),
-    ...buildAgentCaCertEnv(input.caCertPath),
-  };
+    const proxyEnv = buildAgentProxyEnv(input.httpProxy);
+    return {
+        ...proxyEnv,
+        ...buildAgentNoProxyEnv(input.noProxy),
+        ...buildAgentCaCertEnv(input.caCertPath),
+    };
 }
 
 /**
@@ -101,41 +101,41 @@ export function buildAgentRuntimeEnv(input: {
  * 更新、agent 仍是旧值，直到 agent 重启才重新对齐；期间两侧不一致只会 fail closed，不构成放行。
  */
 export function buildAgentEndpointOriginEnv(
-  endpointOrigin: string | undefined,
+    endpointOrigin: string | undefined,
 ): Record<string, string> {
-  const trimmed = endpointOrigin?.trim();
-  if (!trimmed) {
-    return {};
-  }
-  // ZCODE_BASE_URL 是 resolveRuntimeZCodeEndpointOrigin 读取 envBaseOrigin 的最高优先级键，
-  // 因此能同时压过继承来的 ZCODE_ENDPOINT_ORIGIN。
-  return { ZCODE_BASE_URL: trimmed };
+    const trimmed = endpointOrigin?.trim();
+    if (!trimmed) {
+        return {};
+    }
+    // ZCODE_BASE_URL 是 resolveRuntimeZCodeEndpointOrigin 读取 envBaseOrigin 的最高优先级键，
+    // 因此能同时压过继承来的 ZCODE_ENDPOINT_ORIGIN。
+    return { ZCODE_BASE_URL: trimmed };
 }
 
 /** 把 Host 已知的 remote workspace identity 注入对应 Agent；本地 workspace 保持 path fallback。 */
 export function buildAgentWorkspaceIdentityEnv(
-  workspaceIdentity: string | undefined,
+    workspaceIdentity: string | undefined,
 ): Record<string, string> {
-  const trimmed = workspaceIdentity?.trim();
-  return trimmed ? { [ZCODE_WORKSPACE_IDENTITY_ENV]: trimmed } : {};
+    const trimmed = workspaceIdentity?.trim();
+    return trimmed ? { [ZCODE_WORKSPACE_IDENTITY_ENV]: trimmed } : {};
 }
 
 function normalizeProxyValue(value: string | undefined): string | undefined {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-  // 已带 scheme（http://、socks5:// 等）原样保留；裸 host:port 补 http://。
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-  return `http://${trimmed}`;
+    const trimmed = value?.trim();
+    if (!trimmed) {
+        return undefined;
+    }
+    // 已带 scheme（http://、socks5:// 等）原样保留；裸 host:port 补 http://。
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)) {
+        return trimmed;
+    }
+    return `http://${trimmed}`;
 }
 
 function normalizeNoProxyValue(value: string | undefined): string | undefined {
-  const tokens = value
-    ?.split(",")
-    .map((token) => token.trim())
-    .filter(Boolean);
-  return tokens && tokens.length > 0 ? tokens.join(",") : undefined;
+    const tokens = value
+        ?.split(",")
+        .map((token) => token.trim())
+        .filter(Boolean);
+    return tokens && tokens.length > 0 ? tokens.join(",") : undefined;
 }

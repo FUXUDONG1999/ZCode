@@ -29,20 +29,20 @@ ZCode 第一版模型调度只需要两个能力级别：
 
 ```json
 {
-  "provider": {
-    "deepseek": {
-      "kind": "openai-compatible",
-      "name": "DeepSeek",
-      "options": {
-        "baseURL": "https://api.deepseek.com",
-        "apiKey": "sk-..."
-      },
-      "models": {
-        "deepseek-v4-pro": {}
-      }
-    }
-  },
-  "model": "deepseek/deepseek-v4-pro"
+    "provider": {
+        "deepseek": {
+            "kind": "openai-compatible",
+            "name": "DeepSeek",
+            "options": {
+                "baseURL": "https://api.deepseek.com",
+                "apiKey": "sk-..."
+            },
+            "models": {
+                "deepseek-v4-pro": {}
+            }
+        }
+    },
+    "model": "deepseek/deepseek-v4-pro"
 }
 ```
 
@@ -50,23 +50,23 @@ ZCode 第一版模型调度只需要两个能力级别：
 
 ```json
 {
-  "provider": {
-    "deepseek": {
-      "kind": "openai-compatible",
-      "options": {
-        "baseURL": "https://api.deepseek.com",
-        "apiKey": "sk-..."
-      },
-      "models": {
-        "deepseek-v4-pro": {},
-        "deepseek-chat": {}
-      }
+    "provider": {
+        "deepseek": {
+            "kind": "openai-compatible",
+            "options": {
+                "baseURL": "https://api.deepseek.com",
+                "apiKey": "sk-..."
+            },
+            "models": {
+                "deepseek-v4-pro": {},
+                "deepseek-chat": {}
+            }
+        }
+    },
+    "model": {
+        "main": "deepseek/deepseek-v4-pro",
+        "lite": "deepseek/deepseek-chat"
     }
-  },
-  "model": {
-    "main": "deepseek/deepseek-v4-pro",
-    "lite": "deepseek/deepseek-chat"
-  }
 }
 ```
 
@@ -87,7 +87,7 @@ ZCode 第一版模型调度只需要两个能力级别：
 type ModelRequestRole = "main" | "lite" | "compact" | "review" | "subagent";
 
 interface ModelRoleResolver {
-  resolve(role: ModelRequestRole, context: ModelRoleContext): ModelRef;
+    resolve(role: ModelRequestRole, context: ModelRoleContext): ModelRef;
 }
 ```
 
@@ -124,25 +124,25 @@ interface ModelRoleResolver {
 
 1. Spec 已更新：`docs/design/v2/model/README.md` 和 loop interface 草案使用 `lite`。
 2. Contracts：
-   - `ModelRole.Small` 改为 `ModelRole.Lite`。
-   - `RuntimeConfig.model` 由 provider-first config 解析成 `{ main, lite? }`。
-   - 用户配置不保留 `RuntimeConfig.model.small` 兼容入口。
-   - 用户配置不保留 inline target 兼容入口。
+    - `ModelRole.Small` 改为 `ModelRole.Lite`。
+    - `RuntimeConfig.model` 由 provider-first config 解析成 `{ main, lite? }`。
+    - 用户配置不保留 `RuntimeConfig.model.small` 兼容入口。
+    - 用户配置不保留 inline target 兼容入口。
 3. Config adapter：
-   - file config 读取 `model.lite`。
-   - 拒绝 `model.small`、`small_model` 和 inline target。
-   - 不新增 lite 环境变量。
+    - file config 读取 `model.lite`。
+    - 拒绝 `model.small`、`small_model` 和 inline target。
+    - 不新增 lite 环境变量。
 4. Bootstrap/runtime：
-   - 引入 `ModelRoleResolver` 或等价 helper。
-   - runtime 不再直接持有单一 `defaultModelRef` 作为所有请求的唯一来源。
-   - 普通请求使用 `role: "main"`。
-   - 明确低风险边车任务使用 `role: "lite"`。
+    - 引入 `ModelRoleResolver` 或等价 helper。
+    - runtime 不再直接持有单一 `defaultModelRef` 作为所有请求的唯一来源。
+    - 普通请求使用 `role: "main"`。
+    - 明确低风险边车任务使用 `role: "lite"`。
 5. Events/logging：
-   - `model.request` 和网络状态事件记录最终 `ModelRef`。
-   - 需要额外记录 `requestedRole`，用于解释为什么一次请求走了 `lite` 或继承了 `main`。
+    - `model.request` 和网络状态事件记录最终 `ModelRef`。
+    - 需要额外记录 `requestedRole`，用于解释为什么一次请求走了 `lite` 或继承了 `main`。
 6. Tests：
-   - 先补 contracts/config/resolver 单元测试。
-   - 再接 runtime 场景测试。
+    - 先补 contracts/config/resolver 单元测试。
+    - 再接 runtime 场景测试。
 
 ## 测试要求
 

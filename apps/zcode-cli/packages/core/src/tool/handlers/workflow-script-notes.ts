@@ -18,11 +18,11 @@ import type { CreateWorkflowDiagnostic } from "@zcode/contracts";
  * 读起来像工具刚动过它。
  */
 export interface WorkflowScriptLocation {
-  kind: "draft" | "path";
-  /** 模型面的写法（工作区相对或绝对），由 `describeWorkflowScriptPath` 算出。 */
-  described: string;
-  /** 正文行 → 文件行的偏移；无元数据块即 0。 */
-  lineOffset: number;
+    kind: "draft" | "path";
+    /** 模型面的写法（工作区相对或绝对），由 `describeWorkflowScriptPath` 算出。 */
+    described: string;
+    /** 正文行 → 文件行的偏移；无元数据块即 0。 */
+    lineOffset: number;
 }
 
 /**
@@ -32,18 +32,18 @@ export interface WorkflowScriptLocation {
  * 输出里的 `diagnostics` 数组与 display 载荷**不**跟着改：转录面画的是正文，正文行才是它的坐标。
  */
 export function formatWorkflowDiagnosticLines(
-  diagnostics: readonly CreateWorkflowDiagnostic[],
-  location: WorkflowScriptLocation | undefined,
+    diagnostics: readonly CreateWorkflowDiagnostic[],
+    location: WorkflowScriptLocation | undefined,
 ): string[] {
-  if (location === undefined) {
+    if (location === undefined) {
+        return diagnostics.map(
+            (diagnostic) => `L${diagnostic.line}:C${diagnostic.column} ${diagnostic.message}`,
+        );
+    }
     return diagnostics.map(
-      (diagnostic) => `L${diagnostic.line}:C${diagnostic.column} ${diagnostic.message}`,
+        (diagnostic) =>
+            `${location.described}:L${diagnostic.line + location.lineOffset}:C${diagnostic.column} ${diagnostic.message}`,
     );
-  }
-  return diagnostics.map(
-    (diagnostic) =>
-      `${location.described}:L${diagnostic.line + location.lineOffset}:C${diagnostic.column} ${diagnostic.message}`,
-  );
 }
 
 /**
@@ -51,11 +51,11 @@ export function formatWorkflowDiagnosticLines(
  * **别再把脚本贴一遍**。
  */
 export function workflowScriptFileNote(location: WorkflowScriptLocation): string {
-  const where =
-    location.kind === "draft"
-      ? `The script is saved at ${location.described}.`
-      : `The script file is ${location.described}.`;
-  return `NOTE: The workflow was NOT executed. ${where} Edit that file in place and resubmit with \`path: "${location.described}"\` — do not paste the script inline again.`;
+    const where =
+        location.kind === "draft"
+            ? `The script is saved at ${location.described}.`
+            : `The script file is ${location.described}.`;
+    return `NOTE: The workflow was NOT executed. ${where} Edit that file in place and resubmit with \`path: "${location.described}"\` — do not paste the script inline again.`;
 }
 
 /**
@@ -64,23 +64,23 @@ export function workflowScriptFileNote(location: WorkflowScriptLocation): string
  * 声明还在，所以 `path` 提交同样会校验它们。
  */
 export function workflowSavedDraftNote(options: {
-  savedName: string;
-  savedPath: string;
-  draft: string;
+    savedName: string;
+    savedPath: string;
+    draft: string;
 }): string {
-  return `NOTE: The workflow was NOT executed. A working copy of the saved workflow '${options.savedName}' (${options.savedPath}) was written to ${options.draft}. Edit that copy in place and resubmit with \`path: "${options.draft}"\` (pass its \`args\` again); to change the saved definition itself, use SaveWorkflow.`;
+    return `NOTE: The workflow was NOT executed. A working copy of the saved workflow '${options.savedName}' (${options.savedPath}) was written to ${options.draft}. Edit that copy in place and resubmit with \`path: "${options.draft}"\` (pass its \`args\` again); to change the saved definition itself, use SaveWorkflow.`;
 }
 
 /** 启动成功后追加的一句：下一次修订从编辑这个文件开始。 */
 export function workflowLaunchedScriptSentence(location: WorkflowScriptLocation): string {
-  const where =
-    location.kind === "draft"
-      ? `The script is saved at ${location.described}`
-      : `The script file is ${location.described}`;
-  return ` ${where}; to revise it later, edit that file and pass \`path\` to AmendWorkflow.`;
+    const where =
+        location.kind === "draft"
+            ? `The script is saved at ${location.described}`
+            : `The script file is ${location.described}`;
+    return ` ${where}; to revise it later, edit that file and pass \`path\` to AmendWorkflow.`;
 }
 
 /** 修订启动成功后追加的一句（再修订一次仍是同一个动作）。 */
 export function workflowAmendedScriptSentence(location: WorkflowScriptLocation): string {
-  return ` The revision's script is at ${location.described}; edit it there for a further revision.`;
+    return ` The revision's script is at ${location.described}; edit it there for a further revision.`;
 }

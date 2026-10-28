@@ -10,16 +10,16 @@ The terminal UI must make the active collaboration mode visible and allow the us
   row as model and thought level, formatted as
   `mode: <mode> | model: <model> | thought: <level>`.
 - The TUI supports `/mode` commands entered in the normal prompt box:
-  - Typing `/mode` or `/mode <query>` in the composer opens an inline popup above
-    the input, matching the `/model` popup interaction. The input box remains
-    visible and focused.
-  - Pressing `Enter` while the popup is active submits the highlighted row as an
-    explicit `/mode <mode>` command; `Tab` only completes the highlighted command
-    into the input.
-  - Submitting bare `/mode` from a client without the composer popup shows the
-    current mode and available modes as text.
-  - `/mode plan`, `/mode build`, `/mode edit`, and `/mode yolo` switch subsequent turns to that mode.
-  - `edit` mode automatically accepts file editing tools, while non-edit or high-risk operations continue through the same confirmation behavior as `build`.
+    - Typing `/mode` or `/mode <query>` in the composer opens an inline popup above
+      the input, matching the `/model` popup interaction. The input box remains
+      visible and focused.
+    - Pressing `Enter` while the popup is active submits the highlighted row as an
+      explicit `/mode <mode>` command; `Tab` only completes the highlighted command
+      into the input.
+    - Submitting bare `/mode` from a client without the composer popup shows the
+      current mode and available modes as text.
+    - `/mode plan`, `/mode build`, `/mode edit`, and `/mode yolo` switch subsequent turns to that mode.
+    - `edit` mode automatically accepts file editing tools, while non-edit or high-risk operations continue through the same confirmation behavior as `build`.
 - The normal prompt box title displays only the current mode label, formatted as
   `<Mode>`. The displayed mode label is title-cased for `Plan`, `Build`,
   `Edit`, and `Yolo`; the runtime enum remains lowercase.
@@ -67,12 +67,9 @@ must remember the mode it had before entering `plan` and return to it on exit.
   (`Exclude<CollaborationMode, "plan">`). It is the single source of truth for
   where to return after plan mode.
 - Maintaining `prePlanMode` is centralized in the one and only mode write point,
-  `AgentRuntime.updateConfig({ mode })`:
-  - Switching into `plan` from a non-plan mode records `prePlanMode = <current
-mode>`.
-  - Switching out of `plan` into any other mode clears `prePlanMode`, because the
-    overlay has been resolved and no stale "return target" should survive.
-  - Repeated `plan -> plan` writes do not overwrite an existing `prePlanMode`.
+  `AgentRuntime.updateConfig({ mode })`: - Switching into `plan` from a non-plan mode records `prePlanMode = <current
+mode>`. - Switching out of `plan` into any other mode clears `prePlanMode`, because the
+  overlay has been resolved and no stale "return target" should survive. - Repeated `plan -> plan` writes do not overwrite an existing `prePlanMode`.
 - `ExitPlanMode` (model-driven plan approval) restores `prePlanMode` if present,
   otherwise falls back to `build`. The fallback only applies when no prior mode
   was recorded (e.g. a session created directly in `plan`).

@@ -40,11 +40,11 @@ TUI transcript parts gain a local-only `thought` part:
 
 ```ts
 type ThoughtTranscriptPart = {
-  contentCharCount: number;
-  status: "thinking" | "thought";
-  streamProjected?: boolean;
-  text: string;
-  type: "thought";
+    contentCharCount: number;
+    status: "thinking" | "thought";
+    streamProjected?: boolean;
+    text: string;
+    type: "thought";
 };
 ```
 

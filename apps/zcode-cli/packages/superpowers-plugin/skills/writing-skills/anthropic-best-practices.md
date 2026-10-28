@@ -521,13 +521,13 @@ This pattern greatly improves output quality.
 
 1. Draft your content following the guidelines in STYLE_GUIDE.md
 2. Review against the checklist:
-   - Check terminology consistency
-   - Verify examples follow the standard format
-   - Confirm all required sections are present
+    - Check terminology consistency
+    - Verify examples follow the standard format
+    - Confirm all required sections are present
 3. If issues found:
-   - Note each issue with specific section reference
-   - Revise the content
-   - Review the checklist again
+    - Note each issue with specific section reference
+    - Revise the content
+    - Review the checklist again
 4. Only proceed when all requirements are met
 5. Finalize and save the document
 ```
@@ -542,9 +542,9 @@ This shows the validation loop pattern using reference documents instead of scri
 1. Make your edits to `word/document.xml`
 2. **Validate immediately**: `python ooxml/scripts/validate.py unpacked_dir/`
 3. If validation fails:
-   - Review the error message carefully
-   - Fix the issues in the XML
-   - Run validation again
+    - Review the error message carefully
+    - Fix the issues in the XML
+    - Run validation again
 4. **Only proceed when validation passes**
 5. Rebuild: `python ooxml/scripts/pack.py unpacked_dir/ output.docx`
 6. Test the output document
@@ -717,19 +717,19 @@ Guide Claude through decision points:
 
 1. Determine the modification type:
 
-   **Creating new content?** → Follow "Creation workflow" below
-   **Editing existing content?** → Follow "Editing workflow" below
+    **Creating new content?** → Follow "Creation workflow" below
+    **Editing existing content?** → Follow "Editing workflow" below
 
 2. Creation workflow:
-   - Use docx-js library
-   - Build document from scratch
-   - Export to .docx format
+    - Use docx-js library
+    - Build document from scratch
+    - Export to .docx format
 
 3. Editing workflow:
-   - Unpack existing document
-   - Modify XML directly
-   - Validate after each change
-   - Repack when complete
+    - Unpack existing document
+    - Modify XML directly
+    - Validate after each change
+    - Repack when complete
 ```
 
 <Tip>
@@ -756,14 +756,14 @@ This approach ensures you're solving actual problems rather than anticipating re
 
 ```json theme={null}
 {
-  "skills": ["pdf-processing"],
-  "query": "Extract all text from this PDF file and save it to output.txt",
-  "files": ["test-files/document.pdf"],
-  "expected_behavior": [
-    "Successfully reads the PDF file using an appropriate PDF processing library or command-line tool",
-    "Extracts text content from all pages in the document without missing any pages",
-    "Saves the extracted text to a file named output.txt in a clear, readable format"
-  ]
+    "skills": ["pdf-processing"],
+    "query": "Extract all text from this PDF file and save it to output.txt",
+    "files": ["test-files/document.pdf"],
+    "expected_behavior": [
+        "Successfully reads the PDF file using an appropriate PDF processing library or command-line tool",
+        "Extracts text content from all pages in the document without missing any pages",
+        "Saves the extracted text to a file named output.txt in a clear, readable format"
+    ]
 }
 ```
 
@@ -781,13 +781,13 @@ The most effective Skill development process involves Claude itself. Work with o
 
 2. **Identify the reusable pattern**: After completing the task, identify what context you provided that would be useful for similar future tasks.
 
-   **Example**: If you worked through a BigQuery analysis, you might have provided table names, field definitions, filtering rules (like "always exclude test accounts"), and common query patterns.
+    **Example**: If you worked through a BigQuery analysis, you might have provided table names, field definitions, filtering rules (like "always exclude test accounts"), and common query patterns.
 
 3. **Ask Claude A to create a Skill**: "Create a Skill that captures this BigQuery analysis pattern we just used. Include the table schemas, naming conventions, and the rule about filtering test accounts."
 
-   <Tip>
-     Claude models understand the Skill format and structure natively. You don't need special system prompts or a "writing skills" skill to get Claude to help create Skills. Simply ask Claude to create a Skill and it will generate properly structured SKILL.md content with appropriate frontmatter and body content.
-   </Tip>
+ <Tip>
+   Claude models understand the Skill format and structure natively. You don't need special system prompts or a "writing skills" skill to get Claude to help create Skills. Simply ask Claude to create a Skill and it will generate properly structured SKILL.md content with appropriate frontmatter and body content.
+ </Tip>
 
 4. **Review for conciseness**: Check that Claude A hasn't added unnecessary explanations. Ask: "Remove the explanation about what win rate means - Claude already knows that."
 
@@ -809,7 +809,7 @@ The same hierarchical pattern continues when improving Skills. You alternate bet
 
 2. **Observe Claude B's behavior**: Note where it struggles, succeeds, or makes unexpected choices
 
-   **Example observation**: "When I asked Claude B for a regional sales report, it wrote the query but forgot to filter out test accounts, even though the Skill mentions this rule."
+    **Example observation**: "When I asked Claude B for a regional sales report, it wrote the query but forgot to filter out test accounts, even though the Skill mentions this rule."
 
 3. **Return to Claude A for improvements**: Share the current SKILL.md and describe what you observed. Ask: "I noticed Claude B forgot to filter test accounts when I asked for a regional report. The Skill mentions filtering, but maybe it's not prominent enough?"
 
@@ -961,8 +961,8 @@ Output format:
 
 ```json
 {
-  "field_name": { "type": "text", "x": 100, "y": 200 },
-  "signature": { "type": "sig", "x": 150, "y": 500 }
+    "field_name": { "type": "text", "x": 100, "y": 200 },
+    "signature": { "type": "sig", "x": 150, "y": 500 }
 }
 ```
 
@@ -989,9 +989,9 @@ When inputs can be rendered as images, have Claude analyze them:
 
 1. Convert PDF to images:
 
-   ```bash
-   python scripts/pdf_to_images.py form.pdf
-   ```
+    ```bash
+    python scripts/pdf_to_images.py form.pdf
+    ```
 
 2. Analyze each page image to identify form fields
 3. Claude can see field locations and types visually
@@ -1047,13 +1047,13 @@ Skills run in a code execution environment with filesystem access, bash commands
 - **File paths matter**: Claude navigates your skill directory like a filesystem. Use forward slashes (`reference/guide.md`), not backslashes
 - **Name files descriptively**: Use names that indicate content: `form_validation_rules.md`, not `doc2.md`
 - **Organize for discovery**: Structure directories by domain or feature
-  - Good: `reference/finance.md`, `reference/sales.md`
-  - Bad: `docs/file1.md`, `docs/file2.md`
+    - Good: `reference/finance.md`, `reference/sales.md`
+    - Bad: `docs/file1.md`, `docs/file2.md`
 - **Bundle comprehensive resources**: Include complete API docs, extensive examples, large datasets; no context penalty until accessed
 - **Prefer scripts for deterministic operations**: Write `validate_form.py` rather than asking Claude to generate validation code
 - **Make execution intent clear**:
-  - "Run `analyze_form.py` to extract fields" (execute)
-  - "See `analyze_form.py` for the extraction algorithm" (read as reference)
+    - "Run `analyze_form.py` to extract fields" (execute)
+    - "See `analyze_form.py` for the extraction algorithm" (read as reference)
 - **Test file access patterns**: Verify Claude can navigate your directory structure by testing with real requests
 
 **Example:**

@@ -60,24 +60,24 @@ GET https://zcode.z.ai/api/v1/agent/configs
 
 ```json
 {
-  "code": 0,
-  "msg": "",
-  "data": {
-    "proxyEndpoint": {
-      "mapping": [
-        {
-          "from": "https://open.bigmodel.cn/api/anthropic/v1/messages",
-          "to": "https://zcode.z.ai/api/v1/ultra/anthropic/v1/messages",
-          "zcodeAuthorizationHeader": "X-Zcode-Authorization"
-        },
-        {
-          "from": "https://api.z.ai/api/anthropic/v1/messages",
-          "to": "https://zcode.z.ai/api/v1/ultra-zai/anthropic/v1/messages",
-          "zcodeAuthorizationHeader": "X-Zcode-Authorization"
+    "code": 0,
+    "msg": "",
+    "data": {
+        "proxyEndpoint": {
+            "mapping": [
+                {
+                    "from": "https://open.bigmodel.cn/api/anthropic/v1/messages",
+                    "to": "https://zcode.z.ai/api/v1/ultra/anthropic/v1/messages",
+                    "zcodeAuthorizationHeader": "X-Zcode-Authorization"
+                },
+                {
+                    "from": "https://api.z.ai/api/anthropic/v1/messages",
+                    "to": "https://zcode.z.ai/api/v1/ultra-zai/anthropic/v1/messages",
+                    "zcodeAuthorizationHeader": "X-Zcode-Authorization"
+                }
+            ]
         }
-      ]
     }
-  }
 }
 ```
 

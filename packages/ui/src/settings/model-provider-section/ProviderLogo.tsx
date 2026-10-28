@@ -23,59 +23,59 @@ import opencodeDark from "@/assets/provider-icons/model-provider-opencode-dark.s
 type ProviderLogoRef = NonNullable<ProviderConfigObject["logo"]>;
 
 interface BuiltinProviderLogoAsset {
-  readonly light: string;
-  readonly dark?: string;
+    readonly light: string;
+    readonly dark?: string;
 }
 
 // 这里只负责把 Config 中的资源 key 解析为打包素材；禁止加入 Provider ID、名称或排序逻辑。
 const BUILTIN_PROVIDER_LOGO_ASSETS: Readonly<Record<string, BuiltinProviderLogoAsset>> = {
-  // 用户指定 Dock 应用图标；同名旧 SVG 带灰色描边，不能当作同一素材复用。
-  zai: { light: zaiLogo },
-  bigmodel: { light: bigModelLogo },
-  "start-plan": { light: startPlanLogo },
-  "moonshot-kimi": { light: moonshotKimiLogo },
-  minimax: { light: miniMaxLogo },
-  deepseek: { light: deepSeekLogo },
-  "alibaba-model-studio": { light: alibabaModelStudioLogo },
-  "xiaomi-mimo": { light: xiaomiMimoLogo },
-  openai: { light: openAiLogo },
-  anthropic: { light: anthropicLogo },
-  xai: { light: xAiLogo },
-  openrouter: { light: openrouterLight, dark: openrouterDark },
-  opencode: { light: opencodeLight, dark: opencodeDark },
+    // 用户指定 Dock 应用图标；同名旧 SVG 带灰色描边，不能当作同一素材复用。
+    zai: { light: zaiLogo },
+    bigmodel: { light: bigModelLogo },
+    "start-plan": { light: startPlanLogo },
+    "moonshot-kimi": { light: moonshotKimiLogo },
+    minimax: { light: miniMaxLogo },
+    deepseek: { light: deepSeekLogo },
+    "alibaba-model-studio": { light: alibabaModelStudioLogo },
+    "xiaomi-mimo": { light: xiaomiMimoLogo },
+    openai: { light: openAiLogo },
+    anthropic: { light: anthropicLogo },
+    xai: { light: xAiLogo },
+    openrouter: { light: openrouterLight, dark: openrouterDark },
+    opencode: { light: opencodeLight, dark: opencodeDark },
 };
 
 export function resolveBuiltinProviderLogoAsset(
-  logo: ProviderLogoRef | null | undefined,
-  theme: ResolvedTheme,
+    logo: ProviderLogoRef | null | undefined,
+    theme: ResolvedTheme,
 ): string | null {
-  if (logo?.type !== "builtin") {
-    return null;
-  }
-  const asset = BUILTIN_PROVIDER_LOGO_ASSETS[logo.key];
-  return asset ? (theme === "dark" ? (asset.dark ?? asset.light) : asset.light) : null;
+    if (logo?.type !== "builtin") {
+        return null;
+    }
+    const asset = BUILTIN_PROVIDER_LOGO_ASSETS[logo.key];
+    return asset ? (theme === "dark" ? (asset.dark ?? asset.light) : asset.light) : null;
 }
 
 export function ProviderLogo({
-  logo,
-  className,
+    logo,
+    className,
 }: {
-  logo?: ProviderLogoRef | null;
-  className?: string;
+    logo?: ProviderLogoRef | null;
+    className?: string;
 }) {
-  const theme = useZCodeStoreWithDefault((state) => state.theme, "zai-dark");
-  const src = resolveBuiltinProviderLogoAsset(logo, resolveTheme(theme));
-  const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  if (!src || failedSrc === src) {
-    return <PackageIcon className={cn("shrink-0", className)} aria-hidden="true" />;
-  }
-  return (
-    <img
-      src={src}
-      alt=""
-      aria-hidden="true"
-      className={cn("shrink-0 object-contain", className)}
-      onError={() => setFailedSrc(src)}
-    />
-  );
+    const theme = useZCodeStoreWithDefault((state) => state.theme, "zai-dark");
+    const src = resolveBuiltinProviderLogoAsset(logo, resolveTheme(theme));
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    if (!src || failedSrc === src) {
+        return <PackageIcon className={cn("shrink-0", className)} aria-hidden="true" />;
+    }
+    return (
+        <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            className={cn("shrink-0 object-contain", className)}
+            onError={() => setFailedSrc(src)}
+        />
+    );
 }

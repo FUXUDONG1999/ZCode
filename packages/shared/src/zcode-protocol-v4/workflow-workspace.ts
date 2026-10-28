@@ -18,16 +18,16 @@ import { z } from "zod";
 
 /** 工作区 transcript 的展示上界。数字即契约。 */
 export const WORKFLOW_WORKSPACE_LIMITS = {
-  /** 一次清单最多多少行；超界由网关截尾并置 `truncated`。 */
-  maxNodes: 2000,
-  /** `op` 名的长度（`git-changed-files` 是最长的那个）。 */
-  maxOpLength: 32,
-  /** 实参个数（引擎侧截断后 ≤ 8；未截断的原值按 facade 签名 ≤ 3）。 */
-  maxArgs: 16,
-  /** 失败信息的展示长度；超长由宿主切尾。 */
-  maxErrorMessageLength: 2000,
-  /** 正文一次最多读回多少字节（截断而不是拒绝——这是审计面，不是脚本的取数面）。 */
-  resultMaxBytes: 32 * 1024,
+    /** 一次清单最多多少行；超界由网关截尾并置 `truncated`。 */
+    maxNodes: 2000,
+    /** `op` 名的长度（`git-changed-files` 是最长的那个）。 */
+    maxOpLength: 32,
+    /** 实参个数（引擎侧截断后 ≤ 8；未截断的原值按 facade 签名 ≤ 3）。 */
+    maxArgs: 16,
+    /** 失败信息的展示长度；超长由宿主切尾。 */
+    maxErrorMessageLength: 2000,
+    /** 正文一次最多读回多少字节（截断而不是拒绝——这是审计面，不是脚本的取数面）。 */
+    resultMaxBytes: 32 * 1024,
 } as const;
 
 export const workflowRunWorkspaceNodeKindSchema = z.enum(["world-read", "world-run"]);
@@ -39,11 +39,11 @@ export type WorkflowRunWorkspaceNodeStatus = z.infer<typeof workflowRunWorkspace
 
 /** 结构化失败：journal `error_json` 的 code + message（其余字段不出协议）。 */
 export const workflowRunWorkspaceNodeErrorSchema = z
-  .object({
-    code: z.string().min(1).max(64),
-    message: z.string().max(WORKFLOW_WORKSPACE_LIMITS.maxErrorMessageLength),
-  })
-  .strict();
+    .object({
+        code: z.string().min(1).max(64),
+        message: z.string().max(WORKFLOW_WORKSPACE_LIMITS.maxErrorMessageLength),
+    })
+    .strict();
 export type WorkflowRunWorkspaceNodeError = z.infer<typeof workflowRunWorkspaceNodeErrorSchema>;
 
 /**
@@ -52,14 +52,14 @@ export type WorkflowRunWorkspaceNodeError = z.infer<typeof workflowRunWorkspaceN
  * 只有 `resultBytes`。
  */
 export const workflowRunWorkspaceNodeSummarySchema = z
-  .object({
-    resultBytes: z.number().int().nonnegative(),
-    resultCount: z.number().int().nonnegative().optional(),
-    exitCode: z.number().int().optional(),
-    stdoutBytes: z.number().int().nonnegative().optional(),
-    stderrBytes: z.number().int().nonnegative().optional(),
-  })
-  .strict();
+    .object({
+        resultBytes: z.number().int().nonnegative(),
+        resultCount: z.number().int().nonnegative().optional(),
+        exitCode: z.number().int().optional(),
+        stdoutBytes: z.number().int().nonnegative().optional(),
+        stderrBytes: z.number().int().nonnegative().optional(),
+    })
+    .strict();
 export type WorkflowRunWorkspaceNodeSummary = z.infer<typeof workflowRunWorkspaceNodeSummarySchema>;
 
 /**
@@ -67,44 +67,44 @@ export type WorkflowRunWorkspaceNodeSummary = z.infer<typeof workflowRunWorkspac
  * （UI 退回静态图上的步标签）；`inputTruncated` 表示 args 是逐项字符串预览而不是原值。
  */
 export const workflowRunWorkspaceNodeSchema = z
-  .object({
-    siteId: z.string().min(1).max(64),
-    ordinal: z.number().int().nonnegative(),
-    kind: workflowRunWorkspaceNodeKindSchema,
-    op: z.string().min(1).max(WORKFLOW_WORKSPACE_LIMITS.maxOpLength).optional(),
-    args: z.array(z.unknown()).max(WORKFLOW_WORKSPACE_LIMITS.maxArgs).optional(),
-    inputTruncated: z.literal(true).optional(),
-    status: workflowRunWorkspaceNodeStatusSchema,
-    error: workflowRunWorkspaceNodeErrorSchema.optional(),
-    summary: workflowRunWorkspaceNodeSummarySchema.optional(),
-    /** journal 行的建立 / 最近更新时刻（epoch 毫秒）；二者之差就是这一步的耗时。 */
-    createdAt: z.number().int().nonnegative(),
-    updatedAt: z.number().int().nonnegative(),
-  })
-  .strict();
+    .object({
+        siteId: z.string().min(1).max(64),
+        ordinal: z.number().int().nonnegative(),
+        kind: workflowRunWorkspaceNodeKindSchema,
+        op: z.string().min(1).max(WORKFLOW_WORKSPACE_LIMITS.maxOpLength).optional(),
+        args: z.array(z.unknown()).max(WORKFLOW_WORKSPACE_LIMITS.maxArgs).optional(),
+        inputTruncated: z.literal(true).optional(),
+        status: workflowRunWorkspaceNodeStatusSchema,
+        error: workflowRunWorkspaceNodeErrorSchema.optional(),
+        summary: workflowRunWorkspaceNodeSummarySchema.optional(),
+        /** journal 行的建立 / 最近更新时刻（epoch 毫秒）；二者之差就是这一步的耗时。 */
+        createdAt: z.number().int().nonnegative(),
+        updatedAt: z.number().int().nonnegative(),
+    })
+    .strict();
 export type WorkflowRunWorkspaceNode = z.infer<typeof workflowRunWorkspaceNodeSchema>;
 
 // ── v4 query ①：workflowRunWorkspace（轻行清单）──
 export const v4ConversationWorkflowRunWorkspaceParamsSchema = z
-  .object({
-    sessionId: z.string().min(1),
-    runId: z.string().min(1),
-  })
-  .strict();
+    .object({
+        sessionId: z.string().min(1),
+        runId: z.string().min(1),
+    })
+    .strict();
 export type V4ConversationWorkflowRunWorkspaceParams = z.infer<
-  typeof v4ConversationWorkflowRunWorkspaceParamsSchema
+    typeof v4ConversationWorkflowRunWorkspaceParamsSchema
 >;
 
 export const v4ConversationWorkflowRunWorkspaceResultSchema = z
-  .object({
-    /** 按落库先后（journal 行 id 升序 = 引擎准入顺序）。 */
-    nodes: z.array(workflowRunWorkspaceNodeSchema).max(WORKFLOW_WORKSPACE_LIMITS.maxNodes),
-    /** 清单超过 maxNodes 被截尾。 */
-    truncated: z.boolean().optional(),
-  })
-  .strict();
+    .object({
+        /** 按落库先后（journal 行 id 升序 = 引擎准入顺序）。 */
+        nodes: z.array(workflowRunWorkspaceNodeSchema).max(WORKFLOW_WORKSPACE_LIMITS.maxNodes),
+        /** 清单超过 maxNodes 被截尾。 */
+        truncated: z.boolean().optional(),
+    })
+    .strict();
 export type V4ConversationWorkflowRunWorkspaceResult = z.infer<
-  typeof v4ConversationWorkflowRunWorkspaceResultSchema
+    typeof v4ConversationWorkflowRunWorkspaceResultSchema
 >;
 
 // ── v4 query ②：workflowRunNodeResult（一个节点的正文）──
@@ -112,30 +112,35 @@ export type V4ConversationWorkflowRunWorkspaceResult = z.infer<
 // 同一个答案。正文按 maxBytes **保形**有界化：字符串切尾、数组去尾、run 的 stdout / stderr
 // 各自切尾——一张卡片要的是「跑了什么、前几百行是什么」，不是脚本那种全有或全无。
 export const v4ConversationWorkflowRunNodeResultParamsSchema = z
-  .object({
-    sessionId: z.string().min(1),
-    runId: z.string().min(1),
-    siteId: z.string().min(1).max(64),
-    ordinal: z.number().int().nonnegative(),
-    /** 缺省与上限都是 resultMaxBytes；网关钳制。 */
-    maxBytes: z.number().int().positive().max(WORKFLOW_WORKSPACE_LIMITS.resultMaxBytes).optional(),
-  })
-  .strict();
+    .object({
+        sessionId: z.string().min(1),
+        runId: z.string().min(1),
+        siteId: z.string().min(1).max(64),
+        ordinal: z.number().int().nonnegative(),
+        /** 缺省与上限都是 resultMaxBytes；网关钳制。 */
+        maxBytes: z
+            .number()
+            .int()
+            .positive()
+            .max(WORKFLOW_WORKSPACE_LIMITS.resultMaxBytes)
+            .optional(),
+    })
+    .strict();
 export type V4ConversationWorkflowRunNodeResultParams = z.infer<
-  typeof v4ConversationWorkflowRunNodeResultParamsSchema
+    typeof v4ConversationWorkflowRunNodeResultParamsSchema
 >;
 
 export const v4ConversationWorkflowRunNodeResultResultSchema = z
-  .object({
-    status: workflowRunWorkspaceNodeStatusSchema,
-    /** 有界化后的正文；running 行与 failed 行缺席。 */
-    result: z.unknown().optional(),
-    error: workflowRunWorkspaceNodeErrorSchema.optional(),
-    truncated: z.boolean(),
-    /** 截断前的序列化字节数。 */
-    totalBytes: z.number().int().nonnegative(),
-  })
-  .strict();
+    .object({
+        status: workflowRunWorkspaceNodeStatusSchema,
+        /** 有界化后的正文；running 行与 failed 行缺席。 */
+        result: z.unknown().optional(),
+        error: workflowRunWorkspaceNodeErrorSchema.optional(),
+        truncated: z.boolean(),
+        /** 截断前的序列化字节数。 */
+        totalBytes: z.number().int().nonnegative(),
+    })
+    .strict();
 export type V4ConversationWorkflowRunNodeResultResult = z.infer<
-  typeof v4ConversationWorkflowRunNodeResultResultSchema
+    typeof v4ConversationWorkflowRunNodeResultResultSchema
 >;

@@ -32,17 +32,17 @@ Example `~/.zcode/cli/config.json` entry:
 
 ```json
 {
-  "plugins": {
-    "enabledPlugins": {
-      "android-emulator@zcode-plugins-official": true
-    },
-    "options": {
-      "android-emulator@zcode-plugins-official": {
-        "default_avd": "medium_phone",
-        "api_level": "35"
-      }
+    "plugins": {
+        "enabledPlugins": {
+            "android-emulator@zcode-plugins-official": true
+        },
+        "options": {
+            "android-emulator@zcode-plugins-official": {
+                "default_avd": "medium_phone",
+                "api_level": "35"
+            }
+        }
     }
-  }
 }
 ```
 

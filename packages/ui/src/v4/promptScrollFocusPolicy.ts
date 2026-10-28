@@ -2,9 +2,9 @@ import type { InputRouting } from "@zcode/shared/zcode-protocol-v4";
 import type { ConversationComposerSendOptions } from "@/v4/ConversationComposer.js";
 
 export interface PromptScrollFocusPolicyInput {
-  draftMode: boolean;
-  inputRoutingMode: InputRouting["mode"] | null;
-  heldQueueDisposition?: ConversationComposerSendOptions["heldQueueDisposition"];
+    draftMode: boolean;
+    inputRoutingMode: InputRouting["mode"] | null;
+    heldQueueDisposition?: ConversationComposerSendOptions["heldQueueDisposition"];
 }
 
 /**
@@ -13,7 +13,7 @@ export interface PromptScrollFocusPolicyInput {
  * held choice 的两个显式 disposition 都会立即 startNow，因此与普通直发相同。
  */
 export function shouldFocusTimelineAfterComposerSend(input: PromptScrollFocusPolicyInput): boolean {
-  if (input.draftMode) return true;
-  if (input.heldQueueDisposition) return true;
-  return input.inputRoutingMode === "startNow";
+    if (input.draftMode) return true;
+    if (input.heldQueueDisposition) return true;
+    return input.inputRoutingMode === "startNow";
 }

@@ -12,10 +12,10 @@
 
 import { canonicalWorkflowRun } from "./workflow-runs-delta.js";
 import {
-  WORKFLOW_RUNS_LEGACY_LIMITS,
-  type WorkflowRunActor,
-  type WorkflowRunNode,
-  type WorkflowRunsState,
+    WORKFLOW_RUNS_LEGACY_LIMITS,
+    type WorkflowRunActor,
+    type WorkflowRunNode,
+    type WorkflowRunsState,
 } from "./workflow-runs.js";
 
 /**
@@ -28,25 +28,25 @@ import {
  * 下游所有按引用 memo 的地方失效。
  */
 export function clampWorkflowRunsForLegacy(state: WorkflowRunsState): WorkflowRunsState {
-  let clamped = false;
-  const runs = state.runs.map((run) => {
-    const actors = clampKeepingLive(
-      run.actors,
-      WORKFLOW_RUNS_LEGACY_LIMITS.maxActors,
-      (actor: WorkflowRunActor) => actor.status !== "completed",
-    );
-    const nodes = clampKeepingLive(
-      run.nodes,
-      WORKFLOW_RUNS_LEGACY_LIMITS.maxNodes,
-      (node: WorkflowRunNode) => node.phase !== "settled",
-    );
-    if (actors === run.actors && nodes === run.nodes) return run;
-    clamped = true;
-    // 走规范键序：`truncated` 可能是这条 run 上的新键，直接展开会把它缀在对象尾部，
-    // 而同一份状态在别处（归约出口、增量 apply）都是 schema 序。
-    return canonicalWorkflowRun({ ...run, actors, nodes, truncated: true });
-  });
-  return clamped ? { revision: state.revision, runs } : state;
+    let clamped = false;
+    const runs = state.runs.map((run) => {
+        const actors = clampKeepingLive(
+            run.actors,
+            WORKFLOW_RUNS_LEGACY_LIMITS.maxActors,
+            (actor: WorkflowRunActor) => actor.status !== "completed",
+        );
+        const nodes = clampKeepingLive(
+            run.nodes,
+            WORKFLOW_RUNS_LEGACY_LIMITS.maxNodes,
+            (node: WorkflowRunNode) => node.phase !== "settled",
+        );
+        if (actors === run.actors && nodes === run.nodes) return run;
+        clamped = true;
+        // 走规范键序：`truncated` 可能是这条 run 上的新键，直接展开会把它缀在对象尾部，
+        // 而同一份状态在别处（归约出口、增量 apply）都是 schema 序。
+        return canonicalWorkflowRun({ ...run, actors, nodes, truncated: true });
+    });
+    return clamped ? { revision: state.revision, runs } : state;
 }
 
 /**
@@ -57,17 +57,17 @@ export function clampWorkflowRunsForLegacy(state: WorkflowRunsState): WorkflowRu
  * 任何解释。界内时返回同一个数组。
  */
 function clampKeepingLive<T>(
-  list: readonly T[],
-  limit: number,
-  isLive: (entry: T) => boolean,
+    list: readonly T[],
+    limit: number,
+    isLive: (entry: T) => boolean,
 ): T[] {
-  if (list.length <= limit) return list as T[];
-  const kept = new Set<number>();
-  for (let index = 0; index < list.length && kept.size < limit; index += 1) {
-    if (isLive(list[index]!)) kept.add(index);
-  }
-  for (let index = 0; index < list.length && kept.size < limit; index += 1) {
-    kept.add(index);
-  }
-  return list.filter((_, index) => kept.has(index));
+    if (list.length <= limit) return list as T[];
+    const kept = new Set<number>();
+    for (let index = 0; index < list.length && kept.size < limit; index += 1) {
+        if (isLive(list[index]!)) kept.add(index);
+    }
+    for (let index = 0; index < list.length && kept.size < limit; index += 1) {
+        kept.add(index);
+    }
+    return list.filter((_, index) => kept.has(index));
 }

@@ -4,17 +4,17 @@ import { PERMISSION_FULL_ACCESS_OPTION_ID } from "@zcode/shared/zcode-protocol-v
 //   host.interactions（V4InteractionRegistry）投递给 broker 侧等待中的 deferred。
 // - cancelBackgroundWork：直驱 core 的可选能力 cancelBackgroundTask（workId ≡ taskId）。
 import type {
-  CommandEnvelope,
-  CommandPayloadMap,
-  CommandResult,
-  SavedWorkflowStartRejectionReason,
-  WorkflowRunSettingsRejectionReason,
+    CommandEnvelope,
+    CommandPayloadMap,
+    CommandResult,
+    SavedWorkflowStartRejectionReason,
+    WorkflowRunSettingsRejectionReason,
 } from "@zcode/shared/zcode-protocol-v4";
 import {
-  BACKGROUND_WORK_CANCEL_REJECTED_FAULT_PREFIX,
-  SAVED_WORKFLOW_START_REJECTED_FAULT_PREFIX,
-  WORKFLOW_RUN_RESUME_REJECTED_FAULT_PREFIX,
-  WORKFLOW_RUN_SETTINGS_REJECTED_FAULT_PREFIX,
+    BACKGROUND_WORK_CANCEL_REJECTED_FAULT_PREFIX,
+    SAVED_WORKFLOW_START_REJECTED_FAULT_PREFIX,
+    WORKFLOW_RUN_RESUME_REJECTED_FAULT_PREFIX,
+    WORKFLOW_RUN_SETTINGS_REJECTED_FAULT_PREFIX,
 } from "@zcode/shared/zcode-protocol-v4";
 import { requireRecord } from "../record-access.js";
 import type { V4CommandCoreHost } from "../types.js";
@@ -25,12 +25,14 @@ import type { V4CommandCoreHost } from "../types.js";
  * 错误码，改用带 reasonCode 的结构化 Error（fault 命名空间），网关据此收口 ACK。
  */
 export class V4CapabilityUnsupportedError extends Error {
-  readonly reasonCode = "fault.command.capabilityUnsupported";
+    readonly reasonCode = "fault.command.capabilityUnsupported";
 
-  constructor(capability: string, sessionId: string) {
-    super(`capability not supported by this session runtime: ${capability} (session ${sessionId})`);
-    this.name = "V4CapabilityUnsupportedError";
-  }
+    constructor(capability: string, sessionId: string) {
+        super(
+            `capability not supported by this session runtime: ${capability} (session ${sessionId})`,
+        );
+        this.name = "V4CapabilityUnsupportedError";
+    }
 }
 
 /**
@@ -43,79 +45,81 @@ export class V4CapabilityUnsupportedError extends Error {
  *   登记表按 interactionId 全局寻址，不依赖 record 存在。
  */
 async function resolveInteraction(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["resolveInteraction"];
-  const delivered =
-    payload.answer.optionId === PERMISSION_FULL_ACCESS_OPTION_ID
-      ? ((await host.interactions?.resolveFullAccess(payload.interactionId, envelope.sessionId!)) ??
-        false)
-      : (host.interactions?.resolve(payload.interactionId, payload.answer) ?? false);
-  if (!delivered) {
-    host.logger?.info?.("v4 resolveInteraction no pending interaction (idempotent)", {
-      event: "zcode_protocol.v4.interaction_already_resolved",
-      interactionId: payload.interactionId,
-      sessionId: envelope.sessionId,
-    });
-  }
-  return undefined;
+    const payload = envelope.payload as CommandPayloadMap["resolveInteraction"];
+    const delivered =
+        payload.answer.optionId === PERMISSION_FULL_ACCESS_OPTION_ID
+            ? ((await host.interactions?.resolveFullAccess(
+                  payload.interactionId,
+                  envelope.sessionId!,
+              )) ?? false)
+            : (host.interactions?.resolve(payload.interactionId, payload.answer) ?? false);
+    if (!delivered) {
+        host.logger?.info?.("v4 resolveInteraction no pending interaction (idempotent)", {
+            event: "zcode_protocol.v4.interaction_already_resolved",
+            interactionId: payload.interactionId,
+            sessionId: envelope.sessionId,
+        });
+    }
+    return undefined;
 }
 
 async function snoozeInteractionAutoResolution(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["snoozeInteractionAutoResolution"];
-  const snoozed = (await host.interactions?.snoozeAutoResolution(payload.interactionId)) ?? false;
-  if (!snoozed) {
-    host.logger?.info?.("v4 snoozeInteractionAutoResolution no active countdown (idempotent)", {
-      event: "zcode_protocol.v4.interaction_auto_resolution_already_snoozed",
-      interactionId: payload.interactionId,
-      sessionId: envelope.sessionId,
-    });
-  }
-  return undefined;
+    const payload = envelope.payload as CommandPayloadMap["snoozeInteractionAutoResolution"];
+    const snoozed = (await host.interactions?.snoozeAutoResolution(payload.interactionId)) ?? false;
+    if (!snoozed) {
+        host.logger?.info?.("v4 snoozeInteractionAutoResolution no active countdown (idempotent)", {
+            event: "zcode_protocol.v4.interaction_auto_resolution_already_snoozed",
+            interactionId: payload.interactionId,
+            sessionId: envelope.sessionId,
+        });
+    }
+    return undefined;
 }
 
 export class V4WorkspaceHookReviewRejectedError extends Error {
-  constructor(readonly reasonCode: string) {
-    super(`Workspace Hook review command rejected: ${reasonCode}`);
-    this.name = "V4WorkspaceHookReviewRejectedError";
-  }
+    constructor(readonly reasonCode: string) {
+        super(`Workspace Hook review command rejected: ${reasonCode}`);
+        this.name = "V4WorkspaceHookReviewRejectedError";
+    }
 }
 
 async function respondWorkspaceHookReview(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["respondWorkspaceHookReview"];
-  const record = requireWorkspaceHookReviewRecord(host, envelope, payload.sessionId);
-  const result = await record.app.respondWorkspaceHookReview(payload);
-  if (!result.accepted) throw new V4WorkspaceHookReviewRejectedError(result.reasonCode);
-  return undefined;
+    const payload = envelope.payload as CommandPayloadMap["respondWorkspaceHookReview"];
+    const record = requireWorkspaceHookReviewRecord(host, envelope, payload.sessionId);
+    const result = await record.app.respondWorkspaceHookReview(payload);
+    if (!result.accepted) throw new V4WorkspaceHookReviewRejectedError(result.reasonCode);
+    return undefined;
 }
 
 async function toggleWorkspaceHookReviewItem(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["toggleWorkspaceHookReviewItem"];
-  const record = requireWorkspaceHookReviewRecord(host, envelope, payload.sessionId);
-  const result = await record.app.toggleWorkspaceHookReviewItem(payload);
-  if (!result.accepted) throw new V4WorkspaceHookReviewRejectedError(result.reasonCode);
-  return undefined;
+    const payload = envelope.payload as CommandPayloadMap["toggleWorkspaceHookReviewItem"];
+    const record = requireWorkspaceHookReviewRecord(host, envelope, payload.sessionId);
+    const result = await record.app.toggleWorkspaceHookReviewItem(payload);
+    if (!result.accepted) throw new V4WorkspaceHookReviewRejectedError(result.reasonCode);
+    return undefined;
 }
 
 async function revokeWorkspaceHookTrust(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["revokeWorkspaceHookTrust"];
-  const record = requireWorkspaceHookReviewRecord(host, envelope, payload.sessionId);
-  const result = await record.app.revokeWorkspaceHookTrust(payload);
-  if (!result.accepted) throw new V4WorkspaceHookReviewRejectedError(result.reasonCode);
-  return undefined;
+    const payload = envelope.payload as CommandPayloadMap["revokeWorkspaceHookTrust"];
+    const record = requireWorkspaceHookReviewRecord(host, envelope, payload.sessionId);
+    const result = await record.app.revokeWorkspaceHookTrust(payload);
+    if (!result.accepted) throw new V4WorkspaceHookReviewRejectedError(result.reasonCode);
+    return undefined;
 }
 
 /**
@@ -125,28 +129,28 @@ async function revokeWorkspaceHookTrust(
  * superviseFlow。已有活跃 flow 时幂等复用。无 pending 项时为安全 no-op。
  */
 async function requestWorkspaceHookReview(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["requestWorkspaceHookReview"];
-  const record = requireWorkspaceHookReviewRecord(host, envelope, payload.sessionId);
-  const result = await record.app.requestWorkspaceHookReview({
-    workspaceIdentity: payload.workspaceIdentity,
-    bundleDigest: payload.bundleDigest,
-  });
-  if (!result.accepted) throw new V4WorkspaceHookReviewRejectedError(result.reasonCode);
-  return undefined;
+    const payload = envelope.payload as CommandPayloadMap["requestWorkspaceHookReview"];
+    const record = requireWorkspaceHookReviewRecord(host, envelope, payload.sessionId);
+    const result = await record.app.requestWorkspaceHookReview({
+        workspaceIdentity: payload.workspaceIdentity,
+        bundleDigest: payload.bundleDigest,
+    });
+    if (!result.accepted) throw new V4WorkspaceHookReviewRejectedError(result.reasonCode);
+    return undefined;
 }
 
 function requireWorkspaceHookReviewRecord(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
-  payloadSessionId: string,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
+    payloadSessionId: string,
 ) {
-  if (envelope.sessionId !== payloadSessionId) {
-    throw new V4WorkspaceHookReviewRejectedError("workspace_hooks_snapshot_mismatch");
-  }
-  return requireRecord(host, envelope.sessionId);
+    if (envelope.sessionId !== payloadSessionId) {
+        throw new V4WorkspaceHookReviewRejectedError("workspace_hooks_snapshot_mismatch");
+    }
+    return requireRecord(host, envelope.sessionId);
 }
 
 /**
@@ -157,12 +161,12 @@ function requireWorkspaceHookReviewRecord(
  * 回 accepted，用户面前于是「点了没反应」。core 的 reason 是唯一权威，这里只做前缀搬运。
  */
 class V4BackgroundWorkCancelRejectedError extends Error {
-  readonly reasonCode: string;
-  constructor(reason: string, workId: string) {
-    super(`background work ${workId} was not cancelled: ${reason}`);
-    this.name = "V4BackgroundWorkCancelRejectedError";
-    this.reasonCode = `${BACKGROUND_WORK_CANCEL_REJECTED_FAULT_PREFIX}${reason.replace(/^background_task_/, "")}`;
-  }
+    readonly reasonCode: string;
+    constructor(reason: string, workId: string) {
+        super(`background work ${workId} was not cancelled: ${reason}`);
+        this.name = "V4BackgroundWorkCancelRejectedError";
+        this.reasonCode = `${BACKGROUND_WORK_CANCEL_REJECTED_FAULT_PREFIX}${reason.replace(/^background_task_/, "")}`;
+    }
 }
 
 /**
@@ -175,20 +179,20 @@ class V4BackgroundWorkCancelRejectedError extends Error {
  *   对照旧 op 的 afterStateMutation("background_task_cancelled")，v4 面无此义务。
  */
 async function cancelBackgroundWork(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["cancelBackgroundWork"];
-  const record = requireRecord(host, envelope.sessionId);
-  if (!record.app.cancelBackgroundTask) {
-    throw new V4CapabilityUnsupportedError("cancelBackgroundTask", record.app.sessionId);
-  }
-  // 注意：方法必须经 app 调用（不可解构，实现可能依赖 this 绑定）。
-  const result = await record.app.cancelBackgroundTask(payload.workId);
-  if (result?.reason !== undefined) {
-    throw new V4BackgroundWorkCancelRejectedError(result.reason, payload.workId);
-  }
-  return undefined;
+    const payload = envelope.payload as CommandPayloadMap["cancelBackgroundWork"];
+    const record = requireRecord(host, envelope.sessionId);
+    if (!record.app.cancelBackgroundTask) {
+        throw new V4CapabilityUnsupportedError("cancelBackgroundTask", record.app.sessionId);
+    }
+    // 注意：方法必须经 app 调用（不可解构，实现可能依赖 this 绑定）。
+    const result = await record.app.cancelBackgroundTask(payload.workId);
+    if (result?.reason !== undefined) {
+        throw new V4BackgroundWorkCancelRejectedError(result.reason, payload.workId);
+    }
+    return undefined;
 }
 
 /**
@@ -200,30 +204,30 @@ async function cancelBackgroundWork(
  *   compile_failed 的有界诊断经 `error.message` 收进 `ack.message`（与 startSavedWorkflow 同一约定）。
  */
 class V4WorkflowRunResumeRejectedError extends Error {
-  readonly reasonCode: string;
-  constructor(reason: string, message?: string) {
-    super(message ?? `workflow run resume rejected: ${reason}`);
-    this.name = "V4WorkflowRunResumeRejectedError";
-    this.reasonCode = `${WORKFLOW_RUN_RESUME_REJECTED_FAULT_PREFIX}${reason}`;
-  }
+    readonly reasonCode: string;
+    constructor(reason: string, message?: string) {
+        super(message ?? `workflow run resume rejected: ${reason}`);
+        this.name = "V4WorkflowRunResumeRejectedError";
+        this.reasonCode = `${WORKFLOW_RUN_RESUME_REJECTED_FAULT_PREFIX}${reason}`;
+    }
 }
 
 async function resumeWorkflowRun(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["resumeWorkflowRun"];
-  const record = requireRecord(host, envelope.sessionId);
-  if (!record.app.resumeWorkflowRun) {
-    throw new V4CapabilityUnsupportedError("resumeWorkflowRun", record.app.sessionId);
-  }
-  // 注意：方法必须经 app 调用（不可解构，实现可能依赖 this 绑定）。
-  const result = await record.app.resumeWorkflowRun({
-    workId: payload.workId,
-    ...(payload.name === undefined ? {} : { name: payload.name }),
-  });
-  if (!result.ok) throw new V4WorkflowRunResumeRejectedError(result.reason, result.message);
-  return undefined;
+    const payload = envelope.payload as CommandPayloadMap["resumeWorkflowRun"];
+    const record = requireRecord(host, envelope.sessionId);
+    if (!record.app.resumeWorkflowRun) {
+        throw new V4CapabilityUnsupportedError("resumeWorkflowRun", record.app.sessionId);
+    }
+    // 注意：方法必须经 app 调用（不可解构，实现可能依赖 this 绑定）。
+    const result = await record.app.resumeWorkflowRun({
+        workId: payload.workId,
+        ...(payload.name === undefined ? {} : { name: payload.name }),
+    });
+    if (!result.ok) throw new V4WorkflowRunResumeRejectedError(result.reason, result.message);
+    return undefined;
 }
 
 /**
@@ -238,32 +242,32 @@ async function resumeWorkflowRun(
  * 注：非输入类命令（不排队、不带 baseRevision），与 resume / cancel 同类，登记在 interaction-background 组。
  */
 class V4SavedWorkflowStartRejectedError extends Error {
-  readonly reasonCode: string;
-  constructor(reason: SavedWorkflowStartRejectionReason, message?: string) {
-    // message 直接进 ack.message（网关约定：error.message 收口到 ACK），缺席时给可读兜底。
-    super(message ?? `saved workflow start rejected: ${reason}`);
-    this.name = "V4SavedWorkflowStartRejectedError";
-    this.reasonCode = `${SAVED_WORKFLOW_START_REJECTED_FAULT_PREFIX}${reason}`;
-  }
+    readonly reasonCode: string;
+    constructor(reason: SavedWorkflowStartRejectionReason, message?: string) {
+        // message 直接进 ack.message（网关约定：error.message 收口到 ACK），缺席时给可读兜底。
+        super(message ?? `saved workflow start rejected: ${reason}`);
+        this.name = "V4SavedWorkflowStartRejectedError";
+        this.reasonCode = `${SAVED_WORKFLOW_START_REJECTED_FAULT_PREFIX}${reason}`;
+    }
 }
 
 async function startSavedWorkflow(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["startSavedWorkflow"];
-  const record = requireRecord(host, envelope.sessionId);
-  if (!record.app.startSavedWorkflow) {
-    throw new V4CapabilityUnsupportedError("startSavedWorkflow", record.app.sessionId);
-  }
-  // 注意：方法必须经 app 调用（不可解构，实现可能依赖 this 绑定）。
-  const result = await record.app.startSavedWorkflow({
-    name: payload.name,
-    ...(payload.scope === undefined ? {} : { scope: payload.scope }),
-    ...(payload.args === undefined ? {} : { args: payload.args }),
-  });
-  if (!result.ok) throw new V4SavedWorkflowStartRejectedError(result.reason, result.message);
-  return { type: "startSavedWorkflow", runId: result.runId, toolCallId: result.toolCallId };
+    const payload = envelope.payload as CommandPayloadMap["startSavedWorkflow"];
+    const record = requireRecord(host, envelope.sessionId);
+    if (!record.app.startSavedWorkflow) {
+        throw new V4CapabilityUnsupportedError("startSavedWorkflow", record.app.sessionId);
+    }
+    // 注意：方法必须经 app 调用（不可解构，实现可能依赖 this 绑定）。
+    const result = await record.app.startSavedWorkflow({
+        name: payload.name,
+        ...(payload.scope === undefined ? {} : { scope: payload.scope }),
+        ...(payload.args === undefined ? {} : { args: payload.args }),
+    });
+    if (!result.ok) throw new V4SavedWorkflowStartRejectedError(result.reason, result.message);
+    return { type: "startSavedWorkflow", runId: result.runId, toolCallId: result.toolCallId };
 }
 
 /**
@@ -275,47 +279,49 @@ async function startSavedWorkflow(
  *   详情页据它把 tab 换到新 run。
  */
 class V4WorkflowRunSettingsRejectedError extends Error {
-  readonly reasonCode: string;
-  constructor(reason: WorkflowRunSettingsRejectionReason, message?: string) {
-    super(message ?? `workflow run settings rejected: ${reason}`);
-    this.name = "V4WorkflowRunSettingsRejectedError";
-    this.reasonCode = `${WORKFLOW_RUN_SETTINGS_REJECTED_FAULT_PREFIX}${reason}`;
-  }
+    readonly reasonCode: string;
+    constructor(reason: WorkflowRunSettingsRejectionReason, message?: string) {
+        super(message ?? `workflow run settings rejected: ${reason}`);
+        this.name = "V4WorkflowRunSettingsRejectedError";
+        this.reasonCode = `${WORKFLOW_RUN_SETTINGS_REJECTED_FAULT_PREFIX}${reason}`;
+    }
 }
 
 async function amendWorkflowRunSettings(
-  host: V4CommandCoreHost,
-  envelope: CommandEnvelope,
+    host: V4CommandCoreHost,
+    envelope: CommandEnvelope,
 ): Promise<CommandResult | undefined> {
-  const payload = envelope.payload as CommandPayloadMap["amendWorkflowRunSettings"];
-  const record = requireRecord(host, envelope.sessionId);
-  if (!record.app.amendWorkflowRunSettings) {
-    throw new V4CapabilityUnsupportedError("amendWorkflowRunSettings", record.app.sessionId);
-  }
-  // 注意：方法必须经 app 调用（不可解构，实现可能依赖 this 绑定）。
-  const result = await record.app.amendWorkflowRunSettings({
-    runId: payload.workId,
-    ...(payload.subagentModel === undefined ? {} : { subagentModel: payload.subagentModel }),
-    ...(payload.maxConcurrency === undefined ? {} : { maxConcurrency: payload.maxConcurrency }),
-  });
-  if (!result.ok) throw new V4WorkflowRunSettingsRejectedError(result.reason, result.message);
-  return {
-    type: "amendWorkflowRunSettings",
-    runId: result.runId,
-    toolCallId: result.toolCallId,
-    ...(result.supersededRunId === undefined ? {} : { supersededRunId: result.supersededRunId }),
-  };
+    const payload = envelope.payload as CommandPayloadMap["amendWorkflowRunSettings"];
+    const record = requireRecord(host, envelope.sessionId);
+    if (!record.app.amendWorkflowRunSettings) {
+        throw new V4CapabilityUnsupportedError("amendWorkflowRunSettings", record.app.sessionId);
+    }
+    // 注意：方法必须经 app 调用（不可解构，实现可能依赖 this 绑定）。
+    const result = await record.app.amendWorkflowRunSettings({
+        runId: payload.workId,
+        ...(payload.subagentModel === undefined ? {} : { subagentModel: payload.subagentModel }),
+        ...(payload.maxConcurrency === undefined ? {} : { maxConcurrency: payload.maxConcurrency }),
+    });
+    if (!result.ok) throw new V4WorkflowRunSettingsRejectedError(result.reason, result.message);
+    return {
+        type: "amendWorkflowRunSettings",
+        runId: result.runId,
+        toolCallId: result.toolCallId,
+        ...(result.supersededRunId === undefined
+            ? {}
+            : { supersededRunId: result.supersededRunId }),
+    };
 }
 
 export const interactionBackgroundHandlers = {
-  resolveInteraction,
-  respondWorkspaceHookReview,
-  toggleWorkspaceHookReviewItem,
-  revokeWorkspaceHookTrust,
-  requestWorkspaceHookReview,
-  snoozeInteractionAutoResolution,
-  cancelBackgroundWork,
-  resumeWorkflowRun,
-  startSavedWorkflow,
-  amendWorkflowRunSettings,
+    resolveInteraction,
+    respondWorkspaceHookReview,
+    toggleWorkspaceHookReviewItem,
+    revokeWorkspaceHookTrust,
+    requestWorkspaceHookReview,
+    snoozeInteractionAutoResolution,
+    cancelBackgroundWork,
+    resumeWorkflowRun,
+    startSavedWorkflow,
+    amendWorkflowRunSettings,
 };

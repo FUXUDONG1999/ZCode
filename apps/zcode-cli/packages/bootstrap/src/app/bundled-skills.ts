@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
 import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  renameSync,
-  rmSync,
-  writeFileSync,
+    existsSync,
+    mkdirSync,
+    readdirSync,
+    readFileSync,
+    renameSync,
+    rmSync,
+    writeFileSync,
 } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import type { Logger, SkillRoot } from "@zcode/contracts";
@@ -35,17 +35,17 @@ export { DYNAMIC_WORKFLOW_SKILL_NAME };
 
 /** 技能包里每个文件都是必需资产：丢任何一个都拒绝整包，而不是装出一个引用文件缺失的技能。 */
 export const BUNDLED_SKILL_PACK_REQUIRED_PATHS = [
-  `skills/${DYNAMIC_WORKFLOW_SKILL_NAME}/SKILL.md`,
-  `skills/${DYNAMIC_WORKFLOW_SKILL_NAME}/patterns.md`,
-  `skills/${DYNAMIC_WORKFLOW_SKILL_NAME}/examples.md`,
+    `skills/${DYNAMIC_WORKFLOW_SKILL_NAME}/SKILL.md`,
+    `skills/${DYNAMIC_WORKFLOW_SKILL_NAME}/patterns.md`,
+    `skills/${DYNAMIC_WORKFLOW_SKILL_NAME}/examples.md`,
 ] as const;
 
 /** 与 official-plugin-definitions 的 rootCandidates 同形，覆盖 monorepo src/dist、cli/dist 与桌面 resources/glm 布局。 */
 const BUNDLED_SKILL_PACK_ROOT_CANDIDATES = [
-  `packages/${BUNDLED_SKILL_PACK_DIRECTORY_NAME}`,
-  `../${BUNDLED_SKILL_PACK_DIRECTORY_NAME}`,
-  `../../${BUNDLED_SKILL_PACK_DIRECTORY_NAME}`,
-  `../../../${BUNDLED_SKILL_PACK_DIRECTORY_NAME}`,
+    `packages/${BUNDLED_SKILL_PACK_DIRECTORY_NAME}`,
+    `../${BUNDLED_SKILL_PACK_DIRECTORY_NAME}`,
+    `../../${BUNDLED_SKILL_PACK_DIRECTORY_NAME}`,
+    `../../../${BUNDLED_SKILL_PACK_DIRECTORY_NAME}`,
 ] as const;
 
 export const SEA_BUNDLED_SKILL_ASSET_PREFIX = "zcode-bundled-skills/";
@@ -59,167 +59,173 @@ const SEED_MARKER_FILE = ".zcode-bundled-skills-seed.json";
 const BUNDLED_SKILL_ROOT_PRIORITY = 1_000_000;
 
 interface SeaBundledSkillManifest {
-  files: Array<{ mode?: number; path: string; sha256: string }>;
-  hash: string;
-  version: 1;
+    files: Array<{ mode?: number; path: string; sha256: string }>;
+    hash: string;
+    version: 1;
 }
 
 type SeaModule = typeof import("node:sea");
 
 export interface ResolveBundledSkillRootsOptions {
-  /** `getCliStorageRoot(storage.dir)`；仅 SEA 解压需要。 */
-  cliStorageRoot: string;
-  logger?: Logger;
+    /** `getCliStorageRoot(storage.dir)`；仅 SEA 解压需要。 */
+    cliStorageRoot: string;
+    logger?: Logger;
 }
 
 export function resolveBundledSkillRoots(options: ResolveBundledSkillRootsOptions): SkillRoot[] {
-  const packRoot =
-    materializeSeaBundledSkillPack(options) ?? resolveFilesystemBundledSkillPackRoot();
-  if (!packRoot) {
-    // 内置技能包缺席意味着 /workflow 展开后模型加载不到技能。这不是致命错误（工具描述仍带完整 API），
-    // 但必须留下诊断，否则症状只是「模型写的脚本质量变差」。
-    options.logger?.warn("Bundled skill pack unavailable", {
-      module: "bootstrap.bundled_skills",
-      requiredPaths: [...BUNDLED_SKILL_PACK_REQUIRED_PATHS],
-    });
-    return [];
-  }
-  return [
-    {
-      path: join(packRoot, BUNDLED_SKILL_PACK_SKILLS_DIRECTORY),
-      priority: BUNDLED_SKILL_ROOT_PRIORITY,
-      scope: "system",
-      source: "bundled",
-    },
-  ];
+    const packRoot =
+        materializeSeaBundledSkillPack(options) ?? resolveFilesystemBundledSkillPackRoot();
+    if (!packRoot) {
+        // 内置技能包缺席意味着 /workflow 展开后模型加载不到技能。这不是致命错误（工具描述仍带完整 API），
+        // 但必须留下诊断，否则症状只是「模型写的脚本质量变差」。
+        options.logger?.warn("Bundled skill pack unavailable", {
+            module: "bootstrap.bundled_skills",
+            requiredPaths: [...BUNDLED_SKILL_PACK_REQUIRED_PATHS],
+        });
+        return [];
+    }
+    return [
+        {
+            path: join(packRoot, BUNDLED_SKILL_PACK_SKILLS_DIRECTORY),
+            priority: BUNDLED_SKILL_ROOT_PRIORITY,
+            scope: "system",
+            source: "bundled",
+        },
+    ];
 }
 
 export function findMissingBundledSkillPackPaths(packRoot: string): string[] {
-  return BUNDLED_SKILL_PACK_REQUIRED_PATHS.filter(
-    (requiredPath) => !existsSync(join(packRoot, ...requiredPath.split("/"))),
-  );
+    return BUNDLED_SKILL_PACK_REQUIRED_PATHS.filter(
+        (requiredPath) => !existsSync(join(packRoot, ...requiredPath.split("/"))),
+    );
 }
 
 function resolveFilesystemBundledSkillPackRoot(): string | undefined {
-  for (const baseDir of candidateBaseDirs()) {
-    for (const relativePath of BUNDLED_SKILL_PACK_ROOT_CANDIDATES) {
-      const packRoot = resolve(baseDir, relativePath);
-      if (
-        existsSync(join(packRoot, BUNDLED_SKILL_PACK_SKILLS_DIRECTORY)) &&
-        findMissingBundledSkillPackPaths(packRoot).length === 0
-      ) {
-        return packRoot;
-      }
+    for (const baseDir of candidateBaseDirs()) {
+        for (const relativePath of BUNDLED_SKILL_PACK_ROOT_CANDIDATES) {
+            const packRoot = resolve(baseDir, relativePath);
+            if (
+                existsSync(join(packRoot, BUNDLED_SKILL_PACK_SKILLS_DIRECTORY)) &&
+                findMissingBundledSkillPackPaths(packRoot).length === 0
+            ) {
+                return packRoot;
+            }
+        }
     }
-  }
-  return undefined;
+    return undefined;
 }
 
 function materializeSeaBundledSkillPack(
-  options: ResolveBundledSkillRootsOptions,
+    options: ResolveBundledSkillRootsOptions,
 ): string | undefined {
-  const sea = getSeaModule();
-  if (!sea?.isSea()) return undefined;
-  const manifest = readSeaManifest(sea);
-  if (!manifest) return undefined;
+    const sea = getSeaModule();
+    if (!sea?.isSea()) return undefined;
+    const manifest = readSeaManifest(sea);
+    if (!manifest) return undefined;
 
-  const packsRoot = join(options.cliStorageRoot, BUNDLED_SKILL_PACK_DIRECTORY_NAME);
-  const targetRoot = join(packsRoot, manifest.hash);
-  if (isSeedComplete(targetRoot, manifest.hash)) return targetRoot;
-
-  // 目录名就是内容 hash：写进唯一临时目录再 rename，rename 失败且目标已完整即并发赢家先到，
-  // 直接复用；其他失败回退到任一已完整的旧包（升级中途掉盘仍有技能可用）。
-  const temporaryRoot = `${targetRoot}.tmp-${process.pid}-${Date.now()}`;
-  try {
-    mkdirSync(temporaryRoot, { recursive: true });
-    for (const file of manifest.files) {
-      const bytes = Buffer.from(sea.getRawAsset(`${SEA_BUNDLED_SKILL_ASSET_PREFIX}${file.path}`));
-      if (hashBytes(bytes) !== file.sha256) {
-        throw new Error(`Bundled skill asset hash mismatch: ${file.path}`);
-      }
-      const outputPath = join(temporaryRoot, ...file.path.split("/"));
-      mkdirSync(dirname(outputPath), { recursive: true });
-      writeFileSync(outputPath, bytes, { mode: file.mode ?? 0o644 });
-    }
-    writeFileSync(
-      join(temporaryRoot, SEED_MARKER_FILE),
-      JSON.stringify({ hash: manifest.hash, version: 1 }, null, 2),
-    );
-    mkdirSync(packsRoot, { recursive: true });
-    renameSync(temporaryRoot, targetRoot);
-    return targetRoot;
-  } catch (error) {
-    rmSync(temporaryRoot, { force: true, recursive: true });
+    const packsRoot = join(options.cliStorageRoot, BUNDLED_SKILL_PACK_DIRECTORY_NAME);
+    const targetRoot = join(packsRoot, manifest.hash);
     if (isSeedComplete(targetRoot, manifest.hash)) return targetRoot;
-    const fallbackRoot = findUsableSeededPack(packsRoot);
-    options.logger?.warn("Bundled skill pack seed degraded", {
-      error: error instanceof Error ? error.message : String(error),
-      fallbackRoot,
-      module: "bootstrap.bundled_skills",
-      targetRoot,
-    });
-    return fallbackRoot;
-  }
+
+    // 目录名就是内容 hash：写进唯一临时目录再 rename，rename 失败且目标已完整即并发赢家先到，
+    // 直接复用；其他失败回退到任一已完整的旧包（升级中途掉盘仍有技能可用）。
+    const temporaryRoot = `${targetRoot}.tmp-${process.pid}-${Date.now()}`;
+    try {
+        mkdirSync(temporaryRoot, { recursive: true });
+        for (const file of manifest.files) {
+            const bytes = Buffer.from(
+                sea.getRawAsset(`${SEA_BUNDLED_SKILL_ASSET_PREFIX}${file.path}`),
+            );
+            if (hashBytes(bytes) !== file.sha256) {
+                throw new Error(`Bundled skill asset hash mismatch: ${file.path}`);
+            }
+            const outputPath = join(temporaryRoot, ...file.path.split("/"));
+            mkdirSync(dirname(outputPath), { recursive: true });
+            writeFileSync(outputPath, bytes, { mode: file.mode ?? 0o644 });
+        }
+        writeFileSync(
+            join(temporaryRoot, SEED_MARKER_FILE),
+            JSON.stringify({ hash: manifest.hash, version: 1 }, null, 2),
+        );
+        mkdirSync(packsRoot, { recursive: true });
+        renameSync(temporaryRoot, targetRoot);
+        return targetRoot;
+    } catch (error) {
+        rmSync(temporaryRoot, { force: true, recursive: true });
+        if (isSeedComplete(targetRoot, manifest.hash)) return targetRoot;
+        const fallbackRoot = findUsableSeededPack(packsRoot);
+        options.logger?.warn("Bundled skill pack seed degraded", {
+            error: error instanceof Error ? error.message : String(error),
+            fallbackRoot,
+            module: "bootstrap.bundled_skills",
+            targetRoot,
+        });
+        return fallbackRoot;
+    }
 }
 
 function isSeedComplete(targetRoot: string, expectedHash: string): boolean {
-  try {
-    const marker = JSON.parse(readFileSync(join(targetRoot, SEED_MARKER_FILE), "utf8")) as {
-      hash?: unknown;
-    };
-    if (marker.hash !== expectedHash) return false;
-  } catch {
-    return false;
-  }
-  return findMissingBundledSkillPackPaths(targetRoot).length === 0;
+    try {
+        const marker = JSON.parse(readFileSync(join(targetRoot, SEED_MARKER_FILE), "utf8")) as {
+            hash?: unknown;
+        };
+        if (marker.hash !== expectedHash) return false;
+    } catch {
+        return false;
+    }
+    return findMissingBundledSkillPackPaths(targetRoot).length === 0;
 }
 
 function findUsableSeededPack(packsRoot: string): string | undefined {
-  let entries;
-  try {
-    entries = readdirSync(packsRoot, { withFileTypes: true });
-  } catch {
-    return undefined;
-  }
-  return entries
-    .filter((entry) => entry.isDirectory() && !entry.name.includes(".tmp-"))
-    .map((entry) => join(packsRoot, entry.name))
-    .find((packRoot) => {
-      try {
-        const marker = JSON.parse(readFileSync(join(packRoot, SEED_MARKER_FILE), "utf8")) as {
-          hash?: unknown;
-        };
-        return typeof marker.hash === "string" && isSeedComplete(packRoot, marker.hash);
-      } catch {
-        return false;
-      }
-    });
+    let entries;
+    try {
+        entries = readdirSync(packsRoot, { withFileTypes: true });
+    } catch {
+        return undefined;
+    }
+    return entries
+        .filter((entry) => entry.isDirectory() && !entry.name.includes(".tmp-"))
+        .map((entry) => join(packsRoot, entry.name))
+        .find((packRoot) => {
+            try {
+                const marker = JSON.parse(
+                    readFileSync(join(packRoot, SEED_MARKER_FILE), "utf8"),
+                ) as {
+                    hash?: unknown;
+                };
+                return typeof marker.hash === "string" && isSeedComplete(packRoot, marker.hash);
+            } catch {
+                return false;
+            }
+        });
 }
 
 function readSeaManifest(sea: SeaModule): SeaBundledSkillManifest | undefined {
-  try {
-    const manifest = JSON.parse(
-      sea.getAsset(SEA_BUNDLED_SKILL_MANIFEST_ASSET_KEY, "utf8"),
-    ) as SeaBundledSkillManifest;
-    return manifest.version === 1 &&
-      typeof manifest.hash === "string" &&
-      Array.isArray(manifest.files)
-      ? manifest
-      : undefined;
-  } catch {
-    return undefined;
-  }
+    try {
+        const manifest = JSON.parse(
+            sea.getAsset(SEA_BUNDLED_SKILL_MANIFEST_ASSET_KEY, "utf8"),
+        ) as SeaBundledSkillManifest;
+        return manifest.version === 1 &&
+            typeof manifest.hash === "string" &&
+            Array.isArray(manifest.files)
+            ? manifest
+            : undefined;
+    } catch {
+        return undefined;
+    }
 }
 
 function getSeaModule(): SeaModule | undefined {
-  const getBuiltinModule = process.getBuiltinModule as ((id: "node:sea") => SeaModule) | undefined;
-  try {
-    return getBuiltinModule?.("node:sea");
-  } catch {
-    return undefined;
-  }
+    const getBuiltinModule = process.getBuiltinModule as
+        | ((id: "node:sea") => SeaModule)
+        | undefined;
+    try {
+        return getBuiltinModule?.("node:sea");
+    } catch {
+        return undefined;
+    }
 }
 
 function hashBytes(bytes: Buffer): string {
-  return createHash("sha256").update(bytes).digest("hex");
+    return createHash("sha256").update(bytes).digest("hex");
 }

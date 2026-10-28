@@ -24,12 +24,12 @@ export type DynamicWorkflowRunWorkspaceNodeStatus = "running" | "completed" | "f
  * `world.run` 有 exitCode 与两路输出的字节数，字符串正文只有 `resultBytes`。
  */
 export interface DynamicWorkflowRunWorkspaceNodeSummary {
-  /** 正文序列化后的 UTF-8 字节数。 */
-  resultBytes: number;
-  resultCount?: number;
-  exitCode?: number;
-  stdoutBytes?: number;
-  stderrBytes?: number;
+    /** 正文序列化后的 UTF-8 字节数。 */
+    resultBytes: number;
+    resultCount?: number;
+    exitCode?: number;
+    stdoutBytes?: number;
+    stderrBytes?: number;
 }
 
 /**
@@ -39,26 +39,26 @@ export interface DynamicWorkflowRunWorkspaceNodeSummary {
  * 两者缺席，UI 退回静态图上的步标签。`inputTruncated` 表示 args 是逐项字符串预览而不是原值。
  */
 export interface DynamicWorkflowRunWorkspaceNode {
-  siteId: string;
-  ordinal: number;
-  kind: DynamicWorkflowRunWorkspaceNodeKind;
-  op?: string;
-  args?: readonly unknown[];
-  inputTruncated?: true;
-  status: DynamicWorkflowRunWorkspaceNodeStatus;
-  /** failed 行的结构化失败（journal `error_json` 的 code + message；其余字段不出端口）。 */
-  error?: DynamicWorkflowRunError;
-  /** 结算成功的行才有。 */
-  summary?: DynamicWorkflowRunWorkspaceNodeSummary;
-  /** journal 行的建立 / 最近更新时刻（epoch 毫秒）；二者之差就是这一步的耗时。 */
-  createdAt: number;
-  updatedAt: number;
+    siteId: string;
+    ordinal: number;
+    kind: DynamicWorkflowRunWorkspaceNodeKind;
+    op?: string;
+    args?: readonly unknown[];
+    inputTruncated?: true;
+    status: DynamicWorkflowRunWorkspaceNodeStatus;
+    /** failed 行的结构化失败（journal `error_json` 的 code + message；其余字段不出端口）。 */
+    error?: DynamicWorkflowRunError;
+    /** 结算成功的行才有。 */
+    summary?: DynamicWorkflowRunWorkspaceNodeSummary;
+    /** journal 行的建立 / 最近更新时刻（epoch 毫秒）；二者之差就是这一步的耗时。 */
+    createdAt: number;
+    updatedAt: number;
 }
 
 /** {@link import("./dynamic-workflow-run.port.js").DynamicWorkflowRunPort.readWorkspaceNodeResult} 的分页袋：正文的字节上限。 */
 export interface DynamicWorkflowRunWorkspaceNodeResultQuery {
-  /** 必填；端口按它**有界化**正文（截断而不是拒绝——这是审计面，不是脚本的取数面）。 */
-  maxBytes: number;
+    /** 必填；端口按它**有界化**正文（截断而不是拒绝——这是审计面，不是脚本的取数面）。 */
+    maxBytes: number;
 }
 
 /**
@@ -69,9 +69,9 @@ export interface DynamicWorkflowRunWorkspaceNodeResultQuery {
  * 只有 `error`。
  */
 export interface DynamicWorkflowRunWorkspaceNodeResult {
-  status: DynamicWorkflowRunWorkspaceNodeStatus;
-  result?: unknown;
-  error?: DynamicWorkflowRunError;
-  truncated: boolean;
-  totalBytes: number;
+    status: DynamicWorkflowRunWorkspaceNodeStatus;
+    result?: unknown;
+    error?: DynamicWorkflowRunError;
+    truncated: boolean;
+    totalBytes: number;
 }

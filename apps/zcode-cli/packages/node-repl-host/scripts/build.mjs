@@ -38,36 +38,36 @@ const require = __zcodeCreateRequire(import.meta.url);`;
 const resolveCuaHelperBuildId = (env = process.env) => env.ZCODE_CUA_HELPER_BUILD_ID?.trim() ?? "";
 
 export const buildNodeReplHostBundle = async ({
-  outfile = resolve(packageRoot, "dist", "mcp", "server.js"),
-  cuaHelperBuildId = resolveCuaHelperBuildId(),
+    outfile = resolve(packageRoot, "dist", "mcp", "server.js"),
+    cuaHelperBuildId = resolveCuaHelperBuildId(),
 } = {}) => {
-  await mkdir(dirname(outfile), { recursive: true });
-  await build({
-    banner: { js: nodeRequireBanner },
-    bundle: true,
-    define: {
-      __ZCODE_CUA_HELPER_BUILD_ID__: JSON.stringify(cuaHelperBuildId),
-    },
-    entryPoints: [resolve(packageRoot, "src", "server.ts")],
-    format: "esm",
-    legalComments: "none",
-    outfile,
-    platform: "node",
-    target: "node24",
-    external: ["sharp"],
-  });
-  // 构建期守卫：define 名一旦漂移（改名、被 createSharedDefines 之类重构吞掉），
-  // 产物会静默退回空串，而症状只在正式包出现且表现为超时。这里立刻失败，别再让它溜到用户手上。
-  if (cuaHelperBuildId) {
-    const bundled = await readFile(outfile, "utf8");
-    if (!bundled.includes(cuaHelperBuildId)) {
-      throw new Error(
-        `[node-repl-host] ZCODE_CUA_HELPER_BUILD_ID=${cuaHelperBuildId} 未折叠进 ${outfile}：` +
-          "__ZCODE_CUA_HELPER_BUILD_ID__ define 没有生效，正式包的 Helper 安装会被 fail-closed 拒绝。",
-      );
+    await mkdir(dirname(outfile), { recursive: true });
+    await build({
+        banner: { js: nodeRequireBanner },
+        bundle: true,
+        define: {
+            __ZCODE_CUA_HELPER_BUILD_ID__: JSON.stringify(cuaHelperBuildId),
+        },
+        entryPoints: [resolve(packageRoot, "src", "server.ts")],
+        format: "esm",
+        legalComments: "none",
+        outfile,
+        platform: "node",
+        target: "node24",
+        external: ["sharp"],
+    });
+    // 构建期守卫：define 名一旦漂移（改名、被 createSharedDefines 之类重构吞掉），
+    // 产物会静默退回空串，而症状只在正式包出现且表现为超时。这里立刻失败，别再让它溜到用户手上。
+    if (cuaHelperBuildId) {
+        const bundled = await readFile(outfile, "utf8");
+        if (!bundled.includes(cuaHelperBuildId)) {
+            throw new Error(
+                `[node-repl-host] ZCODE_CUA_HELPER_BUILD_ID=${cuaHelperBuildId} 未折叠进 ${outfile}：` +
+                    "__ZCODE_CUA_HELPER_BUILD_ID__ define 没有生效，正式包的 Helper 安装会被 fail-closed 拒绝。",
+            );
+        }
     }
-  }
-  return { outfile, cuaHelperBuildId };
+    return { outfile, cuaHelperBuildId };
 };
 
 // 这里原先写成 `file://${process.argv[1]}`。
@@ -77,6 +77,6 @@ export const buildNodeReplHostBundle = async ({
 // browser-use 的同名脚本与仓库其他入口都用 pathToFileURL，抽包时我漏了这一处。
 const entryPath = process.argv[1];
 if (entryPath && import.meta.url === pathToFileURL(entryPath).href) {
-  const { outfile } = await buildNodeReplHostBundle();
-  console.log(`[node-repl-host] ${outfile}`);
+    const { outfile } = await buildNodeReplHostBundle();
+    console.log(`[node-repl-host] ${outfile}`);
 }

@@ -38,19 +38,19 @@ export const ARMS_BROWSER_PERF_LOAD_NUDGE_SCRIPT = `(function () {
 })();`;
 
 export function scheduleArmsBrowserPerfLoadNudge(webContents: WebContents): void {
-  const nudge = (): void => {
-    if (webContents.isDestroyed()) {
-      return;
-    }
-    void webContents.executeJavaScript(ARMS_BROWSER_PERF_LOAD_NUDGE_SCRIPT, true).catch(() => {
-      // 非主窗口或注入失败时忽略
-    });
-  };
+    const nudge = (): void => {
+        if (webContents.isDestroyed()) {
+            return;
+        }
+        void webContents.executeJavaScript(ARMS_BROWSER_PERF_LOAD_NUDGE_SCRIPT, true).catch(() => {
+            // 非主窗口或注入失败时忽略
+        });
+    };
 
-  webContents.on("did-finish-load", nudge);
-  // 与 SDK autoInject 同挂在 dom-ready，延迟一拍等待 RumSDK.default.init 完成
-  webContents.on("dom-ready", () => {
-    setTimeout(nudge, 0);
-    setTimeout(nudge, 150);
-  });
+    webContents.on("did-finish-load", nudge);
+    // 与 SDK autoInject 同挂在 dom-ready，延迟一拍等待 RumSDK.default.init 完成
+    webContents.on("dom-ready", () => {
+        setTimeout(nudge, 0);
+        setTimeout(nudge, 150);
+    });
 }

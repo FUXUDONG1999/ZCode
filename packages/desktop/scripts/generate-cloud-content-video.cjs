@@ -1,15 +1,14 @@
 // 通过已有 Electron 的 MediaRecorder 生成原创小型 WebM fixture，stdout 输出 base64。
 const { app, BrowserWindow } = require("electron");
-app
-  .whenReady()
-  .then(async () => {
-    const window = new BrowserWindow({
-      show: false,
-      webPreferences: { backgroundThrottling: false },
-    });
-    try {
-      await window.loadURL("data:text/html,<html><body></body></html>");
-      const bytes = await window.webContents.executeJavaScript(`(async () => {
+app.whenReady()
+    .then(async () => {
+        const window = new BrowserWindow({
+            show: false,
+            webPreferences: { backgroundThrottling: false },
+        });
+        try {
+            await window.loadURL("data:text/html,<html><body></body></html>");
+            const bytes = await window.webContents.executeJavaScript(`(async () => {
       const canvas = document.createElement('canvas'); canvas.width = 320; canvas.height = 240;
       document.body.appendChild(canvas);
       const context = canvas.getContext('2d');
@@ -27,13 +26,13 @@ app
       recorder.stop(); await done; stream.getTracks().forEach(track => track.stop());
       return Array.from(new Uint8Array(await new Blob(parts,{type:'video/webm'}).arrayBuffer()));
     })()`);
-      console.log("VIDEO_BASE64=" + Buffer.from(bytes).toString("base64"));
-    } finally {
-      window.destroy();
-      app.quit();
-    }
-  })
-  .catch((error) => {
-    console.error(error);
-    app.exit(1);
-  });
+            console.log("VIDEO_BASE64=" + Buffer.from(bytes).toString("base64"));
+        } finally {
+            window.destroy();
+            app.quit();
+        }
+    })
+    .catch((error) => {
+        console.error(error);
+        app.exit(1);
+    });

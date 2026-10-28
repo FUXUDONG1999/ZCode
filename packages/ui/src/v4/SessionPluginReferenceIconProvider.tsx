@@ -4,44 +4,44 @@ import { PluginReferenceIconProvider } from "@/v4/pluginReferenceIconContext.js"
 import { buildSessionPluginIconMap } from "@/v4/pluginReferenceIconProjection.js";
 
 interface SessionPluginReferenceIconProviderProps {
-  children: ReactNode;
-  enabled: boolean;
-  remoteSessionId?: string | null;
-  sessionId: string | null;
-  workspaceIdentity?: string;
-  workspacePath: string;
+    children: ReactNode;
+    enabled: boolean;
+    remoteSessionId?: string | null;
+    sessionId: string | null;
+    workspaceIdentity?: string;
+    workspacePath: string;
 }
 
 interface ActiveSessionPluginReferenceIconProviderProps extends Omit<
-  SessionPluginReferenceIconProviderProps,
-  "enabled" | "sessionId"
+    SessionPluginReferenceIconProviderProps,
+    "enabled" | "sessionId"
 > {
-  sessionId: string;
+    sessionId: string;
 }
 
 function ActiveSessionPluginReferenceIconProvider({
-  children,
-  remoteSessionId,
-  sessionId,
-  workspaceIdentity,
-  workspacePath,
+    children,
+    remoteSessionId,
+    sessionId,
+    workspaceIdentity,
+    workspacePath,
 }: ActiveSessionPluginReferenceIconProviderProps) {
-  const catalog = usePluginReferenceCatalog(workspacePath, workspaceIdentity, sessionId, true, {
-    dedupeSessionRequest: true,
-    preferredRemoteSessionId: remoteSessionId ?? undefined,
-    // Timeline 图标是可选展示；Session 尚未就绪或 remote 暂不可用时安静回退 Cable。
-    suppressErrorLog: true,
-  });
-  const iconByPluginId = useMemo(
-    () => buildSessionPluginIconMap(catalog.authority, catalog.entries),
-    [catalog.authority, catalog.entries],
-  );
-  const projection = useMemo(
-    () => (catalog.authority === "session" ? { sessionId, iconByPluginId } : null),
-    [catalog.authority, iconByPluginId, sessionId],
-  );
+    const catalog = usePluginReferenceCatalog(workspacePath, workspaceIdentity, sessionId, true, {
+        dedupeSessionRequest: true,
+        preferredRemoteSessionId: remoteSessionId ?? undefined,
+        // Timeline 图标是可选展示；Session 尚未就绪或 remote 暂不可用时安静回退 Cable。
+        suppressErrorLog: true,
+    });
+    const iconByPluginId = useMemo(
+        () => buildSessionPluginIconMap(catalog.authority, catalog.entries),
+        [catalog.authority, catalog.entries],
+    );
+    const projection = useMemo(
+        () => (catalog.authority === "session" ? { sessionId, iconByPluginId } : null),
+        [catalog.authority, iconByPluginId, sessionId],
+    );
 
-  return <PluginReferenceIconProvider value={projection}>{children}</PluginReferenceIconProvider>;
+    return <PluginReferenceIconProvider value={projection}>{children}</PluginReferenceIconProvider>;
 }
 
 /**
@@ -52,25 +52,25 @@ function ActiveSessionPluginReferenceIconProvider({
  * 只有确实含 plugin:// 用户消息且 Session snapshot 就绪时才挂载数据 hook。
  */
 export function SessionPluginReferenceIconBoundary({
-  children,
-  enabled,
-  remoteSessionId,
-  sessionId,
-  workspaceIdentity,
-  workspacePath,
+    children,
+    enabled,
+    remoteSessionId,
+    sessionId,
+    workspaceIdentity,
+    workspacePath,
 }: SessionPluginReferenceIconProviderProps) {
-  if (!enabled || !sessionId) {
-    return <PluginReferenceIconProvider value={null}>{children}</PluginReferenceIconProvider>;
-  }
+    if (!enabled || !sessionId) {
+        return <PluginReferenceIconProvider value={null}>{children}</PluginReferenceIconProvider>;
+    }
 
-  return (
-    <ActiveSessionPluginReferenceIconProvider
-      remoteSessionId={remoteSessionId}
-      sessionId={sessionId}
-      workspaceIdentity={workspaceIdentity}
-      workspacePath={workspacePath}
-    >
-      {children}
-    </ActiveSessionPluginReferenceIconProvider>
-  );
+    return (
+        <ActiveSessionPluginReferenceIconProvider
+            remoteSessionId={remoteSessionId}
+            sessionId={sessionId}
+            workspaceIdentity={workspaceIdentity}
+            workspacePath={workspacePath}
+        >
+            {children}
+        </ActiveSessionPluginReferenceIconProvider>
+    );
 }

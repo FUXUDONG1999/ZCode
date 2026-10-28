@@ -1,8 +1,8 @@
 import {
-  BUILTIN_PROVIDER_TEMPLATE_IDS,
-  type AppSettings,
-  type Locale,
-  type ProviderFamilyDomain,
+    BUILTIN_PROVIDER_TEMPLATE_IDS,
+    type AppSettings,
+    type Locale,
+    type ProviderFamilyDomain,
 } from "@zcode/shared";
 import type { ModelSelectionView } from "@zcode/services";
 import { encodeCustomModelValue } from "@/lib/zcodeCustomModelValue.js";
@@ -10,67 +10,67 @@ import { encodeCustomModelValue } from "@/lib/zcodeCustomModelValue.js";
 export type ApiKeyProviderChoice = "zai" | "bigmodel";
 
 export function resolveLoginApiKeyDefaultProvider(locale: Locale): ApiKeyProviderChoice {
-  return locale === "zh-CN" ? "bigmodel" : "zai";
+    return locale === "zh-CN" ? "bigmodel" : "zai";
 }
 
 export function resolveLoginApiKeyTemplateId(
-  choice: ApiKeyProviderChoice,
+    choice: ApiKeyProviderChoice,
 ): "zai-api" | "bigmodel-api" {
-  return choice === "zai"
-    ? BUILTIN_PROVIDER_TEMPLATE_IDS.zai
-    : BUILTIN_PROVIDER_TEMPLATE_IDS.bigmodel;
+    return choice === "zai"
+        ? BUILTIN_PROVIDER_TEMPLATE_IDS.zai
+        : BUILTIN_PROVIDER_TEMPLATE_IDS.bigmodel;
 }
 
 export function resolveLoginApiKeyProviderLabel(choice: ApiKeyProviderChoice): string {
-  // Welcome Screen API Key 错误提示需要使用 BigModel 品牌固定写法。
-  return choice === "zai" ? "Z.ai" : "BigModel";
+    // Welcome Screen API Key 错误提示需要使用 BigModel 品牌固定写法。
+    return choice === "zai" ? "Z.ai" : "BigModel";
 }
 
 export function resolveLoginApiKeyProviderFamilyDomain(
-  choice: ApiKeyProviderChoice,
+    choice: ApiKeyProviderChoice,
 ): ProviderFamilyDomain {
-  return choice;
+    return choice;
 }
 
 export function buildLoginApiKeySkipSettings(
-  choice: ApiKeyProviderChoice,
-  now: number,
+    choice: ApiKeyProviderChoice,
+    now: number,
 ): Pick<
-  AppSettings,
-  "providerFamilyDomain" | "providerFamilyDomainUpdatedAt" | "providerFamilyDomainMigrated"
+    AppSettings,
+    "providerFamilyDomain" | "providerFamilyDomainUpdatedAt" | "providerFamilyDomainMigrated"
 > {
-  return {
-    providerFamilyDomain: resolveLoginApiKeyProviderFamilyDomain(choice),
-    providerFamilyDomainUpdatedAt: now,
-    providerFamilyDomainMigrated: true,
-  };
+    return {
+        providerFamilyDomain: resolveLoginApiKeyProviderFamilyDomain(choice),
+        providerFamilyDomainUpdatedAt: now,
+        providerFamilyDomainMigrated: true,
+    };
 }
 
 export function shouldShowLoginApiKeyLink(
-  apiKeyValue: string,
-  apiKeyUrl: string | undefined,
+    apiKeyValue: string,
+    apiKeyUrl: string | undefined,
 ): boolean {
-  return Boolean(apiKeyUrl) && apiKeyValue.trim().length === 0;
+    return Boolean(apiKeyUrl) && apiKeyValue.trim().length === 0;
 }
 
 export function buildLoginApiKeyDefaultModelPreferenceFromSelection(
-  view: ModelSelectionView,
-  providerId: string,
+    view: ModelSelectionView,
+    providerId: string,
 ): string | null {
-  const firstModel = view.providers.find((provider) => provider.providerId === providerId)
-    ?.models[0]?.modelId;
-  return firstModel ? encodeCustomModelValue(providerId, firstModel) : null;
+    const firstModel = view.providers.find((provider) => provider.providerId === providerId)
+        ?.models[0]?.modelId;
+    return firstModel ? encodeCustomModelValue(providerId, firstModel) : null;
 }
 
 export function resolveHydratedLoginApiKeyValue({
-  savedApiKey,
-  userEdited,
+    savedApiKey,
+    userEdited,
 }: {
-  savedApiKey: string;
-  userEdited: boolean;
+    savedApiKey: string;
+    userEdited: boolean;
 }): string | null {
-  if (userEdited) {
-    return null;
-  }
-  return savedApiKey.trim();
+    if (userEdited) {
+        return null;
+    }
+    return savedApiKey.trim();
 }

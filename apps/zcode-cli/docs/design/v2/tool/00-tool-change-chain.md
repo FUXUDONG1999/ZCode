@@ -610,16 +610,16 @@ Browser use 虽由 `js` REPL 驱动，但其 capability manifest、模型文档�
   构造 shared-host CUA runtime，factory 只能复用该 runtime，不能再次读取 `process.env`。Worker 只接收
   runtime 创建的二跳 bridge socket/token，禁止得到 Helper 原始凭据：
 
-  ```text
-  plugin host 恢复 Helper env
-              |
-              v
-      node_repl main() -- capture --> shared-host CUA runtime
-              |
-              +-- return --> plugin host 清理 Helper env
-              |
-      MCP initialize --> deferred server factory --> captured runtime
-  ```
+    ```text
+    plugin host 恢复 Helper env
+                |
+                v
+        node_repl main() -- capture --> shared-host CUA runtime
+                |
+                +-- return --> plugin host 清理 Helper env
+                |
+        MCP initialize --> deferred server factory --> captured runtime
+    ```
 
 - `tabs.list()` 返回 `TabInfo[]`，恢复控制时必须再用 `tabs.get(info.id)` 取得 `Tab`。受控列表为空
   不代表 backend 断线；若要继续控制用户可见页，再检查 `browser.user.openTabs()` 并显式 claim，
@@ -961,8 +961,8 @@ Tool Agent Trace 统一在单调用 Executor 外层建立，handler 不单独埋
   必须消费持久化 metadata。metadata JSON 需要 runtime schema 校验，旧数据缺字段时
   保持可读并降级为 legacy output。
 - 当前已登记的非文件 display variant 必须保持以下契约：
-  - `local_agent_message` 只包含 `status`、可选 `error` / `message`，两个文本字段分别限制为 4 KiB UTF-8。
-  - `task_stop` 只包含 `taskId`、`taskType`、`message`、可选 `command` / `truncated`，`command` 和 `message` 分别限制为 16 KiB UTF-8。
+    - `local_agent_message` 只包含 `status`、可选 `error` / `message`，两个文本字段分别限制为 4 KiB UTF-8。
+    - `task_stop` 只包含 `taskId`、`taskType`、`message`、可选 `command` / `truncated`，`command` 和 `message` 分别限制为 16 KiB UTF-8。
 - **TODO(TUI display parity)**：TUI 的 live `ToolCallResult` 和 persisted transcript adapter 当前仍只 materialize `file_diff`。后续恢复 TUI 维护时，必须让两条路径复用同一个 exhaustive display adapter，为 `local_agent_message` / `task_stop` 生成 bounded semantic output；识别到结构化 display 后不得重复渲染 legacy raw output，并分别补充 live event 与 restored transcript 测试。
 - 文件 mutation tool 生成 checkpoint 时，事件必须同时保留用户消息锚点和 tool/assistant 消息锚点；compact、resume、rewind、fork 后续只能通过这些稳定锚点重建 active chain 与 workspace snapshot 关系，不能反向解析 tool 文本或临时 runtime 状态。
 - event reducer 和 usage summary 是否消费新增字段，且不重复计数。

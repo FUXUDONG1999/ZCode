@@ -121,9 +121,9 @@ core recovery 的可观测性要求：
 
 ```json
 {
-  "modelStream": {
-    "idleTimeoutMs": 600000
-  }
+    "modelStream": {
+        "idleTimeoutMs": 600000
+    }
 }
 ```
 

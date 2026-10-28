@@ -8,10 +8,10 @@
 
 ```js
 new TableCell({
-  margins: { top: 60, bottom: 60, left: 120, right: 120 },
-  children: [
-    /* ... */
-  ],
+    margins: { top: 60, bottom: 60, left: 120, right: 120 },
+    children: [
+        /* ... */
+    ],
 });
 ```
 
@@ -25,10 +25,10 @@ new TableCell({
 
 ```js
 numbering: {
-  config: [
-    { reference: "list-A", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1." }] },
-    { reference: "list-B", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1." }] },
-  ];
+    config: [
+        { reference: "list-A", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1." }] },
+        { reference: "list-B", levels: [{ level: 0, format: LevelFormat.DECIMAL, text: "%1." }] },
+    ];
 }
 ```
 
@@ -118,9 +118,9 @@ const aspectRatio = originalHeight / originalWidth;
 const displayWidth = 500;
 const displayHeight = Math.round(displayWidth * aspectRatio);
 new ImageRun({
-  data: buf,
-  transformation: { width: displayWidth, height: displayHeight },
-  type: "png",
+    data: buf,
+    transformation: { width: displayWidth, height: displayHeight },
+    type: "png",
 });
 ```
 
@@ -184,16 +184,16 @@ para("行业增速呈现\u201c前低后高\u201d的态势，在\u201c618\u201d�
 ```js
 // Post-generation check: last section's children should not end with PageBreak
 function removeTrailingPageBreak(section) {
-  const children = section.children;
-  if (!children.length) return;
-  const last = children[children.length - 1];
-  // If last element is a Paragraph containing only PageBreak, remove it
-  if (last instanceof Paragraph) {
-    const runs = last.root?.filter((c) => c instanceof PageBreak);
-    if (runs?.length && !last.root?.some((c) => c instanceof TextRun)) {
-      children.pop();
+    const children = section.children;
+    if (!children.length) return;
+    const last = children[children.length - 1];
+    // If last element is a Paragraph containing only PageBreak, remove it
+    if (last instanceof Paragraph) {
+        const runs = last.root?.filter((c) => c instanceof PageBreak);
+        if (runs?.length && !last.root?.some((c) => c instanceof TextRun)) {
+            children.pop();
+        }
     }
-  }
 }
 ```
 
@@ -241,24 +241,26 @@ Tab widths differ between Word and WPS. Never use tabs for alignment.
 ```js
 // ❌ Tab-based alignment — breaks in WPS
 new Paragraph({
-  tabStops: [{ type: TabStopType.RIGHT, position: 8000 }],
-  children: [new TextRun({ text: "Party A:\tCompany Name" })],
+    tabStops: [{ type: TabStopType.RIGHT, position: 8000 }],
+    children: [new TextRun({ text: "Party A:\tCompany Name" })],
 });
 // ✅ Borderless table for alignment — consistent everywhere
 new Table({
-  borders: allNoBorders,
-  rows: [
-    new TableRow({
-      children: [
-        new TableCell({
-          children: [new Paragraph({ children: [new TextRun({ text: "Party A:" })] })],
+    borders: allNoBorders,
+    rows: [
+        new TableRow({
+            children: [
+                new TableCell({
+                    children: [new Paragraph({ children: [new TextRun({ text: "Party A:" })] })],
+                }),
+                new TableCell({
+                    children: [
+                        new Paragraph({ children: [new TextRun({ text: "Company Name" })] }),
+                    ],
+                }),
+            ],
         }),
-        new TableCell({
-          children: [new Paragraph({ children: [new TextRun({ text: "Company Name" })] })],
-        }),
-      ],
-    }),
-  ],
+    ],
 });
 ```
 
@@ -269,11 +271,11 @@ Word calculates nested table heights more accurately than WPS. Use stacked table
 ```js
 // ❌ Nested table inside exact-height cell
 new TableRow({
-  height: { value: 16838, rule: "exact" },
-  children: [new TableCell({ children: [nestedTable1, nestedTable2] })],
+    height: { value: 16838, rule: "exact" },
+    children: [new TableCell({ children: [nestedTable1, nestedTable2] })],
 })[
-  // ✅ Stacked approach — content table + filler table
-  (contentTable, fillerTable)
+    // ✅ Stacked approach — content table + filler table
+    (contentTable, fillerTable)
 ]; // both at top level, heights sum to 16838
 ```
 
@@ -312,22 +314,22 @@ WPS may not correctly hide first-page headers when using `titlePage: true`. Use 
 ```js
 const NB = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
 const allNoBorders = {
-  top: NB,
-  bottom: NB,
-  left: NB,
-  right: NB,
-  insideHorizontal: NB,
-  insideVertical: NB,
+    top: NB,
+    bottom: NB,
+    left: NB,
+    right: NB,
+    insideHorizontal: NB,
+    insideVertical: NB,
 };
 
 new Table({
-  borders: allNoBorders, // ← MANDATORY
-  rows: [
-    new TableRow({
-      height: { value: 16838, rule: "exact" },
-      // ...
-    }),
-  ],
+    borders: allNoBorders, // ← MANDATORY
+    rows: [
+        new TableRow({
+            height: { value: 16838, rule: "exact" },
+            // ...
+        }),
+    ],
 });
 ```
 
@@ -346,9 +348,9 @@ new Table({
 ```js
 // ✅ Paragraph border — renders consistently in both MS Office and WPS
 new Paragraph({
-  indent: { left: 1000, right: 1000 },
-  border: { top: { style: BorderStyle.SINGLE, size: 18, color: accentColor, space: 20 } },
-  children: [],
+    indent: { left: 1000, right: 1000 },
+    border: { top: { style: BorderStyle.SINGLE, size: 18, color: accentColor, space: 20 } },
+    children: [],
 });
 
 // ❌ NEVER use text characters for decorative lines
@@ -369,16 +371,16 @@ new TextRun({ text: "───────────────" }); // width
 
 ```js
 function safeText(value, placeholder) {
-  if (
-    value === undefined ||
-    value === null ||
-    value === "" ||
-    String(value) === "NaN" ||
-    String(value) === "undefined"
-  ) {
-    return placeholder || "【Please fill in】";
-  }
-  return String(value);
+    if (
+        value === undefined ||
+        value === null ||
+        value === "" ||
+        String(value) === "NaN" ||
+        String(value) === "undefined"
+    ) {
+        return placeholder || "【Please fill in】";
+    }
+    return String(value);
 }
 // Usage: new TextRun({ text: safeText(config.contact, "【Contact person】") })
 ```

@@ -15,30 +15,30 @@ import { readReplayRows, recoverSettleOrder, type ReplaySettleOrder } from "./re
 import type { AskScheduler } from "./scheduler.js";
 
 export function restoreFromJournal(
-  state: EngineState,
-  scheduler: AskScheduler,
+    state: EngineState,
+    scheduler: AskScheduler,
 ): { replaySettleOrder: ReplaySettleOrder; reportTally: ReportTally } {
-  const { workRows, artifactRows } = readReplayRows(state.journal, state.runId);
-  // 结算次序按本 run 自己的事件恢复（本闸是 replay 正确性的一部分，不是观察面：站点序号依
-  // 调用到达顺序，而扇出的到达顺序只有首生的结算次序能复现）。
-  const replaySettleOrder = recoverSettleOrder(state.journal, state.runId, [
-    ...workRows,
-    ...artifactRows,
-  ]);
-  scheduler.seedRecordedAsks(workRows);
-  // 产物状态与报告计数同席恢复：id 归属（种类、预置 spec）与已成功版本数全部由 journal 行派生，
-  // 所以崩溃恢复后第 3 版仍然是第 3 版，而不是从 1 重新数起。
-  for (const node of artifactRows) {
-    if (node.status !== "completed") continue;
-    rememberArtifactRow(state, node.artifactId, node.result);
-  }
-  // 报告计数按 kind:"report" 的行恢复：上限是 run 级的，跨 resume 必须连续。条数是 count(*)，
-  // 字节数是 result_json 的字节和——SQLite 从行头读长度，一条 item 都不读出来。
-  return {
-    replaySettleOrder,
-    reportTally: {
-      count: state.journal.countNodes(state.runId, "report"),
-      bytes: state.journal.sumResultBytes(state.runId, "report"),
-    },
-  };
+    const { workRows, artifactRows } = readReplayRows(state.journal, state.runId);
+    // 结算次序按本 run 自己的事件恢复（本闸是 replay 正确性的一部分，不是观察面：站点序号依
+    // 调用到达顺序，而扇出的到达顺序只有首生的结算次序能复现）。
+    const replaySettleOrder = recoverSettleOrder(state.journal, state.runId, [
+        ...workRows,
+        ...artifactRows,
+    ]);
+    scheduler.seedRecordedAsks(workRows);
+    // 产物状态与报告计数同席恢复：id 归属（种类、预置 spec）与已成功版本数全部由 journal 行派生，
+    // 所以崩溃恢复后第 3 版仍然是第 3 版，而不是从 1 重新数起。
+    for (const node of artifactRows) {
+        if (node.status !== "completed") continue;
+        rememberArtifactRow(state, node.artifactId, node.result);
+    }
+    // 报告计数按 kind:"report" 的行恢复：上限是 run 级的，跨 resume 必须连续。条数是 count(*)，
+    // 字节数是 result_json 的字节和——SQLite 从行头读长度，一条 item 都不读出来。
+    return {
+        replaySettleOrder,
+        reportTally: {
+            count: state.journal.countNodes(state.runId, "report"),
+            bytes: state.journal.sumResultBytes(state.runId, "report"),
+        },
+    };
 }

@@ -23,14 +23,16 @@ export const WINDOWS_CUA_PRODUCER_SEGMENTS = ["packages", "zcode-cua"];
  * 其取值，不覆盖；这里只补缺省，不改变 runtime 侧「只认 ZCODE_CUA_DEV_ROOT」的既有边界。
  */
 export function resolveDevDesktopWindowsCuaEnv({ platform, repoRoot, env }) {
-  if (platform !== "win32") return {};
-  if (typeof repoRoot !== "string" || !repoRoot.trim()) {
-    throw new Error("[dev-desktop-cua-env] repoRoot is required to resolve the Windows CUA root");
-  }
-  if (!env || typeof env !== "object") {
-    throw new Error("[dev-desktop-cua-env] env is required to resolve the Windows CUA root");
-  }
-  // runtime 侧同样把纯空白视为未配置，这里保持一致，避免 "   " 既不启用覆盖也不给缺省。
-  if (env[WINDOWS_CUA_DEV_ROOT_ENV]?.trim()) return {};
-  return { [WINDOWS_CUA_DEV_ROOT_ENV]: join(repoRoot, ...WINDOWS_CUA_PRODUCER_SEGMENTS) };
+    if (platform !== "win32") return {};
+    if (typeof repoRoot !== "string" || !repoRoot.trim()) {
+        throw new Error(
+            "[dev-desktop-cua-env] repoRoot is required to resolve the Windows CUA root",
+        );
+    }
+    if (!env || typeof env !== "object") {
+        throw new Error("[dev-desktop-cua-env] env is required to resolve the Windows CUA root");
+    }
+    // runtime 侧同样把纯空白视为未配置，这里保持一致，避免 "   " 既不启用覆盖也不给缺省。
+    if (env[WINDOWS_CUA_DEV_ROOT_ENV]?.trim()) return {};
+    return { [WINDOWS_CUA_DEV_ROOT_ENV]: join(repoRoot, ...WINDOWS_CUA_PRODUCER_SEGMENTS) };
 }

@@ -128,8 +128,8 @@ If a skill existed for your task and you didn't use it, you failed.
 Your workflow for every task:
 
 1. **Before starting:** Check for relevant skills
-   - Browse: `ls ~/.claude/skills/`
-   - Search: `grep -r "symptom" ~/.claude/skills/`
+    - Browse: `ls ~/.claude/skills/`
+    - Search: `grep -r "symptom" ~/.claude/skills/`
 
 2. **If skill exists:** Read it completely before proceeding
 
@@ -146,21 +146,21 @@ Start here: `skills/using-skills`
 For each variant:
 
 1. **Run NULL baseline** first (no skills doc)
-   - Record which option agent chooses
-   - Capture exact rationalizations
+    - Record which option agent chooses
+    - Capture exact rationalizations
 
 2. **Run variant** with same scenario
-   - Does agent check for skills?
-   - Does agent use skills if found?
-   - Capture rationalizations if violated
+    - Does agent check for skills?
+    - Does agent use skills if found?
+    - Capture rationalizations if violated
 
 3. **Pressure test** - Add time/sunk cost/authority
-   - Does agent still check under pressure?
-   - Document when compliance breaks down
+    - Does agent still check under pressure?
+    - Document when compliance breaks down
 
 4. **Meta-test** - Ask agent how to improve doc
-   - "You had the doc but didn't check. Why?"
-   - "How could doc be clearer?"
+    - "You had the doc but didn't check. Why?"
+    - "How could doc be clearer?"
 
 ## Success Criteria
 

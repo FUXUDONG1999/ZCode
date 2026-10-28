@@ -8,13 +8,13 @@ import { Console } from "node:console";
  * 任意一行日志都会被 Host 当作 JSON 解析，或直接覆盖 TUI 当前光标处的画面。
  */
 export function installStderrConsoleBoundary(stderr: NodeJS.WritableStream): () => void {
-  const originalConsole = globalThis.console;
-  globalThis.console = new Console({ stdout: stderr, stderr });
+    const originalConsole = globalThis.console;
+    globalThis.console = new Console({ stdout: stderr, stderr });
 
-  let restored = false;
-  return () => {
-    if (restored) return;
-    restored = true;
-    globalThis.console = originalConsole;
-  };
+    let restored = false;
+    return () => {
+        if (restored) return;
+        restored = true;
+        globalThis.console = originalConsole;
+    };
 }

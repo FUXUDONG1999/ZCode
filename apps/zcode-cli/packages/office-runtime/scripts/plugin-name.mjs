@@ -8,9 +8,9 @@ import { join } from "node:path";
  * （如 pdf-plugin），不能再从目录名推导，否则面板资源地址与 manifest 声明的 resourceUri 不一致。
  */
 export async function readPluginName(pluginRoot) {
-  const manifestPath = join(pluginRoot, ".zcode-plugin", "plugin.json");
-  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  if (typeof manifest.name !== "string" || manifest.name.length === 0)
-    throw new Error(`${manifestPath}: 缺少插件 name`);
-  return manifest.name;
+    const manifestPath = join(pluginRoot, ".zcode-plugin", "plugin.json");
+    const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+    if (typeof manifest.name !== "string" || manifest.name.length === 0)
+        throw new Error(`${manifestPath}: 缺少插件 name`);
+    return manifest.name;
 }

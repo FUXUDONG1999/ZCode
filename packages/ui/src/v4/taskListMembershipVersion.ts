@@ -9,21 +9,21 @@ const listeners = new Set<() => void>();
 
 /** task row 或 membership mutation 后调用：通知所有 sessions-index 派生列表重新拉取左表。 */
 export function bumpTaskListMembershipVersion(): void {
-  version += 1;
-  for (const listener of Array.from(listeners)) {
-    listener();
-  }
+    version += 1;
+    for (const listener of Array.from(listeners)) {
+        listener();
+    }
 }
 
 export function subscribeTaskListMembershipVersion(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
+    listeners.add(listener);
+    return () => {
+        listeners.delete(listener);
+    };
 }
 
 export function getTaskListMembershipVersion(): number {
-  return version;
+    return version;
 }
 
 // 同一条 workspace_task_list_changed 会经由多条订阅链路（useGlobalTaskList 的
@@ -37,48 +37,48 @@ const BUMP_DEDUPE_MAX_KEYS = 256;
 const recentBumpAtByKey = new Map<string, number>();
 
 interface MembershipBumpEventLike {
-  workspacePath: string;
-  workspaceIdentity?: string;
-  taskId?: string;
-  reason: string;
-  taskMeta?: {
-    updatedAt: number;
-    unreadAt?: number;
-  };
+    workspacePath: string;
+    workspaceIdentity?: string;
+    taskId?: string;
+    reason: string;
+    taskMeta?: {
+        updatedAt: number;
+        unreadAt?: number;
+    };
 }
 
 export function bumpTaskListMembershipVersionForWorkspaceEvent(
-  event: MembershipBumpEventLike,
+    event: MembershipBumpEventLike,
 ): void {
-  if (!event.taskMeta || !event.taskId) {
-    bumpTaskListMembershipVersion();
-    return;
-  }
-  const workspaceKey = event.workspaceIdentity?.trim() || event.workspacePath;
-  const dedupeKey = [
-    workspaceKey,
-    event.taskId,
-    event.reason,
-    event.taskMeta.updatedAt,
-    event.taskMeta.unreadAt ?? "",
-  ].join("::");
-  const now = Date.now();
-  const lastBumpAt = recentBumpAtByKey.get(dedupeKey);
-  if (lastBumpAt !== undefined && now - lastBumpAt < BUMP_DEDUPE_WINDOW_MS) {
-    return;
-  }
-  for (const [key, bumpedAt] of recentBumpAtByKey) {
-    if (now - bumpedAt >= BUMP_DEDUPE_WINDOW_MS) {
-      recentBumpAtByKey.delete(key);
+    if (!event.taskMeta || !event.taskId) {
+        bumpTaskListMembershipVersion();
+        return;
     }
-  }
-  if (recentBumpAtByKey.size < BUMP_DEDUPE_MAX_KEYS) {
-    recentBumpAtByKey.set(dedupeKey, now);
-  }
-  bumpTaskListMembershipVersion();
+    const workspaceKey = event.workspaceIdentity?.trim() || event.workspacePath;
+    const dedupeKey = [
+        workspaceKey,
+        event.taskId,
+        event.reason,
+        event.taskMeta.updatedAt,
+        event.taskMeta.unreadAt ?? "",
+    ].join("::");
+    const now = Date.now();
+    const lastBumpAt = recentBumpAtByKey.get(dedupeKey);
+    if (lastBumpAt !== undefined && now - lastBumpAt < BUMP_DEDUPE_WINDOW_MS) {
+        return;
+    }
+    for (const [key, bumpedAt] of recentBumpAtByKey) {
+        if (now - bumpedAt >= BUMP_DEDUPE_WINDOW_MS) {
+            recentBumpAtByKey.delete(key);
+        }
+    }
+    if (recentBumpAtByKey.size < BUMP_DEDUPE_MAX_KEYS) {
+        recentBumpAtByKey.set(dedupeKey, now);
+    }
+    bumpTaskListMembershipVersion();
 }
 
 /** React 绑定：版本号变化触发重渲染（subscribe/get 是模块级函数，引用稳定）。 */
 export function useTaskListMembershipVersion(): number {
-  return useSyncExternalStore(subscribeTaskListMembershipVersion, getTaskListMembershipVersion);
+    return useSyncExternalStore(subscribeTaskListMembershipVersion, getTaskListMembershipVersion);
 }

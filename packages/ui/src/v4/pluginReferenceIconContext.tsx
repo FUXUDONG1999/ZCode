@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react";
 
 export interface SessionPluginIconProjection {
-  sessionId: string;
-  iconByPluginId: ReadonlyMap<string, string>;
+    sessionId: string;
+    iconByPluginId: ReadonlyMap<string, string>;
 }
 
 const PluginReferenceIconContext = createContext<SessionPluginIconProjection | null>(null);
@@ -10,5 +10,5 @@ const PluginReferenceIconContext = createContext<SessionPluginIconProjection | n
 export const PluginReferenceIconProvider = PluginReferenceIconContext.Provider;
 
 export function usePluginReferenceIconProjection(): SessionPluginIconProjection | null {
-  return useContext(PluginReferenceIconContext);
+    return useContext(PluginReferenceIconContext);
 }

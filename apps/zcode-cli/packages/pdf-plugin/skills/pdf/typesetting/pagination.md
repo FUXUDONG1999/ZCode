@@ -18,11 +18,11 @@
 - After generating multi-page content, **you must check the content fill ratio of the last page**
 - When last page content ratio < 25%, **you must backtrack and adjust**
 - Adjustment strategies (by priority):
-  1. **Compress preceding page spacing**: Reduce margin-bottom between sections (decrease 2-4px each)
-  2. **Tighten line height**: Body line-height from 1.7 → 1.55 (no lower than 1.5)
-  3. **Reduce font size**: Body from 16px → 15px (no lower than 14px)
-  4. **Trim content**: Remove dispensable descriptive text without affecting core information
-  5. **Merge small sections**: Combine adjacent sections with little content
+    1. **Compress preceding page spacing**: Reduce margin-bottom between sections (decrease 2-4px each)
+    2. **Tighten line height**: Body line-height from 1.7 → 1.55 (no lower than 1.5)
+    3. **Reduce font size**: Body from 16px → 15px (no lower than 14px)
+    4. **Trim content**: Remove dispensable descriptive text without affecting core information
+    5. **Merge small sections**: Combine adjacent sections with little content
 
 **Checking Method (Playwright HTML route)**:
 
@@ -51,26 +51,26 @@
 /* Prevent table splitting */
 table,
 .table-wrapper {
-  break-inside: avoid; /* Preferred: keep entire table together */
-  page-break-inside: avoid;
+    break-inside: avoid; /* Preferred: keep entire table together */
+    page-break-inside: avoid;
 }
 
 /* If table is too long and must split, ensure header repeats */
 thead {
-  display: table-header-group; /* Repeat header on each page */
+    display: table-header-group; /* Repeat header on each page */
 }
 
 /* Don't cut table rows in the middle */
 tr {
-  break-inside: avoid;
-  page-break-inside: avoid;
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 
 /* Bind header + at least 2 data rows together */
 thead + tbody tr:first-child,
 thead + tbody tr:nth-child(2) {
-  break-before: avoid;
-  page-break-before: avoid;
+    break-before: avoid;
+    page-break-before: avoid;
 }
 ```
 
@@ -104,10 +104,10 @@ elements.append(KeepTogether([table_title, table]))
 ```css
 /* Global CJK punctuation rules */
 body {
-  line-break: strict; /* Strict line-break rules */
-  word-break: normal; /* Don't force word breaks */
-  overflow-wrap: break-word; /* Allow long words to break */
-  hanging-punctuation: allow-end; /* Allow punctuation to hang past line end */
+    line-break: strict; /* Strict line-break rules */
+    word-break: normal; /* Don't force word breaks */
+    overflow-wrap: break-word; /* Allow long words to break */
+    hanging-punctuation: allow-end; /* Allow punctuation to hang past line end */
 }
 
 /* For body paragraphs */
@@ -115,8 +115,8 @@ p,
 .body-text,
 td,
 li {
-  line-break: strict;
-  text-align: justify; /* Justify to reduce line-end gaps */
+    line-break: strict;
+    text-align: justify; /* Justify to reduce line-end gaps */
 }
 ```
 
@@ -182,8 +182,8 @@ story.append(h1_paragraph)
    unless there's substantial room remaining */
 h1,
 .major-section-title {
-  break-before: auto; /* Default: don't force */
-  page-break-before: auto;
+    break-before: auto; /* Default: don't force */
+    page-break-before: auto;
 }
 ```
 
@@ -191,14 +191,14 @@ h1,
 // Post-render check: if an H1 starts in the bottom 25% of the viewport,
 // force a page-break-before to avoid orphan headings
 document.querySelectorAll("h1, .major-section-title").forEach((h) => {
-  const rect = h.getBoundingClientRect();
-  // In print context, check if heading is too far down the page
-  // This can be verified after Playwright render via page.evaluate()
-  const pageHeight = window.innerHeight;
-  const relativeY = rect.top / pageHeight;
-  if (relativeY > 0.75) {
-    h.style.breakBefore = "page";
-  }
+    const rect = h.getBoundingClientRect();
+    // In print context, check if heading is too far down the page
+    // This can be verified after Playwright render via page.evaluate()
+    const pageHeight = window.innerHeight;
+    const relativeY = rect.top / pageHeight;
+    if (relativeY > 0.75) {
+        h.style.breakBefore = "page";
+    }
 });
 ```
 
@@ -225,8 +225,8 @@ h2,
 h3,
 h4,
 .section-title {
-  break-after: avoid; /* Don't page-break after heading */
-  page-break-after: avoid;
+    break-after: avoid; /* Don't page-break after heading */
+    page-break-after: avoid;
 }
 ```
 
@@ -237,8 +237,8 @@ figure,
 .card,
 .kpi-card,
 .project-card {
-  break-inside: avoid;
-  page-break-inside: avoid;
+    break-inside: avoid;
+    page-break-inside: avoid;
 }
 ```
 
@@ -248,11 +248,11 @@ figure,
 
 ```css
 li {
-  break-inside: avoid;
+    break-inside: avoid;
 }
 /* Keep at least 2 list items on the same page */
 li:last-child {
-  break-before: avoid;
+    break-before: avoid;
 }
 ```
 
@@ -341,12 +341,12 @@ def no_footer(canvas, doc):
 ```css
 /* Zone 1: Cover — suppress page number */
 .page-cover {
-  /* No footer content */
+    /* No footer content */
 }
 
 /* Zone 2: Front matter — Roman numerals via CSS counter */
 @page :nth(2) {
-  /* Adjust range based on front matter pages */
+    /* Adjust range based on front matter pages */
 }
 
 /* For Playwright, page numbers are typically added via:
@@ -358,9 +358,9 @@ def no_footer(canvas, doc):
 
 1. Generate the PDF without page numbers
 2. Use pypdf to stamp page numbers in post-processing:
-   - Skip page 1 (cover)
-   - Roman numerals for front matter pages
-   - Arabic starting from 1 for body pages
+    - Skip page 1 (cover)
+    - Roman numerals for front matter pages
+    - Arabic starting from 1 for body pages
 
 ### LaTeX Implementation
 

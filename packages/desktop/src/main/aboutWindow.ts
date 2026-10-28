@@ -1,23 +1,23 @@
 interface CustomAboutDialogHtmlInput {
-  applicationName: string;
-  appVersion: string;
-  copyright: string;
-  optimizationLine: string;
-  versionLabel: string;
-  okButtonLabel: string;
+    applicationName: string;
+    appVersion: string;
+    copyright: string;
+    optimizationLine: string;
+    versionLabel: string;
+    okButtonLabel: string;
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
 
 export function createCustomAboutDialogHtml(input: CustomAboutDialogHtmlInput): string {
-  return `<!doctype html>
+    return `<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />

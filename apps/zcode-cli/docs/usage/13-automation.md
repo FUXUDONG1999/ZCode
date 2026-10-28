@@ -21,42 +21,42 @@ const workdir = process.argv[3];
 const runHome = process.argv[4];
 const prompt = process.argv[5];
 if (![executable, workdir, runHome, prompt].every(Boolean)) {
-  throw new Error("需要 executable、workdir、runHome、prompt");
+    throw new Error("需要 executable、workdir、runHome、prompt");
 }
 
 // 实际任务中从受控的环境变量白名单构造，不继承个人凭据。
 const env = {};
 for (const [key, value] of Object.entries(process.env)) {
-  if (/^(path|systemroot|windir|comspec|pathext|temp|tmp|tmpdir)$/i.test(key)) {
-    env[key] = value;
-  }
+    if (/^(path|systemroot|windir|comspec|pathext|temp|tmp|tmpdir)$/i.test(key)) {
+        env[key] = value;
+    }
 }
 Object.assign(env, { HOME: runHome, USERPROFILE: runHome, ZCODE_DATA_BASE_DIR: runHome });
 
 const args = [
-  // 使用 Node bundle 时，在这里先加入 zcode.cjs 的绝对路径。
-  "--prompt",
-  prompt,
-  "--cwd",
-  workdir,
-  "--mode",
-  "yolo",
-  "--disallowed-tools",
-  "AskUserQuestion EnterPlanMode ExitPlanMode",
-  "--output-format",
-  "stream-json",
-  "--no-color",
+    // 使用 Node bundle 时，在这里先加入 zcode.cjs 的绝对路径。
+    "--prompt",
+    prompt,
+    "--cwd",
+    workdir,
+    "--mode",
+    "yolo",
+    "--disallowed-tools",
+    "AskUserQuestion EnterPlanMode ExitPlanMode",
+    "--output-format",
+    "stream-json",
+    "--no-color",
 ];
 const child = spawn(executable, args, { cwd: workdir, env, shell: false });
 child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);
 child.on("error", (error) => {
-  process.stderr.write(`${error.message}\n`);
-  process.exitCode = 1;
+    process.stderr.write(`${error.message}\n`);
+    process.exitCode = 1;
 });
 child.on("close", (code, signal) => {
-  process.stderr.write(`${JSON.stringify({ code, signal })}\n`);
-  process.exitCode = code ?? 1;
+    process.stderr.write(`${JSON.stringify({ code, signal })}\n`);
+    process.exitCode = code ?? 1;
 });
 ```
 

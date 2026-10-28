@@ -158,19 +158,21 @@ packages/core/src/
 ```typescript
 // 所有 contracts 中定义的 port 用 Mock 替代
 class MockSessionEventStore implements SessionEventStorePort {
-  events: SessionEvent[] = [];
+    events: SessionEvent[] = [];
 
-  append(event: SessionEvent): Promise<void> {
-    this.events.push(event);
-  }
+    append(event: SessionEvent): Promise<void> {
+        this.events.push(event);
+    }
 
-  getEvents(sessionId: SessionId): Promise<SessionEvent[]> {
-    return this.events.filter((e) => e.sessionId === sessionId);
-  }
+    getEvents(sessionId: SessionId): Promise<SessionEvent[]> {
+        return this.events.filter((e) => e.sessionId === sessionId);
+    }
 
-  rebuildProjection(sessionId: SessionId): Promise<SessionProjection> {
-    return this.events.filter((e) => e.sessionId === sessionId).reduce(reduce, initialProjection);
-  }
+    rebuildProjection(sessionId: SessionId): Promise<SessionProjection> {
+        return this.events
+            .filter((e) => e.sessionId === sessionId)
+            .reduce(reduce, initialProjection);
+    }
 }
 ```
 

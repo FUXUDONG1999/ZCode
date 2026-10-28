@@ -9,8 +9,8 @@ import type { RunStatus } from "@zcode/dynamic-workflow";
 
 /** 只看得到 lineage 所需两键的终态视图：注册表条目的 `terminal` 与 journal 行都满足它。 */
 interface SupersedableSettlement {
-  status: RunStatus;
-  supersededBy?: string;
+    status: RunStatus;
+    supersededBy?: string;
 }
 
 /**
@@ -18,22 +18,22 @@ interface SupersedableSettlement {
  * 载荷带着这个键（不应发生），也读作缺席，免得一条 completed 的 run 被画成「已被替代」。
  */
 export function supersededByOf(
-  entry: { terminal?: SupersedableSettlement } | undefined,
-  record: { status?: RunStatus; supersededBy?: string } | undefined,
+    entry: { terminal?: SupersedableSettlement } | undefined,
+    record: { status?: RunStatus; supersededBy?: string } | undefined,
 ): string | undefined {
-  if (entry?.terminal !== undefined) {
-    return entry.terminal.status === "stopped" ? entry.terminal.supersededBy : undefined;
-  }
-  return record?.status === "stopped" ? record.supersededBy : undefined;
+    if (entry?.terminal !== undefined) {
+        return entry.terminal.status === "stopped" ? entry.terminal.supersededBy : undefined;
+    }
+    return record?.status === "stopped" ? record.supersededBy : undefined;
 }
 
 /** 两个指针在场才出现（缺席读作「没有这一端」，而 `undefined` 值会让每一行都带噪音键）。 */
 export function lineageFields(
-  resumedFrom: string | undefined,
-  supersededBy: string | undefined,
+    resumedFrom: string | undefined,
+    supersededBy: string | undefined,
 ): { resumedFrom?: string; supersededBy?: string } {
-  return {
-    ...(resumedFrom === undefined ? {} : { resumedFrom }),
-    ...(supersededBy === undefined ? {} : { supersededBy }),
-  };
+    return {
+        ...(resumedFrom === undefined ? {} : { resumedFrom }),
+        ...(supersededBy === undefined ? {} : { supersededBy }),
+    };
 }

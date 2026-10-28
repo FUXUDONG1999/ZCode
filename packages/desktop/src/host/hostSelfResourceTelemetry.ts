@@ -9,58 +9,58 @@
 
 import { HostResponseTypes } from "@zcode/shared";
 import {
-  createNodeSelfResourceSampler,
-  type NodeSelfResourceSamplerOptions,
+    createNodeSelfResourceSampler,
+    type NodeSelfResourceSamplerOptions,
 } from "@zcode/shared/node";
 import {
-  startHostMemoryDiagnosticsLog,
-  type StartHostMemoryDiagnosticsLogOptions,
+    startHostMemoryDiagnosticsLog,
+    type StartHostMemoryDiagnosticsLogOptions,
 } from "./hostMemoryDiagnosticsLog.js";
 
 export interface StartHostSelfResourceTelemetryOptions
-  extends
-    Omit<StartHostMemoryDiagnosticsLogOptions, "onMemoryUsage">,
-    NodeSelfResourceSamplerOptions {
-  /**
-   * parentPort 的发送口。Host 在非 utilityProcess 环境（本地调试）下没有 parentPort，
-   * 此时只写本地日志、不发样本。
-   */
-  postMessage?: ((message: unknown) => void) | undefined;
+    extends
+        Omit<StartHostMemoryDiagnosticsLogOptions, "onMemoryUsage">,
+        NodeSelfResourceSamplerOptions {
+    /**
+     * parentPort 的发送口。Host 在非 utilityProcess 环境（本地调试）下没有 parentPort，
+     * 此时只写本地日志、不发样本。
+     */
+    postMessage?: ((message: unknown) => void) | undefined;
 }
 
 export interface HostSelfResourceTelemetry {
-  /** 立即采样一次（供测试与手动触发），返回本地日志是否写盘。 */
-  sampleNow(): boolean;
-  stop(): void;
+    /** 立即采样一次（供测试与手动触发），返回本地日志是否写盘。 */
+    sampleNow(): boolean;
+    stop(): void;
 }
 
 export function startHostSelfResourceTelemetry(
-  options: StartHostSelfResourceTelemetryOptions,
+    options: StartHostSelfResourceTelemetryOptions,
 ): HostSelfResourceTelemetry {
-  const sampler = createNodeSelfResourceSampler(options);
-  const postMessage = options.postMessage;
+    const sampler = createNodeSelfResourceSampler(options);
+    const postMessage = options.postMessage;
 
-  // 逐项传递而不是整份 spread：采样器专属选项（readCpuUsage 等）不该漏进诊断日志模块。
-  return startHostMemoryDiagnosticsLog({
-    logger: options.logger,
-    collectCounters: options.collectCounters,
-    readMemoryUsage: options.readMemoryUsage,
-    now: options.now,
-    intervalMs: options.intervalMs,
-    timer: options.timer,
-    onMemoryUsage: (memoryUsage) => {
-      if (!postMessage) {
-        return;
-      }
-      const sample = sampler.sample(memoryUsage);
-      if (!sample) {
-        return;
-      }
-      try {
-        postMessage({ type: HostResponseTypes.HostResourceSample, sample });
-      } catch {
-        // main 已退出或 IPC 不可用时只丢当前样本。
-      }
-    },
-  });
+    // 逐项传递而不是整份 spread：采样器专属选项（readCpuUsage 等）不该漏进诊断日志模块。
+    return startHostMemoryDiagnosticsLog({
+        logger: options.logger,
+        collectCounters: options.collectCounters,
+        readMemoryUsage: options.readMemoryUsage,
+        now: options.now,
+        intervalMs: options.intervalMs,
+        timer: options.timer,
+        onMemoryUsage: (memoryUsage) => {
+            if (!postMessage) {
+                return;
+            }
+            const sample = sampler.sample(memoryUsage);
+            if (!sample) {
+                return;
+            }
+            try {
+                postMessage({ type: HostResponseTypes.HostResourceSample, sample });
+            } catch {
+                // main 已退出或 IPC 不可用时只丢当前样本。
+            }
+        },
+    });
 }

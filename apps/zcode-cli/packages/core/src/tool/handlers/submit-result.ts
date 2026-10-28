@@ -10,19 +10,19 @@
 // 不变式）；本 handler 只做通用转交，schema 校验由引擎在 port 侧完成。
 
 import {
-  CoreErrorType,
-  SUBMIT_RESULT_TOOL_NAME,
-  SubmitResultInputJsonSchema,
-  SubmitResultInputSchema,
-  SubmitResultOutputJsonSchema,
-  SubmitResultOutputSchema,
-  createCoreError,
-  typedSubmitResultInputSchema,
-  type JsonSchema,
-  type SubmitResultInput,
-  type SubmitResultOutput,
-  type SubmitViolation,
-  type TraceContext,
+    CoreErrorType,
+    SUBMIT_RESULT_TOOL_NAME,
+    SubmitResultInputJsonSchema,
+    SubmitResultInputSchema,
+    SubmitResultOutputJsonSchema,
+    SubmitResultOutputSchema,
+    createCoreError,
+    typedSubmitResultInputSchema,
+    type JsonSchema,
+    type SubmitResultInput,
+    type SubmitResultOutput,
+    type SubmitViolation,
+    type TraceContext,
 } from "@zcode/contracts";
 import type { ToolEntry, ToolHandler, ToolHandlerFailure } from "../types.js";
 
@@ -32,38 +32,38 @@ const MAX_SUBMIT_RESULT_MODEL_BYTES = 16_000;
 const SUBMIT_RESULT_REJECTED_ERROR_CODE = 1;
 
 const submitResultHandler: ToolHandler = async (input, context) => {
-  const parsed = SubmitResultInputSchema.parse(input) as SubmitResultInput;
+    const parsed = SubmitResultInputSchema.parse(input) as SubmitResultInput;
 
-  // Gate：workflow actor 会话才注入 workflowSubmitPort。不按 runtimeScope 判断——workflow
-  // actor 是 taskType "workflow_child"，其 runtimeScope 目前是 "main"；端口存在与否才是
-  // 与 taskType 无关的正确判据。
-  if (!context.workflowSubmitPort) {
-    throw createCoreError(
-      CoreErrorType.ConfigurationError,
-      "Workflow submit port is not configured for submit_result",
-      {
-        context: {
-          toolCallId: context.toolCallId,
-          toolName: SUBMIT_RESULT_TOOL_NAME,
-        },
-        recoverable: false,
-      },
-    );
-  }
+    // Gate：workflow actor 会话才注入 workflowSubmitPort。不按 runtimeScope 判断——workflow
+    // actor 是 taskType "workflow_child"，其 runtimeScope 目前是 "main"；端口存在与否才是
+    // 与 taskType 无关的正确判据。
+    if (!context.workflowSubmitPort) {
+        throw createCoreError(
+            CoreErrorType.ConfigurationError,
+            "Workflow submit port is not configured for submit_result",
+            {
+                context: {
+                    toolCallId: context.toolCallId,
+                    toolName: SUBMIT_RESULT_TOOL_NAME,
+                },
+                recoverable: false,
+            },
+        );
+    }
 
-  const verdict = await context.workflowSubmitPort.respond({
-    toolCallId: context.toolCallId,
-    result: parsed.result,
-    trace: resolveToolTraceContext(context),
-  });
+    const verdict = await context.workflowSubmitPort.respond({
+        toolCallId: context.toolCallId,
+        result: parsed.result,
+        trace: resolveToolTraceContext(context),
+    });
 
-  if (verdict.accept) {
-    return { status: "accepted" } satisfies SubmitResultOutput;
-  }
+    if (verdict.accept) {
+        return { status: "accepted" } satisfies SubmitResultOutput;
+    }
 
-  // reject：以 ToolHandlerFailure 返回，call-runner 将其转成 error tool_result，
-  // 违规列表作为 modelContent 存活；不挂 turnControl，循环继续 → 模型在会话内修复重试。
-  return submitResultRejection(verdict.violations);
+    // reject：以 ToolHandlerFailure 返回，call-runner 将其转成 error tool_result，
+    // 违规列表作为 modelContent 存活；不挂 turnControl，循环继续 → 模型在会话内修复重试。
+    return submitResultRejection(verdict.violations);
 };
 
 /**
@@ -74,113 +74,115 @@ const submitResultHandler: ToolHandler = async (input, context) => {
  * 引擎侧校验对两者一致，typed 声明只是让 provider 也看见（并在支持时强制）这份形状。
  */
 export function createSubmitResultToolEntry(resultSchema?: JsonSchema): ToolEntry {
-  const typed = resultSchema !== undefined;
-  return {
-    capability: "Submit the structured terminal result for a workflow subagent's ask",
-    metadata: {
-      shouldDefer: true,
-      name: SUBMIT_RESULT_TOOL_NAME,
-      description: typed
-        ? "Submit the structured result for the current ask. The `result` argument must match this tool's schema."
-        : "Submit the structured result for the current ask. The required JSON shape is described in the ask instructions.",
-      readOnly: false,
-      destructive: false,
-      // 载荷性质：声明 concurrentSafe:false，调度器会把它放进独立的串行组。这样一个有效提交
-      // （成功即请求终止 turn）执行时，晚于它调度的兄弟工具会收到既有的合成 ToolCancelled，
-      // 早于它的先行完成——终止语义无需新增机制。
-      concurrentSafe: false,
-      // 终态工具：一次有效提交（引擎 accept）就是成功，且必须结束 actor 的 turn。用声明式
-      // metadata 表达该内在能力，executor 的通用 withTerminalToolTurnStop 据此在成功结果上挂
-      // turnControl，无需在执行点按工具名硬编码，也无需 handler 侧新增 stop 信号通道。
-      stopTurnOnSuccess: true,
-      maxOutputBytes: MAX_SUBMIT_RESULT_MODEL_BYTES,
-      sideEffectScope: "session",
-      riskLevel: "low",
-      needsApproval: false,
-    },
-    handler: submitResultHandler,
-    formatModelContent: formatSubmitResultModelContent,
-    inputSchema: typed ? typedSubmitResultInputSchema(resultSchema) : SubmitResultInputJsonSchema,
-    ...(typed ? { strict: true } : {}),
-    outputSchema: SubmitResultOutputJsonSchema,
-    // 运行时 zod 校验两者同一份（result 任意 JSON）：per-ask 形状由引擎在端口侧校验并给出可修复的违规。
-    runtimeInputSchema: SubmitResultInputSchema,
-    runtimeOutputSchema: SubmitResultOutputSchema,
-    permission: {
-      permission: "workflow.submitResult",
-      reason: "submit_result delivers the subagent's terminal result to the workflow engine",
-      riskLevel: "low",
-      sideEffectScope: "session",
-      needsApproval: false,
-      patternSources: ["toolName"],
-      alwaysAllowPatternSources: ["toolName"],
-      denyPriority: "beforeAsk",
-    },
-    resultBudget: {
-      maxInlineBytes: MAX_SUBMIT_RESULT_MODEL_BYTES,
-      maxModelBytes: MAX_SUBMIT_RESULT_MODEL_BYTES,
-      strategy: "truncate",
-      preview: {
-        maxBytes: MAX_SUBMIT_RESULT_MODEL_BYTES,
-        direction: "head",
-      },
-    },
-    // 引擎裁决可能耗时任意长；用 kind:"none" 不设墙钟超时，取消由中止该 tool call（abort）处理。
-    timeout: {
-      kind: "none",
-    },
-    cancellation: {
-      supported: true,
-      cleanup: "none",
-      userVisibleMessage: "submit_result was cancelled before the engine returned a verdict",
-    },
-    trace: {
-      required: true,
-      propagateToAdapters: true,
-      recordInput: "summary",
-      recordOutput: "summary",
-    },
-  };
+    const typed = resultSchema !== undefined;
+    return {
+        capability: "Submit the structured terminal result for a workflow subagent's ask",
+        metadata: {
+            shouldDefer: true,
+            name: SUBMIT_RESULT_TOOL_NAME,
+            description: typed
+                ? "Submit the structured result for the current ask. The `result` argument must match this tool's schema."
+                : "Submit the structured result for the current ask. The required JSON shape is described in the ask instructions.",
+            readOnly: false,
+            destructive: false,
+            // 载荷性质：声明 concurrentSafe:false，调度器会把它放进独立的串行组。这样一个有效提交
+            // （成功即请求终止 turn）执行时，晚于它调度的兄弟工具会收到既有的合成 ToolCancelled，
+            // 早于它的先行完成——终止语义无需新增机制。
+            concurrentSafe: false,
+            // 终态工具：一次有效提交（引擎 accept）就是成功，且必须结束 actor 的 turn。用声明式
+            // metadata 表达该内在能力，executor 的通用 withTerminalToolTurnStop 据此在成功结果上挂
+            // turnControl，无需在执行点按工具名硬编码，也无需 handler 侧新增 stop 信号通道。
+            stopTurnOnSuccess: true,
+            maxOutputBytes: MAX_SUBMIT_RESULT_MODEL_BYTES,
+            sideEffectScope: "session",
+            riskLevel: "low",
+            needsApproval: false,
+        },
+        handler: submitResultHandler,
+        formatModelContent: formatSubmitResultModelContent,
+        inputSchema: typed
+            ? typedSubmitResultInputSchema(resultSchema)
+            : SubmitResultInputJsonSchema,
+        ...(typed ? { strict: true } : {}),
+        outputSchema: SubmitResultOutputJsonSchema,
+        // 运行时 zod 校验两者同一份（result 任意 JSON）：per-ask 形状由引擎在端口侧校验并给出可修复的违规。
+        runtimeInputSchema: SubmitResultInputSchema,
+        runtimeOutputSchema: SubmitResultOutputSchema,
+        permission: {
+            permission: "workflow.submitResult",
+            reason: "submit_result delivers the subagent's terminal result to the workflow engine",
+            riskLevel: "low",
+            sideEffectScope: "session",
+            needsApproval: false,
+            patternSources: ["toolName"],
+            alwaysAllowPatternSources: ["toolName"],
+            denyPriority: "beforeAsk",
+        },
+        resultBudget: {
+            maxInlineBytes: MAX_SUBMIT_RESULT_MODEL_BYTES,
+            maxModelBytes: MAX_SUBMIT_RESULT_MODEL_BYTES,
+            strategy: "truncate",
+            preview: {
+                maxBytes: MAX_SUBMIT_RESULT_MODEL_BYTES,
+                direction: "head",
+            },
+        },
+        // 引擎裁决可能耗时任意长；用 kind:"none" 不设墙钟超时，取消由中止该 tool call（abort）处理。
+        timeout: {
+            kind: "none",
+        },
+        cancellation: {
+            supported: true,
+            cleanup: "none",
+            userVisibleMessage: "submit_result was cancelled before the engine returned a verdict",
+        },
+        trace: {
+            required: true,
+            propagateToAdapters: true,
+            recordInput: "summary",
+            recordOutput: "summary",
+        },
+    };
 }
 
 /** 通用声明的条目（内建工具表里的那一份）。 */
 export const submitResultToolEntry: ToolEntry = createSubmitResultToolEntry();
 
 function submitResultRejection(violations: readonly SubmitViolation[]): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: SUBMIT_RESULT_REJECTED_ERROR_CODE,
-    message: formatSubmitViolations(violations),
-  };
+    return {
+        result: false,
+        errorCode: SUBMIT_RESULT_REJECTED_ERROR_CODE,
+        message: formatSubmitViolations(violations),
+    };
 }
 
 // 违规格式与 dynamic-workflow 合成侧一致：一行一条，`<path>: expected <expected>, got <got>`，
 // 便于模型逐条对照修复。
 function formatSubmitViolations(violations: readonly SubmitViolation[]): string {
-  const header = "The submitted result does not match the required schema:";
-  if (violations.length === 0) {
-    return `${header}\n(no details provided)`;
-  }
-  const lines = violations.map(
-    (violation) => `${violation.path}: expected ${violation.expected}, got ${violation.got}`,
-  );
-  return [header, ...lines].join("\n");
+    const header = "The submitted result does not match the required schema:";
+    if (violations.length === 0) {
+        return `${header}\n(no details provided)`;
+    }
+    const lines = violations.map(
+        (violation) => `${violation.path}: expected ${violation.expected}, got ${violation.got}`,
+    );
+    return [header, ...lines].join("\n");
 }
 
 function formatSubmitResultModelContent(output: unknown): string {
-  const parsed = SubmitResultOutputSchema.safeParse(output);
-  if (!parsed.success) return "submit_result returned an invalid result.";
-  return "The result was accepted.";
+    const parsed = SubmitResultOutputSchema.safeParse(output);
+    if (!parsed.success) return "submit_result returned an invalid result.";
+    return "The result was accepted.";
 }
 
 function resolveToolTraceContext(context: Parameters<ToolHandler>[1]): TraceContext {
-  return (
-    context.traceContext ?? {
-      traceId: context.traceId,
-      spanId: context.spanId,
-      parentSpanId: context.parentSpanId,
-      sessionId: context.sessionId,
-      turnId: context.turnId,
-    }
-  );
+    return (
+        context.traceContext ?? {
+            traceId: context.traceId,
+            spanId: context.spanId,
+            parentSpanId: context.parentSpanId,
+            sessionId: context.sessionId,
+            turnId: context.turnId,
+        }
+    );
 }

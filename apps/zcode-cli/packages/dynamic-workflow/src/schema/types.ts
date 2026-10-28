@@ -6,22 +6,22 @@
 
 /** 任意合法 JSON 值。const/enum/default 里出现的字面量都用它表达。 */
 export type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+    | string
+    | number
+    | boolean
+    | null
+    | JsonValue[]
+    | { [key: string]: JsonValue };
 
 /** 我们会发射的 JSON Schema 基础类型标签。`integer` 校验器支持但合成侧不会主动产出。 */
 export type JsonSchemaType =
-  | "string"
-  | "number"
-  | "integer"
-  | "boolean"
-  | "null"
-  | "array"
-  | "object";
+    | "string"
+    | "number"
+    | "integer"
+    | "boolean"
+    | "null"
+    | "array"
+    | "object";
 
 /**
  * 我们发射的 JSON Schema 子集。字段是可选关键字的并集：一个具体 schema 只会用到其中
@@ -29,36 +29,36 @@ export type JsonSchemaType =
  * 而 union 用 enum 或 anyOf）。校验器只处理这里出现的关键字。
  */
 export interface JsonSchema {
-  // 结构
-  type?: JsonSchemaType | JsonSchemaType[];
-  const?: JsonValue;
-  enum?: JsonValue[];
-  anyOf?: JsonSchema[];
-  // object
-  properties?: Record<string, JsonSchema>;
-  required?: string[];
-  additionalProperties?: boolean | JsonSchema;
-  // array / tuple
-  items?: JsonSchema;
-  prefixItems?: JsonSchema[];
-  minItems?: number;
-  maxItems?: number;
-  // string 约束
-  minLength?: number;
-  maxLength?: number;
-  pattern?: string;
-  format?: string;
-  // number 约束
-  minimum?: number;
-  maximum?: number;
-  exclusiveMinimum?: number;
-  exclusiveMaximum?: number;
-  // 注解
-  description?: string;
-  default?: JsonValue;
-  // 递归类型：引用与定义表
-  $ref?: string;
-  $defs?: Record<string, JsonSchema>;
+    // 结构
+    type?: JsonSchemaType | JsonSchemaType[];
+    const?: JsonValue;
+    enum?: JsonValue[];
+    anyOf?: JsonSchema[];
+    // object
+    properties?: Record<string, JsonSchema>;
+    required?: string[];
+    additionalProperties?: boolean | JsonSchema;
+    // array / tuple
+    items?: JsonSchema;
+    prefixItems?: JsonSchema[];
+    minItems?: number;
+    maxItems?: number;
+    // string 约束
+    minLength?: number;
+    maxLength?: number;
+    pattern?: string;
+    format?: string;
+    // number 约束
+    minimum?: number;
+    maximum?: number;
+    exclusiveMinimum?: number;
+    exclusiveMaximum?: number;
+    // 注解
+    description?: string;
+    default?: JsonValue;
+    // 递归类型：引用与定义表
+    $ref?: string;
+    $defs?: Record<string, JsonSchema>;
 }
 
 /**
@@ -66,12 +66,12 @@ export interface JsonSchema {
  * JSON 路径、期望（expected）与实得（got）。
  */
 export interface Violation {
-  /** 违规所在位置的 JSON 路径，形如 `$`、`$.foo`、`$.items[0]`。 */
-  path: string;
-  /** 期望的形状/取值的简短描述。 */
-  expected: string;
-  /** 实际取到的值的简短描述。 */
-  got: string;
+    /** 违规所在位置的 JSON 路径，形如 `$`、`$.foo`、`$.items[0]`。 */
+    path: string;
+    /** 期望的形状/取值的简短描述。 */
+    expected: string;
+    /** 实际取到的值的简短描述。 */
+    got: string;
 }
 
 /** 合成侧诊断码。9001 已被 facade-siting 规则占用（见 analysis/sites.ts）。 */

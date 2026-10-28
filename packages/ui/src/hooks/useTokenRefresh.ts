@@ -9,24 +9,24 @@ import { logger } from "../logger.js";
 import { useServices } from "./useServices.js";
 
 export function useTokenRefresh() {
-  const { oauthService } = useServices();
+    const { oauthService } = useServices();
 
-  /** 尝试刷新 token，失败则返回 false */
-  const tryRefresh = useCallback(async (): Promise<boolean> => {
-    try {
-      await oauthService.refreshToken();
-      logger.info("[useTokenRefresh] token 刷新成功");
-      return true;
-    } catch (err) {
-      logger.error("[useTokenRefresh] token 刷新失败:", err);
-      return false;
-    }
-  }, [oauthService]);
+    /** 尝试刷新 token，失败则返回 false */
+    const tryRefresh = useCallback(async (): Promise<boolean> => {
+        try {
+            await oauthService.refreshToken();
+            logger.info("[useTokenRefresh] token 刷新成功");
+            return true;
+        } catch (err) {
+            logger.error("[useTokenRefresh] token 刷新失败:", err);
+            return false;
+        }
+    }, [oauthService]);
 
-  /** 清除所有 provider 凭据 */
-  const clearCredentials = useCallback(async () => {
-    await oauthService.logoutAll();
-  }, [oauthService]);
+    /** 清除所有 provider 凭据 */
+    const clearCredentials = useCallback(async () => {
+        await oauthService.logoutAll();
+    }, [oauthService]);
 
-  return { tryRefresh, clearCredentials };
+    return { tryRefresh, clearCredentials };
 }

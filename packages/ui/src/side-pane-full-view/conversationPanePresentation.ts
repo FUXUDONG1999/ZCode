@@ -7,14 +7,14 @@ import type { ConversationPanePresentationValue } from "@/side-pane-full-view/co
 const noop = () => {};
 
 const DOCKED_PRESENTATION: ConversationPanePresentationValue = {
-  presentation: "docked",
-  reportFloatingStatus: noop,
-  reportComposerDockHeight: noop,
+    presentation: "docked",
+    reportFloatingStatus: noop,
+    reportComposerDockHeight: noop,
 };
 
 export const ConversationPanePresentationContext =
-  createContext<ConversationPanePresentationValue>(DOCKED_PRESENTATION);
+    createContext<ConversationPanePresentationValue>(DOCKED_PRESENTATION);
 
 export function useConversationPanePresentation(): ConversationPanePresentationValue {
-  return useContext(ConversationPanePresentationContext);
+    return useContext(ConversationPanePresentationContext);
 }

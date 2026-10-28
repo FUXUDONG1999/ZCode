@@ -3,7 +3,7 @@ title: Notifications
 description: Trigger terminal-mediated desktop notifications
 order: 8
 skill:
-  intents: [notifications, terminal, osc, renderer]
+    intents: [notifications, terminal, osc, renderer]
 ---
 
 # Notifications
@@ -22,7 +22,7 @@ Check detection state through renderer capabilities:
 
 ```typescript
 if (renderer.capabilities?.notifications) {
-  renderer.triggerNotification("Tests passed", "CI");
+    renderer.triggerNotification("Tests passed", "CI");
 }
 ```
 

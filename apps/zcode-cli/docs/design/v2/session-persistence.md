@@ -101,10 +101,10 @@ Timeline 的展示 label 单独保留，不混入严格的 Selection 契约。
 
 ```ts
 type SessionRevert = {
-  messageID: MessageID;
-  partID?: PartID;
-  snapshot?: string;
-  diff?: string;
+    messageID: MessageID;
+    partID?: PartID;
+    snapshot?: string;
+    diff?: string;
 };
 ```
 
@@ -248,18 +248,18 @@ order by id;
 
 ```ts
 type CompletedToolPartMetadata = {
-  schemaVersion: 1;
-  display?: ToolResultDisplayPayload;
-  modelContentLayout?: Array<
-    { type: "text"; text: string } | { type: "attachment"; attachmentIndex: number }
-  >;
-  serialization?: {
-    truncated: boolean;
-    originalBytes: number;
-    returnedBytes: number;
-    budgetStrategy: "inline" | "truncate" | "artifact";
-    artifactPath?: string;
-  };
+    schemaVersion: 1;
+    display?: ToolResultDisplayPayload;
+    modelContentLayout?: Array<
+        { type: "text"; text: string } | { type: "attachment"; attachmentIndex: number }
+    >;
+    serialization?: {
+        truncated: boolean;
+        originalBytes: number;
+        returnedBytes: number;
+        budgetStrategy: "inline" | "truncate" | "artifact";
+        artifactPath?: string;
+    };
 };
 ```
 
@@ -267,12 +267,12 @@ type CompletedToolPartMetadata = {
 
 ```ts
 type ToolResultDisplayPayload = {
-  kind: "file_diff";
-  filePath: string;
-  additions: number;
-  deletions: number;
-  structuredPatch: DiffHunk[];
-  truncated?: boolean;
+    kind: "file_diff";
+    filePath: string;
+    additions: number;
+    deletions: number;
+    structuredPatch: DiffHunk[];
+    truncated?: boolean;
 };
 ```
 
@@ -563,25 +563,29 @@ fork 不需要复制复杂状态。
 
 ```ts
 interface SessionStore {
-  createSession(input: CreateSessionInput): Promise<SessionInfo>;
-  updateSession(input: UpdateSessionInput): Promise<SessionInfo>;
-  getSession(sessionID: SessionID): Promise<SessionInfo>;
-  listSessions(input: ListSessionsInput): Promise<SessionInfo[]>;
+    createSession(input: CreateSessionInput): Promise<SessionInfo>;
+    updateSession(input: UpdateSessionInput): Promise<SessionInfo>;
+    getSession(sessionID: SessionID): Promise<SessionInfo>;
+    listSessions(input: ListSessionsInput): Promise<SessionInfo[]>;
 
-  saveMessage(input: MessageInfo): Promise<void>;
-  removeMessage(input: { sessionID: SessionID; messageID: MessageID }): Promise<void>;
+    saveMessage(input: MessageInfo): Promise<void>;
+    removeMessage(input: { sessionID: SessionID; messageID: MessageID }): Promise<void>;
 
-  savePart(input: MessagePart): Promise<void>;
-  removePart(input: { sessionID: SessionID; messageID: MessageID; partID: PartID }): Promise<void>;
+    savePart(input: MessagePart): Promise<void>;
+    removePart(input: {
+        sessionID: SessionID;
+        messageID: MessageID;
+        partID: PartID;
+    }): Promise<void>;
 
-  messages(input: { sessionID: SessionID }): Promise<MessageWithParts[]>;
+    messages(input: { sessionID: SessionID }): Promise<MessageWithParts[]>;
 
-  setRevert(input: {
-    sessionID: SessionID;
-    revert: SessionRevert;
-    summary?: { additions: number; deletions: number; files: number; diffs?: FileDiff[] };
-  }): Promise<void>;
-  clearRevert(sessionID: SessionID): Promise<void>;
+    setRevert(input: {
+        sessionID: SessionID;
+        revert: SessionRevert;
+        summary?: { additions: number; deletions: number; files: number; diffs?: FileDiff[] };
+    }): Promise<void>;
+    clearRevert(sessionID: SessionID): Promise<void>;
 }
 ```
 

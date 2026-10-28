@@ -75,27 +75,27 @@ Workflow graph seeding is the generic bridge from planning artifacts into schedu
 
 ```json
 {
-  "nodes": [
-    {
-      "id": "implement_auth",
-      "title": "Implement auth",
-      "description": "Small executable unit",
-      "dependsOn": ["setup_config"],
-      "collectionId": "implementation",
-      "prompt": "Optional node-specific instructions"
-    }
-  ],
-  "edges": [{ "from": "setup_config", "to": "implement_auth" }],
-  "collections": [
-    {
-      "collectionId": "implementation",
-      "nodeIds": ["setup_config", "implement_auth"],
-      "explorable": false,
-      "goal": "Ship the feature",
-      "metric": "Tests pass"
-    }
-  ],
-  "reasoning": "Brief rationale"
+    "nodes": [
+        {
+            "id": "implement_auth",
+            "title": "Implement auth",
+            "description": "Small executable unit",
+            "dependsOn": ["setup_config"],
+            "collectionId": "implementation",
+            "prompt": "Optional node-specific instructions"
+        }
+    ],
+    "edges": [{ "from": "setup_config", "to": "implement_auth" }],
+    "collections": [
+        {
+            "collectionId": "implementation",
+            "nodeIds": ["setup_config", "implement_auth"],
+            "explorable": false,
+            "goal": "Ship the feature",
+            "metric": "Tests pass"
+        }
+    ],
+    "reasoning": "Brief rationale"
 }
 ```
 
@@ -105,15 +105,15 @@ Workflow node prompt enrichment is the generic bridge from meta-prompt artifacts
 
 ```json
 {
-  "nodes": [
-    {
-      "id": "implement_auth",
-      "prompt": "Implement only the auth boundary and keep migrations separate.",
-      "description": "Optional refined objective.",
-      "title": "Optional refined title"
-    }
-  ],
-  "reasoning": "brief rationale"
+    "nodes": [
+        {
+            "id": "implement_auth",
+            "prompt": "Implement only the auth boundary and keep migrations separate.",
+            "description": "Optional refined objective.",
+            "title": "Optional refined title"
+        }
+    ],
+    "reasoning": "brief rationale"
 }
 ```
 
@@ -253,16 +253,16 @@ Final critic is a generic workflow graph feedback loop, not an expert-only patch
 
 ```json
 {
-  "verdict": "pass",
-  "reasoning": "All acceptance criteria are met.",
-  "reopenProposals": [
-    {
-      "nodeId": "node-id",
-      "reason": "Concrete issue that requires rerunning this node.",
-      "severity": "major"
-    }
-  ],
-  "acceptanceGaps": ["Optional unresolved acceptance gap"]
+    "verdict": "pass",
+    "reasoning": "All acceptance criteria are met.",
+    "reopenProposals": [
+        {
+            "nodeId": "node-id",
+            "reason": "Concrete issue that requires rerunning this node.",
+            "severity": "major"
+        }
+    ],
+    "acceptanceGaps": ["Optional unresolved acceptance gap"]
 }
 ```
 

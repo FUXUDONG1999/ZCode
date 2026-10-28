@@ -72,23 +72,23 @@ export const SavedWorkflowArgTypeSchema = z.enum(SAVED_WORKFLOW_ARG_TYPES);
 export type SavedWorkflowArgType = z.infer<typeof SavedWorkflowArgTypeSchema>;
 
 export const SavedWorkflowArgDeclarationSchema = z
-  .object({
-    type: SavedWorkflowArgTypeSchema.describe(
-      'Value type. "json" accepts any JSON value without further checking.',
-    ),
-    description: z
-      .string()
-      .optional()
-      .describe("What this argument means, for whoever calls the workflow later."),
-    required: z
-      .boolean()
-      .optional()
-      .describe("When true the workflow cannot run without this argument."),
-    // `default` 刻意是 unknown 而不是按 `type` 判别的联合：默认值的类型正确性由
-    // validateWorkflowArgs 在**应用默认值之后**与传入值走同一条校验，一处规则而不是两处。
-    default: z.unknown().optional().describe("Value used when the caller omits this argument."),
-  })
-  .strict();
+    .object({
+        type: SavedWorkflowArgTypeSchema.describe(
+            'Value type. "json" accepts any JSON value without further checking.',
+        ),
+        description: z
+            .string()
+            .optional()
+            .describe("What this argument means, for whoever calls the workflow later."),
+        required: z
+            .boolean()
+            .optional()
+            .describe("When true the workflow cannot run without this argument."),
+        // `default` 刻意是 unknown 而不是按 `type` 判别的联合：默认值的类型正确性由
+        // validateWorkflowArgs 在**应用默认值之后**与传入值走同一条校验，一处规则而不是两处。
+        default: z.unknown().optional().describe("Value used when the caller omits this argument."),
+    })
+    .strict();
 
 export type SavedWorkflowArgDeclaration = z.infer<typeof SavedWorkflowArgDeclarationSchema>;
 
@@ -101,26 +101,26 @@ export type SavedWorkflowArgsDeclaration = z.infer<typeof SavedWorkflowArgsDecla
  * 一个被静默丢弃的字段——保存的文件是用户会手改的，错字必须能被指出来。
  */
 export const SavedWorkflowMetaSchema = z
-  .object({
-    description: z.string().min(1),
-    whenToUse: z.string().min(1).optional(),
-    args: SavedWorkflowArgsDeclarationSchema.optional(),
-  })
-  .strict();
+    .object({
+        description: z.string().min(1),
+        whenToUse: z.string().min(1).optional(),
+        args: SavedWorkflowArgsDeclarationSchema.optional(),
+    })
+    .strict();
 
 export type SavedWorkflowMeta = z.infer<typeof SavedWorkflowMetaSchema>;
 
 /** 列表里的一行：元数据 + 落点，**不含脚本正文**（枚举不是读取）。 */
 export const SavedWorkflowEntrySchema = z
-  .object({
-    name: z.string().min(1),
-    description: z.string(),
-    whenToUse: z.string().optional(),
-    args: SavedWorkflowArgsDeclarationSchema.optional(),
-    scope: SavedWorkflowScopeSchema,
-    path: z.string().min(1),
-  })
-  .strict();
+    .object({
+        name: z.string().min(1),
+        description: z.string(),
+        whenToUse: z.string().optional(),
+        args: SavedWorkflowArgsDeclarationSchema.optional(),
+        scope: SavedWorkflowScopeSchema,
+        path: z.string().min(1),
+    })
+    .strict();
 
 export type SavedWorkflowEntry = z.infer<typeof SavedWorkflowEntrySchema>;
 
@@ -129,18 +129,18 @@ export type SavedWorkflowEntry = z.infer<typeof SavedWorkflowEntrySchema>;
  * 时，其余 workflow 必须照常可用，而那个坏文件必须被指名道姓，否则它只是消失了。
  */
 export const SavedWorkflowInvalidEntrySchema = z
-  .object({
-    path: z.string().min(1),
-    reason: z.string().min(1),
-  })
-  .strict();
+    .object({
+        path: z.string().min(1),
+        reason: z.string().min(1),
+    })
+    .strict();
 
 export type SavedWorkflowInvalidEntry = z.infer<typeof SavedWorkflowInvalidEntrySchema>;
 
 /** 名字是否可用作文件名（即是否可能指向一个保存的 workflow）。 */
 export function isValidSavedWorkflowName(name: string): boolean {
-  if (name.length === 0 || name.length > SAVED_WORKFLOW_MAX_NAME_CHARS) return false;
-  if (!SAVED_WORKFLOW_NAME_PATTERN.test(name)) return false;
-  // `.` 与 `..` 通过了上面的字符集检查却是目录项，不是名字。
-  return name.replaceAll(".", "").length > 0;
+    if (name.length === 0 || name.length > SAVED_WORKFLOW_MAX_NAME_CHARS) return false;
+    if (!SAVED_WORKFLOW_NAME_PATTERN.test(name)) return false;
+    // `.` 与 `..` 通过了上面的字符集检查却是目录项，不是名字。
+    return name.replaceAll(".", "").length > 0;
 }

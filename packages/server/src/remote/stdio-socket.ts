@@ -9,48 +9,48 @@ import type { StdioStream } from "./backend.js";
  * and wrapBrowserWebSocket in packages/client/src/websocket.ts.
  */
 export function wrapStdioStream(stream: StdioStream): ISocket {
-  const onData = new Emitter<VSBuffer>();
-  const onClose = new Emitter<void>();
-  const onEnd = new Emitter<void>();
+    const onData = new Emitter<VSBuffer>();
+    const onClose = new Emitter<void>();
+    const onEnd = new Emitter<void>();
 
-  stream.stdout.on("data", (chunk: Buffer) => {
-    onData.fire(VSBuffer.wrap(new Uint8Array(chunk)));
-  });
+    stream.stdout.on("data", (chunk: Buffer) => {
+        onData.fire(VSBuffer.wrap(new Uint8Array(chunk)));
+    });
 
-  stream.stdout.on("end", () => {
-    onEnd.fire();
-  });
+    stream.stdout.on("end", () => {
+        onEnd.fire();
+    });
 
-  stream.onClose(() => {
-    onClose.fire();
-    onEnd.fire();
-  });
+    stream.onClose(() => {
+        onClose.fire();
+        onEnd.fire();
+    });
 
-  return {
-    onData: onData.event,
-    onClose: onClose.event,
-    onEnd: onEnd.event,
-    write(buffer: VSBuffer) {
-      stream.stdin.write(Buffer.from(buffer.buffer));
-    },
-    end() {
-      stream.stdin.end();
-    },
-    drain() {
-      const stdin = stream.stdin as NodeJS.WritableStream & {
-        writableNeedDrain?: boolean;
-        once(event: "drain", listener: () => void): unknown;
-      };
-      return new Promise<void>((resolve) => {
-        if (stdin.writableNeedDrain) {
-          stdin.once("drain", resolve);
-        } else {
-          resolve();
-        }
-      });
-    },
-    dispose() {
-      stream.stdin.end();
-    },
-  };
+    return {
+        onData: onData.event,
+        onClose: onClose.event,
+        onEnd: onEnd.event,
+        write(buffer: VSBuffer) {
+            stream.stdin.write(Buffer.from(buffer.buffer));
+        },
+        end() {
+            stream.stdin.end();
+        },
+        drain() {
+            const stdin = stream.stdin as NodeJS.WritableStream & {
+                writableNeedDrain?: boolean;
+                once(event: "drain", listener: () => void): unknown;
+            };
+            return new Promise<void>((resolve) => {
+                if (stdin.writableNeedDrain) {
+                    stdin.once("drain", resolve);
+                } else {
+                    resolve();
+                }
+            });
+        },
+        dispose() {
+            stream.stdin.end();
+        },
+    };
 }

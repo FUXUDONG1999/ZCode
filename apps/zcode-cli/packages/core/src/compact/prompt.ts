@@ -8,8 +8,8 @@ const NO_TOOLS_PREAMBLE = `CRITICAL: Respond with TEXT ONLY. Do NOT call any too
 `;
 
 const NO_TOOLS_TRAILER =
-  "\n\nREMINDER: Do NOT call any tools. Respond with plain text only — " +
-  "an <analysis> block followed by a <summary> block. Tool calls will be rejected and you will fail the task.";
+    "\n\nREMINDER: Do NOT call any tools. Respond with plain text only — " +
+    "an <analysis> block followed by a <summary> block. Tool calls will be rejected and you will fail the task.";
 
 const BASE_COMPACT_PROMPT = `Your task is to create a detailed summary of the conversation so far, paying close attention to the user's explicit requests and your previous actions.
 This summary should be thorough in capturing technical details, code patterns, and architectural decisions that would be essential for continuing development work without losing context.
@@ -109,57 +109,60 @@ When you are using compact - please focus on test output and code changes. Inclu
 </example>`;
 
 export function buildCompactPrompt(customInstructions: string | undefined): string {
-  const customInstructionBlock = customInstructions?.trim()
-    ? `\n\nAdditional Instructions:\n${customInstructions}`
-    : "";
+    const customInstructionBlock = customInstructions?.trim()
+        ? `\n\nAdditional Instructions:\n${customInstructions}`
+        : "";
 
-  return `${NO_TOOLS_PREAMBLE}${BASE_COMPACT_PROMPT}${customInstructionBlock}${NO_TOOLS_TRAILER}`;
+    return `${NO_TOOLS_PREAMBLE}${BASE_COMPACT_PROMPT}${customInstructionBlock}${NO_TOOLS_TRAILER}`;
 }
 
 export function formatCompactSummary(text: string | undefined): string {
-  let formatted = text?.trim() ?? "";
-  if (!formatted) return "";
+    let formatted = text?.trim() ?? "";
+    if (!formatted) return "";
 
-  formatted = formatted.replace(/<analysis>[\s\S]*?<\/analysis>/, "");
-  const summaryMatch = formatted.match(/<summary>([\s\S]*?)<\/summary>/);
-  if (summaryMatch) {
-    const summary = summaryMatch[1] || "";
-    formatted = formatted.replace(/<summary>[\s\S]*?<\/summary>/, `Summary:\n${summary.trim()}`);
-  }
+    formatted = formatted.replace(/<analysis>[\s\S]*?<\/analysis>/, "");
+    const summaryMatch = formatted.match(/<summary>([\s\S]*?)<\/summary>/);
+    if (summaryMatch) {
+        const summary = summaryMatch[1] || "";
+        formatted = formatted.replace(
+            /<summary>[\s\S]*?<\/summary>/,
+            `Summary:\n${summary.trim()}`,
+        );
+    }
 
-  return formatted.replace(/\n\n+/g, "\n\n").trim();
+    return formatted.replace(/\n\n+/g, "\n\n").trim();
 }
 
 export function buildCompactSummaryMessage(
-  summary: string,
-  options: {
-    recentMessagesPreserved?: boolean;
-    replStateCleared?: boolean;
-    suppressFollowup?: boolean;
-    transcriptPath?: string;
-  } = {},
+    summary: string,
+    options: {
+        recentMessagesPreserved?: boolean;
+        replStateCleared?: boolean;
+        suppressFollowup?: boolean;
+        transcriptPath?: string;
+    } = {},
 ): string {
-  let message = `This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+    let message = `This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
 
 ${formatCompactSummary(summary)}`;
 
-  if (options.transcriptPath) {
-    message += `\n\nIf you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: ${options.transcriptPath}`;
-  }
+    if (options.transcriptPath) {
+        message += `\n\nIf you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: ${options.transcriptPath}`;
+    }
 
-  if (options.recentMessagesPreserved) {
-    message += "\n\nRecent messages are preserved verbatim.";
-  }
+    if (options.recentMessagesPreserved) {
+        message += "\n\nRecent messages are preserved verbatim.";
+    }
 
-  if (options.replStateCleared) {
-    message +=
-      "\n\nYour REPL VM state has been cleared as part of this compaction. Variables defined in REPL calls before this point are no longer accessible — redefine any you still need.";
-  }
+    if (options.replStateCleared) {
+        message +=
+            "\n\nYour REPL VM state has been cleared as part of this compaction. Variables defined in REPL calls before this point are no longer accessible — redefine any you still need.";
+    }
 
-  if (options.suppressFollowup) {
-    message +=
-      '\nContinue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I\'ll continue" or similar. Pick up the last task as if the break never happened.';
-  }
+    if (options.suppressFollowup) {
+        message +=
+            '\nContinue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I\'ll continue" or similar. Pick up the last task as if the break never happened.';
+    }
 
-  return message;
+    return message;
 }

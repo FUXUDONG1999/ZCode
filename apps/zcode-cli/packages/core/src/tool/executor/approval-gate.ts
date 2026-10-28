@@ -1,16 +1,16 @@
 import {
-  traceContextToLogContext,
-  type PermissionOptionsPolicy,
-  type ToolResultDisplayPayload,
-  type TraceContext,
+    traceContextToLogContext,
+    type PermissionOptionsPolicy,
+    type ToolResultDisplayPayload,
+    type TraceContext,
 } from "@zcode/contracts";
 import type { ExecutableToolCall, ToolEntry } from "../types.js";
 import type { ToolExecutorDeps } from "./types.js";
 
 interface ResolvedToolApproval {
-  gate: "ask" | "proceed";
-  display?: ToolResultDisplayPayload;
-  optionsPolicy?: PermissionOptionsPolicy;
+    gate: "ask" | "proceed";
+    display?: ToolResultDisplayPayload;
+    optionsPolicy?: PermissionOptionsPolicy;
 }
 
 /**
@@ -21,55 +21,55 @@ interface ResolvedToolApproval {
  * 没有声明钩子的工具一律照旧弹窗。
  */
 function resolveOptionsPolicy(
-  allowAlways: false | "session" | undefined,
+    allowAlways: false | "session" | undefined,
 ): PermissionOptionsPolicy | undefined {
-  switch (allowAlways) {
-    case false:
-      return "no-always-allow";
-    case "session":
-      return "session-always-allow";
-    default:
-      return undefined;
-  }
+    switch (allowAlways) {
+        case false:
+            return "no-always-allow";
+        case "session":
+            return "session-always-allow";
+        default:
+            return undefined;
+    }
 }
 
 export function resolveToolApproval(
-  deps: ToolExecutorDeps,
-  toolCall: ExecutableToolCall,
-  entry: ToolEntry,
-  executionInput: unknown,
-  traceContext: TraceContext,
+    deps: ToolExecutorDeps,
+    toolCall: ExecutableToolCall,
+    entry: ToolEntry,
+    executionInput: unknown,
+    traceContext: TraceContext,
 ): ResolvedToolApproval {
-  // `permission` 类型上是必填，但 executor 也会被只声明了一部分字段的 entry 驱动
-  // （测试桩、动态注册的工具）。周边代码靠 spread 而不是读字段来容忍这一点，gate 同理。
-  const optionsPolicy = resolveOptionsPolicy(entry.permission?.askOptions?.allowAlways);
+    // `permission` 类型上是必填，但 executor 也会被只声明了一部分字段的 entry 驱动
+    // （测试桩、动态注册的工具）。周边代码靠 spread 而不是读字段来容忍这一点，gate 同理。
+    const optionsPolicy = resolveOptionsPolicy(entry.permission?.askOptions?.allowAlways);
 
-  if (!entry.prepareApproval) {
-    return { gate: "ask", ...(optionsPolicy ? { optionsPolicy } : {}) };
-  }
+    if (!entry.prepareApproval) {
+        return { gate: "ask", ...(optionsPolicy ? { optionsPolicy } : {}) };
+    }
 
-  try {
-    // 工作目录与 handler 拿到的是同一个来源（deps 的 getWorkingDirectory 在 impl.ts 里已把
-    // 静态 workingDirectory 兜进去），否则预览会去看一个目录、执行会去写另一个。
-    const gate = entry.prepareApproval(executionInput);
-    if (gate.gate === "proceed") return { gate: "proceed" };
-    return {
-      gate: "ask",
-      ...(gate.display ? { display: gate.display } : {}),
-      ...(optionsPolicy ? { optionsPolicy } : {}),
-    };
-  } catch (error) {
-    // Bug 预防：负责生成预览的钩子绝不能决定"用户是否被询问"。向执行侧 fail-open 等于
-    // 静默运行了一个未获批准的工具，所以这里 ask 照旧成立，只让预览降级。
-    deps.logger?.warn("Tool approval preview failed; asking without a preview", {
-      ...traceContextToLogContext(traceContext),
-      error: error instanceof Error ? error.message : String(error),
-      event: "tool.permission.approval_preview_failed",
-      module: "core.tool.executor",
-      status: "failed",
-      toolCallId: toolCall.id,
-      toolName: toolCall.name,
-    });
-    return { gate: "ask", ...(optionsPolicy ? { optionsPolicy } : {}) };
-  }
+    try {
+        // 工作目录与 handler 拿到的是同一个来源（deps 的 getWorkingDirectory 在 impl.ts 里已把
+        // 静态 workingDirectory 兜进去），否则预览会去看一个目录、执行会去写另一个。
+        const gate = entry.prepareApproval(executionInput);
+        if (gate.gate === "proceed") return { gate: "proceed" };
+        return {
+            gate: "ask",
+            ...(gate.display ? { display: gate.display } : {}),
+            ...(optionsPolicy ? { optionsPolicy } : {}),
+        };
+    } catch (error) {
+        // Bug 预防：负责生成预览的钩子绝不能决定"用户是否被询问"。向执行侧 fail-open 等于
+        // 静默运行了一个未获批准的工具，所以这里 ask 照旧成立，只让预览降级。
+        deps.logger?.warn("Tool approval preview failed; asking without a preview", {
+            ...traceContextToLogContext(traceContext),
+            error: error instanceof Error ? error.message : String(error),
+            event: "tool.permission.approval_preview_failed",
+            module: "core.tool.executor",
+            status: "failed",
+            toolCallId: toolCall.id,
+            toolName: toolCall.name,
+        });
+        return { gate: "ask", ...(optionsPolicy ? { optionsPolicy } : {}) };
+    }
 }

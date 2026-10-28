@@ -136,17 +136,17 @@ In `apps/zcode-cli/packages/core/tests/websearch.test.ts`, change the schema tes
 
 ```ts
 it("exposes WebSearch schema without unsupported provider-native no-op options", () => {
-  const properties = WebSearchInputJsonSchema.properties as Record<string, unknown>;
+    const properties = WebSearchInputJsonSchema.properties as Record<string, unknown>;
 
-  expect(properties.query).toBeDefined();
-  expect(properties.allowed_domains).toBeDefined();
-  expect(properties.blocked_domains).toBeDefined();
-  expect(properties.allowedDomains).toBeUndefined();
-  expect(properties.blockedDomains).toBeUndefined();
-  expect(properties.maxUses).toBeDefined();
-  expect(properties.searchContextSize).toBeUndefined();
-  expect(properties.numResults).toBeUndefined();
-  expect(properties.safeSearch).toBeUndefined();
+    expect(properties.query).toBeDefined();
+    expect(properties.allowed_domains).toBeDefined();
+    expect(properties.blocked_domains).toBeDefined();
+    expect(properties.allowedDomains).toBeUndefined();
+    expect(properties.blockedDomains).toBeUndefined();
+    expect(properties.maxUses).toBeDefined();
+    expect(properties.searchContextSize).toBeUndefined();
+    expect(properties.numResults).toBeUndefined();
+    expect(properties.safeSearch).toBeUndefined();
 });
 ```
 
@@ -156,33 +156,33 @@ In `apps/zcode-cli/packages/core/tests/websearch.test.ts`, replace the unregiste
 
 ```ts
 it("registers WebSearch as a client-side built-in tool", () => {
-  const registry = createToolRegistry();
-  registerBuiltInTools(registry, { includeAgent: true });
+    const registry = createToolRegistry();
+    registerBuiltInTools(registry, { includeAgent: true });
 
-  expect(registry.has("WebSearch")).toBe(true);
-  expect(registry.has("web_search")).toBe(false);
-  expect(registry.toContracts()).toContainEqual(
-    expect.objectContaining({
-      executionMode: "client",
-      name: "WebSearch",
-      providerNative: undefined,
-    }),
-  );
+    expect(registry.has("WebSearch")).toBe(true);
+    expect(registry.has("web_search")).toBe(false);
+    expect(registry.toContracts()).toContainEqual(
+        expect.objectContaining({
+            executionMode: "client",
+            name: "WebSearch",
+            providerNative: undefined,
+        }),
+    );
 });
 
 it("does not add direct provider-native web_search to main model contracts", () => {
-  const runtime = createRuntime("runtime-websearch-client-wrapper");
-  const tools = runtime.getTools();
+    const runtime = createRuntime("runtime-websearch-client-wrapper");
+    const tools = runtime.getTools();
 
-  expect(runtime.getToolRegistry().has("WebSearch")).toBe(true);
-  expect(tools).toContainEqual(
-    expect.objectContaining({
-      executionMode: "client",
-      name: "WebSearch",
-      providerNative: undefined,
-    }),
-  );
-  expect(tools.some((tool) => tool.name === "web_search")).toBe(false);
+    expect(runtime.getToolRegistry().has("WebSearch")).toBe(true);
+    expect(tools).toContainEqual(
+        expect.objectContaining({
+            executionMode: "client",
+            name: "WebSearch",
+            providerNative: undefined,
+        }),
+    );
+    expect(tools.some((tool) => tool.name === "web_search")).toBe(false);
 });
 ```
 
@@ -192,92 +192,98 @@ Add this focused test to `websearch.test.ts`:
 
 ```ts
 it("runs an internal provider-native web_search request from the WebSearch handler", async () => {
-  const sessionId = createSessionId("runtime-websearch-handler-side-request");
-  const eventStore = createTestSessionEventStore();
-  const requests: any[] = [];
-  const runtime = new AgentRuntime(
-    sessionId,
-    { modelRef },
-    {
-      eventStore,
-      modelAdapter: {
-        async generateText(request: any) {
-          requests.push(request);
-          if (request.metadata?.querySource === "web_search_tool") {
-            return {
-              finishReason: "stop",
-              model: request.model,
-              providerMetadata: undefined,
-              text: "Search summary",
-              toolResults: [
-                {
-                  id: "server_search_1",
-                  name: "web_search",
-                  output: [
-                    { type: "web_search_result", title: "Example", url: "https://example.com" },
-                  ],
-                  providerExecuted: true,
+    const sessionId = createSessionId("runtime-websearch-handler-side-request");
+    const eventStore = createTestSessionEventStore();
+    const requests: any[] = [];
+    const runtime = new AgentRuntime(
+        sessionId,
+        { modelRef },
+        {
+            eventStore,
+            modelAdapter: {
+                async generateText(request: any) {
+                    requests.push(request);
+                    if (request.metadata?.querySource === "web_search_tool") {
+                        return {
+                            finishReason: "stop",
+                            model: request.model,
+                            providerMetadata: undefined,
+                            text: "Search summary",
+                            toolResults: [
+                                {
+                                    id: "server_search_1",
+                                    name: "web_search",
+                                    output: [
+                                        {
+                                            type: "web_search_result",
+                                            title: "Example",
+                                            url: "https://example.com",
+                                        },
+                                    ],
+                                    providerExecuted: true,
+                                },
+                            ],
+                            sources: [
+                                { sourceType: "url", title: "Example", url: "https://example.com" },
+                            ],
+                            usage: {
+                                inputTokens: 5,
+                                outputTokens: 7,
+                                totalTokens: 12,
+                                serverToolUse: { webSearchRequests: 1 },
+                            },
+                        };
+                    }
+                    return {
+                        finishReason: "tool-calls",
+                        model: request.model,
+                        providerMetadata: undefined,
+                        text: "",
+                        toolCalls: [
+                            {
+                                id: "call_websearch",
+                                name: "WebSearch",
+                                input: { query: "latest zcode", allowed_domains: ["example.com"] },
+                            },
+                        ],
+                        usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+                    };
                 },
-              ],
-              sources: [{ sourceType: "url", title: "Example", url: "https://example.com" }],
-              usage: {
-                inputTokens: 5,
-                outputTokens: 7,
-                totalTokens: 12,
-                serverToolUse: { webSearchRequests: 1 },
-              },
-            };
-          }
-          return {
-            finishReason: "tool-calls",
-            model: request.model,
-            providerMetadata: undefined,
-            text: "",
-            toolCalls: [
-              {
-                id: "call_websearch",
-                name: "WebSearch",
-                input: { query: "latest zcode", allowed_domains: ["example.com"] },
-              },
-            ],
-            usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
-          };
+                resolveConnection() {
+                    return {
+                        providerId: "deepseek",
+                        providerKind: "anthropic",
+                        baseURL: "https://api.deepseek.com/anthropic",
+                    };
+                },
+            } as never,
         },
-        resolveConnection() {
-          return {
-            providerId: "deepseek",
-            providerKind: "anthropic",
-            baseURL: "https://api.deepseek.com/anthropic",
-          };
-        },
-      } as never,
-    },
-  );
+    );
 
-  await runtime.executeTurn("Search current ZCode info");
+    await runtime.executeTurn("Search current ZCode info");
 
-  const innerRequest = requests.find(
-    (request) => request.metadata?.querySource === "web_search_tool",
-  );
-  expect(innerRequest).toBeDefined();
-  expect(innerRequest.messages).toEqual([
-    { role: "system", content: "You are an assistant for performing a web search tool use." },
-    { role: "user", content: "Perform a web search for the query: latest zcode" },
-  ]);
-  expect(innerRequest.tools.map((tool: any) => tool.name)).toEqual(["web_search"]);
-  expect(innerRequest.tools[0]).toMatchObject({
-    executionMode: "providerNative",
-    providerNative: expect.objectContaining({
-      logicalName: "WebSearch",
-      providerToolName: "web_search",
-      args: expect.objectContaining({
-        allowedDomains: ["example.com"],
-        maxUses: 8,
-      }),
-    }),
-  });
-  expect(innerRequest.tools[0].providerNative.args).not.toHaveProperty("searchContextSize");
-  expect(innerRequest.toolChoice).toBeUndefined();
+    const innerRequest = requests.find(
+        (request) => request.metadata?.querySource === "web_search_tool",
+    );
+    expect(innerRequest).toBeDefined();
+    expect(innerRequest.messages).toEqual([
+        { role: "system", content: "You are an assistant for performing a web search tool use." },
+        { role: "user", content: "Perform a web search for the query: latest zcode" },
+    ]);
+    expect(innerRequest.tools.map((tool: any) => tool.name)).toEqual(["web_search"]);
+    expect(innerRequest.tools[0]).toMatchObject({
+        executionMode: "providerNative",
+        providerNative: expect.objectContaining({
+            logicalName: "WebSearch",
+            providerToolName: "web_search",
+            args: expect.objectContaining({
+                allowedDomains: ["example.com"],
+                maxUses: 8,
+            }),
+        }),
+    });
+    expect(innerRequest.tools[0].providerNative.args).not.toHaveProperty("searchContextSize");
+    expect(innerRequest.toolChoice).toBeUndefined();
 });
 ```
 
@@ -285,21 +291,21 @@ Add the overload used above:
 
 ```ts
 function createRuntime(
-  sessionId: string,
-  config: ConstructorParameters<typeof AgentRuntime>[1] = {},
-  deps: Partial<ConstructorParameters<typeof AgentRuntime>[2]> = {},
+    sessionId: string,
+    config: ConstructorParameters<typeof AgentRuntime>[1] = {},
+    deps: Partial<ConstructorParameters<typeof AgentRuntime>[2]> = {},
 ): AgentRuntime {
-  return new AgentRuntime(
-    createSessionId(sessionId),
-    {
-      modelRef,
-      ...config,
-    },
-    {
-      eventStore: createTestSessionEventStore(),
-      ...deps,
-    },
-  );
+    return new AgentRuntime(
+        createSessionId(sessionId),
+        {
+            modelRef,
+            ...config,
+        },
+        {
+            eventStore: createTestSessionEventStore(),
+            ...deps,
+        },
+    );
 }
 ```
 
@@ -334,24 +340,24 @@ In `websearch.ts` contracts, use this shape:
 
 ```ts
 export const WebSearchInputSchema = z
-  .object({
-    query: z.string().min(2).describe("The search query to use"),
-    allowed_domains: z
-      .array(DomainSchema)
-      .max(20)
-      .optional()
-      .describe("Only include search results from these domains"),
-    blocked_domains: z
-      .array(DomainSchema)
-      .max(20)
-      .optional()
-      .describe("Never include search results from these domains"),
-  })
-  .strict()
-  .refine((input) => !(input.allowed_domains?.length && input.blocked_domains?.length), {
-    message: "allowed_domains and blocked_domains cannot both be specified",
-    path: ["blocked_domains"],
-  });
+    .object({
+        query: z.string().min(2).describe("The search query to use"),
+        allowed_domains: z
+            .array(DomainSchema)
+            .max(20)
+            .optional()
+            .describe("Only include search results from these domains"),
+        blocked_domains: z
+            .array(DomainSchema)
+            .max(20)
+            .optional()
+            .describe("Never include search results from these domains"),
+    })
+    .strict()
+    .refine((input) => !(input.allowed_domains?.length && input.blocked_domains?.length), {
+        message: "allowed_domains and blocked_domains cannot both be specified",
+        path: ["blocked_domains"],
+    });
 ```
 
 - [x] **Step 1.2: Add internal provider args type and normalizer**
@@ -360,20 +366,20 @@ In the same file, add:
 
 ```ts
 export interface WebSearchProviderNativeArgs {
-  allowedDomains?: string[];
-  blockedDomains?: string[];
-  maxUses?: number;
+    allowedDomains?: string[];
+    blockedDomains?: string[];
+    maxUses?: number;
 }
 
 export function toWebSearchProviderNativeArgs(
-  input: WebSearchInput,
-  defaults: { maxUses: number },
+    input: WebSearchInput,
+    defaults: { maxUses: number },
 ): WebSearchProviderNativeArgs {
-  return {
-    allowedDomains: input.allowed_domains,
-    blockedDomains: input.blocked_domains,
-    maxUses: input.maxUses ?? defaults.maxUses,
-  };
+    return {
+        allowedDomains: input.allowed_domains,
+        blockedDomains: input.blocked_domains,
+        maxUses: input.maxUses ?? defaults.maxUses,
+    };
 }
 ```
 
@@ -383,45 +389,44 @@ Change `WEBSEARCH_TOOL_CONTRACT` to:
 
 ```ts
 export const WEBSEARCH_TOOL_CONTRACT: ToolContractDeclaration = {
-  capability: "web_search",
-  executionMode: "client",
-  inputSchema: WebSearchInputJsonSchema,
-  outputSchema: WebSearchOutputJsonSchema,
-  permission: {
-    permission: "websearch",
-    reason:
-      "WebSearch performs read-only provider-native web searches through an internal model request",
-    riskLevel: "low",
-    sideEffectScope: "network",
-    needsApproval: false,
-    patternSources: ["toolName", "input", "network"],
-    denyPriority: "beforeAsk",
-  },
-  resultBudget: {
-    maxInlineBytes: 10_000,
-    maxModelBytes: 20_000,
-    strategy: "truncate",
-    preview: {
-      maxLines: 30,
-      direction: "head",
+    capability: "web_search",
+    executionMode: "client",
+    inputSchema: WebSearchInputJsonSchema,
+    outputSchema: WebSearchOutputJsonSchema,
+    permission: {
+        permission: "websearch",
+        reason: "WebSearch performs read-only provider-native web searches through an internal model request",
+        riskLevel: "low",
+        sideEffectScope: "network",
+        needsApproval: false,
+        patternSources: ["toolName", "input", "network"],
+        denyPriority: "beforeAsk",
     },
-  },
-  timeout: {
-    defaultMs: 60_000,
-    maxMs: 120_000,
-    allowCallOverride: true,
-  },
-  cancellation: {
-    supported: true,
-    cleanup: "bestEffort",
-    userVisibleMessage: "WebSearch was cancelled",
-  },
-  trace: {
-    required: true,
-    propagateToAdapters: true,
-    recordInput: "full",
-    recordOutput: "summary",
-  },
+    resultBudget: {
+        maxInlineBytes: 10_000,
+        maxModelBytes: 20_000,
+        strategy: "truncate",
+        preview: {
+            maxLines: 30,
+            direction: "head",
+        },
+    },
+    timeout: {
+        defaultMs: 60_000,
+        maxMs: 120_000,
+        allowCallOverride: true,
+    },
+    cancellation: {
+        supported: true,
+        cleanup: "bestEffort",
+        userVisibleMessage: "WebSearch was cancelled",
+    },
+    trace: {
+        required: true,
+        propagateToAdapters: true,
+        recordInput: "full",
+        recordOutput: "summary",
+    },
 };
 ```
 
@@ -503,9 +508,9 @@ In `agent-runtime.ts`, add:
 
 ```ts
 function normalizeBuiltInToolAllowlist(
-  allowlist: readonly string[] | undefined,
+    allowlist: readonly string[] | undefined,
 ): readonly string[] | undefined {
-  return allowlist?.map((toolName) => (toolName === "web_search" ? "WebSearch" : toolName));
+    return allowlist?.map((toolName) => (toolName === "web_search" ? "WebSearch" : toolName));
 }
 ```
 
@@ -515,11 +520,11 @@ Then call it in `resolveBuiltInToolAllowlist(...)`:
 const normalizedAllowlist = normalizeBuiltInToolAllowlist(config.toolAllowlist);
 
 if (config.toolset !== "explore") {
-  return normalizedAllowlist;
+    return normalizedAllowlist;
 }
 
 if (!normalizedAllowlist) {
-  return EXPLORE_AGENT_ALLOWED_TOOLS;
+    return EXPLORE_AGENT_ALLOWED_TOOLS;
 }
 
 return normalizedAllowlist.filter((toolName) => EXPLORE_AGENT_ALLOWED_TOOL_SET.has(toolName));
@@ -537,7 +542,7 @@ Set it in the constructor before creating the executor:
 
 ```ts
 this.modelConnectionPort =
-  deps.modelConnectionPort ?? (deps.modelAdapter as ModelConnectionPort | undefined);
+    deps.modelConnectionPort ?? (deps.modelAdapter as ModelConnectionPort | undefined);
 ```
 
 Pass `this.modelConnectionPort` into `createToolExecutor(...)`:
@@ -558,9 +563,9 @@ In `websearch-support.ts`, export:
 
 ```ts
 export function supportsProviderNativeWebSearch(
-  connection: Pick<ModelConnectionInfo, "baseURL" | "providerKind">,
+    connection: Pick<ModelConnectionInfo, "baseURL" | "providerKind">,
 ): boolean {
-  return connection.providerKind === "anthropic" && isWebSearchCapableBaseURL(connection.baseURL);
+    return connection.providerKind === "anthropic" && isWebSearchCapableBaseURL(connection.baseURL);
 }
 ```
 
@@ -568,11 +573,11 @@ Then simplify `assertProviderSupportsWebSearch(...)`:
 
 ```ts
 if (!supportsProviderNativeWebSearch(connection)) {
-  throw createCoreError(
-    CoreErrorType.ConfigurationError,
-    "Current provider/model does not support native WebSearch",
-    { context: { toolCallId, toolName: WEBSEARCH_TOOL_NAME }, recoverable: true },
-  );
+    throw createCoreError(
+        CoreErrorType.ConfigurationError,
+        "Current provider/model does not support native WebSearch",
+        { context: { toolCallId, toolName: WEBSEARCH_TOOL_NAME }, recoverable: true },
+    );
 }
 ```
 
@@ -594,10 +599,10 @@ Replace `getTools()` with registry contracts plus capability filter:
 
 ```ts
 export function getTools(this: AgentRuntimeInternal): ModelToolContract[] {
-  if (this.cachedTools === null) {
-    this.cachedTools = filterRuntimeVisibleTools.call(this, this.registry.toContracts());
-  }
-  return this.cachedTools;
+    if (this.cachedTools === null) {
+        this.cachedTools = filterRuntimeVisibleTools.call(this, this.registry.toContracts());
+    }
+    return this.cachedTools;
 }
 ```
 
@@ -605,23 +610,23 @@ Add:
 
 ```ts
 function filterRuntimeVisibleTools(
-  this: AgentRuntimeInternal,
-  tools: ModelToolContract[],
+    this: AgentRuntimeInternal,
+    tools: ModelToolContract[],
 ): ModelToolContract[] {
-  return tools.filter((tool) => {
-    if (tool.name !== "WebSearch") return true;
-    return shouldExposeWebSearch.call(this);
-  });
+    return tools.filter((tool) => {
+        if (tool.name !== "WebSearch") return true;
+        return shouldExposeWebSearch.call(this);
+    });
 }
 
 function shouldExposeWebSearch(this: AgentRuntimeInternal): boolean {
-  if (!this.modelConnectionPort) return true;
-  try {
-    const connection = this.modelConnectionPort.resolveConnection(this.defaultModelRef);
-    return supportsProviderNativeWebSearch(connection);
-  } catch {
-    return true;
-  }
+    if (!this.modelConnectionPort) return true;
+    try {
+        const connection = this.modelConnectionPort.resolveConnection(this.defaultModelRef);
+        return supportsProviderNativeWebSearch(connection);
+    } catch {
+        return true;
+    }
 }
 ```
 
@@ -680,35 +685,35 @@ Confirm `websearch.ts` handler request keeps this exact shape:
 
 ```ts
 const result = await modelPort.generateText({
-  model: {
-    ...modelRef,
-    role: modelRef.role ?? ModelRole.Main,
-  },
-  messages: [
-    {
-      role: "system",
-      content: "You are an assistant for performing a web search tool use.",
+    model: {
+        ...modelRef,
+        role: modelRef.role ?? ModelRole.Main,
     },
-    {
-      role: "user",
-      content: `Perform a web search for the query: ${input.query}`,
+    messages: [
+        {
+            role: "system",
+            content: "You are an assistant for performing a web search tool use.",
+        },
+        {
+            role: "user",
+            content: `Perform a web search for the query: ${input.query}`,
+        },
+    ],
+    tools: [createProviderNativeWebSearchContract(input)],
+    // BigModel 的 Anthropic 兼容端点会拒绝 named forced web_search tool_choice（1210）。
+    // 这里保持自动选择，依靠单工具请求和 prompt 触发 provider-native 搜索。
+    maxOutputTokens: 4096,
+    abortSignal: context.abortSignal,
+    metadata: {
+        traceId: context.traceId,
+        sessionId: context.sessionId,
+        turnId: context.turnId,
+        toolCallId: context.toolCallId,
+        toolName: WEBSEARCH_TOOL_NAME,
+        querySource: "web_search_tool",
     },
-  ],
-  tools: [createProviderNativeWebSearchContract(input)],
-  // BigModel 的 Anthropic 兼容端点会拒绝 named forced web_search tool_choice（1210）。
-  // 这里保持自动选择，依靠单工具请求和 prompt 触发 provider-native 搜索。
-  maxOutputTokens: 4096,
-  abortSignal: context.abortSignal,
-  metadata: {
-    traceId: context.traceId,
-    sessionId: context.sessionId,
-    turnId: context.turnId,
-    toolCallId: context.toolCallId,
-    toolName: WEBSEARCH_TOOL_NAME,
-    querySource: "web_search_tool",
-  },
-  statusSink: createToolModelStatusSink(context),
-  traceContext: webSearchTraceFromContext(context),
+    statusSink: createToolModelStatusSink(context),
+    traceContext: webSearchTraceFromContext(context),
 });
 ```
 
@@ -718,8 +723,8 @@ In `websearch-results.ts`, change the final reminder to:
 
 ```ts
 lines.push(
-  "",
-  "REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.",
+    "",
+    "REMINDER: You MUST include the sources above in your response to the user using markdown hyperlinks.",
 );
 ```
 
@@ -729,7 +734,7 @@ Extend `collectResults(...)` so it handles typed wrapper objects:
 
 ```ts
 if (Array.isArray(value.content)) {
-  return value.content.flatMap((item) => collectResults(item));
+    return value.content.flatMap((item) => collectResults(item));
 }
 ```
 
@@ -741,23 +746,23 @@ In `websearch.test.ts`, add:
 
 ```ts
 it("formats WebSearch tool results with markdown sources reminder", () => {
-  const text = webSearchToolEntry.formatModelContent?.({
-    query: "latest zcode",
-    results: [{ title: "Example", url: "https://example.com" }],
-    sources: [],
-    durationMs: 10,
-    webSearchRequests: 1,
-    modelUsage: {
-      inputTokens: 5,
-      outputTokens: 7,
-      totalTokens: 12,
-      serverToolUse: { webSearchRequests: 1 },
-    },
-  });
+    const text = webSearchToolEntry.formatModelContent?.({
+        query: "latest zcode",
+        results: [{ title: "Example", url: "https://example.com" }],
+        sources: [],
+        durationMs: 10,
+        webSearchRequests: 1,
+        modelUsage: {
+            inputTokens: 5,
+            outputTokens: 7,
+            totalTokens: 12,
+            serverToolUse: { webSearchRequests: 1 },
+        },
+    });
 
-  expect(String(text)).toContain('Web search results for query: "latest zcode"');
-  expect(String(text)).toContain("- [Example](https://example.com)");
-  expect(String(text)).toContain("markdown hyperlinks");
+    expect(String(text)).toContain('Web search results for query: "latest zcode"');
+    expect(String(text)).toContain("- [Example](https://example.com)");
+    expect(String(text)).toContain("markdown hyperlinks");
 });
 ```
 
@@ -787,16 +792,16 @@ In `scheduler.ts`, change:
 
 ```ts
 export const READ_ONLY_TOOLS = new Set([
-  "Read",
-  "Glob",
-  "Grep",
-  "WebSearch",
-  "WebFetch",
-  "TodoRead",
-  "TodoWrite",
-  "AskUserQuestion",
-  "Agent",
-  "Skill",
+    "Read",
+    "Glob",
+    "Grep",
+    "WebSearch",
+    "WebFetch",
+    "TodoRead",
+    "TodoWrite",
+    "AskUserQuestion",
+    "Agent",
+    "Skill",
 ]);
 ```
 
@@ -817,10 +822,11 @@ In `websearch.test.ts`, extend the handler side request test after `executeTurn(
 ```ts
 const storedEvents = await eventStore.getEvents(sessionId);
 expect(
-  storedEvents.some(
-    (event: any) =>
-      event.type === SessionEventType.ToolCallResult && event.payload?.toolName === "WebSearch",
-  ),
+    storedEvents.some(
+        (event: any) =>
+            event.type === SessionEventType.ToolCallResult &&
+            event.payload?.toolName === "WebSearch",
+    ),
 ).toBe(true);
 ```
 
@@ -850,18 +856,18 @@ In `adapters/tests/websearch.test.ts`, change helper contract name to `web_searc
 
 ```ts
 function createInternalWebSearchContract(args?: Record<string, unknown>): ModelToolContract {
-  return {
-    name: "web_search",
-    capability: "web_search",
-    description: "Provider-native web search used internally by WebSearch",
-    executionMode: "providerNative",
-    inputSchema: WEBSEARCH_TOOL_CONTRACT.inputSchema,
-    outputSchema: WEBSEARCH_TOOL_CONTRACT.outputSchema,
-    providerNative: {
-      ...WEBSEARCH_PROVIDER_NATIVE_SPEC,
-      args,
-    },
-  };
+    return {
+        name: "web_search",
+        capability: "web_search",
+        description: "Provider-native web search used internally by WebSearch",
+        executionMode: "providerNative",
+        inputSchema: WEBSEARCH_TOOL_CONTRACT.inputSchema,
+        outputSchema: WEBSEARCH_TOOL_CONTRACT.outputSchema,
+        providerNative: {
+            ...WEBSEARCH_PROVIDER_NATIVE_SPEC,
+            args,
+        },
+    };
 }
 ```
 
@@ -869,8 +875,8 @@ Then update provider-native expectations from `tools?.WebSearch` to:
 
 ```ts
 expect(tools?.web_search).toMatchObject({
-  id: "anthropic.web_search_20260209",
-  type: "provider",
+    id: "anthropic.web_search_20260209",
+    type: "provider",
 });
 ```
 
@@ -878,8 +884,8 @@ Keep the existing public client tool test:
 
 ```ts
 expect(tools?.WebSearch).not.toMatchObject({
-  id: "anthropic.web_search_20260209",
-  type: "provider",
+    id: "anthropic.web_search_20260209",
+    type: "provider",
 });
 ```
 
@@ -899,16 +905,24 @@ In `p12-tool-surface/main-and-explore/expect.json`, change parent/explore expect
 
 ```json
 {
-  "expected": {
-    "parentTools": {
-      "contains": ["Agent", "WebSearch"],
-      "doesNotContain": ["Glob", "Grep", "GoalRead", "web_search"]
-    },
-    "exploreChildTools": {
-      "contains": ["Read", "Bash", "Glob", "Grep", "WebSearch"],
-      "doesNotContain": ["Agent", "Skill", "Write", "Edit", "ApplyPatch", "GoalRead", "web_search"]
+    "expected": {
+        "parentTools": {
+            "contains": ["Agent", "WebSearch"],
+            "doesNotContain": ["Glob", "Grep", "GoalRead", "web_search"]
+        },
+        "exploreChildTools": {
+            "contains": ["Read", "Bash", "Glob", "Grep", "WebSearch"],
+            "doesNotContain": [
+                "Agent",
+                "Skill",
+                "Write",
+                "Edit",
+                "ApplyPatch",
+                "GoalRead",
+                "web_search"
+            ]
+        }
     }
-  }
 }
 ```
 
@@ -918,17 +932,17 @@ Create `apps/zcode-cli/tools/prompt-trajectory/testcases/websearch-client-tool/f
 
 ```json
 {
-  "name": "websearch-client-tool",
-  "description": "WebSearch should be exposed as a public function tool in outer requests; provider-native web_search should only appear in the internal web_search_tool request.",
-  "turns": [
-    {
-      "user": "Search the web for current ZCode WebSearch behavior and cite sources."
+    "name": "websearch-client-tool",
+    "description": "WebSearch should be exposed as a public function tool in outer requests; provider-native web_search should only appear in the internal web_search_tool request.",
+    "turns": [
+        {
+            "user": "Search the web for current ZCode WebSearch behavior and cite sources."
+        }
+    ],
+    "runtime": {
+        "mode": "build",
+        "workingDirectory": "/tmp/zcode-websearch-client-tool"
     }
-  ],
-  "runtime": {
-    "mode": "build",
-    "workingDirectory": "/tmp/zcode-websearch-client-tool"
-  }
 }
 ```
 
@@ -936,16 +950,16 @@ Create `expect.json`:
 
 ```json
 {
-  "description": "Inspect derived request bodies. The main turn exposes WebSearch and not web_search. The internal web_search_tool request exposes only web_search.",
-  "expected": {
-    "mainTurnTools": {
-      "contains": ["WebSearch"],
-      "doesNotContain": ["web_search"]
-    },
-    "internalWebSearchTools": {
-      "containsOnly": ["web_search"]
+    "description": "Inspect derived request bodies. The main turn exposes WebSearch and not web_search. The internal web_search_tool request exposes only web_search.",
+    "expected": {
+        "mainTurnTools": {
+            "contains": ["WebSearch"],
+            "doesNotContain": ["web_search"]
+        },
+        "internalWebSearchTools": {
+            "containsOnly": ["web_search"]
+        }
     }
-  }
 }
 ```
 

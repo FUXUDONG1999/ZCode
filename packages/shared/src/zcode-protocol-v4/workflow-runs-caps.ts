@@ -12,20 +12,20 @@
 //     TUI 镜像）曾经各数各的，于是同一条 run 在三个地方显示三个步数。
 
 import {
-  WORKFLOW_RUNS_LIMITS,
-  type WorkflowRunState,
-  type WorkflowRunUsage,
+    WORKFLOW_RUNS_LIMITS,
+    type WorkflowRunState,
+    type WorkflowRunUsage,
 } from "./workflow-runs.js";
 
 /** 一条被拒实例的事件对两个计数器的影响。 */
 export interface UnlistedInstanceEvent {
-  /** 这条实例没能进表（upsert 因触界拒了它），而不是「表里已有、原地更新」。 */
-  rejected: boolean;
-  /** 本条事件抬过了该 run 的水位。false = 重传/迟到，计数器一个都不动。 */
-  advancesWaterMark: boolean;
-  eventType: string;
-  /** `node-settled` 的 `cached` 标记：缓存命中的结算没有 queued，它自己就是出生事件。 */
-  cached: boolean;
+    /** 这条实例没能进表（upsert 因触界拒了它），而不是「表里已有、原地更新」。 */
+    rejected: boolean;
+    /** 本条事件抬过了该 run 的水位。false = 重传/迟到，计数器一个都不动。 */
+    advancesWaterMark: boolean;
+    eventType: string;
+    /** `node-settled` 的 `cached` 标记：缓存命中的结算没有 queued，它自己就是出生事件。 */
+    cached: boolean;
 }
 
 /**
@@ -41,21 +41,21 @@ export interface UnlistedInstanceEvent {
  * 是结构性的。真要是哪天不成立了，那是引擎或 `run-started` 清零出了问题——夹一下只会把它藏起来。
  */
 export function countUnlistedInstance(
-  usage: WorkflowRunUsage,
-  event: UnlistedInstanceEvent,
+    usage: WorkflowRunUsage,
+    event: UnlistedInstanceEvent,
 ): WorkflowRunUsage {
-  if (!event.rejected || !event.advancesWaterMark) return usage;
-  const settled = event.eventType === "node-settled";
-  const born = event.eventType === "node-queued" || (settled && event.cached);
-  if (!born && !settled) return usage;
-  const nodesUnlisted = (usage.nodesUnlisted ?? 0) + (born ? 1 : 0);
-  const nodesUnlistedSettled = (usage.nodesUnlistedSettled ?? 0) + (settled ? 1 : 0);
-  return {
-    ...usage,
-    // 零时整个键缺席（与 reports / pendingQuestions 同规）：没撞过界的 run 一个新键都不多。
-    ...(nodesUnlisted > 0 ? { nodesUnlisted } : {}),
-    ...(nodesUnlistedSettled > 0 ? { nodesUnlistedSettled } : {}),
-  };
+    if (!event.rejected || !event.advancesWaterMark) return usage;
+    const settled = event.eventType === "node-settled";
+    const born = event.eventType === "node-queued" || (settled && event.cached);
+    if (!born && !settled) return usage;
+    const nodesUnlisted = (usage.nodesUnlisted ?? 0) + (born ? 1 : 0);
+    const nodesUnlistedSettled = (usage.nodesUnlistedSettled ?? 0) + (settled ? 1 : 0);
+    return {
+        ...usage,
+        // 零时整个键缺席（与 reports / pendingQuestions 同规）：没撞过界的 run 一个新键都不多。
+        ...(nodesUnlisted > 0 ? { nodesUnlisted } : {}),
+        ...(nodesUnlistedSettled > 0 ? { nodesUnlistedSettled } : {}),
+    };
 }
 
 /**
@@ -68,14 +68,14 @@ export function countUnlistedInstance(
  * 同规），所以这里要显式摘键而不是写一个 0。
  */
 export function discountUnlistedInstance(usage: WorkflowRunUsage): WorkflowRunUsage {
-  const current = usage.nodesUnlisted ?? 0;
-  if (current === 0) return usage;
-  const { nodesUnlisted: _returned, nodesUnlistedSettled: settled, ...head } = usage;
-  return {
-    ...head,
-    ...(current > 1 ? { nodesUnlisted: current - 1 } : {}),
-    ...(settled === undefined ? {} : { nodesUnlistedSettled: settled }),
-  };
+    const current = usage.nodesUnlisted ?? 0;
+    if (current === 0) return usage;
+    const { nodesUnlisted: _returned, nodesUnlistedSettled: settled, ...head } = usage;
+    return {
+        ...head,
+        ...(current > 1 ? { nodesUnlisted: current - 1 } : {}),
+        ...(settled === undefined ? {} : { nodesUnlistedSettled: settled }),
+    };
 }
 
 /**
@@ -90,24 +90,25 @@ export function discountUnlistedInstance(usage: WorkflowRunUsage): WorkflowRunUs
  * 预算之内时返回**同一个数组**，让未改动 run 的引用与增量的快路径都留着。
  */
 export function evictForEntryBudget(
-  runs: WorkflowRunState[],
-  eventRunId: string,
+    runs: WorkflowRunState[],
+    eventRunId: string,
 ): WorkflowRunState[] {
-  let total = 0;
-  for (const run of runs) total += run.nodes.length + run.actors.length;
-  if (total <= WORKFLOW_RUNS_LIMITS.maxTotalEntries) return runs;
-  let remaining = runs;
-  while (total > WORKFLOW_RUNS_LIMITS.maxTotalEntries) {
-    const index = remaining.findIndex(
-      (run) => run.runId !== eventRunId && run.status !== "pending" && run.status !== "running",
-    );
-    // 一条都淘汰不动（全在跑，或只剩事件自己那条）：超预算也照留。诚实地超一点，
-    // 好过为了守住一个数字把一条活着的 run 从面板上抹掉。
-    if (index < 0) break;
-    total -= remaining[index]!.nodes.length + remaining[index]!.actors.length;
-    remaining = [...remaining.slice(0, index), ...remaining.slice(index + 1)];
-  }
-  return remaining;
+    let total = 0;
+    for (const run of runs) total += run.nodes.length + run.actors.length;
+    if (total <= WORKFLOW_RUNS_LIMITS.maxTotalEntries) return runs;
+    let remaining = runs;
+    while (total > WORKFLOW_RUNS_LIMITS.maxTotalEntries) {
+        const index = remaining.findIndex(
+            (run) =>
+                run.runId !== eventRunId && run.status !== "pending" && run.status !== "running",
+        );
+        // 一条都淘汰不动（全在跑，或只剩事件自己那条）：超预算也照留。诚实地超一点，
+        // 好过为了守住一个数字把一条活着的 run 从面板上抹掉。
+        if (index < 0) break;
+        total -= remaining[index]!.nodes.length + remaining[index]!.actors.length;
+        remaining = [...remaining.slice(0, index), ...remaining.slice(index + 1)];
+    }
+    return remaining;
 }
 
 /**
@@ -117,10 +118,10 @@ export function evictForEntryBudget(
  * 撞过界的 run 在三个地方显示三个数字，而且三个都比真实步数小。
  */
 export function workflowRunStepCounts(run: WorkflowRunState): { total: number; settled: number } {
-  let settledInList = 0;
-  for (const node of run.nodes) if (node.phase === "settled") settledInList += 1;
-  return {
-    total: run.nodes.length + (run.usage.nodesUnlisted ?? 0),
-    settled: settledInList + (run.usage.nodesUnlistedSettled ?? 0),
-  };
+    let settledInList = 0;
+    for (const node of run.nodes) if (node.phase === "settled") settledInList += 1;
+    return {
+        total: run.nodes.length + (run.usage.nodesUnlisted ?? 0),
+        settled: settledInList + (run.usage.nodesUnlistedSettled ?? 0),
+    };
 }

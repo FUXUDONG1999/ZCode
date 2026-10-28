@@ -10,23 +10,23 @@ import type { StorePluginItem } from "@/settings/pluginStoreListing.js";
  * dark:invert 会把 Android 绿色等品牌色反相，因此这里保留资源原始颜色。
  */
 export function PluginStoreAvatar({
-  item,
-  className,
-  iconClassName,
-  fallbackIcon,
+    item,
+    className,
+    iconClassName,
+    fallbackIcon,
 }: {
-  item: Pick<StorePluginItem, "name" | "listing"> & Partial<Pick<StorePluginItem, "id">>;
-  className?: string;
-  iconClassName?: string;
-  fallbackIcon?: ReactNode;
+    item: Pick<StorePluginItem, "name" | "listing"> & Partial<Pick<StorePluginItem, "id">>;
+    className?: string;
+    iconClassName?: string;
+    fallbackIcon?: ReactNode;
 }) {
-  return (
-    <PluginIcon
-      src={item.listing?.icon}
-      pluginId={item.id}
-      className={className}
-      iconClassName={iconClassName}
-      fallbackIcon={fallbackIcon}
-    />
-  );
+    return (
+        <PluginIcon
+            src={item.listing?.icon}
+            pluginId={item.id}
+            className={className}
+            iconClassName={iconClassName}
+            fallbackIcon={fallbackIcon}
+        />
+    );
 }

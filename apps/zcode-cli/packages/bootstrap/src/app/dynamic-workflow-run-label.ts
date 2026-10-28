@@ -25,33 +25,33 @@ export const DYNAMIC_WORKFLOW_RUN_LABEL_MAX_CHARS = 80;
  * 「这个 run 到底有没有名字」都答不上来。
  */
 export function resolveDynamicWorkflowRunLabel(input: {
-  runId: string;
-  name?: string;
-  scriptText?: string;
+    runId: string;
+    name?: string;
+    scriptText?: string;
 }): Pick<DynamicWorkflowRunSummary, "label" | "labelSource"> {
-  // 全空白的 name 与没起名等价：它在列表里就是一行不可点的空白，而不是一个标签。
-  const name = input.name?.trim();
-  if (name !== undefined && name.length > 0) return { label: name, labelSource: "name" };
+    // 全空白的 name 与没起名等价：它在列表里就是一行不可点的空白，而不是一个标签。
+    const name = input.name?.trim();
+    if (name !== undefined && name.length > 0) return { label: name, labelSource: "name" };
 
-  const firstLine = firstNonEmptyLine(input.scriptText);
-  if (firstLine !== undefined) {
-    return { label: boundLabel(firstLine), labelSource: "script" };
-  }
+    const firstLine = firstNonEmptyLine(input.scriptText);
+    if (firstLine !== undefined) {
+        return { label: boundLabel(firstLine), labelSource: "script" };
+    }
 
-  // 理论上不发生（submit 必带 scriptText）。labelSource 仍报 "script"——工具面要区分的只有
-  // 「用户起的名字」与「我们派生的」两种，为一个不该发生的分支再加一个来源值只会让消费方
-  // 多写一个永不命中的判断。
-  return { label: input.runId, labelSource: "script" };
+    // 理论上不发生（submit 必带 scriptText）。labelSource 仍报 "script"——工具面要区分的只有
+    // 「用户起的名字」与「我们派生的」两种，为一个不该发生的分支再加一个来源值只会让消费方
+    // 多写一个永不命中的判断。
+    return { label: input.runId, labelSource: "script" };
 }
 
 /** 首个非空行（已 trim）。整段皆空白时返回 undefined。 */
 function firstNonEmptyLine(scriptText: string | undefined): string | undefined {
-  if (scriptText === undefined) return undefined;
-  for (const line of scriptText.split("\n")) {
-    const trimmed = line.trim();
-    if (trimmed.length > 0) return trimmed;
-  }
-  return undefined;
+    if (scriptText === undefined) return undefined;
+    for (const line of scriptText.split("\n")) {
+        const trimmed = line.trim();
+        if (trimmed.length > 0) return trimmed;
+    }
+    return undefined;
 }
 
 /**
@@ -60,9 +60,9 @@ function firstNonEmptyLine(scriptText: string | undefined): string | undefined {
  * （与 create-workflow 的 boundGraphText、端口载荷有界化同一处理）。
  */
 function boundLabel(value: string): string {
-  if (value.length <= DYNAMIC_WORKFLOW_RUN_LABEL_MAX_CHARS) return value;
-  const cut = value.slice(0, DYNAMIC_WORKFLOW_RUN_LABEL_MAX_CHARS);
-  const lastCode = cut.charCodeAt(cut.length - 1);
-  const isHighSurrogate = lastCode >= 0xd800 && lastCode <= 0xdbff;
-  return isHighSurrogate ? cut.slice(0, -1) : cut;
+    if (value.length <= DYNAMIC_WORKFLOW_RUN_LABEL_MAX_CHARS) return value;
+    const cut = value.slice(0, DYNAMIC_WORKFLOW_RUN_LABEL_MAX_CHARS);
+    const lastCode = cut.charCodeAt(cut.length - 1);
+    const isHighSurrogate = lastCode >= 0xd800 && lastCode <= 0xdbff;
+    return isHighSurrogate ? cut.slice(0, -1) : cut;
 }

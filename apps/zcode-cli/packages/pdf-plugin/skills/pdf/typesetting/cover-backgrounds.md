@@ -75,9 +75,9 @@ c.restoreState()
 <!-- Option 2.1: Side giant spine -->
 <!-- Note: Must use JS to measure text width, dynamically adjust font-size to ensure full display -->
 <div style="position:absolute; inset:0; overflow:hidden; z-index:0;">
-  <div
-    id="spine-watermark"
-    style="
+    <div
+        id="spine-watermark"
+        style="
     position: absolute;
     left: 3%;
     top: 50%;
@@ -90,18 +90,18 @@ c.restoreState()
     white-space: nowrap;
     line-height: 1;
   "
-  >
-    2026
-  </div>
+    >
+        2026
+    </div>
 </div>
 <script>
-  // Adaptive: ensure rotated text does not exceed 85% of page height
-  const el = document.getElementById("spine-watermark");
-  const maxH = window.innerHeight * 0.85;
-  if (el.offsetWidth > maxH) {
-    const scale = maxH / el.offsetWidth;
-    el.style.fontSize = parseFloat(getComputedStyle(el).fontSize) * scale + "px";
-  }
+    // Adaptive: ensure rotated text does not exceed 85% of page height
+    const el = document.getElementById("spine-watermark");
+    const maxH = window.innerHeight * 0.85;
+    if (el.offsetWidth > maxH) {
+        const scale = maxH / el.offsetWidth;
+        el.style.fontSize = parseFloat(getComputedStyle(el).fontSize) * scale + "px";
+    }
 </script>
 ```
 
@@ -158,11 +158,11 @@ c.restoreState()
 
 - `Text` = Extract year (e.g. "2026")
 - **🔴 Font Size Adaptive Algorithm (Full Text Display Iron Rule):**
-  1. `Max_Font_Size` = `W × 0.45` (ideal maximum)
-  2. Measure total text height after rotation: `Text_Width = measure(Text, Max_Font_Size)` (after 90° rotation, original width becomes vertical height)
-  3. Available vertical space = `H × 0.85` (leaving `H × 0.075` safety margin top and bottom)
-  4. If `Text_Width > available vertical space`, scale down proportionally: `Font_Size = Max_Font_Size × (available_vertical_space / Text_Width)`
-  5. Final `Font_Size = min(Max_Font_Size, scaled_font_size)`
+    1. `Max_Font_Size` = `W × 0.45` (ideal maximum)
+    2. Measure total text height after rotation: `Text_Width = measure(Text, Max_Font_Size)` (after 90° rotation, original width becomes vertical height)
+    3. Available vertical space = `H × 0.85` (leaving `H × 0.075` safety margin top and bottom)
+    4. If `Text_Width > available vertical space`, scale down proportionally: `Font_Size = Max_Font_Size × (available_vertical_space / Text_Width)`
+    5. Final `Font_Size = min(Max_Font_Size, scaled_font_size)`
 - `Rotation` = Counterclockwise 90° (`-90deg`)
 - `Anchor_X` = `W × 0.03` (text fully within page, flush to left but not exceeding)
 - `Anchor_Y` = Vertically centered = `(H - Text_Width) / 2` (text centered after rotation)
@@ -208,11 +208,11 @@ c.restoreState()
 
 - `Text` = Document type English initials (e.g. "REPORT")
 - **🔴 Font Size Adaptive Algorithm (Full Text Display Iron Rule):**
-  1. `Max_Font_Size` = `W × 0.3` (ideal maximum)
-  2. Measure text rendering width: `Text_Width = measure(Text, Max_Font_Size)`
-  3. Available horizontal space = `W × 0.90` (leaving `W × 0.05` safety margin left and right)
-  4. If `Text_Width > available horizontal space`, scale down proportionally: `Font_Size = Max_Font_Size × (available_horizontal_space / Text_Width)`
-  5. Final `Font_Size = min(Max_Font_Size, scaled_font_size)`
+    1. `Max_Font_Size` = `W × 0.3` (ideal maximum)
+    2. Measure text rendering width: `Text_Width = measure(Text, Max_Font_Size)`
+    3. Available horizontal space = `W × 0.90` (leaving `W × 0.05` safety margin left and right)
+    4. If `Text_Width > available horizontal space`, scale down proportionally: `Font_Size = Max_Font_Size × (available_horizontal_space / Text_Width)`
+    5. Final `Font_Size = min(Max_Font_Size, scaled_font_size)`
 - `Rotation` = 0° (horizontal tiling)
 - `Anchor_X` = `W × 0.05`
 - `Anchor_Y` = Text baseline within the bottom safe zone of the page: `H × 0.92` (text fully displayed at page bottom, not truncated)
@@ -287,9 +287,9 @@ c.restoreState()
 
 ```html
 <div style="position:absolute; inset:0; z-index:0; pointer-events:none;">
-  <!-- Vertical line -->
-  <div
-    style="
+    <!-- Vertical line -->
+    <div
+        style="
     position:absolute;
     left: 15%;
     top: 0;
@@ -297,10 +297,10 @@ c.restoreState()
     height: 100%;
     background: rgba(0,0,0,0.04);
   "
-  ></div>
-  <!-- Horizontal line -->
-  <div
-    style="
+    ></div>
+    <!-- Horizontal line -->
+    <div
+        style="
     position:absolute;
     left: 0;
     top: 32%;
@@ -308,7 +308,7 @@ c.restoreState()
     height: 0.5px;
     background: rgba(0,0,0,0.04);
   "
-  ></div>
+    ></div>
 </div>
 ```
 

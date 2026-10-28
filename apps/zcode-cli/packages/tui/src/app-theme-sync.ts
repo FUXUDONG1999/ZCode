@@ -3,13 +3,13 @@ import { activeTuiTheme, resolveTuiThemeMode, setActiveTuiThemeMode } from "./th
 import type { TuiOptions } from "./types.js";
 
 export function useTuiThemeSync(options: TuiOptions): void {
-  const [terminalThemeMode, setTerminalThemeMode] = React.useState(options.initialThemeMode);
-  const resolvedThemeMode = resolveTuiThemeMode(options.theme, terminalThemeMode);
-  setActiveTuiThemeMode(resolvedThemeMode);
+    const [terminalThemeMode, setTerminalThemeMode] = React.useState(options.initialThemeMode);
+    const resolvedThemeMode = resolveTuiThemeMode(options.theme, terminalThemeMode);
+    setActiveTuiThemeMode(resolvedThemeMode);
 
-  React.useEffect(() => options.subscribeThemeMode?.(setTerminalThemeMode), [options]);
+    React.useEffect(() => options.subscribeThemeMode?.(setTerminalThemeMode), [options]);
 
-  React.useEffect(() => {
-    options.setTerminalBackgroundColor?.(activeTuiTheme(resolvedThemeMode).background);
-  }, [options, resolvedThemeMode]);
+    React.useEffect(() => {
+        options.setTerminalBackgroundColor?.(activeTuiTheme(resolvedThemeMode).background);
+    }, [options, resolvedThemeMode]);
 }

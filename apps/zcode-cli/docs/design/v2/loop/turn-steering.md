@@ -30,9 +30,9 @@
 type InputDelivery = "auto" | "start_turn" | "steer_active_turn";
 
 interface SendInputRequest {
-  input: string;
-  delivery?: InputDelivery;
-  expectedTurnId?: TurnId;
+    input: string;
+    delivery?: InputDelivery;
+    expectedTurnId?: TurnId;
 }
 ```
 
@@ -53,35 +53,35 @@ Core 暴露明确能力：
 
 ```ts
 interface TurnSteerInput {
-  input: string;
-  inputId?: string;
-  expectedTurnId?: TurnId;
-  traceContext?: TraceContext;
+    input: string;
+    inputId?: string;
+    expectedTurnId?: TurnId;
+    traceContext?: TraceContext;
 }
 
 type TurnSteerResult =
-  | {
-      kind: "queued";
-      turnId: TurnId;
-      pendingInputId: string;
-      queueLength: number;
-    }
-  | {
-      kind: "rejected";
-      reason: TurnSteerRejectReason;
-      activeTurnId?: TurnId;
-    };
+    | {
+          kind: "queued";
+          turnId: TurnId;
+          pendingInputId: string;
+          queueLength: number;
+      }
+    | {
+          kind: "rejected";
+          reason: TurnSteerRejectReason;
+          activeTurnId?: TurnId;
+      };
 ```
 
 拒绝原因是稳定 contract：
 
 ```ts
 type TurnSteerRejectReason =
-  | "no_active_turn"
-  | "expected_turn_mismatch"
-  | "turn_not_steerable"
-  | "empty_input"
-  | "input_too_large";
+    | "no_active_turn"
+    | "expected_turn_mismatch"
+    | "turn_not_steerable"
+    | "empty_input"
+    | "input_too_large";
 ```
 
 ## Session Events
@@ -99,33 +99,33 @@ Payload：
 
 ```ts
 interface TurnSteerQueuedPayload {
-  pendingInputId: string;
-  inputId?: string;
-  input: string;
-  inputPreview: string;
-  inputSize: number;
-  targetTurnId: TurnId;
-  queueLength: number;
+    pendingInputId: string;
+    inputId?: string;
+    input: string;
+    inputPreview: string;
+    inputSize: number;
+    targetTurnId: TurnId;
+    queueLength: number;
 }
 
 interface TurnSteerDrainedPayload {
-  pendingInputIds: string[];
-  targetTurnId: TurnId;
-  injectedMessageIds: MessageId[];
+    pendingInputIds: string[];
+    targetTurnId: TurnId;
+    injectedMessageIds: MessageId[];
 }
 
 interface TurnSteerRejectedPayload {
-  reason: TurnSteerRejectReason;
-  activeTurnId?: TurnId;
-  expectedTurnId?: TurnId;
-  inputPreview?: string;
-  inputSize?: number;
+    reason: TurnSteerRejectReason;
+    activeTurnId?: TurnId;
+    expectedTurnId?: TurnId;
+    inputPreview?: string;
+    inputSize?: number;
 }
 
 interface TurnSteerDiscardedPayload {
-  pendingInputIds: string[];
-  targetTurnId: TurnId;
-  reason: "turn_cancelled" | "turn_failed" | "session_resumed";
+    pendingInputIds: string[];
+    targetTurnId: TurnId;
+    reason: "turn_cancelled" | "turn_failed" | "session_resumed";
 }
 ```
 

@@ -4,10 +4,10 @@ import type { ProcessResourceRuntimeSurface } from "@zcode/shared";
 import { HostResponseTypes } from "@zcode/shared";
 
 interface RegisterHostAgentResourceTelemetryOptions {
-  agentService: Pick<IZCodeAgentService, "onDynamicProcessResourceSample">;
-  postMessage(message: unknown): void;
-  runtimeSurface: ProcessResourceRuntimeSurface;
-  environmentKey?: string;
+    agentService: Pick<IZCodeAgentService, "onDynamicProcessResourceSample">;
+    postMessage(message: unknown): void;
+    runtimeSurface: ProcessResourceRuntimeSurface;
+    environmentKey?: string;
 }
 
 /**
@@ -18,18 +18,20 @@ interface RegisterHostAgentResourceTelemetryOptions {
  * 由 main 决定角色归属与聚合。Host 不做任何统计，也不持有窗口。
  */
 export function registerHostAgentResourceTelemetry(
-  options: RegisterHostAgentResourceTelemetryOptions,
+    options: RegisterHostAgentResourceTelemetryOptions,
 ): IDisposable {
-  return options.agentService.onDynamicProcessResourceSample()((sample) => {
-    try {
-      options.postMessage({
-        type: HostResponseTypes.AgentResourceSample,
-        runtimeSurface: options.runtimeSurface,
-        ...(options.environmentKey === undefined ? {} : { environmentKey: options.environmentKey }),
-        sample,
-      });
-    } catch {
-      // main 已退出或 IPC 不可用时只丢当前样本，禁止影响 Agent service 通知分发。
-    }
-  });
+    return options.agentService.onDynamicProcessResourceSample()((sample) => {
+        try {
+            options.postMessage({
+                type: HostResponseTypes.AgentResourceSample,
+                runtimeSurface: options.runtimeSurface,
+                ...(options.environmentKey === undefined
+                    ? {}
+                    : { environmentKey: options.environmentKey }),
+                sample,
+            });
+        } catch {
+            // main 已退出或 IPC 不可用时只丢当前样本，禁止影响 Agent service 通知分发。
+        }
+    });
 }

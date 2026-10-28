@@ -1,37 +1,37 @@
 export { cloudContentPayloadSchema, contentBundleSchema } from "./cloudContent.js";
 export * from "./networkCapture.js";
 export type {
-  CloudContentPayload,
-  CloudContentBundle,
-  CloudContentHeroType,
+    CloudContentPayload,
+    CloudContentBundle,
+    CloudContentHeroType,
 } from "./cloudContent.js";
 export type {
-  FileBinaryPreview,
-  FileEntry,
-  FileMediaPreview,
-  FileStat,
-  FileTextSlice,
-  FileWatchEvent,
-  WorkspaceFileEntry,
-  SystemInfo,
-  AppSettings,
-  ElectronReleaseChannel,
-  IntegratedTerminalShellDialect,
-  IntegratedTerminalShellOption,
-  IntegratedTerminalShellSelection,
-  Locale,
-  LocalePreference,
-  ZCodeInteractionBehavior,
-  TabId,
-  TabState,
-  ResourceUsageCategory,
-  ResourceUsageBaseGroupKey,
-  ResourceUsageProcess,
-  HostResourceUsageProcess,
-  ResourceUsageSnapshot,
-  RemoteTargetSnapshot,
-  RemoteWorkspaceSessionEntry,
-  PersistedWorkspaceSessionEntry,
+    FileBinaryPreview,
+    FileEntry,
+    FileMediaPreview,
+    FileStat,
+    FileTextSlice,
+    FileWatchEvent,
+    WorkspaceFileEntry,
+    SystemInfo,
+    AppSettings,
+    ElectronReleaseChannel,
+    IntegratedTerminalShellDialect,
+    IntegratedTerminalShellOption,
+    IntegratedTerminalShellSelection,
+    Locale,
+    LocalePreference,
+    ZCodeInteractionBehavior,
+    TabId,
+    TabState,
+    ResourceUsageCategory,
+    ResourceUsageBaseGroupKey,
+    ResourceUsageProcess,
+    HostResourceUsageProcess,
+    ResourceUsageSnapshot,
+    RemoteTargetSnapshot,
+    RemoteWorkspaceSessionEntry,
+    PersistedWorkspaceSessionEntry,
 } from "./protocol.js";
 export type { WorkspacePurpose } from "./workspacePurpose.js";
 export { DEFAULT_LOCALE } from "./protocol.js";
@@ -40,45 +40,45 @@ export type { HelloMessage, HelloAckMessage } from "./handshake.js";
 export type { ArmsRumEnv, ZCodeEnv, ZCodeProductFlavor } from "./env.js";
 export type { RemoteAssetInstallMode } from "./remoteAssetInstallMode.js";
 export type {
-  RemoteResourcePackageId,
-  RemoteResourcePackageSelection,
+    RemoteResourcePackageId,
+    RemoteResourcePackageSelection,
 } from "./remoteResourcePackages.js";
 export type {
-  DockerConnectOptions,
-  RemoteTarget,
-  ServerConnectOptions,
-  SSHConnectOptions,
-  WSLConnectOptions,
+    DockerConnectOptions,
+    RemoteTarget,
+    ServerConnectOptions,
+    SSHConnectOptions,
+    WSLConnectOptions,
 } from "./remoteTarget.js";
 export { stripRemoteTargetSecrets } from "./remoteTarget.js";
 export { buildSshRemoteHostKey } from "./remoteSshHostKey.js";
 export { buildRemoteEnvironmentKey } from "./remoteEnvironmentKey.js";
 export type {
-  ShortcutChannel,
-  ShortcutCommandEntry,
-  ShortcutCommandId,
-  ParsedShortcutBinding,
+    ShortcutChannel,
+    ShortcutCommandEntry,
+    ShortcutCommandId,
+    ParsedShortcutBinding,
 } from "./shortcutCommands.js";
 export {
-  SHORTCUT_COMMANDS,
-  getDefaultShortcutBindings,
-  isValidShortcutBinding,
-  normalizeShortcutKey,
-  parseShortcutBinding,
-  serializeShortcutBinding,
+    SHORTCUT_COMMANDS,
+    getDefaultShortcutBindings,
+    isValidShortcutBinding,
+    normalizeShortcutKey,
+    parseShortcutBinding,
+    serializeShortcutBinding,
 } from "./shortcutCommands.js";
 export {
-  ZCODE_ENV,
-  ZCODE_PRODUCT_FLAVOR,
-  ZCODE_APP_VERSION_ENV,
-  ZCODE_BUILD_COMMIT_ID_ENV,
-  RUNTIME_ZCODE_DEBUG,
-  ZCODE_ARMS_RUM_ENDPOINT,
-  ZCODE_TELEMETRY_REPORT_ENDPOINT,
-  ZCODE_AUTO_UPDATE_ENABLED,
-  mapZCodeEnvToArmsRumEnv,
-  normalizeZCodeEnv,
-  normalizeZCodeProductFlavor,
+    ZCODE_ENV,
+    ZCODE_PRODUCT_FLAVOR,
+    ZCODE_APP_VERSION_ENV,
+    ZCODE_BUILD_COMMIT_ID_ENV,
+    RUNTIME_ZCODE_DEBUG,
+    ZCODE_ARMS_RUM_ENDPOINT,
+    ZCODE_TELEMETRY_REPORT_ENDPOINT,
+    ZCODE_AUTO_UPDATE_ENABLED,
+    mapZCodeEnvToArmsRumEnv,
+    normalizeZCodeEnv,
+    normalizeZCodeProductFlavor,
 } from "./env.js";
 export * from "./errors.js";
 export * from "./rendererActionTrace.js";
@@ -119,9 +119,9 @@ export * from "./server-remote.js";
 export * from "./source-server/index.js";
 
 export interface ICredentialStore {
-  get(key: string): Promise<string | null>;
-  set(key: string, value: string): Promise<void>;
-  delete(key: string): Promise<void>;
+    get(key: string): Promise<string | null>;
+    set(key: string, value: string): Promise<void>;
+    delete(key: string): Promise<void>;
 }
 
 export * from "./test-ids-workflow.js";
@@ -138,123 +138,123 @@ export * from "./onboardingRecord.js";
 export * from "./remoteResourcePackages.js";
 export * from "./plan-identity.js";
 export {
-  BROWSER_SCREENSHOT_SURFACE_PREPARE_TIMEOUT_MS,
-  BROWSER_VIEW_RESTORE_BOOTSTRAP_URL,
-  LOCAL_MEDIA_PREVIEW_SCHEME,
-  DesktopCommandIds,
-  buildLocalMediaPreviewUrl,
-  createOpenInEditorRemoteTarget,
+    BROWSER_SCREENSHOT_SURFACE_PREPARE_TIMEOUT_MS,
+    BROWSER_VIEW_RESTORE_BOOTSTRAP_URL,
+    LOCAL_MEDIA_PREVIEW_SCHEME,
+    DesktopCommandIds,
+    buildLocalMediaPreviewUrl,
+    createOpenInEditorRemoteTarget,
 } from "./platform.js";
 export type {
-  ArmsCustomEventPayload,
-  ConfigureFinalArmsCustomEventE2ERequest,
-  FinalArmsCustomEventE2EEntry,
-  FinalArmsCustomEventPayload,
-  MobilePluginDiscoveryTelemetry,
-  RendererTelemetryEventPayload,
-  TelemetryEventPayload,
-  TelemetryRendererContext,
+    ArmsCustomEventPayload,
+    ConfigureFinalArmsCustomEventE2ERequest,
+    FinalArmsCustomEventE2EEntry,
+    FinalArmsCustomEventPayload,
+    MobilePluginDiscoveryTelemetry,
+    RendererTelemetryEventPayload,
+    TelemetryEventPayload,
+    TelemetryRendererContext,
 } from "./telemetry.js";
 export {
-  PLUGIN_TELEMETRY_EVENTS,
-  mobilePluginDiscoveryTelemetrySchema,
-  sanitizePluginTelemetryDetail,
-  collectTelemetryRendererContext,
-  resolveSafeTelemetryHostname,
-  sanitizeTelemetryErrorMessage,
-  sanitizeTelemetrySkillName,
-  sanitizeTelemetryEventDetail,
+    PLUGIN_TELEMETRY_EVENTS,
+    mobilePluginDiscoveryTelemetrySchema,
+    sanitizePluginTelemetryDetail,
+    collectTelemetryRendererContext,
+    resolveSafeTelemetryHostname,
+    sanitizeTelemetryErrorMessage,
+    sanitizeTelemetrySkillName,
+    sanitizeTelemetryEventDetail,
 } from "./telemetry.js";
 export type {
-  RedactTelemetryTextOptions,
-  TelemetryProviderIdentity,
-  TelemetryProviderScope,
+    RedactTelemetryTextOptions,
+    TelemetryProviderIdentity,
+    TelemetryProviderScope,
 } from "./telemetryRedaction.js";
 export {
-  TELEMETRY_SAFE_BUILTIN_MODEL_IDS,
-  TELEMETRY_TEXT_MAX_LENGTH,
-  redactTelemetryText,
-  redactTelemetryUrl,
-  resolveTelemetryModelId,
-  resolveTelemetryProviderScope,
-  sanitizeTelemetryModelValue,
+    TELEMETRY_SAFE_BUILTIN_MODEL_IDS,
+    TELEMETRY_TEXT_MAX_LENGTH,
+    redactTelemetryText,
+    redactTelemetryUrl,
+    resolveTelemetryModelId,
+    resolveTelemetryProviderScope,
+    sanitizeTelemetryModelValue,
 } from "./telemetryRedaction.js";
 export * from "./remoteUsageTelemetry.js";
 export * from "./sessionCreateTelemetry.js";
 export type { LaunchMarks } from "./launchMarks.js";
 export { LAUNCH_MARKS_QUERY_KEY, parseLaunchMarks, serializeLaunchMarks } from "./launchMarks.js";
 export type {
-  BrowserViewSurfaceScaleMode,
-  CancelPendingRemoteConnectionRequest,
-  BindRemoteWorkspaceSessionContextRequest,
-  BindRemoteWorkspaceSessionContextIpcResult,
-  BindRemoteWorkspaceSessionContextResult,
-  BrowserTabResidencyState,
-  BrowserViewCloseTabNotification,
-  BrowserViewCloseTabRequest,
-  BrowserViewOperationPayload,
-  BrowserViewResidencyReportPayload,
-  BrowserViewResidencyTransitionPayload,
-  BrowserViewRestoredTabShell,
-  BrowserViewRestoreTabsRequest,
-  BrowserViewScreenshotSurfacePreparePayload,
-  BrowserViewScreenshotSurfaceReadyPayload,
-  BrowserViewScreenshotSurfaceReleasePayload,
-  BrowserViewViewportChangedPayload,
-  ChromeBrowserDataImportError,
-  ChromeBrowserDataImportOptions,
-  ChromeBrowserDataImportResult,
-  ConnectRemoteRequest,
-  CreateTempTextAttachmentRequest,
-  CreateTempTextAttachmentResult,
-  MaterializeWorkflowArtifactFileRequest,
-  MaterializeWorkflowArtifactFileResult,
-  SaveFileRequest,
-  SaveFileResult,
-  PrintPageToPdfResult,
-  DesktopCloseToTrayCapability,
-  DesktopCommandId,
-  CuaOsSupport,
-  DesktopWindowChromeState,
-  DesktopTitleBarTheme,
-  DockerContainerInfo,
-  EditorInfo,
-  ApplicationIconInfo,
-  ApplicationIconLocator,
-  ApplicationIconRequest,
-  BrowserGuestAttachRejectReason,
-  BrowserGuestAttachResult,
-  EmbeddedBrowserDataClearResult,
-  EmbeddedBrowserOpenUrlRequest,
-  EmbeddedBrowserPermissionDeviceOption,
-  EmbeddedBrowserPermissionPromptEvent,
-  EmbeddedBrowserPermissionResolution,
-  EmbeddedBrowserPermissionResolveRequest,
-  EmbeddedBrowserPermissionScreenOption,
-  EmbeddedBrowserSitePermissionResetRequest,
-  EmbeddedBrowserSitePermissionUpdateRequest,
-  EmbeddedBrowserSitePermissionsSnapshot,
-  IPlatformService,
-  OpenInEditorRemoteTarget,
-  OpenInEditorOptions,
-  PostUpdateReleaseNotesPayload,
-  RemoteConnectionRuntimeLog,
-  RemoteSessionClosedEvent,
-  RemoteSessionReconnectedEvent,
-  RemoteServiceSession,
-  SSHConfigAliasOption,
-  TaskNotificationPayload,
-  UpdateCheckResultPayload,
-  UpdateStatePayload,
-  WSLDistro,
-  WindowControlsOverlayReadyPayload,
-  ZCodeStdioTapDevState,
+    BrowserViewSurfaceScaleMode,
+    CancelPendingRemoteConnectionRequest,
+    BindRemoteWorkspaceSessionContextRequest,
+    BindRemoteWorkspaceSessionContextIpcResult,
+    BindRemoteWorkspaceSessionContextResult,
+    BrowserTabResidencyState,
+    BrowserViewCloseTabNotification,
+    BrowserViewCloseTabRequest,
+    BrowserViewOperationPayload,
+    BrowserViewResidencyReportPayload,
+    BrowserViewResidencyTransitionPayload,
+    BrowserViewRestoredTabShell,
+    BrowserViewRestoreTabsRequest,
+    BrowserViewScreenshotSurfacePreparePayload,
+    BrowserViewScreenshotSurfaceReadyPayload,
+    BrowserViewScreenshotSurfaceReleasePayload,
+    BrowserViewViewportChangedPayload,
+    ChromeBrowserDataImportError,
+    ChromeBrowserDataImportOptions,
+    ChromeBrowserDataImportResult,
+    ConnectRemoteRequest,
+    CreateTempTextAttachmentRequest,
+    CreateTempTextAttachmentResult,
+    MaterializeWorkflowArtifactFileRequest,
+    MaterializeWorkflowArtifactFileResult,
+    SaveFileRequest,
+    SaveFileResult,
+    PrintPageToPdfResult,
+    DesktopCloseToTrayCapability,
+    DesktopCommandId,
+    CuaOsSupport,
+    DesktopWindowChromeState,
+    DesktopTitleBarTheme,
+    DockerContainerInfo,
+    EditorInfo,
+    ApplicationIconInfo,
+    ApplicationIconLocator,
+    ApplicationIconRequest,
+    BrowserGuestAttachRejectReason,
+    BrowserGuestAttachResult,
+    EmbeddedBrowserDataClearResult,
+    EmbeddedBrowserOpenUrlRequest,
+    EmbeddedBrowserPermissionDeviceOption,
+    EmbeddedBrowserPermissionPromptEvent,
+    EmbeddedBrowserPermissionResolution,
+    EmbeddedBrowserPermissionResolveRequest,
+    EmbeddedBrowserPermissionScreenOption,
+    EmbeddedBrowserSitePermissionResetRequest,
+    EmbeddedBrowserSitePermissionUpdateRequest,
+    EmbeddedBrowserSitePermissionsSnapshot,
+    IPlatformService,
+    OpenInEditorRemoteTarget,
+    OpenInEditorOptions,
+    PostUpdateReleaseNotesPayload,
+    RemoteConnectionRuntimeLog,
+    RemoteSessionClosedEvent,
+    RemoteSessionReconnectedEvent,
+    RemoteServiceSession,
+    SSHConfigAliasOption,
+    TaskNotificationPayload,
+    UpdateCheckResultPayload,
+    UpdateStatePayload,
+    WSLDistro,
+    WindowControlsOverlayReadyPayload,
+    ZCodeStdioTapDevState,
 } from "./platform.js";
 export type {
-  CuaAccessibilitySettingsResult,
-  CuaPermissionKind,
-  OpenCuaPermissionOnboardingOptions,
-  PrepareCuaHelperPermissionDragResult,
+    CuaAccessibilitySettingsResult,
+    CuaPermissionKind,
+    OpenCuaPermissionOnboardingOptions,
+    PrepareCuaHelperPermissionDragResult,
 } from "./cuaAccessibilitySettings.js";
 export type { ZCodeTaskCreateResult } from "./zcode-task-types.js";
 export * from "./zcode-task-types.js";
@@ -325,8 +325,8 @@ export * from "./browser-use/index.js";
 export * from "./coding-plan-reset.js";
 export * from "./highspeed.js";
 export {
-  parseSubagentMarkdownSelection,
-  formatSubagentMarkdownModel,
+    parseSubagentMarkdownSelection,
+    formatSubagentMarkdownModel,
 } from "./subagent-markdown-selection.js";
 export * from "./memoryDiagnostics.js";
 export * from "./database-startup.js";
@@ -351,13 +351,13 @@ export * from "./session-debug.js";
 export { redactFeedbackText } from "./feedbackPrivacy.js";
 export { API_KEY_USAGE_SCENE, type ApiKeyCreationUsageScene } from "./api-key-usage-scene.js";
 export {
-  projectAccessTokenFingerprint,
-  ProjectAccessTokenTransientError,
+    projectAccessTokenFingerprint,
+    ProjectAccessTokenTransientError,
 } from "./project-access-token.js";
 export {
-  ProjectAccessTokenClient,
-  type ProjectAccessTokenInput,
-  type ProjectAccessTokenMaterial,
+    ProjectAccessTokenClient,
+    type ProjectAccessTokenInput,
+    type ProjectAccessTokenMaterial,
 } from "./project-access-token-client.js";
 
 export * from "./conversationSelection.js";
@@ -366,8 +366,8 @@ export * from "./attachment-source.js";
 export * from "./channel-mention.js";
 
 export {
-  requestSecuritySensitiveHeaders,
-  isRequestSecurityFailure,
+    requestSecuritySensitiveHeaders,
+    isRequestSecurityFailure,
 } from "./request-security-edition/policy.js";
 export * from "./request-security-edition/verification-policy.js";
 

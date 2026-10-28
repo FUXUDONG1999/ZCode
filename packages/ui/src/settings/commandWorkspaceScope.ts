@@ -5,38 +5,38 @@ import type { ConfigWorkspaceTarget } from "@/workspace-config-catalog/index.js"
 export type CommandScopeRecovery = "keep" | "fallback-user" | "close-editor";
 
 export function resolveCommandScopeRecovery(params: {
-  editing: boolean;
-  scopeKey: string;
-  workspaceTabs: readonly ConfigWorkspaceTarget[];
+    editing: boolean;
+    scopeKey: string;
+    workspaceTabs: readonly ConfigWorkspaceTarget[];
 }): CommandScopeRecovery {
-  if (
-    params.scopeKey === "user" ||
-    params.workspaceTabs.some((tab) => getPluginWorkspaceKey(tab) === params.scopeKey)
-  ) {
-    return "keep";
-  }
-  return params.editing ? "close-editor" : "fallback-user";
+    if (
+        params.scopeKey === "user" ||
+        params.workspaceTabs.some((tab) => getPluginWorkspaceKey(tab) === params.scopeKey)
+    ) {
+        return "keep";
+    }
+    return params.editing ? "close-editor" : "fallback-user";
 }
 
 export function resolveCommandStorageTarget(
-  scopeKey: string,
-  workspaceTabs: readonly ConfigWorkspaceTarget[],
+    scopeKey: string,
+    workspaceTabs: readonly ConfigWorkspaceTarget[],
 ): {
-  storageLevel: CommandStorageLevel;
-  workspace: ConfigWorkspaceTarget | null;
+    storageLevel: CommandStorageLevel;
+    workspace: ConfigWorkspaceTarget | null;
 } {
-  if (scopeKey === "user") {
-    return { storageLevel: "user", workspace: null };
-  }
-  return {
-    storageLevel: "project",
-    workspace: workspaceTabs.find((tab) => getPluginWorkspaceKey(tab) === scopeKey) ?? null,
-  };
+    if (scopeKey === "user") {
+        return { storageLevel: "user", workspace: null };
+    }
+    return {
+        storageLevel: "project",
+        workspace: workspaceTabs.find((tab) => getPluginWorkspaceKey(tab) === scopeKey) ?? null,
+    };
 }
 
 export function shouldRefreshCurrentCommandList(
-  scopeKey: string,
-  currentWorkspaceKey: string,
+    scopeKey: string,
+    currentWorkspaceKey: string,
 ): boolean {
-  return scopeKey === "user" || scopeKey === currentWorkspaceKey;
+    return scopeKey === "user" || scopeKey === currentWorkspaceKey;
 }

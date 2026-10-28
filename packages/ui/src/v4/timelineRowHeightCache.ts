@@ -16,44 +16,44 @@ export const MAX_ROW_HEIGHT_CACHE_ENTRIES = 4000;
 export type TimelineRowHeightCacheKey = string | number;
 
 export class TimelineRowHeightCache {
-  private readonly sizes = new Map<TimelineRowHeightCacheKey, number>();
+    private readonly sizes = new Map<TimelineRowHeightCacheKey, number>();
 
-  constructor(private readonly maxEntries: number = MAX_ROW_HEIGHT_CACHE_ENTRIES) {}
+    constructor(private readonly maxEntries: number = MAX_ROW_HEIGHT_CACHE_ENTRIES) {}
 
-  get size(): number {
-    return this.sizes.size;
-  }
-
-  /** 记录一次真实测量。重复写入会刷新淘汰顺序（活跃行不被淘汰）。 */
-  set(key: TimelineRowHeightCacheKey, heightPx: number): void {
-    if (!Number.isFinite(heightPx) || heightPx <= 0) {
-      return;
+    get size(): number {
+        return this.sizes.size;
     }
-    // Map 迭代序 = 插入序；先删再插把该行移到「最新」端。
-    this.sizes.delete(key);
-    this.sizes.set(key, heightPx);
-    while (this.sizes.size > this.maxEntries) {
-      const oldest = this.sizes.keys().next();
-      if (oldest.done) break;
-      this.sizes.delete(oldest.value);
+
+    /** 记录一次真实测量。重复写入会刷新淘汰顺序（活跃行不被淘汰）。 */
+    set(key: TimelineRowHeightCacheKey, heightPx: number): void {
+        if (!Number.isFinite(heightPx) || heightPx <= 0) {
+            return;
+        }
+        // Map 迭代序 = 插入序；先删再插把该行移到「最新」端。
+        this.sizes.delete(key);
+        this.sizes.set(key, heightPx);
+        while (this.sizes.size > this.maxEntries) {
+            const oldest = this.sizes.keys().next();
+            if (oldest.done) break;
+            this.sizes.delete(oldest.value);
+        }
     }
-  }
 
-  get(key: TimelineRowHeightCacheKey): number | undefined {
-    return this.sizes.get(key);
-  }
+    get(key: TimelineRowHeightCacheKey): number | undefined {
+        return this.sizes.get(key);
+    }
 
-  /** estimateSize 入口：有测量用测量，无测量回落估计值。 */
-  estimate(
-    key: TimelineRowHeightCacheKey | undefined,
-    fallbackPx: number = DEFAULT_ROW_HEIGHT_ESTIMATE_PX,
-  ): number {
-    if (key === undefined) return fallbackPx;
-    return this.sizes.get(key) ?? fallbackPx;
-  }
+    /** estimateSize 入口：有测量用测量，无测量回落估计值。 */
+    estimate(
+        key: TimelineRowHeightCacheKey | undefined,
+        fallbackPx: number = DEFAULT_ROW_HEIGHT_ESTIMATE_PX,
+    ): number {
+        if (key === undefined) return fallbackPx;
+        return this.sizes.get(key) ?? fallbackPx;
+    }
 
-  /** 会话切换时整体重置（turnId 在不同 session 间也不能假设全局唯一）。 */
-  clear(): void {
-    this.sizes.clear();
-  }
+    /** 会话切换时整体重置（turnId 在不同 session 间也不能假设全局唯一）。 */
+    clear(): void {
+        this.sizes.clear();
+    }
 }

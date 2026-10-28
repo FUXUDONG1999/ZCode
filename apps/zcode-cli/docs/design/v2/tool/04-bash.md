@@ -300,14 +300,14 @@ background commit 由 execution adapter 内的 Bash lifecycle 持有。commit �
 - `Bash` tool 不直接持有子进程句柄；关闭责任仍收敛在 `ExecutionPort`。
 - `ZCodeApp.close()`、ZCode app-server `closeSession`、TUI 切换 session、CLI `--prompt` 结束后的 app cleanup，都是 `ExecutionPort.close()` 的合法调用点。
 - CLI 进程收到 shutdown 信号时也必须走同一条 cleanup 链路：
-  - `SIGINT` 和 `SIGTERM` 在所有平台注册。
-  - POSIX 平台额外注册 `SIGHUP`，覆盖终端关闭或父 shell 退出场景。
-  - signal handler 必须先取消当前 prompt/turn，再调用当前 app 的 `close()`，最后按信号语义退出进程。
-  - cleanup 必须是幂等的，避免 signal handler 和正常 `finally` 双重关闭同一个 `ExecutionPort`。
+    - `SIGINT` 和 `SIGTERM` 在所有平台注册。
+    - POSIX 平台额外注册 `SIGHUP`，覆盖终端关闭或父 shell 退出场景。
+    - signal handler 必须先取消当前 prompt/turn，再调用当前 app 的 `close()`，最后按信号语义退出进程。
+    - cleanup 必须是幂等的，避免 signal handler 和正常 `finally` 双重关闭同一个 `ExecutionPort`。
 - `ExecutionPort.close()` 需要同时覆盖：
-  - 正在执行的前台命令。
-  - 已 background 化且仍由当前 CLI 进程持有控制权的任务。
-  - output limit / timeout / user cancel 之外的“宿主正在退出”场景。
+    - 正在执行的前台命令。
+    - 已 background 化且仍由当前 CLI 进程持有控制权的任务。
+    - output limit / timeout / user cancel 之外的“宿主正在退出”场景。
 - adapter 应优先走结构化 cancel/terminate 路径，再 fallback 到平台相关的进程树 kill；不能只丢弃内部引用，留下 detached shell 继续运行。
 - Bugfix 记录：POSIX 上 `ExecutionPort` 使用 detached spawn / 独立进程组是为了能通过负 PID 终止整棵命令进程树；如果 CLI 在没有 signal cleanup 的路径中退出，OS 不会自动杀掉该进程组，`npm dev`、Vite、Node server 等长跑子进程会继续存活。因此 `detached` 必须和全局 shutdown cleanup 成对出现。
 

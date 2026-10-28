@@ -13,23 +13,23 @@ import { dirname, resolve } from "node:path";
  * 构建配置（electron-builder、tsup）同步求值，这里只做一次小文件同步读取。
  */
 export function readComputerUseProducer({ desktopPackageRoot }) {
-  // 从桌面包向上查找最近的安装：闭源 hoisted 布局在仓库根，开源占位包链接在桌面包下。
-  for (let dir = resolve(desktopPackageRoot); ; dir = dirname(dir)) {
-    const manifestPath = resolve(dir, "node_modules", "@zcode", "zcode-cua", "package.json");
-    if (existsSync(manifestPath)) {
-      const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-      return {
-        installed: true,
-        placeholder: manifest.zcodeCuaPlaceholder === true,
-        manifest,
-        packageRoot: dirname(manifestPath),
-      };
+    // 从桌面包向上查找最近的安装：闭源 hoisted 布局在仓库根，开源占位包链接在桌面包下。
+    for (let dir = resolve(desktopPackageRoot); ; dir = dirname(dir)) {
+        const manifestPath = resolve(dir, "node_modules", "@zcode", "zcode-cua", "package.json");
+        if (existsSync(manifestPath)) {
+            const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+            return {
+                installed: true,
+                placeholder: manifest.zcodeCuaPlaceholder === true,
+                manifest,
+                packageRoot: dirname(manifestPath),
+            };
+        }
+        if (dirname(dir) === dir) return { installed: false, placeholder: false };
     }
-    if (dirname(dir) === dir) return { installed: false, placeholder: false };
-  }
 }
 
 export function isRealComputerUseProducerInstalled({ desktopPackageRoot }) {
-  const producer = readComputerUseProducer({ desktopPackageRoot });
-  return producer.installed && !producer.placeholder;
+    const producer = readComputerUseProducer({ desktopPackageRoot });
+    return producer.installed && !producer.placeholder;
 }

@@ -123,10 +123,10 @@ for all of its items only where the next step needs every one. §7 says how to w
 ```ts
 let feedback = "none";
 for (let round = 0; round < 5; round++) {
-  const plan = await planner.ask<Plan>(`Plan the fix. Previous critique: ${feedback}`);
-  const review = await reviewer.ask<Review>(`Critique this plan: ${JSON.stringify(plan)}`);
-  if (review.approved) return plan;
-  feedback = review.feedback;
+    const plan = await planner.ask<Plan>(`Plan the fix. Previous critique: ${feedback}`);
+    const review = await reviewer.ask<Review>(`Critique this plan: ${JSON.stringify(plan)}`);
+    if (review.approved) return plan;
+    feedback = review.feedback;
 }
 ```
 
@@ -183,12 +183,12 @@ cheapest quality lever in the whole surface and the easiest to skip:
 
 ```ts
 interface Finding {
-  /** Workspace-relative path the problem is in. */
-  path: string;
-  /** One sentence: what is wrong, not how to fix it. */
-  problem: string;
-  /** How much it matters. Reserve "high" for data loss or a crash. */
-  severity: "low" | "medium" | "high";
+    /** Workspace-relative path the problem is in. */
+    path: string;
+    /** One sentence: what is wrong, not how to fix it. */
+    problem: string;
+    /** How much it matters. Reserve "high" for data loss or a crash. */
+    severity: "low" | "medium" | "high";
 }
 ```
 
@@ -210,9 +210,9 @@ which `git` needs, since every `git` call rejects outside a repository:
 ```ts
 let paths: string[];
 try {
-  paths = await git.changedFiles("origin/main");
+    paths = await git.changedFiles("origin/main");
 } catch {
-  paths = await files.glob("src/**/*.ts");
+    paths = await files.glob("src/**/*.ts");
 }
 ```
 
@@ -249,9 +249,9 @@ before the final `return`, even when the fast tier said yes. Give a slow tier th
 ```ts
 phase("Fix until the unit tests pass");
 for (let round = 1; round <= 5; round++) {
-  const unit = await world.run("npm", ["test"]);
-  if (unit.exitCode === 0) break;
-  await fixer.ask(`The unit tests failed:\n${unit.stderr}\nFix them.`);
+    const unit = await world.run("npm", ["test"]);
+    if (unit.exitCode === 0) break;
+    await fixer.ask(`The unit tests failed:\n${unit.stderr}\nFix them.`);
 }
 
 phase("Run the end-to-end suite once before handing over");
@@ -313,16 +313,18 @@ sit idle. Chain the stages per item inside the fan-out instead, and join once at
 // One join: each file's findings go to their confirmers the moment its review lands
 // (two Promise.all — review every file, then confirm every finding — is the barrier).
 const confirmed = (
-  await Promise.all(
-    paths.map(async (p) => {
-      const review = await agent(`reviewer-${p}`).ask<Review>(`Review ${p}`);
-      return Promise.all(
-        review.findings.map((f, i) =>
-          agent(`confirmer-${p}-${i}`).ask<Confirmation>(`Reproduce: ${JSON.stringify(f)}`),
-        ),
-      );
-    }),
-  )
+    await Promise.all(
+        paths.map(async (p) => {
+            const review = await agent(`reviewer-${p}`).ask<Review>(`Review ${p}`);
+            return Promise.all(
+                review.findings.map((f, i) =>
+                    agent(`confirmer-${p}-${i}`).ask<Confirmation>(
+                        `Reproduce: ${JSON.stringify(f)}`,
+                    ),
+                ),
+            );
+        }),
+    )
 ).flat();
 ```
 
@@ -345,30 +347,34 @@ const facts = channel<Fact>("facts");
 const verified: Fact[] = [];
 
 const research = future(async () => {
-  phase("Research the topic from each angle");
-  try {
-    await Promise.all(
-      angles.map(async (angle) => {
-        const found = await agent(`researcher-${angle}`).ask<Research>(`Research ${angle}.`);
-        for (const fact of found.facts) facts.send(fact);
-      }),
-    );
-  } finally {
-    facts.close(); // the producer side owns the close; a failed researcher still ends the stream
-  }
+    phase("Research the topic from each angle");
+    try {
+        await Promise.all(
+            angles.map(async (angle) => {
+                const found = await agent(`researcher-${angle}`).ask<Research>(
+                    `Research ${angle}.`,
+                );
+                for (const fact of found.facts) facts.send(fact);
+            }),
+        );
+    } finally {
+        facts.close(); // the producer side owns the close; a failed researcher still ends the stream
+    }
 });
 
 const verify = future(async () => {
-  phase("Check each fact as it arrives");
-  await Promise.all(
-    [1, 2, 3].map(async (k) => {
-      const verifier = agent(`verifier-${k}`);
-      for await (const fact of facts) {
-        const verdict = await verifier.ask<Verdict>(`Does this hold? ${JSON.stringify(fact)}`);
-        if (verdict.holds) verified.push(fact);
-      }
-    }),
-  );
+    phase("Check each fact as it arrives");
+    await Promise.all(
+        [1, 2, 3].map(async (k) => {
+            const verifier = agent(`verifier-${k}`);
+            for await (const fact of facts) {
+                const verdict = await verifier.ask<Verdict>(
+                    `Does this hold? ${JSON.stringify(fact)}`,
+                );
+                if (verdict.holds) verified.push(fact);
+            }
+        }),
+    );
 });
 
 await Promise.all([research, verify]); // start every stage, then join once
@@ -413,14 +419,14 @@ arrows between phases are inferred:
 
 ```ts
 interface Attempt {
-  /** One sentence: the optimization this round is trying. */
-  approach: string;
+    /** One sentence: the optimization this round is trying. */
+    approach: string;
 }
 
 /** Total nanoseconds the bench reports, or Infinity when it printed none. */
 function benchNanos(output: string): number {
-  const match = /time:\s*([\d.]+) ns/.exec(output);
-  return match?.[1] === undefined ? Number.POSITIVE_INFINITY : Number(match[1]);
+    const match = /time:\s*([\d.]+) ns/.exec(output);
+    return match?.[1] === undefined ? Number.POSITIVE_INFINITY : Number(match[1]);
 }
 
 phase("Measure today's baseline");
@@ -430,21 +436,21 @@ const optimizer = agent("optimizer");
 
 let winner = "none";
 for (let round = 1; round <= 3; round++) {
-  phase("Make one improvement");
-  const plan = await optimizer.ask<Attempt>(
-    `Round ${round}. Baseline timings:\n${baseline.stdout}\nMake one improvement.`,
-  );
+    phase("Make one improvement");
+    const plan = await optimizer.ask<Attempt>(
+        `Round ${round}. Baseline timings:\n${baseline.stdout}\nMake one improvement.`,
+    );
 
-  phase("Check that the tests still pass");
-  const check = await world.run("cargo", ["test"]);
-  if (check.exitCode !== 0) continue;
+    phase("Check that the tests still pass");
+    const check = await world.run("cargo", ["test"]);
+    if (check.exitCode !== 0) continue;
 
-  phase("Measure whether it is actually faster");
-  const bench = await world.run("cargo", ["bench"], { timeoutMs: 1_800_000 });
-  if (bench.exitCode === 0 && benchNanos(bench.stdout) < target) {
-    winner = plan.approach;
-    break;
-  }
+    phase("Measure whether it is actually faster");
+    const bench = await world.run("cargo", ["bench"], { timeoutMs: 1_800_000 });
+    if (bench.exitCode === 0 && benchNanos(bench.stdout) < target) {
+        winner = plan.approach;
+        break;
+    }
 }
 
 phase("Collect the final numbers");
@@ -559,32 +565,32 @@ Return this shape (copy the interfaces; they compile as-is) rather than a bare a
 
 ```ts
 interface Finding {
-  /** Workspace-relative path, with a line when it applies: "src/a.ts:42". */
-  where: string;
-  /** One sentence: what is wrong, or what was found. */
-  what: string;
-  /** What showed it: the lines read, or the command and the output that proved it. */
-  evidence: string;
-  /** "verified" when an independent subagent or a deterministic check confirmed it; "unconfirmed" when confirmation failed or was not attempted. */
-  status: "verified" | "unconfirmed";
-  /** How much it matters. Reserve "high" for data loss, a crash, or a wrong result. */
-  severity: "low" | "medium" | "high";
+    /** Workspace-relative path, with a line when it applies: "src/a.ts:42". */
+    where: string;
+    /** One sentence: what is wrong, or what was found. */
+    what: string;
+    /** What showed it: the lines read, or the command and the output that proved it. */
+    evidence: string;
+    /** "verified" when an independent subagent or a deterministic check confirmed it; "unconfirmed" when confirmation failed or was not attempted. */
+    status: "verified" | "unconfirmed";
+    /** How much it matters. Reserve "high" for data loss, a crash, or a wrong result. */
+    severity: "low" | "medium" | "high";
 }
 interface WorkflowReport {
-  /** Two or three sentences answering what the user asked for. */
-  conclusion: string;
-  findings: Finding[];
-  /** What the run checked and how: the commands it ran, the files it covered. */
-  verified: string[];
-  /** What the run did not look at or could not check, and why. */
-  notCovered: string[];
+    /** Two or three sentences answering what the user asked for. */
+    conclusion: string;
+    findings: Finding[];
+    /** What the run checked and how: the commands it ran, the files it covered. */
+    verified: string[];
+    /** What the run did not look at or could not check, and why. */
+    notCovered: string[];
 }
 
 const result: WorkflowReport = {
-  conclusion: "Nothing was reviewed: this snippet only shows the shape.",
-  findings: [],
-  verified: [],
-  notCovered: ["everything — no subagent ran"],
+    conclusion: "Nothing was reviewed: this snippet only shows the shape.",
+    findings: [],
+    verified: [],
+    notCovered: ["everything — no subagent ran"],
 };
 return result;
 ```
@@ -635,71 +641,71 @@ than let a run end with nothing the user can open:
 
 ```ts
 interface RoundOutcome {
-  /** 1-based round number. */
-  round: number;
-  /** Query latency in milliseconds, measured after this round's change. */
-  queryMs: number;
-  /** One sentence: what this round changed. */
-  change: string;
+    /** 1-based round number. */
+    round: number;
+    /** Query latency in milliseconds, measured after this round's change. */
+    queryMs: number;
+    /** One sentence: what this round changed. */
+    change: string;
 }
 
 const TARGET_MS = 20;
 artifact.chart("perf", {
-  title: "Query latency by round",
-  x: { field: "round", label: "Round" },
-  y: { field: "queryMs", label: "ms" },
-  baseline: { field: "target" },
+    title: "Query latency by round",
+    x: { field: "round", label: "Round" },
+    y: { field: "queryMs", label: "ms" },
+    baseline: { field: "target" },
 });
 
 phase("Optimize until the bench meets its target");
 const optimizer = agent("optimizer", {
-  system:
-    "You speed up a JSONL query engine: change one thing, measure it, and write the profile " +
-    "of the query path to out/profile.html.",
+    system:
+        "You speed up a JSONL query engine: change one thing, measure it, and write the profile " +
+        "of the query path to out/profile.html.",
 });
 const rounds: RoundOutcome[] = [];
 for (let round = 1; round <= 3; round += 1) {
-  const outcome = await optimizer.ask<RoundOutcome>(
-    `Round ${round}: make the query faster, then measure it.`,
-  );
-  rounds.push(outcome);
-  report({ ...outcome, target: TARGET_MS }, "perf");
-  if (outcome.queryMs <= TARGET_MS) break;
+    const outcome = await optimizer.ask<RoundOutcome>(
+        `Round ${round}: make the query faster, then measure it.`,
+    );
+    rounds.push(outcome);
+    report({ ...outcome, target: TARGET_MS }, "perf");
+    if (outcome.queryMs <= TARGET_MS) break;
 }
 
 phase("Hand the user the profile and the write-up");
 try {
-  await artifact.file("profile", "out/profile.html", {
-    title: "Query profile after the last round",
-  });
+    await artifact.file("profile", "out/profile.html", {
+        title: "Query profile after the last round",
+    });
 } catch {
-  const profiler = agent("profiler");
-  await profiler.ask(
-    "out/profile.html is missing. Profile the query path as it stands and write the profile there.",
-  );
-  await artifact.file("profile", "out/profile.html", {
-    title: "Query profile after the last round",
-  });
+    const profiler = agent("profiler");
+    await profiler.ask(
+        "out/profile.html is missing. Profile the query path as it stands and write the profile there.",
+    );
+    await artifact.file("profile", "out/profile.html", {
+        title: "Query profile after the last round",
+    });
 }
 const latest = rounds[rounds.length - 1]?.queryMs ?? 0;
 await artifact.markdown(
-  "report",
-  [
-    `# Query latency: ${latest}ms against a ${TARGET_MS}ms target`,
-    "",
-    ...rounds.map((r) => `- Round ${r.round}: ${r.queryMs}ms — ${r.change}`),
-  ].join("\n"),
-  {
-    title: "Optimization report",
-    description: `What each of the ${rounds.length} rounds changed and what it bought.`,
-    primary: true,
-  },
+    "report",
+    [
+        `# Query latency: ${latest}ms against a ${TARGET_MS}ms target`,
+        "",
+        ...rounds.map((r) => `- Round ${r.round}: ${r.queryMs}ms — ${r.change}`),
+    ].join("\n"),
+    {
+        title: "Optimization report",
+        description: `What each of the ${rounds.length} rounds changed and what it bought.`,
+        primary: true,
+    },
 );
 
 return {
-  conclusion: `Latency landed at ${latest}ms against a ${TARGET_MS}ms target.`,
-  verified: ["each round's latency was measured by the subagent that made the change"],
-  notCovered: ["memory use; only query latency was measured"],
+    conclusion: `Latency landed at ${latest}ms against a ${TARGET_MS}ms target.`,
+    verified: ["each round's latency was measured by the subagent that made the change"],
+    notCovered: ["memory use; only query latency was measured"],
 };
 ```
 
@@ -829,13 +835,13 @@ its cache when you tune it, plus everything downstream:
 // ✗ Amending PASS_THRESHOLD (say 96 → 94) rewrites this text, so the resumed run
 //   misses cache at the first revision and re-pays every ask after it.
 draft = await writer.ask<Draft>(
-  `Scored ${review.score}; passing needs ${PASS_THRESHOLD}. Revise: ${JSON.stringify(review.comments)}`,
+    `Scored ${review.score}; passing needs ${PASS_THRESHOLD}. Revise: ${JSON.stringify(review.comments)}`,
 );
 
 // ✓ Only replayed upstream values and the fact that the branch was taken; amending
 //   the threshold now moves only where the loop exits, and earlier rounds settle from cache.
 draft = await writer.ask<Draft>(
-  `The review did not pass. Address each comment: ${JSON.stringify(review.comments)}`,
+    `The review did not pass. Address each comment: ${JSON.stringify(review.comments)}`,
 );
 ```
 
@@ -915,7 +921,7 @@ Three forms; `T` is always written out:
 const plan = await hole<Plan>("决定分组", `最慢的模块是 ${survey.slowest}`); // decide, then continue
 return await hole<Guide>("第1步：决定导览结构", `盘点：${JSON.stringify(survey)}`); // tail: the rest is not written yet
 const plan = await hole<Plan>("决定分组", `…`, async () => {
-  /* filled: the body stands in for the hole */
+    /* filled: the body stands in for the hole */
 });
 ```
 
@@ -948,26 +954,28 @@ return await hole<Guide>("第1步：决定导览结构", `盘点：${JSON.string
 ```ts
 // 1. After the first fill: the hole has a body — one step, then the next hole.
 return await hole<Guide>("第1步：决定导览结构", `盘点：…`, async () => {
-  phase("分章并行撰写初稿");
-  const drafts = await Promise.all(
-    survey.dirs.map((d) =>
-      agent(`写手·${d.path}`).ask<Chapter>(`写「${d.path}」一章：${d.purpose}`),
-    ),
-  );
-  return await hole<Guide>("第2步：审读与交付", `${drafts.length} 章初稿已就绪`);
+    phase("分章并行撰写初稿");
+    const drafts = await Promise.all(
+        survey.dirs.map((d) =>
+            agent(`写手·${d.path}`).ask<Chapter>(`写「${d.path}」一章：${d.purpose}`),
+        ),
+    );
+    return await hole<Guide>("第2步：审读与交付", `${drafts.length} 章初稿已就绪`);
 });
 ```
 
 ```ts
 // 2. After the second fill: the chain closes with a value, which is the run's result.
 return await hole<Guide>("第1步：决定导览结构", `盘点：…`, async () => {
-  /* step 1 as above; `survey` and `drafts` are in scope below */
-  return await hole<Guide>("第2步：审读与交付", `…`, async () => {
-    phase("独立审读并修订");
-    const critique = await agent("审读员").ask<string>(`只凭文本挑毛病：${JSON.stringify(drafts)}`);
-    const chapters = await agent("修订编辑").ask<Chapter[]>(`按意见修订：${critique}`);
-    return { title: "仓库导览", chapters, notCovered: [] };
-  });
+    /* step 1 as above; `survey` and `drafts` are in scope below */
+    return await hole<Guide>("第2步：审读与交付", `…`, async () => {
+        phase("独立审读并修订");
+        const critique = await agent("审读员").ask<string>(
+            `只凭文本挑毛病：${JSON.stringify(drafts)}`,
+        );
+        const chapters = await agent("修订编辑").ask<Chapter[]>(`按意见修订：${critique}`);
+        return { title: "仓库导览", chapters, notCovered: [] };
+    });
 });
 ```
 
@@ -998,11 +1006,11 @@ it writable before `hot` was known.
 
 ```ts
 for (const failure of failures) {
-  const triage = await hole<Triage>(
-    "每个失败怎么分诊",
-    `第一个失败：${failure.name}\n${failure.output}`,
-  );
-  report(triage);
+    const triage = await hole<Triage>(
+        "每个失败怎么分诊",
+        `第一个失败：${failure.name}\n${failure.output}`,
+    );
+    report(triage);
 }
 ```
 
@@ -1015,7 +1023,7 @@ The fill is a _procedure_ — which subagent to send, what to ask, when to mark 
 ```ts
 const gate = await world.run("pnpm", ["test"]);
 if (gate.exitCode !== 0) {
-  await hole<void>("测试没过怎么办", `退出码 ${gate.exitCode}：\n${gate.stderr.slice(0, 2000)}`);
+    await hole<void>("测试没过怎么办", `退出码 ${gate.exitCode}：\n${gate.stderr.slice(0, 2000)}`);
 }
 ```
 
@@ -1027,7 +1035,7 @@ a rollback — decided with the failure in hand.
 
 ```ts
 const proposals = await Promise.all(
-  [1, 2, 3].map((k) => agent(`方案${k}`).ask<Proposal>("提一个方案。")),
+    [1, 2, 3].map((k) => agent(`方案${k}`).ask<Proposal>("提一个方案。")),
 );
 const pick = await agent("评委").ask<Pick>(`选最好的一个：${JSON.stringify(proposals)}`);
 return await hole<Outcome>("按选定方案施工", `选中：${JSON.stringify(proposals[pick.index])}`);
@@ -1137,8 +1145,8 @@ declare interface Node<T> extends PromiseLike<T> {}
 
 /** A model declared with model(). */
 declare class ModelRef {
-  private constructor();
-  private readonly modelRef: never;
+    private constructor();
+    private readonly modelRef: never;
 }
 
 /**
@@ -1149,10 +1157,10 @@ declare function model(id: string): ModelRef;
 
 /** Persona of a subagent, fixed when agent() creates it. Every subagent has the same working tools. */
 declare interface AgentPersona {
-  /** System prompt describing the actor's role. */
-  system?: string;
-  /** Model id literal or ModelRef; omitted = the run's subagent model. */
-  model?: ModelRef | string;
+    /** System prompt describing the actor's role. */
+    system?: string;
+    /** Model id literal or ModelRef; omitted = the run's subagent model. */
+    model?: ModelRef | string;
 }
 
 /**
@@ -1160,13 +1168,13 @@ declare interface AgentPersona {
  * busy wait their turn, first in, first out.
  */
 declare interface Agent {
-  /**
-   * Give the subagent one task. With a type argument, the answer is a value of type T,
-   * validated against a schema built from it: T is an interface you define in this script
-   * with a plain "interface" declaration (no "declare" modifier). Without one, the answer is
-   * the subagent's final reply text.
-   */
-  ask<T = string>(instructions: string): Node<T>;
+    /**
+     * Give the subagent one task. With a type argument, the answer is a value of type T,
+     * validated against a schema built from it: T is an interface you define in this script
+     * with a plain "interface" declaration (no "declare" modifier). Without one, the answer is
+     * the subagent's final reply text.
+     */
+    ask<T = string>(instructions: string): Node<T>;
 }
 
 /**
@@ -1205,55 +1213,55 @@ declare function report(item: unknown, artifactId?: string): void;
 
 /** A published artifact version: the id it was published under, and which version this call minted. */
 declare interface ArtifactRef {
-  id: string;
-  version: number;
+    id: string;
+    version: number;
 }
 /** Card metadata every artifact kind accepts. */
 declare interface ArtifactOptions {
-  /** Shown as the card title; defaults to the id. In the user's language. */
-  title?: string;
-  /** A sentence or two, shown beside the title when this artifact is the run's primary. */
-  description?: string;
-  /** The run's deliverable: the card and the run pane lead with it. At most one id per run; once set it stays set for later versions. */
-  primary?: boolean;
+    /** Shown as the card title; defaults to the id. In the user's language. */
+    title?: string;
+    /** A sentence or two, shown beside the title when this artifact is the run's primary. */
+    description?: string;
+    /** The run's deliverable: the card and the run pane lead with it. At most one id per run; once set it stays set for later versions. */
+    primary?: boolean;
 }
 declare interface ArtifactFileOptions extends ArtifactOptions {
-  /** Overrides the type sniffed from the extension ("application/pdf", "text/html", …). */
-  contentType?: string;
+    /** Overrides the type sniffed from the extension ("application/pdf", "text/html", …). */
+    contentType?: string;
 }
 /** One value taken from a reported item: a dot path into the item ("timing.after"). */
 declare interface ArtifactField {
-  field: string;
-  label?: string;
-  unit?: string;
+    field: string;
+    label?: string;
+    unit?: string;
 }
 declare interface ChartSpec extends ArtifactOptions {
-  type?: "line" | "bar" | "scatter"; // default "line"
-  x: ArtifactField;
-  y: ArtifactField | ArtifactField[]; // several = several series
-  scale?: "linear" | "log"; // y axis, default "linear"
-  /** A reference value drawn as a horizontal rule, taken from the first item that has the field. */
-  baseline?: ArtifactField;
+    type?: "line" | "bar" | "scatter"; // default "line"
+    x: ArtifactField;
+    y: ArtifactField | ArtifactField[]; // several = several series
+    scale?: "linear" | "log"; // y axis, default "linear"
+    /** A reference value drawn as a horizontal rule, taken from the first item that has the field. */
+    baseline?: ArtifactField;
 }
 declare interface TableSpec extends ArtifactOptions {
-  columns: ArtifactField[];
-  /** Field that identifies a row; a later item with the same key replaces the row. Absent = append-only. */
-  key?: string;
+    columns: ArtifactField[];
+    /** Field that identifies a row; a later item with the same key replaces the row. Absent = append-only. */
+    key?: string;
 }
 declare interface MetricsSpec extends ArtifactOptions {
-  /** Each tile shows the value from the latest item that has the field. */
-  metrics: ArtifactField[];
+    /** Each tile shows the value from the latest item that has the field. */
+    metrics: ArtifactField[];
 }
 declare interface BoardSpec extends ArtifactOptions {
-  /** Field identifying a card; a later item with the same key moves/updates the card. */
-  key: string;
-  /** Field holding the card's column. */
-  status: string;
-  /** Column order. Items whose status is not listed land in a trailing "other" column. */
-  columns: string[];
-  /** Field for the card title (default: the key) and extra fields shown on the card. */
-  cardTitle?: string;
-  detail?: ArtifactField[];
+    /** Field identifying a card; a later item with the same key moves/updates the card. */
+    key: string;
+    /** Field holding the card's column. */
+    status: string;
+    /** Column order. Items whose status is not listed land in a trailing "other" column. */
+    columns: string[];
+    /** Field for the card title (default: the key) and extra fields shown on the card. */
+    cardTitle?: string;
+    detail?: ArtifactField[];
 }
 /**
  * Publish what the user keeps: cards beside the run, kept after it ends. Every id is a
@@ -1271,18 +1279,18 @@ declare interface BoardSpec extends ArtifactOptions {
  * characters of title and 500 of description.
  */
 declare const artifact: {
-  /** Publish a workspace file, path resolved as in files.read(). The type comes from the extension unless opts.contentType sets it. */
-  file(id: string, path: string, opts?: ArtifactFileOptions): Promise<ArtifactRef>;
-  /** Publish markdown text the script composed. */
-  markdown(id: string, content: string, opts?: ArtifactOptions): Promise<ArtifactRef>;
-  /** Declare a chart fed by report(item, id): each tagged item is one point. */
-  chart(id: string, spec: ChartSpec): void;
-  /** Declare a table fed by report(item, id): each tagged item is one row. */
-  table(id: string, spec: TableSpec): void;
-  /** Declare a metric tile row fed by report(item, id): each tile shows the newest value it has. */
-  metrics(id: string, spec: MetricsSpec): void;
-  /** Declare a board fed by report(item, id): each tagged item is a card, placed by its status field. */
-  board(id: string, spec: BoardSpec): void;
+    /** Publish a workspace file, path resolved as in files.read(). The type comes from the extension unless opts.contentType sets it. */
+    file(id: string, path: string, opts?: ArtifactFileOptions): Promise<ArtifactRef>;
+    /** Publish markdown text the script composed. */
+    markdown(id: string, content: string, opts?: ArtifactOptions): Promise<ArtifactRef>;
+    /** Declare a chart fed by report(item, id): each tagged item is one point. */
+    chart(id: string, spec: ChartSpec): void;
+    /** Declare a table fed by report(item, id): each tagged item is one row. */
+    table(id: string, spec: TableSpec): void;
+    /** Declare a metric tile row fed by report(item, id): each tile shows the newest value it has. */
+    metrics(id: string, spec: MetricsSpec): void;
+    /** Declare a board fed by report(item, id): each tagged item is a card, placed by its status field. */
+    board(id: string, spec: BoardSpec): void;
 };
 
 /**
@@ -1308,12 +1316,12 @@ declare function hole<T>(name: string, prompt: string, body: () => Promise<T>): 
 
 /** One matching line found by files.grep. */
 declare interface GrepMatch {
-  /** Workspace-relative path of the file the match was found in. */
-  path: string;
-  /** One-based line number of the match. */
-  line: number;
-  /** The full text of the matching line. */
-  text: string;
+    /** Workspace-relative path of the file the match was found in. */
+    path: string;
+    /** One-based line number of the match. */
+    line: number;
+    /** The full text of the matching line. */
+    text: string;
 }
 
 /**
@@ -1321,42 +1329,42 @@ declare interface GrepMatch {
  * answer back instead of reading again. There is no write: writing is a subagent's task.
  */
 declare const files: {
-  /** Workspace-relative paths matching a glob, sorted. Over 2000 files the call rejects. */
-  glob(pattern: string): Promise<string[]>;
-  /** Read one workspace file as UTF-8 text. Size-capped. */
-  read(path: string): Promise<string>;
-  /**
-   * Search contents with a ripgrep-compatible regex, optionally narrowed by a glob over
-   * paths ("*.ts", "src/**"); one entry per matching line. Over 2000 matches or 256KB of
-   * results the call rejects.
-   */
-  grep(pattern: string, glob?: string): Promise<GrepMatch[]>;
+    /** Workspace-relative paths matching a glob, sorted. Over 2000 files the call rejects. */
+    glob(pattern: string): Promise<string[]>;
+    /** Read one workspace file as UTF-8 text. Size-capped. */
+    read(path: string): Promise<string>;
+    /**
+     * Search contents with a ripgrep-compatible regex, optionally narrowed by a glob over
+     * paths ("*.ts", "src/**"); one entry per matching line. Over 2000 matches or 256KB of
+     * results the call rejects.
+     */
+    grep(pattern: string, glob?: string): Promise<GrepMatch[]>;
 };
 
 /** The working tree's status, as reported by git.status(). */
 declare interface GitStatus {
-  /** Current branch name; absent when HEAD is detached. */
-  branch?: string;
-  /** True when nothing is staged, modified, or untracked. */
-  clean: boolean;
-  /** Workspace-relative paths staged for the next commit. */
-  staged: string[];
-  /** Workspace-relative paths modified in the working tree but not staged. */
-  unstaged: string[];
-  /** Workspace-relative paths git does not track (honouring .gitignore). */
-  untracked: string[];
+    /** Current branch name; absent when HEAD is detached. */
+    branch?: string;
+    /** True when nothing is staged, modified, or untracked. */
+    clean: boolean;
+    /** Workspace-relative paths staged for the next commit. */
+    staged: string[];
+    /** Workspace-relative paths modified in the working tree but not staged. */
+    unstaged: string[];
+    /** Workspace-relative paths git does not track (honouring .gitignore). */
+    untracked: string[];
 }
 
 /** One commit, as reported by git.log(). */
 declare interface GitCommit {
-  /** Full commit hash. */
-  hash: string;
-  /** First line of the commit message. */
-  subject: string;
-  /** Author name. */
-  author: string;
-  /** Author date, ISO 8601. */
-  date: string;
+    /** Full commit hash. */
+    hash: string;
+    /** First line of the commit message. */
+    subject: string;
+    /** Author name. */
+    author: string;
+    /** Author date, ISO 8601. */
+    date: string;
 }
 
 /**
@@ -1367,31 +1375,31 @@ declare interface GitCommit {
  * or without git, every call rejects catchably.
  */
 declare const git: {
-  /**
-   * Workspace-relative paths that changed. With no base: files modified against HEAD, plus
-   * untracked files. With a base ref: tracked files whose current state differs from that
-   * ref, uncommitted edits included, untracked files not.
-   */
-  changedFiles(base?: string): Promise<string[]>;
-  /**
-   * Unified diff against base (default HEAD). Covers the whole workspace unless you
-   * narrow it to one workspace-relative path.
-   */
-  diff(base?: string, path?: string): Promise<string>;
-  /** The current working-tree status, for the workspace. */
-  status(): Promise<GitStatus>;
-  /** The most recent commits, newest first. Default 20, maximum 100. */
-  log(count?: number): Promise<GitCommit[]>;
+    /**
+     * Workspace-relative paths that changed. With no base: files modified against HEAD, plus
+     * untracked files. With a base ref: tracked files whose current state differs from that
+     * ref, uncommitted edits included, untracked files not.
+     */
+    changedFiles(base?: string): Promise<string[]>;
+    /**
+     * Unified diff against base (default HEAD). Covers the whole workspace unless you
+     * narrow it to one workspace-relative path.
+     */
+    diff(base?: string, path?: string): Promise<string>;
+    /** The current working-tree status, for the workspace. */
+    status(): Promise<GitStatus>;
+    /** The most recent commits, newest first. Default 20, maximum 100. */
+    log(count?: number): Promise<GitCommit[]>;
 };
 
 /** The outcome of one world.run command, including nonzero exits. */
 declare interface WorldRunResult {
-  /** The process exit code. Nonzero is a normal, returned outcome — branch on it. */
-  exitCode: number;
-  /** Captured stdout (UTF-8). Capped at 256KB; over the cap the call rejects. */
-  stdout: string;
-  /** Captured stderr (UTF-8). Same cap and rejection semantics as stdout. */
-  stderr: string;
+    /** The process exit code. Nonzero is a normal, returned outcome — branch on it. */
+    exitCode: number;
+    /** Captured stdout (UTF-8). Capped at 256KB; over the cap the call rejects. */
+    stdout: string;
+    /** Captured stderr (UTF-8). Same cap and rejection semantics as stdout. */
+    stderr: string;
 }
 
 /**
@@ -1404,7 +1412,7 @@ declare interface WorldRunResult {
  * world.run("node", ["-e", code]).
  */
 declare const world: {
-  run(cmd: string, args?: string[], opts?: { timeoutMs?: number }): Promise<WorldRunResult>;
+    run(cmd: string, args?: string[], opts?: { timeoutMs?: number }): Promise<WorldRunResult>;
 };
 
 /**
@@ -1412,14 +1420,14 @@ declare const world: {
  * for await. Unbounded, first-in-first-out, each item to exactly one receiver.
  */
 declare interface Channel<T> extends AsyncIterable<T> {
-  /** Enqueue one item; synchronous, never waits. Throws ChannelClosed after close(). */
-  send(item: T): void;
-  /**
-   * End the stream: receivers get the remaining items, then their loops exit. Idempotent.
-   * A channel nobody closes fails the run as ChannelDeadlock, naming it, once nothing in
-   * flight could send to it again.
-   */
-  close(): void;
+    /** Enqueue one item; synchronous, never waits. Throws ChannelClosed after close(). */
+    send(item: T): void;
+    /**
+     * End the stream: receivers get the remaining items, then their loops exit. Idempotent.
+     * A channel nobody closes fails the run as ChannelDeadlock, naming it, once nothing in
+     * flight could send to it again.
+     */
+    close(): void;
 }
 
 /**

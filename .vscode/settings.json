@@ -1,12 +1,13 @@
 {
-  "js/ts.tsdk.path": "node_modules/typescript/lib",
-  "[javascript]": {
-    "editor.defaultFormatter": "oxc.oxc-vscode",
-    "editor.formatOnSave": true
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "oxc.oxc-vscode",
-    "editor.formatOnSave": true
-  },
-  "cmake.sourceDirectory": "/Users/fuxudong/Desktop/workspace/ZCode/scripts/native-search-tools-windows"
+    "editor.tabSize": 4,
+    "js/ts.tsdk.path": "node_modules/typescript/lib",
+    "[javascript]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode",
+        "editor.formatOnSave": true
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "oxc.oxc-vscode",
+        "editor.formatOnSave": true
+    },
+    "cmake.sourceDirectory": "/Users/fuxudong/Desktop/workspace/ZCode/scripts/native-search-tools-windows"
 }

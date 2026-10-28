@@ -6,18 +6,18 @@ MCP 为 CLI 提供外部工具。运行配置使用 `mcp.servers`，每个 serve
 
 ```json
 {
-  "features": { "mcp": true },
-  "mcp": {
-    "servers": {
-      "example": {
-        "type": "stdio",
-        "command": "node",
-        "args": ["/absolute/path/to/mcp-server.mjs"],
-        "enabled": true,
-        "timeoutMs": 30000
-      }
+    "features": { "mcp": true },
+    "mcp": {
+        "servers": {
+            "example": {
+                "type": "stdio",
+                "command": "node",
+                "args": ["/absolute/path/to/mcp-server.mjs"],
+                "enabled": true,
+                "timeoutMs": 30000
+            }
+        }
     }
-  }
 }
 ```
 

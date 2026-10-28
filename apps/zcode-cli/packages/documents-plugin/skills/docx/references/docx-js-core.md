@@ -6,32 +6,32 @@ Complete API for creating .docx documents with the `docx` npm package. For advan
 
 ```js
 const {
-  Document,
-  Packer,
-  Paragraph,
-  TextRun,
-  Table,
-  TableRow,
-  TableCell,
-  ImageRun,
-  PageBreak,
-  Header,
-  Footer,
-  PageNumber,
-  NumberFormat,
-  AlignmentType,
-  HeadingLevel,
-  WidthType,
-  BorderStyle,
-  ShadingType,
-  PageOrientation,
-  TabStopType,
-  TabStopPosition,
-  ExternalHyperlink,
-  InternalHyperlink,
-  Bookmark,
-  LevelFormat,
-  TableOfContents,
+    Document,
+    Packer,
+    Paragraph,
+    TextRun,
+    Table,
+    TableRow,
+    TableCell,
+    ImageRun,
+    PageBreak,
+    Header,
+    Footer,
+    PageNumber,
+    NumberFormat,
+    AlignmentType,
+    HeadingLevel,
+    WidthType,
+    BorderStyle,
+    ShadingType,
+    PageOrientation,
+    TabStopType,
+    TabStopPosition,
+    ExternalHyperlink,
+    InternalHyperlink,
+    Bookmark,
+    LevelFormat,
+    TableOfContents,
 } = require("docx");
 const fs = require("fs");
 ```
@@ -40,41 +40,41 @@ const fs = require("fs");
 
 ```js
 const doc = new Document({
-  styles: {
-    /* see Styles section */
-  },
-  numbering: {
-    config: [
-      /* see Lists section */
-    ],
-  },
-  sections: [
-    {
-      properties: {
-        page: {
-          size: { width: 11906, height: 16838 },
-          margin: { top: 1417, bottom: 1417, left: 1701, right: 1417 },
-        },
-      },
-      headers: {
-        default: new Header({
-          children: [
-            /* */
-          ],
-        }),
-      },
-      footers: {
-        default: new Footer({
-          children: [
-            /* */
-          ],
-        }),
-      },
-      children: [
-        /* Paragraphs, Tables, etc. */
-      ],
+    styles: {
+        /* see Styles section */
     },
-  ],
+    numbering: {
+        config: [
+            /* see Lists section */
+        ],
+    },
+    sections: [
+        {
+            properties: {
+                page: {
+                    size: { width: 11906, height: 16838 },
+                    margin: { top: 1417, bottom: 1417, left: 1701, right: 1417 },
+                },
+            },
+            headers: {
+                default: new Header({
+                    children: [
+                        /* */
+                    ],
+                }),
+            },
+            footers: {
+                default: new Footer({
+                    children: [
+                        /* */
+                    ],
+                }),
+            },
+            children: [
+                /* Paragraphs, Tables, etc. */
+            ],
+        },
+    ],
 });
 
 const buffer = await Packer.toBuffer(doc);
@@ -85,20 +85,20 @@ fs.writeFileSync("output.docx", buffer);
 
 ```js
 new Paragraph({
-  heading: HeadingLevel.HEADING_1, // or HEADING_2, HEADING_3
-  alignment: AlignmentType.JUSTIFIED,
-  spacing: { before: 240, after: 120, line: 312 }, // 1.3x mandatory
-  indent: { firstLine: 480 }, // 2-char CJK indent (480 SimSun / 420 YaHei)
-  children: [
-    new TextRun({
-      text: "Hello",
-      bold: true,
-      italics: true,
-      size: 24, // 12pt = Xiao Si
-      font: { ascii: "Calibri", eastAsia: "Microsoft YaHei" },
-      color: "000000", // Pure black for Profile A; for Profile B use palette.body
-    }),
-  ],
+    heading: HeadingLevel.HEADING_1, // or HEADING_2, HEADING_3
+    alignment: AlignmentType.JUSTIFIED,
+    spacing: { before: 240, after: 120, line: 312 }, // 1.3x mandatory
+    indent: { firstLine: 480 }, // 2-char CJK indent (480 SimSun / 420 YaHei)
+    children: [
+        new TextRun({
+            text: "Hello",
+            bold: true,
+            italics: true,
+            size: 24, // 12pt = Xiao Si
+            font: { ascii: "Calibri", eastAsia: "Microsoft YaHei" },
+            color: "000000", // Pure black for Profile A; for Profile B use palette.body
+        }),
+    ],
 });
 
 // Additional text formatting options
@@ -125,50 +125,54 @@ new SymbolRun({ char: "2022", font: "Symbol" }); // Bullet •
 ```js
 // ⚠️ Title before table — keepNext keeps title with table
 (new Paragraph({
-  keepNext: true, // ← critical
-  children: [new TextRun({ text: "Table 1 Feature Comparison", bold: true, size: 21 })],
+    keepNext: true, // ← critical
+    children: [new TextRun({ text: "Table 1 Feature Comparison", bold: true, size: 21 })],
 }),
-  new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: {
-      top: { style: BorderStyle.SINGLE, size: 2, color: "9AA6B2" },
-      bottom: { style: BorderStyle.SINGLE, size: 2, color: "9AA6B2" },
-      left: { style: BorderStyle.NONE },
-      right: { style: BorderStyle.NONE },
-      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D0D0D0" },
-      insideVertical: { style: BorderStyle.NONE },
-    },
-    rows: [
-      // ⚠️ Header row — tableHeader + cantSplit
-      new TableRow({
-        tableHeader: true, // auto-repeat on page break
-        cantSplit: true, // prevent row split
-        children: ["Header 1", "Header 2"].map(
-          (text) =>
-            new TableCell({
-              children: [
-                new Paragraph({ children: [new TextRun({ text, bold: true, size: 21 })] }),
-              ],
-              shading: { type: ShadingType.CLEAR, fill: "F1F5F9" },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
-              width: { size: 50, type: WidthType.PERCENTAGE },
+    new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+            top: { style: BorderStyle.SINGLE, size: 2, color: "9AA6B2" },
+            bottom: { style: BorderStyle.SINGLE, size: 2, color: "9AA6B2" },
+            left: { style: BorderStyle.NONE },
+            right: { style: BorderStyle.NONE },
+            insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: "D0D0D0" },
+            insideVertical: { style: BorderStyle.NONE },
+        },
+        rows: [
+            // ⚠️ Header row — tableHeader + cantSplit
+            new TableRow({
+                tableHeader: true, // auto-repeat on page break
+                cantSplit: true, // prevent row split
+                children: ["Header 1", "Header 2"].map(
+                    (text) =>
+                        new TableCell({
+                            children: [
+                                new Paragraph({
+                                    children: [new TextRun({ text, bold: true, size: 21 })],
+                                }),
+                            ],
+                            shading: { type: ShadingType.CLEAR, fill: "F1F5F9" },
+                            margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                            width: { size: 50, type: WidthType.PERCENTAGE },
+                        }),
+                ),
             }),
-        ),
-      }),
-      // ⚠️ Data rows — cantSplit
-      new TableRow({
-        cantSplit: true, // prevent row split
-        children: ["Data 1", "Data 2"].map(
-          (text) =>
-            new TableCell({
-              children: [new Paragraph({ children: [new TextRun({ text, size: 21 })] })],
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
-              width: { size: 50, type: WidthType.PERCENTAGE },
+            // ⚠️ Data rows — cantSplit
+            new TableRow({
+                cantSplit: true, // prevent row split
+                children: ["Data 1", "Data 2"].map(
+                    (text) =>
+                        new TableCell({
+                            children: [
+                                new Paragraph({ children: [new TextRun({ text, size: 21 })] }),
+                            ],
+                            margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                            width: { size: 50, type: WidthType.PERCENTAGE },
+                        }),
+                ),
             }),
-        ),
-      }),
-    ],
-  }));
+        ],
+    }));
 ```
 
 ### Column Widths
@@ -192,14 +196,14 @@ const aspectRatio = originalHeight / originalWidth;
 const displayHeight = Math.round(displayWidth * aspectRatio);
 
 new Paragraph({
-  alignment: AlignmentType.CENTER,
-  children: [
-    new ImageRun({
-      data: imageBuffer,
-      transformation: { width: displayWidth, height: displayHeight },
-      type: "png", // REQUIRED: "png", "jpg", "gif", "bmp"
-    }),
-  ],
+    alignment: AlignmentType.CENTER,
+    children: [
+        new ImageRun({
+            data: imageBuffer,
+            transformation: { width: displayWidth, height: displayHeight },
+            type: "png", // REQUIRED: "png", "jpg", "gif", "bmp"
+        }),
+    ],
 });
 ```
 
@@ -212,7 +216,7 @@ new Paragraph({
 ```js
 // ✅ Recommended — PageBreak attached to content paragraph
 new Paragraph({
-  children: [new TextRun({ text: "End of section" }), new PageBreak()],
+    children: [new TextRun({ text: "End of section" }), new PageBreak()],
 });
 
 // ✅ Acceptable — but prefer section breaks
@@ -319,8 +323,8 @@ new Paragraph({
 
 ```js
 new Paragraph({
-  bullet: { level: 0 },
-  children: [new TextRun({ text: "Bullet item" })],
+    bullet: { level: 0 },
+    children: [new TextRun({ text: "Bullet item" })],
 });
 ```
 
@@ -330,8 +334,8 @@ new Paragraph({
 
 ```js
 new ExternalHyperlink({
-  children: [new TextRun({ text: "Click here", style: "Hyperlink" })],
-  link: "https://example.com",
+    children: [new TextRun({ text: "Click here", style: "Hyperlink" })],
+    link: "https://example.com",
 });
 ```
 
@@ -340,13 +344,13 @@ new ExternalHyperlink({
 ```js
 // Define bookmark at target
 new Paragraph({
-  children: [new Bookmark({ id: "section1", children: [new TextRun("Section 1")] })],
+    children: [new Bookmark({ id: "section1", children: [new TextRun("Section 1")] })],
 });
 
 // Link to bookmark
 new InternalHyperlink({
-  children: [new TextRun({ text: "Go to Section 1", style: "Hyperlink" })],
-  anchor: "section1",
+    children: [new TextRun({ text: "Go to Section 1", style: "Hyperlink" })],
+    anchor: "section1",
 });
 ```
 
@@ -360,8 +364,8 @@ Quick reminder: (1) Add `TableOfContents` element + PageBreak, (2) Run `python3 
 
 ```js
 new Paragraph({
-  tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
-  children: [new TextRun("Left"), new TextRun("\t"), new TextRun("Right")],
+    tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+    children: [new TextRun("Left"), new TextRun("\t"), new TextRun("Right")],
 });
 ```
 

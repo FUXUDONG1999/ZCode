@@ -40,23 +40,23 @@
 
 ```typescript
 interface ModelAnomalyGuardConfig {
-  /**
-   * 可选：单个 turn 内累计 tool calls 超过该值时，向模型注入 warning。
-   * 未配置时不提醒。不是硬停止条件。
-   */
-  toolCallWarningThreshold?: number;
+    /**
+     * 可选：单个 turn 内累计 tool calls 超过该值时，向模型注入 warning。
+     * 未配置时不提醒。不是硬停止条件。
+     */
+    toolCallWarningThreshold?: number;
 
-  /**
-   * 相同 tool name + stable JSON input 连续出现多少次时触发重复调用 warning。
-   * 默认 3。
-   */
-  repeatedToolCallWarningThreshold?: number;
+    /**
+     * 相同 tool name + stable JSON input 连续出现多少次时触发重复调用 warning。
+     * 默认 3。
+     */
+    repeatedToolCallWarningThreshold?: number;
 
-  /**
-   * 单个 turn 最多注入几次预算类 warning，避免 warning 本身造成上下文噪音。
-   * 默认 3。
-   */
-  maxBudgetWarningsPerTurn?: number;
+    /**
+     * 单个 turn 最多注入几次预算类 warning，避免 warning 本身造成上下文噪音。
+     * 默认 3。
+     */
+    maxBudgetWarningsPerTurn?: number;
 }
 ```
 
@@ -72,18 +72,18 @@ tool call 总数超过某个数字时，不改变 tools 列表、不注入禁止
 
 ```typescript
 interface ModelAnomalyWarningPayload {
-  category:
-    | "tool_call_budget"
-    | "repeated_tool_call"
-    | "provider_finish_mismatch"
-    | "malformed_tool_call";
-  severity: "info" | "warning";
-  observedCount?: number;
-  threshold?: number;
-  toolName?: string;
-  toolCallId?: ToolCallId;
-  warningInjected: boolean;
-  modelVisibleMessageId?: string;
+    category:
+        | "tool_call_budget"
+        | "repeated_tool_call"
+        | "provider_finish_mismatch"
+        | "malformed_tool_call";
+    severity: "info" | "warning";
+    observedCount?: number;
+    threshold?: number;
+    toolName?: string;
+    toolCallId?: ToolCallId;
+    warningInjected: boolean;
+    modelVisibleMessageId?: string;
 }
 ```
 
@@ -153,10 +153,10 @@ runtime 维护一个按单个 turn 生命周期存在的 repeated-tool-call stre
 4. 保留 prompt/message history 的正常 tool follow-up 序列，确保超 100 次 tool call 不产生特殊 provider-visible message。
 5. 增加重复工具调用检测：按连续相同 `toolName + stableJson(input)` 计数。
 6. 增加测试：
-   - 单个 turn 超过 100 次 tool call 不会抛错。
-   - 超过 100 次 tool call 后仍会执行 tool result follow-up。
-   - tool call 数量不会生成禁止继续调用工具的 provider-visible message。
-   - 连续重复工具调用会触发 repeated warning。
+    - 单个 turn 超过 100 次 tool call 不会抛错。
+    - 超过 100 次 tool call 后仍会执行 tool result follow-up。
+    - tool call 数量不会生成禁止继续调用工具的 provider-visible message。
+    - 连续重复工具调用会触发 repeated warning。
 7. 保留资源硬保护测试：工具超时、输出截断、用户取消仍按 tool contract 处理。
 
 ---

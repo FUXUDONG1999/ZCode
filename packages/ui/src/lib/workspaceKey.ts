@@ -3,5 +3,5 @@
  * 不包含 remoteSessionId：它描述连接实例，不改变 workspace 身份。
  */
 export function getWorkspaceKey(workspacePath: string, workspaceIdentity?: string | null): string {
-  return workspaceIdentity?.trim() || workspacePath;
+    return workspaceIdentity?.trim() || workspacePath;
 }

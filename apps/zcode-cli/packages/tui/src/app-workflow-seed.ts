@@ -15,19 +15,19 @@ import type { TuiWorkflowRunSeed } from "./app-workflow-mirror.js";
 
 /** 摘要 → 补种条目。只搬服务端给的展示事实，缺省一律保持缺省（不造 label）。 */
 export function workflowRunSeedFromSummary(summary: TuiWorkflowRunSummary): TuiWorkflowRunSeed {
-  return {
-    runId: summary.runId,
-    ...(summary.label === undefined ? {} : { label: summary.label }),
-    ...(summary.updatedAt === undefined ? {} : { updatedAt: summary.updatedAt }),
-  };
+    return {
+        runId: summary.runId,
+        ...(summary.label === undefined ? {} : { label: summary.label }),
+        ...(summary.updatedAt === undefined ? {} : { updatedAt: summary.updatedAt }),
+    };
 }
 
 /** 一条 notice 文本。label 缺省时退回 runId——列表少一个标签是退化，不是错误。 */
 export function workflowInterruptedNoticeText(seed: TuiWorkflowRunSeed, copy: TuiCopy): string {
-  return copy.transcript.workflow.interruptedNotice({
-    label: seed.label ?? seed.runId,
-    runId: seed.runId,
-  });
+    return copy.transcript.workflow.interruptedNotice({
+        label: seed.label ?? seed.runId,
+        runId: seed.runId,
+    });
 }
 
 /**
@@ -36,18 +36,18 @@ export function workflowInterruptedNoticeText(seed: TuiWorkflowRunSeed, copy: Tu
  * 用 system 行而不是伪造 user 行：这不是用户说的话。
  */
 export function appendWorkflowInterruptedNotices(
-  messages: Message[],
-  seeds: readonly TuiWorkflowRunSeed[],
-  copy: TuiCopy,
+    messages: Message[],
+    seeds: readonly TuiWorkflowRunSeed[],
+    copy: TuiCopy,
 ): Message[] {
-  if (seeds.length === 0) return messages;
-  return [
-    ...messages,
-    ...seeds.map((seed) => ({
-      content: workflowInterruptedNoticeText(seed, copy),
-      role: "system" as const,
-    })),
-  ];
+    if (seeds.length === 0) return messages;
+    return [
+        ...messages,
+        ...seeds.map((seed) => ({
+            content: workflowInterruptedNoticeText(seed, copy),
+            role: "system" as const,
+        })),
+    ];
 }
 
 /**
@@ -57,9 +57,11 @@ export function appendWorkflowInterruptedNotices(
  * （最近更新在前），读侧再排一次就会与服务端的 tie-break 漂移。
  */
 export function interruptedWorkflowNotices(
-  summaries: readonly TuiWorkflowRunSummary[],
+    summaries: readonly TuiWorkflowRunSummary[],
 ): readonly TuiWorkflowRunSeed[] {
-  return summaries.filter((summary) => summary.resumable === true).map(workflowRunSeedFromSummary);
+    return summaries
+        .filter((summary) => summary.resumable === true)
+        .map(workflowRunSeedFromSummary);
 }
 
 /**
@@ -72,52 +74,52 @@ export function interruptedWorkflowNotices(
  * 会让本 effect 每渲染重跑一次查询（那就是第二个时钟）。
  */
 export function useWorkflowRunSeeding(input: {
-  copy: TuiCopy;
-  listWorkflowRuns?: TuiListWorkflowRuns;
-  replayWorkflowRuns?: TuiReplayWorkflowRuns;
-  /** 镜像里已有的 run（本进程已收到过事件的）——回放把它们排除在外。 */
-  knownRunIds: () => ReadonlySet<string>;
-  replay: (envelopes: readonly WorkflowRunProgressEnvelope[]) => void;
-  seed: (seeds: readonly TuiWorkflowRunSeed[]) => void;
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+    copy: TuiCopy;
+    listWorkflowRuns?: TuiListWorkflowRuns;
+    replayWorkflowRuns?: TuiReplayWorkflowRuns;
+    /** 镜像里已有的 run（本进程已收到过事件的）——回放把它们排除在外。 */
+    knownRunIds: () => ReadonlySet<string>;
+    replay: (envelopes: readonly WorkflowRunProgressEnvelope[]) => void;
+    seed: (seeds: readonly TuiWorkflowRunSeed[]) => void;
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
 }): void {
-  const latest = React.useRef(input);
-  latest.current = input;
-  const { listWorkflowRuns, replayWorkflowRuns } = input;
+    const latest = React.useRef(input);
+    latest.current = input;
+    const { listWorkflowRuns, replayWorkflowRuns } = input;
 
-  React.useEffect(() => {
-    if (!listWorkflowRuns && !replayWorkflowRuns) return;
-    let cancelled = false;
-    void (async () => {
-      if (replayWorkflowRuns) {
-        try {
-          const envelopes = await replayWorkflowRuns({
-            excludeRunIds: latest.current.knownRunIds(),
-          });
-          if (cancelled) return;
-          if (envelopes.length > 0) latest.current.replay(envelopes);
-        } catch {
-          // 回放失败不该让 TUI 起不来。
-        }
-      }
-      if (!listWorkflowRuns) return;
-      let summaries: readonly TuiWorkflowRunSummary[];
-      try {
-        summaries = await listWorkflowRuns();
-      } catch {
-        return;
-      }
-      if (cancelled || summaries.length === 0) return;
-      latest.current.seed(summaries.map(workflowRunSeedFromSummary));
-      // 顺序即服务端顺序（最近更新在前）——端口注释禁止读侧重排。
-      const resumable = interruptedWorkflowNotices(summaries);
-      if (resumable.length === 0) return;
-      latest.current.setMessages((current) =>
-        appendWorkflowInterruptedNotices(current, resumable, latest.current.copy),
-      );
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [listWorkflowRuns, replayWorkflowRuns]);
+    React.useEffect(() => {
+        if (!listWorkflowRuns && !replayWorkflowRuns) return;
+        let cancelled = false;
+        void (async () => {
+            if (replayWorkflowRuns) {
+                try {
+                    const envelopes = await replayWorkflowRuns({
+                        excludeRunIds: latest.current.knownRunIds(),
+                    });
+                    if (cancelled) return;
+                    if (envelopes.length > 0) latest.current.replay(envelopes);
+                } catch {
+                    // 回放失败不该让 TUI 起不来。
+                }
+            }
+            if (!listWorkflowRuns) return;
+            let summaries: readonly TuiWorkflowRunSummary[];
+            try {
+                summaries = await listWorkflowRuns();
+            } catch {
+                return;
+            }
+            if (cancelled || summaries.length === 0) return;
+            latest.current.seed(summaries.map(workflowRunSeedFromSummary));
+            // 顺序即服务端顺序（最近更新在前）——端口注释禁止读侧重排。
+            const resumable = interruptedWorkflowNotices(summaries);
+            if (resumable.length === 0) return;
+            latest.current.setMessages((current) =>
+                appendWorkflowInterruptedNotices(current, resumable, latest.current.copy),
+            );
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [listWorkflowRuns, replayWorkflowRuns]);
 }

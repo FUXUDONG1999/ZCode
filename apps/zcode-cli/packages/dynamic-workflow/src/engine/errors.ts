@@ -45,41 +45,41 @@ import type { ProviderStopDetails } from "./run-terminal.js";
  * 流程判断一律用这里的码，绝不匹配错误文本。
  */
 export type WorkflowErrorCode =
-  | "ValidationFailed"
-  | "ResultNotSubmitted"
-  | "DriverError"
-  | "WorldReadCapExceeded"
-  | "Cancelled"
-  | "ContextLimit"
-  | "ReportCapExceeded"
-  | "InputHashMismatch"
-  | "UnknownActor"
-  | "MissingAskSpec"
-  | "DuplicateActorName"
-  | "ScriptHashMismatch"
-  | "Interrupted"
-  | "ProviderStop"
-  // ——————————— 用户面产物（docs/dynamic-workflow/authoring.md「Publishing content」）———————————
-  // ⚠ 术语：这一批 artifact 全是**用户面产物**（脚本发布给用户看的产出），与
-  // `RunSettlement.artifact`（顶层返回值）无关。
-  //
-  // 通道按**成员族**分裂，与 WorldReadCapExceeded / ReportCapExceeded 的分界同一条论证：
-  // 内容成员（`file`/`markdown`）返回 promise，脚本可 catch，所以是节点级拒绝；预置成员
-  // 返回 void，没有可拒绝进去的地方，所以同样的事实在那一族是 failRun。三个 driver 侧的
-  // 码（Missing/Outside/TooLarge/StoreUnavailable）只可能来自内容成员，故恒为节点级。
-  | "ArtifactSourceMissing"
-  | "ArtifactPathOutsideWorkspace"
-  | "ArtifactTooLarge"
-  | "ArtifactStoreUnavailable"
-  | "ArtifactVersionCapExceeded"
-  | "ArtifactKindMismatch"
-  | "ArtifactCapExceeded"
-  | "ArtifactSpecInvalid"
-  | "ArtifactRedeclared"
-  | "ArtifactUndeclared"
-  // 第二个 id 想当 primary（docs/dynamic-workflow/authoring.md「Ids, tags and versions」）：内容成员是节点级拒绝，
-  // 预置成员是 failRun——与上面几条同一条分界。
-  | "ArtifactPrimaryConflict";
+    | "ValidationFailed"
+    | "ResultNotSubmitted"
+    | "DriverError"
+    | "WorldReadCapExceeded"
+    | "Cancelled"
+    | "ContextLimit"
+    | "ReportCapExceeded"
+    | "InputHashMismatch"
+    | "UnknownActor"
+    | "MissingAskSpec"
+    | "DuplicateActorName"
+    | "ScriptHashMismatch"
+    | "Interrupted"
+    | "ProviderStop"
+    // ——————————— 用户面产物（docs/dynamic-workflow/authoring.md「Publishing content」）———————————
+    // ⚠ 术语：这一批 artifact 全是**用户面产物**（脚本发布给用户看的产出），与
+    // `RunSettlement.artifact`（顶层返回值）无关。
+    //
+    // 通道按**成员族**分裂，与 WorldReadCapExceeded / ReportCapExceeded 的分界同一条论证：
+    // 内容成员（`file`/`markdown`）返回 promise，脚本可 catch，所以是节点级拒绝；预置成员
+    // 返回 void，没有可拒绝进去的地方，所以同样的事实在那一族是 failRun。三个 driver 侧的
+    // 码（Missing/Outside/TooLarge/StoreUnavailable）只可能来自内容成员，故恒为节点级。
+    | "ArtifactSourceMissing"
+    | "ArtifactPathOutsideWorkspace"
+    | "ArtifactTooLarge"
+    | "ArtifactStoreUnavailable"
+    | "ArtifactVersionCapExceeded"
+    | "ArtifactKindMismatch"
+    | "ArtifactCapExceeded"
+    | "ArtifactSpecInvalid"
+    | "ArtifactRedeclared"
+    | "ArtifactUndeclared"
+    // 第二个 id 想当 primary（docs/dynamic-workflow/authoring.md「Ids, tags and versions」）：内容成员是节点级拒绝，
+    // 预置成员是 failRun——与上面几条同一条分界。
+    | "ArtifactPrimaryConflict";
 
 /**
  * 值不匹配的结构化比对（哪一侧变了）。记录里的值是 `expected`，本次传入的是 `got`。
@@ -87,19 +87,19 @@ export type WorkflowErrorCode =
  * 都不该依赖错误文本。
  */
 export interface WorkflowErrorMismatch {
-  expected: string;
-  got: string;
+    expected: string;
+    got: string;
 }
 
 /** 错误的可序列化形态，落 journal（dwf_node.error_json / dwf_run.failure_json）。 */
 export interface WorkflowErrorJson {
-  code: WorkflowErrorCode;
-  message: string;
-  violations?: Violation[];
-  finalText?: string;
-  mismatch?: WorkflowErrorMismatch;
-  /** 只在 `code === "ProviderStop"` 时在场。 */
-  providerStop?: ProviderStopDetails;
+    code: WorkflowErrorCode;
+    message: string;
+    violations?: Violation[];
+    finalText?: string;
+    mismatch?: WorkflowErrorMismatch;
+    /** 只在 `code === "ProviderStop"` 时在场。 */
+    providerStop?: ProviderStopDetails;
 }
 
 /**
@@ -107,50 +107,50 @@ export interface WorkflowErrorJson {
  * 使脚本侧 try/catch 与上层都能按结构处理，而不依赖字符串匹配。
  */
 export class WorkflowError extends Error {
-  readonly code: WorkflowErrorCode;
-  readonly violations?: Violation[];
-  readonly finalText?: string;
-  readonly mismatch?: WorkflowErrorMismatch;
-  readonly providerStop?: ProviderStopDetails;
+    readonly code: WorkflowErrorCode;
+    readonly violations?: Violation[];
+    readonly finalText?: string;
+    readonly mismatch?: WorkflowErrorMismatch;
+    readonly providerStop?: ProviderStopDetails;
 
-  constructor(
-    code: WorkflowErrorCode,
-    message: string,
-    extra?: {
-      violations?: Violation[];
-      finalText?: string;
-      mismatch?: WorkflowErrorMismatch;
-      providerStop?: ProviderStopDetails;
-      cause?: unknown;
-    },
-  ) {
-    super(message);
-    this.name = "WorkflowError";
-    this.code = code;
-    if (extra?.violations !== undefined) this.violations = extra.violations;
-    if (extra?.finalText !== undefined) this.finalText = extra.finalText;
-    if (extra?.mismatch !== undefined) this.mismatch = extra.mismatch;
-    if (extra?.providerStop !== undefined) this.providerStop = extra.providerStop;
-    if (extra?.cause !== undefined) (this as { cause?: unknown }).cause = extra.cause;
-  }
+    constructor(
+        code: WorkflowErrorCode,
+        message: string,
+        extra?: {
+            violations?: Violation[];
+            finalText?: string;
+            mismatch?: WorkflowErrorMismatch;
+            providerStop?: ProviderStopDetails;
+            cause?: unknown;
+        },
+    ) {
+        super(message);
+        this.name = "WorkflowError";
+        this.code = code;
+        if (extra?.violations !== undefined) this.violations = extra.violations;
+        if (extra?.finalText !== undefined) this.finalText = extra.finalText;
+        if (extra?.mismatch !== undefined) this.mismatch = extra.mismatch;
+        if (extra?.providerStop !== undefined) this.providerStop = extra.providerStop;
+        if (extra?.cause !== undefined) (this as { cause?: unknown }).cause = extra.cause;
+    }
 
-  /** 转为可序列化形态落 journal。 */
-  toJSON(): WorkflowErrorJson {
-    const json: WorkflowErrorJson = { code: this.code, message: this.message };
-    if (this.violations !== undefined) json.violations = this.violations;
-    if (this.finalText !== undefined) json.finalText = this.finalText;
-    if (this.mismatch !== undefined) json.mismatch = this.mismatch;
-    if (this.providerStop !== undefined) json.providerStop = this.providerStop;
-    return json;
-  }
+    /** 转为可序列化形态落 journal。 */
+    toJSON(): WorkflowErrorJson {
+        const json: WorkflowErrorJson = { code: this.code, message: this.message };
+        if (this.violations !== undefined) json.violations = this.violations;
+        if (this.finalText !== undefined) json.finalText = this.finalText;
+        if (this.mismatch !== undefined) json.mismatch = this.mismatch;
+        if (this.providerStop !== undefined) json.providerStop = this.providerStop;
+        return json;
+    }
 
-  /** 从 journal 记录重建（replay 命中失败节点时用）。 */
-  static fromJSON(json: WorkflowErrorJson): WorkflowError {
-    return new WorkflowError(json.code, json.message, {
-      violations: json.violations,
-      finalText: json.finalText,
-      mismatch: json.mismatch,
-      providerStop: json.providerStop,
-    });
-  }
+    /** 从 journal 记录重建（replay 命中失败节点时用）。 */
+    static fromJSON(json: WorkflowErrorJson): WorkflowError {
+        return new WorkflowError(json.code, json.message, {
+            violations: json.violations,
+            finalText: json.finalText,
+            mismatch: json.mismatch,
+            providerStop: json.providerStop,
+        });
+    }
 }

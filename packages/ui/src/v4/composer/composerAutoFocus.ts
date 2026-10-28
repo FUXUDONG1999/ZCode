@@ -12,20 +12,20 @@
 export type ComposerAutoFocusDecision = "focus-now" | "defer" | "skip";
 
 export interface ComposerAutoFocusOptions {
-  /** 宿主门控（SessionPane.focused）：仅焦点 pane 自动聚焦。 */
-  autoFocusEnabled: boolean;
-  /** composer 是否不可编辑（v4：sessionId 连接中）。 */
-  disabled: boolean;
-  /** 是否移动端文本输入 viewport。 */
-  isMobileViewport: boolean;
+    /** 宿主门控（SessionPane.focused）：仅焦点 pane 自动聚焦。 */
+    autoFocusEnabled: boolean;
+    /** composer 是否不可编辑（v4：sessionId 连接中）。 */
+    disabled: boolean;
+    /** 是否移动端文本输入 viewport。 */
+    isMobileViewport: boolean;
 }
 
 export function resolveComposerAutoFocus({
-  autoFocusEnabled,
-  disabled,
-  isMobileViewport,
+    autoFocusEnabled,
+    disabled,
+    isMobileViewport,
 }: ComposerAutoFocusOptions): ComposerAutoFocusDecision {
-  if (!autoFocusEnabled || isMobileViewport) return "skip";
-  if (disabled) return "defer";
-  return "focus-now";
+    if (!autoFocusEnabled || isMobileViewport) return "skip";
+    if (disabled) return "defer";
+    return "focus-now";
 }

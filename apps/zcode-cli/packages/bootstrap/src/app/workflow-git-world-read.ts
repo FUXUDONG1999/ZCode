@@ -46,24 +46,24 @@ import { WorkflowError } from "@zcode/dynamic-workflow";
  * 这样本模块完全不碰进程。
  */
 interface GitCommandPlan {
-  readonly argv: readonly string[];
+    readonly argv: readonly string[];
 }
 
 /** `git.status()` 的返回形状。权威声明是 FACADE_DTS 里的 `declare interface GitStatus`。 */
 export interface GitStatusResult {
-  branch?: string;
-  clean: boolean;
-  staged: string[];
-  unstaged: string[];
-  untracked: string[];
+    branch?: string;
+    clean: boolean;
+    staged: string[];
+    unstaged: string[];
+    untracked: string[];
 }
 
 /** `git.log()` 的一条记录。权威声明是 FACADE_DTS 里的 `declare interface GitCommit`。 */
 export interface GitCommitResult {
-  hash: string;
-  subject: string;
-  author: string;
-  date: string;
+    hash: string;
+    subject: string;
+    author: string;
+    date: string;
 }
 
 /**
@@ -93,12 +93,12 @@ export const GIT_SHOW_PREFIX_ARGV: readonly string[] = ["rev-parse", "--show-pre
  * 工作区之内（见 {@link WORKSPACE_PATHSPEC}）。
  */
 export const GIT_STATUS_ARGV: readonly string[] = [
-  "status",
-  "--porcelain=v2",
-  "-z",
-  "--branch",
-  "--",
-  ".",
+    "status",
+    "--porcelain=v2",
+    "-z",
+    "--branch",
+    "--",
+    ".",
 ];
 
 /**
@@ -106,13 +106,13 @@ export const GIT_STATUS_ARGV: readonly string[] = [
  * cwd 相对拉成仓库根相对，与 status / diff 对齐（本模块顶部的输出契约 2）。
  */
 export const GIT_UNTRACKED_ARGV: readonly string[] = [
-  "ls-files",
-  "--others",
-  "--exclude-standard",
-  "-z",
-  "--full-name",
-  "--",
-  ".",
+    "ls-files",
+    "--others",
+    "--exclude-standard",
+    "-z",
+    "--full-name",
+    "--",
+    ".",
 ];
 
 /**
@@ -130,35 +130,35 @@ const WORKSPACE_PATHSPEC = ".";
  * 错误消息说明**为什么**被拒，因为写脚本的那一侧要据此改写，而不是去猜。
  */
 function validateGitRef(op: string, value: string): string {
-  if (value.length === 0) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: base must not be empty. Pass a ref such as "main" or omit it.`,
-    );
-  }
-  if (value.startsWith("-")) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: base '${value}' starts with '-', which git would read as an option, ` +
-        `not a ref. Pass a plain ref.`,
-    );
-  }
-  if (value.includes("..")) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: base '${value}' is a '..' range; only a single ref is accepted. Pass ` +
-        `one ref.`,
-    );
-  }
-  if (!GIT_REF_PATTERN.test(value)) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: base '${value}' is not a valid ref. A ref starts with a letter or ` +
-        `digit, followed by letters, digits and . _ / @ ^ ~ - (no whitespace or syntax ` +
-        `characters such as {} :).`,
-    );
-  }
-  return value;
+    if (value.length === 0) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: base must not be empty. Pass a ref such as "main" or omit it.`,
+        );
+    }
+    if (value.startsWith("-")) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: base '${value}' starts with '-', which git would read as an option, ` +
+                `not a ref. Pass a plain ref.`,
+        );
+    }
+    if (value.includes("..")) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: base '${value}' is a '..' range; only a single ref is accepted. Pass ` +
+                `one ref.`,
+        );
+    }
+    if (!GIT_REF_PATTERN.test(value)) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: base '${value}' is not a valid ref. A ref starts with a letter or ` +
+                `digit, followed by letters, digits and . _ / @ ^ ~ - (no whitespace or syntax ` +
+                `characters such as {} :).`,
+        );
+    }
+    return value;
 }
 
 /**
@@ -172,37 +172,37 @@ function validateGitRef(op: string, value: string): string {
  * 一个 `-foo` 路径就是一个选项。
  */
 function validateGitPath(op: string, value: string): string {
-  if (value.length === 0) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: path must not be empty. Pass a workspace-relative path or omit it.`,
-    );
-  }
-  if (value.startsWith("-")) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: path '${value}' starts with '-', which git could read as an option. ` +
-        `Pass a path that does not start with '-'.`,
-    );
-  }
-  if (looksAbsolute(value)) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: path '${value}' is absolute; only workspace-relative paths are ` +
-        `accepted. Pass the path relative to the workspace root.`,
-    );
-  }
-  // 分隔符统一成 `/`：git 的 pathspec 在三个平台上都吃 `/`，而模型写出 windows 风格的
-  // 相对路径是常事。规范化必须在 `..` 检查**之前**，否则 `..\x` 会从段切分里溜过去。
-  const normalized = value.replace(/\\/g, "/");
-  if (normalized.split("/").includes("..")) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: path '${value}' contains a '..' segment and would leave the ` +
-        `workspace. Pass a path inside the workspace.`,
-    );
-  }
-  return normalized;
+    if (value.length === 0) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: path must not be empty. Pass a workspace-relative path or omit it.`,
+        );
+    }
+    if (value.startsWith("-")) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: path '${value}' starts with '-', which git could read as an option. ` +
+                `Pass a path that does not start with '-'.`,
+        );
+    }
+    if (looksAbsolute(value)) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: path '${value}' is absolute; only workspace-relative paths are ` +
+                `accepted. Pass the path relative to the workspace root.`,
+        );
+    }
+    // 分隔符统一成 `/`：git 的 pathspec 在三个平台上都吃 `/`，而模型写出 windows 风格的
+    // 相对路径是常事。规范化必须在 `..` 检查**之前**，否则 `..\x` 会从段切分里溜过去。
+    const normalized = value.replace(/\\/g, "/");
+    if (normalized.split("/").includes("..")) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: path '${value}' contains a '..' segment and would leave the ` +
+                `workspace. Pass a path inside the workspace.`,
+        );
+    }
+    return normalized;
 }
 
 /**
@@ -210,7 +210,7 @@ function validateGitPath(op: string, value: string): string {
  * 三个平台上给同一个答案（跨平台原则：不按开发机的系统行为实现）。
  */
 function looksAbsolute(value: string): boolean {
-  return value.startsWith("/") || value.startsWith("\\") || /^[A-Za-z]:[\\/]?/.test(value);
+    return value.startsWith("/") || value.startsWith("\\") || /^[A-Za-z]:[\\/]?/.test(value);
 }
 
 /**
@@ -224,12 +224,12 @@ function looksAbsolute(value: string): boolean {
  * **已跟踪历史**的问题——一个从未进过 git 的文件与任何 ref 都无从比较。
  */
 export function gitChangedFilesPlan(base: string | undefined): GitCommandPlan[] {
-  const ref = base === undefined ? "HEAD" : validateGitRef("git-changed-files", base);
-  const tracked: GitCommandPlan = {
-    argv: ["diff", "--name-only", "-z", ref, "--", WORKSPACE_PATHSPEC],
-  };
-  if (base !== undefined) return [tracked];
-  return [tracked, { argv: [...GIT_UNTRACKED_ARGV] }];
+    const ref = base === undefined ? "HEAD" : validateGitRef("git-changed-files", base);
+    const tracked: GitCommandPlan = {
+        argv: ["diff", "--name-only", "-z", ref, "--", WORKSPACE_PATHSPEC],
+    };
+    if (base !== undefined) return [tracked];
+    return [tracked, { argv: [...GIT_UNTRACKED_ARGV] }];
 }
 
 /**
@@ -245,9 +245,9 @@ export function gitChangedFilesPlan(base: string | undefined): GitCommandPlan[] 
  * 范围收束不该悄悄依赖另一个 flag 的副作用，写出来才能被 argv 测试钉住。
  */
 export function gitDiffArgv(base: string | undefined, path: string | undefined): string[] {
-  const ref = base === undefined ? "HEAD" : validateGitRef("git-diff", base);
-  const pathspec = path === undefined ? WORKSPACE_PATHSPEC : validateGitPath("git-diff", path);
-  return ["diff", "--relative", ref, "--", pathspec];
+    const ref = base === undefined ? "HEAD" : validateGitRef("git-diff", base);
+    const pathspec = path === undefined ? WORKSPACE_PATHSPEC : validateGitPath("git-diff", path);
+    return ["diff", "--relative", ref, "--", pathspec];
 }
 
 /**
@@ -259,12 +259,12 @@ export function gitDiffArgv(base: string | undefined, path: string | undefined):
  * 可施加的对象。
  */
 export function gitLogArgv(count: number): string[] {
-  return ["log", `-n${count}`, GIT_LOG_PRETTY];
+    return ["log", `-n${count}`, GIT_LOG_PRETTY];
 }
 
 /** `rev-parse --show-prefix` 的输出 → 前缀串（仓库根时为空串）。 */
 export function parseGitShowPrefix(stdout: string): string {
-  return stdout.replace(/\r?\n$/, "");
+    return stdout.replace(/\r?\n$/, "");
 }
 
 /**
@@ -274,7 +274,7 @@ export function parseGitShowPrefix(stdout: string): string {
  * 终止符本身。
  */
 function nulSegments(stdout: string): string[] {
-  return stdout.split("\u0000").filter((segment) => segment.length > 0);
+    return stdout.split("\u0000").filter((segment) => segment.length > 0);
 }
 
 /**
@@ -285,13 +285,13 @@ function nulSegments(stdout: string): string[] {
  * 而脚本会拿它去 `files.read`。宁可让节点失败。
  */
 function stripWorkspacePrefix(prefix: string, path: string): string {
-  if (prefix.length === 0) return path;
-  if (path.startsWith(prefix)) return path.slice(prefix.length);
-  throw new WorkflowError(
-    "DriverError",
-    `git reported path '${path}' outside the workspace prefix '${prefix}'. The pathspec should ` +
-      `have scoped the read to the workspace, so the scoping is broken; report this as a bug.`,
-  );
+    if (prefix.length === 0) return path;
+    if (path.startsWith(prefix)) return path.slice(prefix.length);
+    throw new WorkflowError(
+        "DriverError",
+        `git reported path '${path}' outside the workspace prefix '${prefix}'. The pathspec should ` +
+            `have scoped the read to the workspace, so the scoping is broken; report this as a bug.`,
+    );
 }
 
 /**
@@ -312,58 +312,58 @@ function stripWorkspacePrefix(prefix: string, path: string): string {
  * "跳过前 N 个空格分隔字段、取余文"来切，绝不整段 split。
  */
 export function parseGitStatusPorcelainV2(stdout: string, prefix = ""): GitStatusResult {
-  const staged: string[] = [];
-  const unstaged: string[] = [];
-  const untracked: string[] = [];
-  let branch: string | undefined;
+    const staged: string[] = [];
+    const unstaged: string[] = [];
+    const untracked: string[] = [];
+    let branch: string | undefined;
 
-  const segments = nulSegments(stdout);
-  for (let index = 0; index < segments.length; index += 1) {
-    const segment = segments[index]!;
-    if (segment.startsWith("# branch.head ")) {
-      const head = segment.slice("# branch.head ".length);
-      // detached HEAD 时 git 写字面量 "(detached)"。此时 branch **缺席**，而不是带着这个
-      // 占位串——把它当分支名交出去，脚本就会拿它去做 diff。
-      if (head !== "(detached)") branch = head;
-      continue;
-    }
-    if (segment.startsWith("#")) continue;
+    const segments = nulSegments(stdout);
+    for (let index = 0; index < segments.length; index += 1) {
+        const segment = segments[index]!;
+        if (segment.startsWith("# branch.head ")) {
+            const head = segment.slice("# branch.head ".length);
+            // detached HEAD 时 git 写字面量 "(detached)"。此时 branch **缺席**，而不是带着这个
+            // 占位串——把它当分支名交出去，脚本就会拿它去做 diff。
+            if (head !== "(detached)") branch = head;
+            continue;
+        }
+        if (segment.startsWith("#")) continue;
 
-    const kind = segment[0];
-    if (kind === "1" || kind === "2") {
-      const xy = segment.split(" ")[1] ?? "..";
-      // `1` 的路径是第 8 个字段起；`2` 多一个 `<X><score>` 字段，所以从第 9 个起，且其**原路径**
-      // 占紧随其后的一整段（`-z` 下的分隔符是 NUL），必须显式跳过。
-      const path = fieldTail(segment, kind === "1" ? 8 : 9);
-      if (kind === "2") index += 1;
-      if (path.length === 0) continue;
-      const relative = stripWorkspacePrefix(prefix, path);
-      if (xy[0] !== undefined && xy[0] !== ".") staged.push(relative);
-      if (xy[1] !== undefined && xy[1] !== ".") unstaged.push(relative);
-      continue;
+        const kind = segment[0];
+        if (kind === "1" || kind === "2") {
+            const xy = segment.split(" ")[1] ?? "..";
+            // `1` 的路径是第 8 个字段起；`2` 多一个 `<X><score>` 字段，所以从第 9 个起，且其**原路径**
+            // 占紧随其后的一整段（`-z` 下的分隔符是 NUL），必须显式跳过。
+            const path = fieldTail(segment, kind === "1" ? 8 : 9);
+            if (kind === "2") index += 1;
+            if (path.length === 0) continue;
+            const relative = stripWorkspacePrefix(prefix, path);
+            if (xy[0] !== undefined && xy[0] !== ".") staged.push(relative);
+            if (xy[1] !== undefined && xy[1] !== ".") unstaged.push(relative);
+            continue;
+        }
+        if (kind === "u") {
+            // 未合并（冲突）：算工作区待处理，落 unstaged。它确实"有待办"，而 staged 会误导——
+            // 一个冲突文件不是"已经准备好提交"。
+            const path = fieldTail(segment, 10);
+            if (path.length > 0) unstaged.push(stripWorkspacePrefix(prefix, path));
+            continue;
+        }
+        if (kind === "?") {
+            const path = fieldTail(segment, 1);
+            if (path.length > 0) untracked.push(stripWorkspacePrefix(prefix, path));
+        }
+        // `!` 与未识别的段：跳过。
     }
-    if (kind === "u") {
-      // 未合并（冲突）：算工作区待处理，落 unstaged。它确实"有待办"，而 staged 会误导——
-      // 一个冲突文件不是"已经准备好提交"。
-      const path = fieldTail(segment, 10);
-      if (path.length > 0) unstaged.push(stripWorkspacePrefix(prefix, path));
-      continue;
-    }
-    if (kind === "?") {
-      const path = fieldTail(segment, 1);
-      if (path.length > 0) untracked.push(stripWorkspacePrefix(prefix, path));
-    }
-    // `!` 与未识别的段：跳过。
-  }
 
-  const clean = staged.length === 0 && unstaged.length === 0 && untracked.length === 0;
-  return {
-    ...(branch === undefined ? {} : { branch }),
-    clean,
-    staged: sortedUnique(staged),
-    unstaged: sortedUnique(unstaged),
-    untracked: sortedUnique(untracked),
-  };
+    const clean = staged.length === 0 && unstaged.length === 0 && untracked.length === 0;
+    return {
+        ...(branch === undefined ? {} : { branch }),
+        clean,
+        staged: sortedUnique(staged),
+        unstaged: sortedUnique(unstaged),
+        untracked: sortedUnique(untracked),
+    };
 }
 
 /**
@@ -377,26 +377,26 @@ export function parseGitStatusPorcelainV2(stdout: string, prefix = ""): GitStatu
  * 而一条只填了一半的 commit 会一路流进 journal 与模型的上下文。
  */
 export function parseGitLog(stdout: string): GitCommitResult[] {
-  const commits: GitCommitResult[] = [];
-  for (const raw of stdout.split("\n")) {
-    const record = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
-    if (record.length === 0) continue;
-    const fields = record.split("\u0000");
-    if (fields.length !== 4) {
-      throw new WorkflowError(
-        "DriverError",
-        `world-read git-log: cannot parse the output; a record should have 4 NUL-separated ` +
-          `fields, got ${fields.length}. Retry, and report this as a bug if it persists.`,
-      );
+    const commits: GitCommitResult[] = [];
+    for (const raw of stdout.split("\n")) {
+        const record = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+        if (record.length === 0) continue;
+        const fields = record.split("\u0000");
+        if (fields.length !== 4) {
+            throw new WorkflowError(
+                "DriverError",
+                `world-read git-log: cannot parse the output; a record should have 4 NUL-separated ` +
+                    `fields, got ${fields.length}. Retry, and report this as a bug if it persists.`,
+            );
+        }
+        commits.push({
+            hash: fields[0]!,
+            subject: fields[1]!,
+            author: fields[2]!,
+            date: fields[3]!,
+        });
     }
-    commits.push({
-      hash: fields[0]!,
-      subject: fields[1]!,
-      author: fields[2]!,
-      date: fields[3]!,
-    });
-  }
-  return commits;
+    return commits;
 }
 
 /**
@@ -404,7 +404,7 @@ export function parseGitLog(stdout: string): GitCommitResult[] {
  * 两者都已由 argv 拉成仓库根相对（`--full-name`），所以这里统一剥一次前缀。
  */
 export function parseGitPathList(stdout: string, prefix = ""): string[] {
-  return nulSegments(stdout).map((path) => stripWorkspacePrefix(prefix, path));
+    return nulSegments(stdout).map((path) => stripWorkspacePrefix(prefix, path));
 }
 
 /**
@@ -412,16 +412,16 @@ export function parseGitPathList(stdout: string, prefix = ""): string[] {
  * 只有路径在最后且可含空格，所以"跳过 N 个空格再取余文"是这里唯一正确的切法。
  */
 function fieldTail(line: string, index: number): string {
-  let at = 0;
-  for (let i = 0; i < index; i += 1) {
-    const next = line.indexOf(" ", at);
-    if (next === -1) return "";
-    at = next + 1;
-  }
-  return line.slice(at);
+    let at = 0;
+    for (let i = 0; i < index; i += 1) {
+        const next = line.indexOf(" ", at);
+        if (next === -1) return "";
+        at = next + 1;
+    }
+    return line.slice(at);
 }
 
 /** 去重并排序。journal 存的是这个值，所以它必须只依赖内容而不依赖 git 的输出顺序。 */
 function sortedUnique(values: readonly string[]): string[] {
-  return [...new Set(values)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    return [...new Set(values)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }

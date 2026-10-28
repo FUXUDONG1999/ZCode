@@ -11,69 +11,71 @@ import type { OpenCodeMcpServerConfig } from "./types.js";
  * 标准格式: { command: "npx", args: ["-y", "server"], env: {...} }
  */
 export function convertOpenCodeToStandard(config: OpenCodeMcpServerConfig): McpServerConfig {
-  const result: McpServerConfig = {};
+    const result: McpServerConfig = {};
 
-  if (config.type === "local" && config.command && config.command.length > 0) {
-    // command 数组的第一个元素是命令本身
-    result.command = config.command[0];
-    // 剩余元素是参数
-    if (config.command.length > 1) {
-      result.args = config.command.slice(1);
+    if (config.type === "local" && config.command && config.command.length > 0) {
+        // command 数组的第一个元素是命令本身
+        result.command = config.command[0];
+        // 剩余元素是参数
+        if (config.command.length > 1) {
+            result.args = config.command.slice(1);
+        }
+    } else if (config.type === "remote" && config.url) {
+        result.type = "http";
+        result.url = config.url;
     }
-  } else if (config.type === "remote" && config.url) {
-    result.type = "http";
-    result.url = config.url;
-  }
 
-  if (config.env) {
-    result.env = config.env;
-  }
-  if (config.headers) {
-    result.headers = config.headers;
-  }
+    if (config.env) {
+        result.env = config.env;
+    }
+    if (config.headers) {
+        result.headers = config.headers;
+    }
 
-  return result;
+    return result;
 }
 
 /**
  * 将标准 McpServerConfig 转换为 OpenCode 配置格式
  */
 export function convertStandardToOpenCode(config: McpServerConfig): OpenCodeMcpServerConfig {
-  const result: OpenCodeMcpServerConfig = {
-    type: config.url ? "remote" : "local",
-  };
+    const result: OpenCodeMcpServerConfig = {
+        type: config.url ? "remote" : "local",
+    };
 
-  if (result.type === "local") {
-    // 将 command 和 args 合并为数组
-    const commandParts: string[] = [];
-    if (config.command) {
-      commandParts.push(config.command);
+    if (result.type === "local") {
+        // 将 command 和 args 合并为数组
+        const commandParts: string[] = [];
+        if (config.command) {
+            commandParts.push(config.command);
+        }
+        if (config.args && config.args.length > 0) {
+            commandParts.push(...config.args);
+        }
+        if (commandParts.length > 0) {
+            result.command = commandParts;
+        }
+    } else {
+        if (config.url) {
+            result.url = config.url;
+        }
     }
-    if (config.args && config.args.length > 0) {
-      commandParts.push(...config.args);
-    }
-    if (commandParts.length > 0) {
-      result.command = commandParts;
-    }
-  } else {
-    if (config.url) {
-      result.url = config.url;
-    }
-  }
 
-  if (config.env) {
-    result.env = config.env;
-  }
-  if (config.headers) {
-    result.headers = config.headers;
-  }
+    if (config.env) {
+        result.env = config.env;
+    }
+    if (config.headers) {
+        result.headers = config.headers;
+    }
 
-  return result;
+    return result;
 }
 
 /**
  * 检查配置是否是 OpenCode 格式
  */
 export function isOpenCodeFormat(config: McpServerConfig): boolean {
-  return "type" in config || Array.isArray((config as unknown as OpenCodeMcpServerConfig).command);
+    return (
+        "type" in config || Array.isArray((config as unknown as OpenCodeMcpServerConfig).command)
+    );
 }

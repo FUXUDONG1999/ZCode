@@ -13,37 +13,37 @@
 
 /** @type {string[]} */
 export const RENDERER_ONLY_EXCLUDED_PACKAGES = [
-  // —— 纯前端渲染依赖（vite 已打进 out/renderer 的 chunk / assets）——
-  "echarts", // renderer chunk 内含 echarts 运行时代码
-  "mermaid", // renderer 懒加载 chunk 内含 mermaid 运行时代码
-  // pdf.worker 与 cmaps 已由 vite 产出（out/renderer/assets/pdf.worker.min-*.mjs、out/renderer/pdfjs/cmaps）
-  "pdfjs-dist",
-  "lottie-web", // renderer chunk 内含 lottie 运行时代码
-  "@extend-ai/react-xlsx", // xlsx-worker chunk 与 duke_sheets wasm 资产已由 vite 产出
-  "world-atlas", // countries-50m.json 已进 vite 模块图（sourcemap sources 可见）
-  "@shikijs/langs", // 语法文件已进 renderer chunk（tmLanguage 标记）
-  "lucide-react", // 数百个 renderer 源文件静态 import，tree-shake 后进 chunk
-  "highlight.js", // 已进 vite 模块图
-  "@extend-ai/react-docx", // docx-import-worker chunk 与 docx wasm 资产已由 vite 产出
-  "@dukelib/sheets-wasm", // duke_sheets_wasm_bg-*.wasm 已作为 vite 资产产出
-  "katex", // 19 个 KaTeX woff2 字体已作为 vite 资产产出
-  "media-chrome",
-  "recharts",
-  // —— 主进程运行时代码已被 tsup 内联进 out/main，node_modules 副本同样不可达 ——
-  // 教训（2026-10 打包回归）：@arms/rum-electron 曾被误加进本名单，理由是"已被 tsup
-  // 内联"——实际它是 desktop dependencies，tsup 默认外置，out/main 保留 6 处裸 import，
-  // 裁包后安装包主进程启动即报 ERR_MODULE_NOT_FOUND（asar 里只剩 rum-browser/rum-core）。
-  // 它已改为随 REQUIRED_ASAR_RUNTIME_MODULES 注入，afterPack 冲突校验会拦住再次误加。
-  "zod", // services 静态 import，随 noExternal 内联进 out/main（ZodError 标记）
-  "ai", // 随 @zcode/client/services 内联进 out/main（generateText 标记）
-  // 教训（2026-10 打包回归）：rrweb 曾被当作"全仓无引用的死依赖"裁掉——判断时只查了
-  // 应用源码，漏了依赖内部：它是 @arms/rum-browser 的直接依赖（会话回放录制），
-  // 随 rum-browser 一起进 app.asar 运行。与 @arms/rum-electron 一并纳入
-  // REQUIRED_ASAR_RUNTIME_MODULES 闭包后，afterPack 冲突校验拦住了这次误裁。
+    // —— 纯前端渲染依赖（vite 已打进 out/renderer 的 chunk / assets）——
+    "echarts", // renderer chunk 内含 echarts 运行时代码
+    "mermaid", // renderer 懒加载 chunk 内含 mermaid 运行时代码
+    // pdf.worker 与 cmaps 已由 vite 产出（out/renderer/assets/pdf.worker.min-*.mjs、out/renderer/pdfjs/cmaps）
+    "pdfjs-dist",
+    "lottie-web", // renderer chunk 内含 lottie 运行时代码
+    "@extend-ai/react-xlsx", // xlsx-worker chunk 与 duke_sheets wasm 资产已由 vite 产出
+    "world-atlas", // countries-50m.json 已进 vite 模块图（sourcemap sources 可见）
+    "@shikijs/langs", // 语法文件已进 renderer chunk（tmLanguage 标记）
+    "lucide-react", // 数百个 renderer 源文件静态 import，tree-shake 后进 chunk
+    "highlight.js", // 已进 vite 模块图
+    "@extend-ai/react-docx", // docx-import-worker chunk 与 docx wasm 资产已由 vite 产出
+    "@dukelib/sheets-wasm", // duke_sheets_wasm_bg-*.wasm 已作为 vite 资产产出
+    "katex", // 19 个 KaTeX woff2 字体已作为 vite 资产产出
+    "media-chrome",
+    "recharts",
+    // —— 主进程运行时代码已被 tsup 内联进 out/main，node_modules 副本同样不可达 ——
+    // 教训（2026-10 打包回归）：@arms/rum-electron 曾被误加进本名单，理由是"已被 tsup
+    // 内联"——实际它是 desktop dependencies，tsup 默认外置，out/main 保留 6 处裸 import，
+    // 裁包后安装包主进程启动即报 ERR_MODULE_NOT_FOUND（asar 里只剩 rum-browser/rum-core）。
+    // 它已改为随 REQUIRED_ASAR_RUNTIME_MODULES 注入，afterPack 冲突校验会拦住再次误加。
+    "zod", // services 静态 import，随 noExternal 内联进 out/main（ZodError 标记）
+    "ai", // 随 @zcode/client/services 内联进 out/main（generateText 标记）
+    // 教训（2026-10 打包回归）：rrweb 曾被当作"全仓无引用的死依赖"裁掉——判断时只查了
+    // 应用源码，漏了依赖内部：它是 @arms/rum-browser 的直接依赖（会话回放录制），
+    // 随 rum-browser 一起进 app.asar 运行。与 @arms/rum-electron 一并纳入
+    // REQUIRED_ASAR_RUNTIME_MODULES 闭包后，afterPack 冲突校验拦住了这次误裁。
 ];
 
 export function createRendererOnlyPackageExclusionPatterns() {
-  return RENDERER_ONLY_EXCLUDED_PACKAGES.map((packageName) => `!node_modules/${packageName}/**`);
+    return RENDERER_ONLY_EXCLUDED_PACKAGES.map((packageName) => `!node_modules/${packageName}/**`);
 }
 
 /**
@@ -51,6 +51,6 @@ export function createRendererOnlyPackageExclusionPatterns() {
  * files 把包排除了，主进程却要在运行时 require 它，安装包会"能打出但启动即崩"。
  */
 export function findRendererOnlyExclusionRuntimeConflicts(excludedPackages, closureModuleNames) {
-  const closureModuleNamesSet = new Set(closureModuleNames);
-  return excludedPackages.filter((packageName) => closureModuleNamesSet.has(packageName));
+    const closureModuleNamesSet = new Set(closureModuleNames);
+    return excludedPackages.filter((packageName) => closureModuleNamesSet.has(packageName));
 }

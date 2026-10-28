@@ -14,13 +14,13 @@ import { resolve } from "node:path";
 export const AGENT_BUNDLE_SOURCE_RELATIVE = "apps/zcode-cli/packages/cli/dist/zcode.cjs";
 
 export function resolveAgentBundlePaths({ repoRoot, platformKey }) {
-  const glmDir = resolve(repoRoot, "packages", "desktop", "bundled-agents", platformKey, "glm");
-  return {
-    cliBundlePath: resolve(repoRoot, AGENT_BUNDLE_SOURCE_RELATIVE),
-    glmDir,
-    stagedBundlePath: resolve(glmDir, "zcode.cjs"),
-    stagedMetaPath: resolve(glmDir, ".node-bundle-meta.json"),
-  };
+    const glmDir = resolve(repoRoot, "packages", "desktop", "bundled-agents", platformKey, "glm");
+    return {
+        cliBundlePath: resolve(repoRoot, AGENT_BUNDLE_SOURCE_RELATIVE),
+        glmDir,
+        stagedBundlePath: resolve(glmDir, "zcode.cjs"),
+        stagedMetaPath: resolve(glmDir, ".node-bundle-meta.json"),
+    };
 }
 
 /**
@@ -29,23 +29,23 @@ export function resolveAgentBundlePaths({ repoRoot, platformKey }) {
  * （zcode-agent / zcode-acp 等）和旧 meta 会被一并打进安装包（CI 干净检出不会有，本地会）。
  */
 export function stageAgentBundle({ repoRoot, platformKey, log = console.log }) {
-  const { cliBundlePath, glmDir, stagedBundlePath, stagedMetaPath } = resolveAgentBundlePaths({
-    repoRoot,
-    platformKey,
-  });
-  if (!existsSync(cliBundlePath)) {
-    throw new Error(`[stage:agent-bundle] agent bundle 源产物不存在：${cliBundlePath}`);
-  }
-  rmSync(glmDir, { recursive: true, force: true });
-  mkdirSync(glmDir, { recursive: true });
-  copyFileSync(cliBundlePath, stagedBundlePath);
-  const meta = {
-    runtime: "electron-node",
-    entry: "zcode.cjs",
-    platform: platformKey,
-    source: AGENT_BUNDLE_SOURCE_RELATIVE,
-  };
-  writeFileSync(stagedMetaPath, `${JSON.stringify(meta, null, 2)}\n`, "utf8");
-  log(`[stage:agent-bundle] staged ${stagedBundlePath}`);
-  return { stagedBundlePath, stagedMetaPath };
+    const { cliBundlePath, glmDir, stagedBundlePath, stagedMetaPath } = resolveAgentBundlePaths({
+        repoRoot,
+        platformKey,
+    });
+    if (!existsSync(cliBundlePath)) {
+        throw new Error(`[stage:agent-bundle] agent bundle 源产物不存在：${cliBundlePath}`);
+    }
+    rmSync(glmDir, { recursive: true, force: true });
+    mkdirSync(glmDir, { recursive: true });
+    copyFileSync(cliBundlePath, stagedBundlePath);
+    const meta = {
+        runtime: "electron-node",
+        entry: "zcode.cjs",
+        platform: platformKey,
+        source: AGENT_BUNDLE_SOURCE_RELATIVE,
+    };
+    writeFileSync(stagedMetaPath, `${JSON.stringify(meta, null, 2)}\n`, "utf8");
+    log(`[stage:agent-bundle] staged ${stagedBundlePath}`);
+    return { stagedBundlePath, stagedMetaPath };
 }

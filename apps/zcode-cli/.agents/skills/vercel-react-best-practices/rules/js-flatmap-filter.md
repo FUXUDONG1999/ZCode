@@ -39,8 +39,8 @@ const numbers = strings.map((s) => parseInt(s, 10)).filter((n) => !isNaN(n));
 
 // After
 const numbers = strings.flatMap((s) => {
-  const n = parseInt(s, 10);
-  return isNaN(n) ? [] : [n];
+    const n = parseInt(s, 10);
+    return isNaN(n) ? [] : [n];
 });
 ```
 

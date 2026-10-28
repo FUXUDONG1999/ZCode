@@ -4,14 +4,15 @@ import type { LaunchMarks } from "@zcode/shared";
 // 单独成模块，避免被 index.js 的 bootstrap 副作用链拖累（如 desktopHostProcess 也要读这些标记）。
 // process.getCreationTime 是 Electron 给 process 扩展的 API；node 环境（含单测）下不存在，需守卫。
 const launchCreatedAt =
-  (typeof process.getCreationTime === "function" ? process.getCreationTime() : null) ?? Date.now();
+    (typeof process.getCreationTime === "function" ? process.getCreationTime() : null) ??
+    Date.now();
 const launchMainStart = Date.now();
 let launchAppReady = launchMainStart;
 
 export function markMainLaunchAppReady(): void {
-  launchAppReady = Date.now();
+    launchAppReady = Date.now();
 }
 
 export function getMainLaunchPartialMarks(): Omit<LaunchMarks, "loadUrl"> {
-  return { createdAt: launchCreatedAt, mainStart: launchMainStart, appReady: launchAppReady };
+    return { createdAt: launchCreatedAt, mainStart: launchMainStart, appReady: launchAppReady };
 }

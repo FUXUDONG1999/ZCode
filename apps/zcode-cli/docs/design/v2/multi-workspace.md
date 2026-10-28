@@ -65,16 +65,16 @@
 type WorkspaceRootRole = "primary" | "additional";
 
 interface WorkspaceRoot {
-  path: string; // canonical absolute path
-  role: WorkspaceRootRole;
-  label?: string; // basename by default
+    path: string; // canonical absolute path
+    role: WorkspaceRootRole;
+    label?: string; // basename by default
 }
 
 interface WorkspaceScope {
-  workspaceId: WorkspaceId;
-  primaryRoot: string;
-  additionalRoots: string[];
-  allRoots: string[];
+    workspaceId: WorkspaceId;
+    primaryRoot: string;
+    additionalRoots: string[];
+    allRoots: string[];
 }
 ```
 
@@ -98,18 +98,18 @@ interface WorkspaceScope {
 
 - session 继续写 `directory`，但开始填充 `workspaceID`。
 - workspace roots 元数据放到 `local_setting`：
-  - `scope = "workspace"`
-  - `scope_id = workspaceId`
-  - `namespace = "workspace"`
-  - `key = "roots"`
+    - `scope = "workspace"`
+    - `scope_id = workspaceId`
+    - `namespace = "workspace"`
+    - `key = "roots"`
 
 value shape：
 
 ```json
 {
-  "version": 1,
-  "primaryRoot": "/abs/project-a",
-  "additionalRoots": ["/abs/project-b"]
+    "version": 1,
+    "primaryRoot": "/abs/project-a",
+    "additionalRoots": ["/abs/project-b"]
 }
 ```
 
@@ -161,8 +161,8 @@ ZCode app-server session/new 后续建议允许客户端传 `cwd` 和 `additiona
 
 ```ts
 interface WorkspaceRuntimeConfig {
-  primaryRoot: string;
-  additionalRoots: string[];
+    primaryRoot: string;
+    additionalRoots: string[];
 }
 ```
 
@@ -222,21 +222,21 @@ writableRoots?: string[];
 
 ```ts
 type PermissionUpdate =
-  | {
-      type: "addRules";
-      behavior: "allow" | "deny" | "ask";
-      rules: PermissionRuleValue[];
-    }
-  | {
-      type: "addWorkspaceRoots";
-      roots: string[];
-      destination: "session" | "workspace";
-    }
-  | {
-      type: "removeWorkspaceRoots";
-      roots: string[];
-      destination: "session" | "workspace";
-    };
+    | {
+          type: "addRules";
+          behavior: "allow" | "deny" | "ask";
+          rules: PermissionRuleValue[];
+      }
+    | {
+          type: "addWorkspaceRoots";
+          roots: string[];
+          destination: "session" | "workspace";
+      }
+    | {
+          type: "removeWorkspaceRoots";
+          roots: string[];
+          destination: "session" | "workspace";
+      };
 ```
 
 这样 TUI 审批和未来 `/workspace add --remember` 可以走同一条更新链。

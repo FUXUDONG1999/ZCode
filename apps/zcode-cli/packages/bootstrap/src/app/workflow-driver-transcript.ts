@@ -10,10 +10,10 @@
 import type { SessionId } from "@zcode/contracts";
 import type { AgentRuntime } from "@zcode/core";
 import {
-  refToString,
-  WorkflowError,
-  type ActorSessionSeed,
-  type InstanceRef,
+    refToString,
+    WorkflowError,
+    type ActorSessionSeed,
+    type InstanceRef,
 } from "@zcode/dynamic-workflow";
 import { countActorTranscript, seedActorTranscript } from "./workflow-actor-transcript.js";
 import type { AgentRuntimeWorkflowDriverDeps, SessionState } from "./workflow-driver-types.js";
@@ -41,53 +41,53 @@ import type { AgentRuntimeWorkflowDriverDeps, SessionState } from "./workflow-dr
  * （journal 上有没有这个 actor 的 sessionId），所以两处永远同时成立或同时不成立。
  */
 export async function seedActorSession(
-  deps: AgentRuntimeWorkflowDriverDeps,
-  input: {
-    journaledSessionId: string | undefined;
-    runtime: AgentRuntime;
-    seed: ActorSessionSeed;
-    sessionId: SessionId;
-  },
+    deps: AgentRuntimeWorkflowDriverDeps,
+    input: {
+        journaledSessionId: string | undefined;
+        runtime: AgentRuntime;
+        seed: ActorSessionSeed;
+        sessionId: SessionId;
+    },
 ): Promise<void> {
-  const { journaledSessionId, runtime, seed, sessionId } = input;
-  const store = deps.actorTranscriptStore;
-  if (store === undefined) {
-    throw new WorkflowError(
-      "DriverError",
-      `Subagent session ${sessionId} carries a transcript seed, but the driver has no ` +
-        `transcript store (wiring error).`,
-    );
-  }
-  const copied = await seedActorTranscript({
-    ...(deps.logger === undefined ? {} : { logger: deps.logger }),
-    seed,
-    store,
-    targetSessionId: sessionId,
-  });
-  if (copied === undefined && journaledSessionId !== undefined) return;
-  await runtime.resumeFromStore();
+    const { journaledSessionId, runtime, seed, sessionId } = input;
+    const store = deps.actorTranscriptStore;
+    if (store === undefined) {
+        throw new WorkflowError(
+            "DriverError",
+            `Subagent session ${sessionId} carries a transcript seed, but the driver has no ` +
+                `transcript store (wiring error).`,
+        );
+    }
+    const copied = await seedActorTranscript({
+        ...(deps.logger === undefined ? {} : { logger: deps.logger }),
+        seed,
+        store,
+        targetSessionId: sessionId,
+    });
+    if (copied === undefined && journaledSessionId !== undefined) return;
+    await runtime.resumeFromStore();
 }
 
 /** 数本会话已落库的消息条数；失败即放弃记账（边界缺席，而不是一个错的边界）。 */
 export async function countSessionTranscript(
-  deps: AgentRuntimeWorkflowDriverDeps,
-  state: SessionState,
-  instance: InstanceRef,
+    deps: AgentRuntimeWorkflowDriverDeps,
+    state: SessionState,
+    instance: InstanceRef,
 ): Promise<number | undefined> {
-  const store = deps.actorTranscriptStore;
-  if (store === undefined) return undefined;
-  try {
-    return await countActorTranscript(store, state.sessionId);
-  } catch (error) {
-    deps.logger?.warn?.("Dynamic workflow ask message boundary count failed", {
-      errorMessage: error instanceof Error ? error.message : String(error),
-      event: "dynamic_workflow.ask.message_boundary.count_failed",
-      instance: refToString(instance),
-      module: "bootstrap.app",
-      sessionId: state.sessionId,
-    });
-    return undefined;
-  }
+    const store = deps.actorTranscriptStore;
+    if (store === undefined) return undefined;
+    try {
+        return await countActorTranscript(store, state.sessionId);
+    } catch (error) {
+        deps.logger?.warn?.("Dynamic workflow ask message boundary count failed", {
+            errorMessage: error instanceof Error ? error.message : String(error),
+            event: "dynamic_workflow.ask.message_boundary.count_failed",
+            instance: refToString(instance),
+            module: "bootstrap.app",
+            sessionId: state.sessionId,
+        });
+        return undefined;
+    }
 }
 
 /**
@@ -106,27 +106,27 @@ export async function countSessionTranscript(
  * 也不写一个偏大的值（截断会多带一段下一次 ask 的开场）。
  */
 export function journalAskMessageBoundary(
-  deps: AgentRuntimeWorkflowDriverDeps,
-  state: SessionState,
-  instance: InstanceRef,
-  boundary: number,
+    deps: AgentRuntimeWorkflowDriverDeps,
+    state: SessionState,
+    instance: InstanceRef,
+    boundary: number,
 ): void {
-  const key = refToString(instance);
-  if (state.currentInstance !== undefined && refToString(state.currentInstance) !== key) return;
-  const runId = deps.runId ?? "run";
-  try {
-    const recorded = deps.journal.getNode(runId, instance.siteId, instance.ordinal);
-    if (recorded === undefined) return;
-    deps.journal.putNode({ ...recorded, messageBoundary: boundary });
-  } catch (error) {
-    // 记账写入失败不该打挂一个已经结算好的 ask（且这里跑在游离的 promise 上，抛出只会变成
-    // unhandled rejection）。代价与计数失败相同：这个 ask 不可导入，run 因此不可作前驱。
-    deps.logger?.warn?.("Dynamic workflow ask message boundary write failed", {
-      errorMessage: error instanceof Error ? error.message : String(error),
-      event: "dynamic_workflow.ask.message_boundary.write_failed",
-      instance: key,
-      module: "bootstrap.app",
-      runId,
-    });
-  }
+    const key = refToString(instance);
+    if (state.currentInstance !== undefined && refToString(state.currentInstance) !== key) return;
+    const runId = deps.runId ?? "run";
+    try {
+        const recorded = deps.journal.getNode(runId, instance.siteId, instance.ordinal);
+        if (recorded === undefined) return;
+        deps.journal.putNode({ ...recorded, messageBoundary: boundary });
+    } catch (error) {
+        // 记账写入失败不该打挂一个已经结算好的 ask（且这里跑在游离的 promise 上，抛出只会变成
+        // unhandled rejection）。代价与计数失败相同：这个 ask 不可导入，run 因此不可作前驱。
+        deps.logger?.warn?.("Dynamic workflow ask message boundary write failed", {
+            errorMessage: error instanceof Error ? error.message : String(error),
+            event: "dynamic_workflow.ask.message_boundary.write_failed",
+            instance: key,
+            module: "bootstrap.app",
+            runId,
+        });
+    }
 }

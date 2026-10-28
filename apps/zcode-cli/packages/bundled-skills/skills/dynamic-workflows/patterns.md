@@ -31,9 +31,9 @@ log(`fanning out over ${paths.length} files`);
 phase("Security-audit each file independently");
 // The report below needs every verdict, so this join is the right one.
 const verdicts = await Promise.all(
-  paths.map((p) =>
-    agent(`auditor-${p}`).ask<Verdict>(`Security-review ${p}. Report only real issues.`),
-  ),
+    paths.map((p) =>
+        agent(`auditor-${p}`).ask<Verdict>(`Security-review ${p}. Report only real issues.`),
+    ),
 );
 
 phase("Report the files that failed");
@@ -70,14 +70,14 @@ too broad fails loudly instead of handing you a partial file list to fan out ove
 phase("Find the work in progress");
 let paths: string[];
 try {
-  paths = await git.changedFiles("origin/main");
+    paths = await git.changedFiles("origin/main");
 } catch {
-  paths = await files.glob("src/**/*.ts");
+    paths = await files.glob("src/**/*.ts");
 }
 
 phase("Review each changed file for bugs");
 const reviews = await Promise.all(
-  paths.map((p) => agent(`reviewer-${p}`).ask<Review>(`Review ${p} for correctness bugs.`)),
+    paths.map((p) => agent(`reviewer-${p}`).ask<Review>(`Review ${p} for correctness bugs.`)),
 );
 ```
 
@@ -89,10 +89,10 @@ no single prompt carries the whole changeset:
 
 ```ts
 const perFile = await Promise.all(
-  paths.map(async (p) => {
-    const patch = await git.diff("origin/main", p);
-    return agent(`reviewer-${p}`).ask<Review>(`Review this change to ${p}:\n\n${patch}`);
-  }),
+    paths.map(async (p) => {
+        const patch = await git.diff("origin/main", p);
+        return agent(`reviewer-${p}`).ask<Review>(`Review this change to ${p}:\n\n${patch}`);
+    }),
 );
 ```
 
@@ -108,21 +108,26 @@ callback means the slowest reviewer holds up only its own file:
 ```ts
 phase("Review each changed file and confirm its findings as they land");
 const confirmed = (
-  await Promise.all(
-    paths.map(async (p) => {
-      const review = await agent(`reviewer-${p}`).ask<Review>(`Review ${p} for correctness bugs.`);
-      return Promise.all(
-        review.findings.map(async (finding, index) => {
-          const check = await agent(`confirmer-${p}-${index}`).ask<Confirmation>(
-            `Reproduce this finding from its evidence alone. Do not edit any file.\n${JSON.stringify(finding)}`,
-          );
-          const reported = { ...finding, status: check.reproduced ? "verified" : "unconfirmed" };
-          report(reported);
-          return reported;
+    await Promise.all(
+        paths.map(async (p) => {
+            const review = await agent(`reviewer-${p}`).ask<Review>(
+                `Review ${p} for correctness bugs.`,
+            );
+            return Promise.all(
+                review.findings.map(async (finding, index) => {
+                    const check = await agent(`confirmer-${p}-${index}`).ask<Confirmation>(
+                        `Reproduce this finding from its evidence alone. Do not edit any file.\n${JSON.stringify(finding)}`,
+                    );
+                    const reported = {
+                        ...finding,
+                        status: check.reproduced ? "verified" : "unconfirmed",
+                    };
+                    report(reported);
+                    return reported;
+                }),
+            );
         }),
-      );
-    }),
-  )
+    )
 ).flat();
 ```
 
@@ -138,19 +143,19 @@ one are the same shape written twice for exposition; in a real script write only
 ```ts
 const planner = agent("planner", "You write concrete, minimal implementation plans.");
 const reviewer = agent(
-  "reviewer",
-  "You find the flaw in a plan. Approve only when you cannot. You never edit files.",
+    "reviewer",
+    "You find the flaw in a plan. Approve only when you cannot. You never edit files.",
 );
 
 let feedback = "none";
 for (let round = 0; round < 5; round++) {
-  phase("Draft a plan for the change");
-  const plan = await planner.ask<Plan>(`Plan the change. Previous critique: ${feedback}`);
-  phase("Critique the plan until it holds");
-  const review = await reviewer.ask<Review>(`Critique this plan:\n${JSON.stringify(plan)}`);
-  if (review.approved) return plan;
-  log(`round ${round + 1} rejected: ${review.feedback}`);
-  feedback = review.feedback;
+    phase("Draft a plan for the change");
+    const plan = await planner.ask<Plan>(`Plan the change. Previous critique: ${feedback}`);
+    phase("Critique the plan until it holds");
+    const review = await reviewer.ask<Review>(`Critique this plan:\n${JSON.stringify(plan)}`);
+    if (review.approved) return plan;
+    log(`round ${round + 1} rejected: ${review.feedback}`);
+    feedback = review.feedback;
 }
 ```
 
@@ -171,10 +176,10 @@ approval:
 ```ts
 phase("Independent review of the final plan");
 const second = await agent(
-  "independent-reviewer",
-  "You review plans and never edit files.",
+    "independent-reviewer",
+    "You review plans and never edit files.",
 ).ask<Review>(
-  `You have not seen this plan before. Read it against the codebase. What would break it, and what is missing?
+    `You have not seen this plan before. Read it against the codebase. What would break it, and what is missing?
 ${JSON.stringify(plan)}`,
 );
 if (!second.approved) feedback = second.feedback;
@@ -193,11 +198,11 @@ where correlated judges would defeat the purpose:
 phase("Judge the finding from three angles");
 // A majority needs every vote, so the join waits for all three.
 const votes = await Promise.all(
-  ["correctness", "security", "does-it-reproduce"].map((lens) =>
-    agent(`judge-${lens}`).ask<Verdict>(
-      `Judge this finding through the ${lens} lens. Try to refute it:\n${claim}`,
+    ["correctness", "security", "does-it-reproduce"].map((lens) =>
+        agent(`judge-${lens}`).ask<Verdict>(
+            `Judge this finding through the ${lens} lens. Try to refute it:\n${claim}`,
+        ),
     ),
-  ),
 );
 const survives = votes.filter((v) => !v.refuted).length >= 2;
 ```
@@ -214,7 +219,7 @@ const triage = agent("triage", "You rank findings on one consistent scale across
 
 const ranked: Ranked[] = [];
 for (const finding of findings) {
-  ranked.push(await triage.ask<Ranked>(`Rank: ${JSON.stringify(finding)}`));
+    ranked.push(await triage.ask<Ranked>(`Rank: ${JSON.stringify(finding)}`));
 }
 ```
 
@@ -239,15 +244,15 @@ reproduced it.
 ```ts
 let best: Attempt | undefined;
 for (let round = 0; round < 6; round++) {
-  phase("Attempt the fix");
-  const attempt = await worker.ask<Attempt>(
-    `Attempt the fix. Prior failure: ${lastError ?? "none"}`,
-  );
-  phase("Check whether it actually passes");
-  const check = await checker.ask<Check>(`Does this pass? ${JSON.stringify(attempt)}`);
-  if (check.passed) return { attempt, rounds: round + 1, converged: true };
-  best = attempt;
-  lastError = check.reason;
+    phase("Attempt the fix");
+    const attempt = await worker.ask<Attempt>(
+        `Attempt the fix. Prior failure: ${lastError ?? "none"}`,
+    );
+    phase("Check whether it actually passes");
+    const check = await checker.ask<Check>(`Does this pass? ${JSON.stringify(attempt)}`);
+    if (check.passed) return { attempt, rounds: round + 1, converged: true };
+    best = attempt;
+    lastError = check.reason;
 }
 return { attempt: best, rounds: 6, converged: false };
 ```
@@ -271,11 +276,11 @@ log(`${survey.modules.length} modules in scope`);
 phase("Analyse each module for auth bypasses");
 // The write-up deduplicates across modules, so it needs every analysis at once.
 const analyses = await Promise.all(
-  survey.modules.map((m) =>
-    agent(`analyst-${m.path}`).ask<Analysis>(
-      `Analyse ${m.path} for auth bypasses. Purpose: ${m.purpose}`,
+    survey.modules.map((m) =>
+        agent(`analyst-${m.path}`).ask<Analysis>(
+            `Analyse ${m.path} for auth bypasses. Purpose: ${m.purpose}`,
+        ),
     ),
-  ),
 );
 
 phase("Write the findings up for the engineer who fixes them");
@@ -308,19 +313,19 @@ const found: Bug[] = [];
 const seen = new Set<string>();
 
 for (let round = 1; round <= MAX_ROUNDS; round++) {
-  phase("Hunt for bugs not already found");
-  const batch = await agent("hunter").ask<Bugs>(
-    `Find bugs not already in this list: ${JSON.stringify([...seen])}`,
-  );
-  const fresh = batch.bugs.filter((b) => !seen.has(`${b.path}:${b.line}`));
-  if (fresh.length === 0) break; // dry: stop, the remaining rounds would only repeat
+    phase("Hunt for bugs not already found");
+    const batch = await agent("hunter").ask<Bugs>(
+        `Find bugs not already in this list: ${JSON.stringify([...seen])}`,
+    );
+    const fresh = batch.bugs.filter((b) => !seen.has(`${b.path}:${b.line}`));
+    if (fresh.length === 0) break; // dry: stop, the remaining rounds would only repeat
 
-  for (const bug of fresh) {
-    seen.add(`${bug.path}:${bug.line}`);
-    report(bug);
-    found.push(bug);
-  }
-  log(`${found.length} found after round ${round}`);
+    for (const bug of fresh) {
+        seen.add(`${bug.path}:${bug.line}`);
+        report(bug);
+        found.push(bug);
+    }
+    log(`${found.length} found after round ${round}`);
 }
 return found;
 ```
@@ -348,9 +353,9 @@ return results;
 phase("Handle each item and publish as it lands");
 const results: Result[] = [];
 for (const item of items) {
-  const result = await worker.ask<Result>(`Handle ${item.id}`);
-  report(result);
-  results.push(result);
+    const result = await worker.ask<Result>(`Handle ${item.id}`);
+    report(result);
+    results.push(result);
 }
 return results;
 ```
@@ -377,11 +382,11 @@ ask itself was too large for the model even after compaction, and the fix is a s
 
 ```ts
 for (const item of items) {
-  try {
-    report(await worker.ask<Result>(`Handle ${item.id}`));
-  } catch (error) {
-    log(`skipped ${item.id}: ${String(error)}`);
-  }
+    try {
+        report(await worker.ask<Result>(`Handle ${item.id}`));
+    } catch (error) {
+        log(`skipped ${item.id}: ${String(error)}`);
+    }
 }
 ```
 
@@ -399,13 +404,13 @@ phase("Write the first proof attempt");
 await prover.ask<Attempt>(`Prove the open theorem in ${FILE}.`);
 let clean = false;
 for (let round = 1; round <= 8; round++) {
-  phase("Check the file with the fast checker");
-  const check = await world.run("lake", ["env", "lean", FILE], { timeoutMs: 600_000 });
-  clean = check.exitCode === 0 && !check.stderr.includes("sorry");
-  if (clean) break;
-  log(`round ${round}: checker rejected`);
-  phase("Repair what the checker rejected");
-  await prover.ask<Attempt>(`The checker rejected the file:\n${check.stderr}\nRepair ${FILE}.`);
+    phase("Check the file with the fast checker");
+    const check = await world.run("lake", ["env", "lean", FILE], { timeoutMs: 600_000 });
+    clean = check.exitCode === 0 && !check.stderr.includes("sorry");
+    if (clean) break;
+    log(`round ${round}: checker rejected`);
+    phase("Repair what the checker rejected");
+    await prover.ask<Attempt>(`The checker rejected the file:\n${check.stderr}\nRepair ${FILE}.`);
 }
 if (!clean) return { proved: false };
 
@@ -446,21 +451,24 @@ whole earlier stage.
 ```ts
 phase("Hunt for bugs in each file and confirm them as they are found");
 const confirmed = (
-  await Promise.all(
-    paths.map(async (p) => {
-      const hunt = await agent(`hunter-${p}`).ask<Hunt>(`Hunt for correctness bugs in ${p}.`);
-      return Promise.all(
-        hunt.bugs.map(async (bug, index) => {
-          const check = await agent(`confirmer-${p}-${index}`).ask<Confirmation>(
-            `Reproduce this bug from its evidence alone. Do not edit any file.\n${JSON.stringify(bug)}`,
-          );
-          const reported = { ...bug, status: check.reproduced ? "verified" : "unconfirmed" };
-          report(reported);
-          return reported;
+    await Promise.all(
+        paths.map(async (p) => {
+            const hunt = await agent(`hunter-${p}`).ask<Hunt>(`Hunt for correctness bugs in ${p}.`);
+            return Promise.all(
+                hunt.bugs.map(async (bug, index) => {
+                    const check = await agent(`confirmer-${p}-${index}`).ask<Confirmation>(
+                        `Reproduce this bug from its evidence alone. Do not edit any file.\n${JSON.stringify(bug)}`,
+                    );
+                    const reported = {
+                        ...bug,
+                        status: check.reproduced ? "verified" : "unconfirmed",
+                    };
+                    report(reported);
+                    return reported;
+                }),
+            );
         }),
-      );
-    }),
-  )
+    )
 ).flat();
 ```
 
@@ -493,50 +501,50 @@ const facts = channel<Fact>("facts");
 const checked: Checked[] = [];
 
 const seed = future(async () => {
-  phase("Decide what to look into");
-  try {
-    const plan = await agent("planner").ask<{ questions: string[] }>(
-      `List the questions to answer about ${topic}.`,
-    );
-    for (const question of plan.questions) leads.send({ question });
-  } finally {
-    leads.close();
-  }
+    phase("Decide what to look into");
+    try {
+        const plan = await agent("planner").ask<{ questions: string[] }>(
+            `List the questions to answer about ${topic}.`,
+        );
+        for (const question of plan.questions) leads.send({ question });
+    } finally {
+        leads.close();
+    }
 });
 
 const research = future(async () => {
-  phase("Research each question");
-  try {
-    await Promise.all(
-      Array.from({ length: RESEARCHERS }, async (_, k) => {
-        // One context per worker, hoisted out of the loop: a name is minted once per worker,
-        // and what one worker learnt on an earlier question is there for its next.
-        const researcher = agent(`researcher-${k + 1}`);
-        for await (const lead of leads) {
-          const found = await researcher.ask<Research>(`Research: ${lead.question}`);
-          found.facts.forEach((fact, index) =>
-            facts.send({ ...fact, id: `${lead.question}-${index + 1}` }),
-          );
-        }
-      }),
-    );
-  } finally {
-    facts.close(); // a failed researcher still ends the stream for the verifiers
-  }
+    phase("Research each question");
+    try {
+        await Promise.all(
+            Array.from({ length: RESEARCHERS }, async (_, k) => {
+                // One context per worker, hoisted out of the loop: a name is minted once per worker,
+                // and what one worker learnt on an earlier question is there for its next.
+                const researcher = agent(`researcher-${k + 1}`);
+                for await (const lead of leads) {
+                    const found = await researcher.ask<Research>(`Research: ${lead.question}`);
+                    found.facts.forEach((fact, index) =>
+                        facts.send({ ...fact, id: `${lead.question}-${index + 1}` }),
+                    );
+                }
+            }),
+        );
+    } finally {
+        facts.close(); // a failed researcher still ends the stream for the verifiers
+    }
 });
 
 const verify = future(async () => {
-  phase("Check each fact as it arrives");
-  await Promise.all(
-    Array.from({ length: VERIFIERS }, async (_, k) => {
-      const verifier = agent(`verifier-${k + 1}`);
-      for await (const fact of facts) {
-        const verdict = await verifier.ask<Verdict>(`Check: ${JSON.stringify(fact)}`);
-        checked.push({ ...fact, ...verdict });
-        report({ ...fact, ...verdict });
-      }
-    }),
-  );
+    phase("Check each fact as it arrives");
+    await Promise.all(
+        Array.from({ length: VERIFIERS }, async (_, k) => {
+            const verifier = agent(`verifier-${k + 1}`);
+            for await (const fact of facts) {
+                const verdict = await verifier.ask<Verdict>(`Check: ${JSON.stringify(fact)}`);
+                checked.push({ ...fact, ...verdict });
+                report({ ...fact, ...verdict });
+            }
+        }),
+    );
 });
 
 // Start every stage first, then join all of them once. No await between the two: while the
@@ -575,61 +583,65 @@ const facts = channel<Fact>("facts");
 // The feedback channel closes when this reaches zero, and nobody else may close it.
 let open = 0;
 function finished(): void {
-  open -= 1;
-  if (open === 0) leads.close();
+    open -= 1;
+    if (open === 0) leads.close();
 }
 
 for (const question of seeds) {
-  open += 1;
-  leads.send({ question, depth: 0 });
+    open += 1;
+    leads.send({ question, depth: 0 });
 }
 
 const research = future(async () => {
-  phase("Research each lead");
-  try {
-    await Promise.all(
-      Array.from({ length: WORKERS }, async (_, k) => {
-        const researcher = agent(`researcher-${k + 1}`);
-        for await (const lead of leads) {
-          const found = await researcher.ask<Research>(`Research: ${lead.question}`);
-          // Invariant 1: count every child BEFORE finishing the parent, so `open` never
-          // touches zero while work is still being produced.
-          found.facts.forEach((fact, index) => {
-            open += 1;
-            facts.send({ ...fact, id: `${lead.question}-${index + 1}`, depth: lead.depth });
-          });
-          finished();
-        }
-      }),
-    );
-  } finally {
-    // Invariant 2: a researcher sends facts only from inside its loop, so this close runs after
-    // the last researcher has left the loop and nothing can send to `facts` any more.
-    facts.close();
-  }
+    phase("Research each lead");
+    try {
+        await Promise.all(
+            Array.from({ length: WORKERS }, async (_, k) => {
+                const researcher = agent(`researcher-${k + 1}`);
+                for await (const lead of leads) {
+                    const found = await researcher.ask<Research>(`Research: ${lead.question}`);
+                    // Invariant 1: count every child BEFORE finishing the parent, so `open` never
+                    // touches zero while work is still being produced.
+                    found.facts.forEach((fact, index) => {
+                        open += 1;
+                        facts.send({
+                            ...fact,
+                            id: `${lead.question}-${index + 1}`,
+                            depth: lead.depth,
+                        });
+                    });
+                    finished();
+                }
+            }),
+        );
+    } finally {
+        // Invariant 2: a researcher sends facts only from inside its loop, so this close runs after
+        // the last researcher has left the loop and nothing can send to `facts` any more.
+        facts.close();
+    }
 });
 
 const verify = future(async () => {
-  phase("Check each fact, and send doubts back for more research");
-  const checks: Promise<void>[] = [];
-  for await (const fact of facts) {
-    checks.push(
-      future(async () => {
-        const verdict = await agent(`verifier-${fact.id}`).ask<Verdict>(
-          `Check: ${JSON.stringify(fact)}`,
+    phase("Check each fact, and send doubts back for more research");
+    const checks: Promise<void>[] = [];
+    for await (const fact of facts) {
+        checks.push(
+            future(async () => {
+                const verdict = await agent(`verifier-${fact.id}`).ask<Verdict>(
+                    `Check: ${JSON.stringify(fact)}`,
+                );
+                if (verdict.holds) passed.push(fact);
+                else if (verdict.followUp !== undefined && fact.depth < MAX_DEPTH) {
+                    // This fact is still open, so `open` is at least 1 and `leads` cannot have closed:
+                    // the follow-up is counted before the fact that produced it is finished.
+                    open += 1;
+                    leads.send({ question: verdict.followUp, depth: fact.depth + 1 });
+                } else rejected.push(fact.claim);
+                finished();
+            }),
         );
-        if (verdict.holds) passed.push(fact);
-        else if (verdict.followUp !== undefined && fact.depth < MAX_DEPTH) {
-          // This fact is still open, so `open` is at least 1 and `leads` cannot have closed:
-          // the follow-up is counted before the fact that produced it is finished.
-          open += 1;
-          leads.send({ question: verdict.followUp, depth: fact.depth + 1 });
-        } else rejected.push(fact.claim);
-        finished();
-      }),
-    );
-  }
-  await Promise.all(checks); // the stage is done when its checks are, not when `facts` closes
+    }
+    await Promise.all(checks); // the stage is done when its checks are, not when `facts` closes
 });
 
 await Promise.all([research, verify]);
@@ -658,17 +670,17 @@ propose it and ask before the call (SKILL.md §2).
 ```ts
 // Every model the run can use, declared once; names come from ListModels.
 const MODELS = {
-  light: model("GLM-5.3-Flash"),
-  strong: model("GLM-5.3$high"),
+    light: model("GLM-5.3-Flash"),
+    strong: model("GLM-5.3$high"),
 };
 
 interface Route {
-  /** "strong" only when the request needs multi-step reasoning or careful writing. */
-  tier: "light" | "strong";
+    /** "strong" only when the request needs multi-step reasoning or careful writing. */
+    tier: "light" | "strong";
 }
 
 interface Reply {
-  answer: string;
+    answer: string;
 }
 
 const questions: string[] = ["Rename the config key in the README", "Explain the retry design"];
@@ -677,12 +689,12 @@ const questions: string[] = ["Rename the config key in the README", "Explain the
 // its route is decided; the one join is for the return, which needs every answer.
 phase("Route each question to the model it needs and answer it there");
 const replies = await Promise.all(
-  questions.map(async (question, index) => {
-    const route = await agent(`分诊-${index + 1}`, { model: MODELS.light }).ask<Route>(
-      `Would answering this well need the strong model? ${question}`,
-    );
-    return agent(`答复者-${index + 1}`, { model: MODELS[route.tier] }).ask<Reply>(question);
-  }),
+    questions.map(async (question, index) => {
+        const route = await agent(`分诊-${index + 1}`, { model: MODELS.light }).ask<Route>(
+            `Would answering this well need the strong model? ${question}`,
+        );
+        return agent(`答复者-${index + 1}`, { model: MODELS[route.tier] }).ask<Reply>(question);
+    }),
 );
 return replies.map((reply) => reply.answer);
 ```
@@ -712,13 +724,13 @@ return await hole<Guide>("第1步：决定导览结构", `盘点：${JSON.string
 // 1. The effective script after the first FillWorkflowHole: the hole gained a body
 //    that does one step and leaves the next hole. Only the body's statements were sent.
 return await hole<Guide>("第1步：决定导览结构", `盘点：…`, async () => {
-  phase("分章并行撰写初稿");
-  const drafts = await Promise.all(
-    survey.dirs.map((d) =>
-      agent(`写手·${d.path}`).ask<Chapter>(`写「${d.path}」一章：${d.purpose}`),
-    ),
-  );
-  return await hole<Guide>("第2步：审读与交付", `${drafts.length} 章初稿已就绪`);
+    phase("分章并行撰写初稿");
+    const drafts = await Promise.all(
+        survey.dirs.map((d) =>
+            agent(`写手·${d.path}`).ask<Chapter>(`写「${d.path}」一章：${d.purpose}`),
+        ),
+    );
+    return await hole<Guide>("第2步：审读与交付", `${drafts.length} 章初稿已就绪`);
 });
 ```
 
@@ -726,15 +738,17 @@ return await hole<Guide>("第1步：决定导览结构", `盘点：…`, async (
 // 2. After the second fill: the chain closes with a value. Each hole's site id comes
 //    from its name, so ids stay short at any depth; the timeline shows one head per step.
 return await hole<Guide>("第1步：决定导览结构", `盘点：…`, async () => {
-  /* step 1 as above; `survey` and `drafts` are in scope below */
-  return await hole<Guide>("第2步：审读与交付", `…`, async () => {
-    phase("独立审读并修订");
-    const critique = await agent("审读员").ask<string>(`只凭文本挑毛病：${JSON.stringify(drafts)}`);
-    const chapters = await agent("修订编辑").ask<Chapter[]>(
-      `按意见修订：${critique}\n${JSON.stringify(drafts)}`,
-    );
-    return { title: "仓库导览", chapters, notCovered: [] };
-  });
+    /* step 1 as above; `survey` and `drafts` are in scope below */
+    return await hole<Guide>("第2步：审读与交付", `…`, async () => {
+        phase("独立审读并修订");
+        const critique = await agent("审读员").ask<string>(
+            `只凭文本挑毛病：${JSON.stringify(drafts)}`,
+        );
+        const chapters = await agent("修订编辑").ask<Chapter[]>(
+            `按意见修订：${critique}\n${JSON.stringify(drafts)}`,
+        );
+        return { title: "仓库导览", chapters, notCovered: [] };
+    });
 });
 ```
 
@@ -771,20 +785,20 @@ command. None of that topology was knowable before the survey.
 ```ts
 phase("并行审查独立模块");
 const [a, b] = await Promise.all(
-  hot.modules
-    .slice(0, 2)
-    .map((m) => agent(`审查员·${m.path}`).ask<Review>(`审查 ${m.path}：${m.coupling}`)),
+    hot.modules
+        .slice(0, 2)
+        .map((m) => agent(`审查员·${m.path}`).ask<Review>(`审查 ${m.path}：${m.coupling}`)),
 );
 phase("在前两份审查的基础上审查共享模块");
 const shared = hot.modules[2];
 const reviewer = agent("共享模块审查员", "你在别人的审查基础上工作，只找他们没看到的问题。");
 let review = await reviewer.ask<Review>(
-  `已有审查：${JSON.stringify([a, b])}\n现在审查 ${shared.path}`,
+    `已有审查：${JSON.stringify([a, b])}\n现在审查 ${shared.path}`,
 );
 for (let round = 1; round <= 3 && review.findings.length > 0; round += 1) {
-  const fix = await world.run("pnpm", ["test", "--", shared.path]);
-  if (fix.exitCode === 0) break;
-  review = await reviewer.ask<Review>(`测试仍失败：${fix.stderr}\n复审 ${shared.path}`);
+    const fix = await world.run("pnpm", ["test", "--", shared.path]);
+    if (fix.exitCode === 0) break;
+    review = await reviewer.ask<Review>(`测试仍失败：${fix.stderr}\n复审 ${shared.path}`);
 }
 return [a, b, review];
 ```
@@ -805,7 +819,7 @@ failure in hand.
 phase("跑完整测试");
 const gate = await world.run("pnpm", ["test"], { timeoutMs: 1_800_000 });
 if (gate.exitCode !== 0) {
-  await hole<void>("测试没过怎么办", `退出码 ${gate.exitCode}：\n${gate.stderr.slice(0, 2000)}`);
+    await hole<void>("测试没过怎么办", `退出码 ${gate.exitCode}：\n${gate.stderr.slice(0, 2000)}`);
 }
 phase("交付");
 return await agent("报告员").ask<Report>("写交付报告。");

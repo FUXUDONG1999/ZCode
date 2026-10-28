@@ -15,35 +15,35 @@ import type { WorkspaceConnectionAgentService } from "@/v4/workspaceConnectionRe
 import { logger } from "@/logger.js";
 import { buildSavedWorkflowPromotePrompt } from "@/settings/saved-workflows/savedWorkflowLaunchPrompt.js";
 import {
-  acquireLaunchLease,
-  launchWorkspaceId,
-  type SavedWorkflowLaunchTarget,
+    acquireLaunchLease,
+    launchWorkspaceId,
+    type SavedWorkflowLaunchTarget,
 } from "@/settings/saved-workflows/useSavedWorkflowLauncher.js";
 
 /** 被提升的项目档：名字与路径进提示词（模型自己读文件），locale 选中英文案。 */
 interface SavedWorkflowPromoteRequest {
-  name: string;
-  path: string;
-  locale: string;
+    name: string;
+    path: string;
+    locale: string;
 }
 
 type SavedWorkflowPromoteResult =
-  | { ok: true; sessionId: string }
-  | {
-      ok: false;
-      /** 原始 fault code / ACK 状态；日志与 toast 兜底文案用。 */
-      code: string;
-      /** 服务端人可读原因（有则优先展示）。 */
-      message?: string;
-    };
+    | { ok: true; sessionId: string }
+    | {
+          ok: false;
+          /** 原始 fault code / ACK 状态；日志与 toast 兜底文案用。 */
+          code: string;
+          /** 服务端人可读原因（有则优先展示）。 */
+          message?: string;
+      };
 
 interface UseSavedWorkflowPromoteResult {
-  promote: (
-    target: SavedWorkflowLaunchTarget,
-    request: SavedWorkflowPromoteRequest,
-  ) => Promise<SavedWorkflowPromoteResult>;
-  /** 正在发起：卡片 / 详情菜单禁用，防重复点击。 */
-  pending: boolean;
+    promote: (
+        target: SavedWorkflowLaunchTarget,
+        request: SavedWorkflowPromoteRequest,
+    ) => Promise<SavedWorkflowPromoteResult>;
+    /** 正在发起：卡片 / 详情菜单禁用，防重复点击。 */
+    pending: boolean;
 }
 
 /**
@@ -52,66 +52,66 @@ interface UseSavedWorkflowPromoteResult {
  * 草稿配置——与直接启动同一取舍。
  */
 export function useSavedWorkflowPromote(params: {
-  agentService: WorkspaceConnectionAgentService;
-  onNavigate?: (target: SavedWorkflowLaunchTarget, sessionId: string) => void;
+    agentService: WorkspaceConnectionAgentService;
+    onNavigate?: (target: SavedWorkflowLaunchTarget, sessionId: string) => void;
 }): UseSavedWorkflowPromoteResult {
-  const { agentService, onNavigate } = params;
-  const [pending, setPending] = useState(false);
-  // 同一帧内防重入的同步事实源（setPending 异步，单靠 state 挡不住双击）。
-  const pendingRef = useRef(false);
+    const { agentService, onNavigate } = params;
+    const [pending, setPending] = useState(false);
+    // 同一帧内防重入的同步事实源（setPending 异步，单靠 state 挡不住双击）。
+    const pendingRef = useRef(false);
 
-  const promote = useCallback(
-    async (
-      target: SavedWorkflowLaunchTarget,
-      request: SavedWorkflowPromoteRequest,
-    ): Promise<SavedWorkflowPromoteResult> => {
-      if (pendingRef.current) {
-        return { ok: false, code: "promote_in_flight" };
-      }
-      pendingRef.current = true;
-      setPending(true);
-      const lease = acquireLaunchLease(target, agentService);
-      try {
-        const ack = await lease.transport.sendCommand(
-          createCommandEnvelope({
-            type: "createSession",
-            payload: {
-              workspaceId: launchWorkspaceId(target),
-              firstInput: { text: buildSavedWorkflowPromotePrompt(request) },
-            },
-            sessionId: null,
-          }),
-          { projectId: target.projectId },
-        );
-        if (ack.status !== "accepted" || ack.result?.type !== "createSession") {
-          logger.warn("[saved-workflow-promote] createSession(firstInput) 被拒", {
-            workspacePath: target.workspacePath,
-            name: request.name,
-            status: ack.status,
-            reasonCode: ack.reasonCode ?? null,
-          });
-          return {
-            ok: false,
-            code: ack.reasonCode ?? ack.status,
-            ...(ack.message ? { message: ack.message } : {}),
-          };
-        }
-        onNavigate?.(target, ack.result.sessionId);
-        return { ok: true, sessionId: ack.result.sessionId };
-      } catch (thrown) {
-        return {
-          ok: false,
-          code: "exception",
-          message: thrown instanceof Error ? thrown.message : String(thrown),
-        };
-      } finally {
-        lease.release();
-        pendingRef.current = false;
-        setPending(false);
-      }
-    },
-    [agentService, onNavigate],
-  );
+    const promote = useCallback(
+        async (
+            target: SavedWorkflowLaunchTarget,
+            request: SavedWorkflowPromoteRequest,
+        ): Promise<SavedWorkflowPromoteResult> => {
+            if (pendingRef.current) {
+                return { ok: false, code: "promote_in_flight" };
+            }
+            pendingRef.current = true;
+            setPending(true);
+            const lease = acquireLaunchLease(target, agentService);
+            try {
+                const ack = await lease.transport.sendCommand(
+                    createCommandEnvelope({
+                        type: "createSession",
+                        payload: {
+                            workspaceId: launchWorkspaceId(target),
+                            firstInput: { text: buildSavedWorkflowPromotePrompt(request) },
+                        },
+                        sessionId: null,
+                    }),
+                    { projectId: target.projectId },
+                );
+                if (ack.status !== "accepted" || ack.result?.type !== "createSession") {
+                    logger.warn("[saved-workflow-promote] createSession(firstInput) 被拒", {
+                        workspacePath: target.workspacePath,
+                        name: request.name,
+                        status: ack.status,
+                        reasonCode: ack.reasonCode ?? null,
+                    });
+                    return {
+                        ok: false,
+                        code: ack.reasonCode ?? ack.status,
+                        ...(ack.message ? { message: ack.message } : {}),
+                    };
+                }
+                onNavigate?.(target, ack.result.sessionId);
+                return { ok: true, sessionId: ack.result.sessionId };
+            } catch (thrown) {
+                return {
+                    ok: false,
+                    code: "exception",
+                    message: thrown instanceof Error ? thrown.message : String(thrown),
+                };
+            } finally {
+                lease.release();
+                pendingRef.current = false;
+                setPending(false);
+            }
+        },
+        [agentService, onNavigate],
+    );
 
-  return { promote, pending };
+    return { promote, pending };
 }

@@ -1,9 +1,9 @@
 import {
-  SessionEventType,
-  getCurrentModelInvocationContext,
-  type Model,
-  type ModelNetworkStatusEvent,
-  type ModelStatusSink,
+    SessionEventType,
+    getCurrentModelInvocationContext,
+    type Model,
+    type ModelNetworkStatusEvent,
+    type ModelStatusSink,
 } from "@zcode/contracts";
 import { withModelInvocationContext } from "../../runtime/methods/runtime-model.js";
 import type { ToolExecutionContext } from "../types.js";
@@ -19,33 +19,33 @@ import type { ToolExecutionContext } from "../types.js";
  * `context.model` 先套一层，调用点没设 sink 时补上会话事件出口；调用点自己设了则原样保留。
  */
 export function createToolModelStatusSink(
-  context: Pick<ToolExecutionContext, "emitEvent" | "sessionId" | "turnId" | "traceId">,
+    context: Pick<ToolExecutionContext, "emitEvent" | "sessionId" | "turnId" | "traceId">,
 ): ModelStatusSink | undefined {
-  if (!context.emitEvent) return undefined;
+    if (!context.emitEvent) return undefined;
 
-  return {
-    publish: async (statusEvent: ModelNetworkStatusEvent) => {
-      await context.emitEvent?.({
-        id: crypto.randomUUID() as never,
-        sessionId: context.sessionId,
-        turnId: context.turnId,
-        type: SessionEventType.ModelNetworkStatus,
-        timestamp: new Date(),
-        traceId: context.traceId,
-        sequenceNumber: 0,
-        payload: statusEvent,
-      });
-    },
-  };
+    return {
+        publish: async (statusEvent: ModelNetworkStatusEvent) => {
+            await context.emitEvent?.({
+                id: crypto.randomUUID() as never,
+                sessionId: context.sessionId,
+                turnId: context.turnId,
+                type: SessionEventType.ModelNetworkStatus,
+                timestamp: new Date(),
+                traceId: context.traceId,
+                sequenceNumber: 0,
+                payload: statusEvent,
+            });
+        },
+    };
 }
 
 /** 调用点未设 `statusSink` 时补默认出口；设了的保留（默认值不压调用层）。 */
 export function withDefaultToolModelStatusSink(
-  model: Model | undefined,
-  sink: ModelStatusSink | undefined,
+    model: Model | undefined,
+    sink: ModelStatusSink | undefined,
 ): Model | undefined {
-  if (model === undefined || sink === undefined) return model;
-  return withModelInvocationContext(model, () =>
-    getCurrentModelInvocationContext()?.statusSink === undefined ? { statusSink: sink } : {},
-  );
+    if (model === undefined || sink === undefined) return model;
+    return withModelInvocationContext(model, () =>
+        getCurrentModelInvocationContext()?.statusSink === undefined ? { statusSink: sink } : {},
+    );
 }

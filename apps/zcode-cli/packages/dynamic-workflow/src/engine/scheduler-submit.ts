@@ -13,45 +13,45 @@ import { REPAIR_ATTEMPTS, WorkflowError } from "./types.js";
 
 /** 调度器暴露给回报处理的最小接缝：查 live 节点、按结果结算。 */
 export interface SubmitSeam {
-  readonly host: SchedulerHost;
-  /** 按实例查 live 节点（已离开 liveNodes 的返回 undefined）。 */
-  liveNode(instance: InstanceRef): AskNode | undefined;
-  settleOk(node: AskNode, artifact: unknown): void;
-  settleFailed(node: AskNode, error: WorkflowError): void;
+    readonly host: SchedulerHost;
+    /** 按实例查 live 节点（已离开 liveNodes 的返回 undefined）。 */
+    liveNode(instance: InstanceRef): AskNode | undefined;
+    settleOk(node: AskNode, artifact: unknown): void;
+    settleFailed(node: AskNode, error: WorkflowError): void;
 }
 
 export function handleSubmitAttempted(
-  seam: SubmitSeam,
-  instance: InstanceRef,
-  payload: unknown,
+    seam: SubmitSeam,
+    instance: InstanceRef,
+    payload: unknown,
 ): void {
-  const node = seam.liveNode(instance);
-  if (node === undefined || node.settled) return;
-  // untyped ask 不提供 submit_result；即便收到也不据其结算。
-  if (!node.spec.typed) return;
+    const node = seam.liveNode(instance);
+    if (node === undefined || node.settled) return;
+    // untyped ask 不提供 submit_result；即便收到也不据其结算。
+    if (!node.spec.typed) return;
 
-  const { value, violations } = normalizeSubmit(seam.host, node.spec.schema, payload);
-  if (violations.length === 0) {
-    seam.host.driver.respondToSubmit(instance, { kind: "accept" });
-    seam.settleOk(node, value);
-    return;
-  }
-  if (node.repairsRemaining > 0) {
-    node.repairsRemaining--;
-    const attempt = REPAIR_ATTEMPTS - node.repairsRemaining;
-    seam.host.driver.respondToSubmit(instance, { kind: "reject", violations });
-    seam.host.record({ type: "node-repairing", instance, attempt, violations });
-    return;
-  }
-  seam.host.driver.cancelAsk(instance);
-  seam.settleFailed(
-    node,
-    new WorkflowError(
-      "ValidationFailed",
-      "submit_result failed schema validation repeatedly and the repair budget is exhausted.",
-      { violations },
-    ),
-  );
+    const { value, violations } = normalizeSubmit(seam.host, node.spec.schema, payload);
+    if (violations.length === 0) {
+        seam.host.driver.respondToSubmit(instance, { kind: "accept" });
+        seam.settleOk(node, value);
+        return;
+    }
+    if (node.repairsRemaining > 0) {
+        node.repairsRemaining--;
+        const attempt = REPAIR_ATTEMPTS - node.repairsRemaining;
+        seam.host.driver.respondToSubmit(instance, { kind: "reject", violations });
+        seam.host.record({ type: "node-repairing", instance, attempt, violations });
+        return;
+    }
+    seam.host.driver.cancelAsk(instance);
+    seam.settleFailed(
+        node,
+        new WorkflowError(
+            "ValidationFailed",
+            "submit_result failed schema validation repeatedly and the repair budget is exhausted.",
+            { violations },
+        ),
+    );
 }
 
 /**
@@ -68,49 +68,49 @@ export function handleSubmitAttempted(
  * 引擎是纯包，JSON.parse 纯确定、无 I/O，放这里安全。
  */
 function normalizeSubmit(
-  host: SchedulerHost,
-  schema: unknown,
-  payload: unknown,
+    host: SchedulerHost,
+    schema: unknown,
+    payload: unknown,
 ): { value: unknown; violations: Violation[] } {
-  const direct = host.validate(schema, payload);
-  if (direct.length === 0) return { value: payload, violations: [] };
-  if (typeof payload === "string") {
-    try {
-      const parsed = JSON.parse(payload);
-      const after = host.validate(schema, parsed);
-      if (after.length === 0) return { value: parsed, violations: [] };
-      // bug：解析成功但解析值仍不过时，曾上报解析前的
-      // `direct` 违规（"$: expected object, got string"），模型面对的其实是已解码对象，无从修起，
-      // 只能反复重引号/双重编码/退化成 "{}"，耗尽 repair 预算。修复违规必须描述模型可修改的值，
-      // 故此处返回 `after`（解析后对象上的路径级违规），单次解析契约不变。
-      return { value: parsed, violations: after };
-    } catch {
-      // 非 JSON 字符串：JSON.parse 抛出，回落到原值违规，交模型 repair。
+    const direct = host.validate(schema, payload);
+    if (direct.length === 0) return { value: payload, violations: [] };
+    if (typeof payload === "string") {
+        try {
+            const parsed = JSON.parse(payload);
+            const after = host.validate(schema, parsed);
+            if (after.length === 0) return { value: parsed, violations: [] };
+            // bug：解析成功但解析值仍不过时，曾上报解析前的
+            // `direct` 违规（"$: expected object, got string"），模型面对的其实是已解码对象，无从修起，
+            // 只能反复重引号/双重编码/退化成 "{}"，耗尽 repair 预算。修复违规必须描述模型可修改的值，
+            // 故此处返回 `after`（解析后对象上的路径级违规），单次解析契约不变。
+            return { value: parsed, violations: after };
+        } catch {
+            // 非 JSON 字符串：JSON.parse 抛出，回落到原值违规，交模型 repair。
+        }
     }
-  }
-  return { value: payload, violations: direct };
+    return { value: payload, violations: direct };
 }
 
 export function handleTurnEnded(seam: SubmitSeam, instance: InstanceRef, finalText: string): void {
-  const node = seam.liveNode(instance);
-  if (node === undefined || node.settled) return;
-  if (!node.spec.typed) {
-    seam.settleOk(node, finalText);
-    return;
-  }
-  if (node.nudgesRemaining > 0) {
-    node.nudgesRemaining--;
-    seam.host.driver.respondToSubmit(instance, { kind: "nudge" });
-    seam.host.record({ type: "node-nudged", instance });
-    return;
-  }
-  seam.host.driver.cancelAsk(instance);
-  seam.settleFailed(
-    node,
-    new WorkflowError(
-      "ResultNotSubmitted",
-      "The typed ask ended without a submit_result call, so there is no result.",
-      { finalText },
-    ),
-  );
+    const node = seam.liveNode(instance);
+    if (node === undefined || node.settled) return;
+    if (!node.spec.typed) {
+        seam.settleOk(node, finalText);
+        return;
+    }
+    if (node.nudgesRemaining > 0) {
+        node.nudgesRemaining--;
+        seam.host.driver.respondToSubmit(instance, { kind: "nudge" });
+        seam.host.record({ type: "node-nudged", instance });
+        return;
+    }
+    seam.host.driver.cancelAsk(instance);
+    seam.settleFailed(
+        node,
+        new WorkflowError(
+            "ResultNotSubmitted",
+            "The typed ask ended without a submit_result call, so there is no result.",
+            { finalText },
+        ),
+    );
 }

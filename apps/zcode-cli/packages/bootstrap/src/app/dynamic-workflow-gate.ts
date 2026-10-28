@@ -19,9 +19,9 @@ const SKILL_MANIFEST_FILE_NAME = "SKILL.md";
  * 与灰度无关的技能时，它们也不会被连坐。
  */
 export function collectDynamicWorkflowDisabledSkillPaths(
-  bundledSkillRoots: readonly SkillRoot[],
+    bundledSkillRoots: readonly SkillRoot[],
 ): string[] {
-  return bundledSkillRoots.map((root) =>
-    join(root.path, DYNAMIC_WORKFLOW_SKILL_NAME, SKILL_MANIFEST_FILE_NAME),
-  );
+    return bundledSkillRoots.map((root) =>
+        join(root.path, DYNAMIC_WORKFLOW_SKILL_NAME, SKILL_MANIFEST_FILE_NAME),
+    );
 }

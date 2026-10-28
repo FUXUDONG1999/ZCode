@@ -14,8 +14,8 @@ import type { WorkflowRunActor } from "./workflow-runs.js";
 import { boundedSessionId } from "./workflow-runs-entries.js";
 
 interface ActorRef {
-  siteId: string;
-  ordinal: number;
+    siteId: string;
+    ordinal: number;
 }
 
 /**
@@ -32,26 +32,26 @@ interface ActorRef {
  * actor ref 的事件（world-read）、两个 id 都读不出的老载荷、以及不在表上的子代理：一律不动。
  */
 export function actorsWithTranscriptSession(
-  actors: WorkflowRunActor[],
-  eventType: string,
-  payload: Record<string, unknown>,
-  actorRef: ActorRef | null,
-  envelopeSessionId: string | undefined,
+    actors: WorkflowRunActor[],
+    eventType: string,
+    payload: Record<string, unknown>,
+    actorRef: ActorRef | null,
+    envelopeSessionId: string | undefined,
 ): WorkflowRunActor[] {
-  if (actorRef === null) return actors;
-  const sessionId =
-    eventType === "node-settled" && payload.cached === true
-      ? (boundedSessionId(payload.sourceSessionId) ?? boundedSessionId(envelopeSessionId))
-      : eventType === "node-dispatched"
-        ? boundedSessionId(envelopeSessionId)
-        : undefined;
-  if (sessionId === undefined) return actors;
-  const index = actors.findIndex(
-    (actor) => actor.siteId === actorRef.siteId && actor.ordinal === actorRef.ordinal,
-  );
-  // 没变的保持引用：键级增量按引用先判「这条变了吗」（workflow-runs-delta.ts）。
-  if (index < 0 || actors[index]!.sessionId === sessionId) return actors;
-  const next = actors.slice();
-  next[index] = { ...actors[index]!, sessionId };
-  return next;
+    if (actorRef === null) return actors;
+    const sessionId =
+        eventType === "node-settled" && payload.cached === true
+            ? (boundedSessionId(payload.sourceSessionId) ?? boundedSessionId(envelopeSessionId))
+            : eventType === "node-dispatched"
+              ? boundedSessionId(envelopeSessionId)
+              : undefined;
+    if (sessionId === undefined) return actors;
+    const index = actors.findIndex(
+        (actor) => actor.siteId === actorRef.siteId && actor.ordinal === actorRef.ordinal,
+    );
+    // 没变的保持引用：键级增量按引用先判「这条变了吗」（workflow-runs-delta.ts）。
+    if (index < 0 || actors[index]!.sessionId === sessionId) return actors;
+    const next = actors.slice();
+    next[index] = { ...actors[index]!, sessionId };
+    return next;
 }

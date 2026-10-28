@@ -37,11 +37,11 @@ Single-column, clean layout optimised for Applicant Tracking Systems (ATS). No g
 
 - **Goal: Fill ≥85% of the page height.** Content should reach at least the bottom quarter of the page. A resume that stops at 60% height with blank space below = FAIL.
 - **Adaptive spacing strategy** (apply in order until page is ≥85% filled):
-  1. Increase `spaceBefore` / `spaceAfter` on section headers (from 10pt up to 18pt)
-  2. Increase `leading` (line height) on body text (from 14pt up to 18pt)
-  3. Increase body `fontSize` by 0.5-1pt (from 10pt up to 11.5pt max)
-  4. Add a "Professional Summary" or "Key Achievements" section if none exists
-  5. Increase margins slightly (from 1.5cm up to 2cm) to reduce line width and push content downward
+    1. Increase `spaceBefore` / `spaceAfter` on section headers (from 10pt up to 18pt)
+    2. Increase `leading` (line height) on body text (from 14pt up to 18pt)
+    3. Increase body `fontSize` by 0.5-1pt (from 10pt up to 11.5pt max)
+    4. Add a "Professional Summary" or "Key Achievements" section if none exists
+    5. Increase margins slightly (from 1.5cm up to 2cm) to reduce line width and push content downward
 - **Never leave a visible blank area > 3cm at the bottom of the page.**
 - **If content overflows to page 2**: do the reverse - reduce spacing, tighten leading (min 12pt), reduce fontSize (min 9pt / 12px), before removing content.
 

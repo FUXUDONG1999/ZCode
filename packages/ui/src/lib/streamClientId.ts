@@ -17,15 +17,15 @@ let cachedStreamClientId: string | null = null;
  * 手机端：物理属性指纹（browserPlatform | screen.width | screen.height | colorDepth）
  */
 export function getStreamClientId(): string {
-  if (cachedStreamClientId) {
+    if (cachedStreamClientId) {
+        return cachedStreamClientId;
+    }
+    // Bugfix: 之前每个 hook 实例各自生成 streamClientId，同一台设备在不同页面/实例下
+    // 可能用不同 clientId 发消息，切回任务时会被误判成"另一台设备"。
+    // 这里改成 renderer 进程内单例，确保本设备所有 task 共用同一个 clientId。
+    // 对于手机端，使用物理属性指纹而非随机 UUID，换浏览器/网络/语言/时区均保持稳定。
+    cachedStreamClientId = `renderer:${createUuid()}`;
     return cachedStreamClientId;
-  }
-  // Bugfix: 之前每个 hook 实例各自生成 streamClientId，同一台设备在不同页面/实例下
-  // 可能用不同 clientId 发消息，切回任务时会被误判成"另一台设备"。
-  // 这里改成 renderer 进程内单例，确保本设备所有 task 共用同一个 clientId。
-  // 对于手机端，使用物理属性指纹而非随机 UUID，换浏览器/网络/语言/时区均保持稳定。
-  cachedStreamClientId = `renderer:${createUuid()}`;
-  return cachedStreamClientId;
 }
 
 /**
@@ -33,14 +33,14 @@ export function getStreamClientId(): string {
  * 必须在首次调用 getStreamClientId() 之前调用。
  */
 export function setStreamClientId(deviceId: string): void {
-  const normalizedDeviceId = deviceId.trim();
-  if (!normalizedDeviceId) {
-    // deviceId 注入异常时如果写入空字符串，所有实例会共享 "renderer:"，
-    // owner/observer 过滤会误判成同一客户端。这里回退到进程内稳定随机值，避免跨实例碰撞。
-    cachedStreamClientId = cachedStreamClientId ?? `renderer:fallback-${createUuid()}`;
-    return;
-  }
-  cachedStreamClientId = `renderer:${normalizedDeviceId}`;
+    const normalizedDeviceId = deviceId.trim();
+    if (!normalizedDeviceId) {
+        // deviceId 注入异常时如果写入空字符串，所有实例会共享 "renderer:"，
+        // owner/observer 过滤会误判成同一客户端。这里回退到进程内稳定随机值，避免跨实例碰撞。
+        cachedStreamClientId = cachedStreamClientId ?? `renderer:fallback-${createUuid()}`;
+        return;
+    }
+    cachedStreamClientId = `renderer:${normalizedDeviceId}`;
 }
 
 /**
@@ -48,16 +48,16 @@ export function setStreamClientId(deviceId: string): void {
  * 用于手机端在 platform.getDeviceId() 返回之前自行生成稳定的设备 ID。
  */
 export function generateMobileDeviceFingerprint(): string {
-  const nav = globalThis.navigator as Navigator & { platform?: string };
-  const platform = nav?.platform ?? "";
-  const screenWidth = globalThis.screen?.width;
-  const screenHeight = globalThis.screen?.height;
-  const colorDepth = globalThis.screen?.colorDepth;
-  const parts = [
-    platform,
-    screenWidth !== undefined ? String(screenWidth) : "",
-    screenHeight !== undefined ? String(screenHeight) : "",
-    colorDepth !== undefined ? String(colorDepth) : "",
-  ];
-  return parts.filter(Boolean).join("|");
+    const nav = globalThis.navigator as Navigator & { platform?: string };
+    const platform = nav?.platform ?? "";
+    const screenWidth = globalThis.screen?.width;
+    const screenHeight = globalThis.screen?.height;
+    const colorDepth = globalThis.screen?.colorDepth;
+    const parts = [
+        platform,
+        screenWidth !== undefined ? String(screenWidth) : "",
+        screenHeight !== undefined ? String(screenHeight) : "",
+        colorDepth !== undefined ? String(colorDepth) : "",
+    ];
+    return parts.filter(Boolean).join("|");
 }

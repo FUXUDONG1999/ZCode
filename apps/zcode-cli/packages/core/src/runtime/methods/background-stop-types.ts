@@ -13,28 +13,28 @@ import type { RuntimeTaskSnapshot, RuntimeTaskType } from "../../runtime-task/re
 import type { TraceContext } from "../deps.js";
 
 export type RuntimeBackgroundStopFailureReason =
-  | "background_task_cancel_not_supported"
-  | "background_task_not_found"
-  | "background_task_not_running";
+    | "background_task_cancel_not_supported"
+    | "background_task_not_found"
+    | "background_task_not_running";
 
 export type RuntimeBackgroundStopStatus = BackgroundTaskInfoStatus | RuntimeTaskSnapshot["status"];
 
 export type RuntimeBackgroundStopResult =
-  | {
-      alreadyTerminal?: boolean;
-      command?: string;
-      ok: true;
-      status: RuntimeBackgroundStopStatus;
-      taskId: string;
-      type: RuntimeTaskType;
-    }
-  | {
-      reason: RuntimeBackgroundStopFailureReason;
-      ok: false;
-      status?: RuntimeBackgroundStopStatus;
-      taskId: string;
-      type?: RuntimeTaskType;
-    };
+    | {
+          alreadyTerminal?: boolean;
+          command?: string;
+          ok: true;
+          status: RuntimeBackgroundStopStatus;
+          taskId: string;
+          type: RuntimeTaskType;
+      }
+    | {
+          reason: RuntimeBackgroundStopFailureReason;
+          ok: false;
+          status?: RuntimeBackgroundStopStatus;
+          taskId: string;
+          type?: RuntimeTaskType;
+      };
 
 /**
  * GUI / 后台面板经
@@ -45,20 +45,20 @@ export type RuntimeBackgroundStopResult =
 export type RuntimeBackgroundStopInitiator = "user" | "model";
 
 export interface RuntimeBackgroundStopOptions {
-  initiator?: RuntimeBackgroundStopInitiator;
-  strict?: boolean;
-  traceContext?: TraceContext;
+    initiator?: RuntimeBackgroundStopInitiator;
+    strict?: boolean;
+    traceContext?: TraceContext;
 }
 
 export interface RuntimeBackgroundStopTarget {
-  currentStatus: RuntimeBackgroundStopStatus | undefined;
-  existing: BackgroundTaskInfo | undefined;
-  registryTask: RuntimeTaskSnapshot | undefined;
-  taskId: string;
-  taskType: RuntimeTaskType | undefined;
+    currentStatus: RuntimeBackgroundStopStatus | undefined;
+    existing: BackgroundTaskInfo | undefined;
+    registryTask: RuntimeTaskSnapshot | undefined;
+    taskId: string;
+    taskType: RuntimeTaskType | undefined;
 }
 
 /** 已确定 taskType 的停止目标；各分支模块只接受这一形态。 */
 export type TypedRuntimeBackgroundStopTarget = RuntimeBackgroundStopTarget & {
-  taskType: RuntimeTaskType;
+    taskType: RuntimeTaskType;
 };

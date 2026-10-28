@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { SHORTCUT_COMMANDS, type ShortcutCommandId } from "@zcode/shared";
 import {
-  isEditableShortcutEventTarget,
-  isShiftOnlyPrintableBinding,
-  isShortcutRecordingActive,
-  matchesShortcutBinding,
+    isEditableShortcutEventTarget,
+    isShiftOnlyPrintableBinding,
+    isShortcutRecordingActive,
+    matchesShortcutBinding,
 } from "@/shortcuts/bindings.js";
 import { useEffectiveShortcutBindings } from "@/shortcuts/useShortcutBindings.js";
 
@@ -20,57 +20,57 @@ export type AppKeyboardHandlers = Partial<Record<ShortcutCommandId, (() => void)
  * - 监听只挂一次，handlers/生效表经 ref 透传 —— 设置页改键后下一次按键即按新键位分发。
  */
 export function useAppKeyboard(handlers: AppKeyboardHandlers) {
-  const effective = useEffectiveShortcutBindings();
-  const stateRef = useRef({ handlers, effective });
-  stateRef.current = { handlers, effective };
+    const effective = useEffectiveShortcutBindings();
+    const stateRef = useRef({ handlers, effective });
+    stateRef.current = { handlers, effective };
 
-  useEffect(() => {
-    function handleWindowKeydown(event: KeyboardEvent) {
-      if (event.repeat || event.isComposing) {
-        return;
-      }
-      // 录制态短路：录制监听注册晚于本监听（同阶段先注册先执行），不短路的话
-      // 录制按下的组合会先触发原命令，改键永远不成功（见 setShortcutRecordingActive 注释）。
-      if (isShortcutRecordingActive()) {
-        return;
-      }
+    useEffect(() => {
+        function handleWindowKeydown(event: KeyboardEvent) {
+            if (event.repeat || event.isComposing) {
+                return;
+            }
+            // 录制态短路：录制监听注册晚于本监听（同阶段先注册先执行），不短路的话
+            // 录制按下的组合会先触发原命令，改键永远不成功（见 setShortcutRecordingActive 注释）。
+            if (isShortcutRecordingActive()) {
+                return;
+            }
 
-      const { handlers: currentHandlers, effective: currentEffective } = stateRef.current;
-      // 纯 Shift+可打印键绑定（如 Shift+f）与「输入大写字母」是同一物理事件，
-      // 焦点在可编辑元素（聊天输入框/搜索框/终端）时跳过这类绑定，否则用户打不出对应大写字母。
-      const editableTarget = isEditableShortcutEventTarget(event.target);
-      for (const entry of SHORTCUT_COMMANDS) {
-        if (entry.channel !== "window") {
-          continue;
+            const { handlers: currentHandlers, effective: currentEffective } = stateRef.current;
+            // 纯 Shift+可打印键绑定（如 Shift+f）与「输入大写字母」是同一物理事件，
+            // 焦点在可编辑元素（聊天输入框/搜索框/终端）时跳过这类绑定，否则用户打不出对应大写字母。
+            const editableTarget = isEditableShortcutEventTarget(event.target);
+            for (const entry of SHORTCUT_COMMANDS) {
+                if (entry.channel !== "window") {
+                    continue;
+                }
+                // composer 作用域命令由输入框的 Lexical 插件消费，全局分发零感知
+                if (entry.scope === "composer") {
+                    continue;
+                }
+                const handler = currentHandlers[entry.id];
+                if (!handler) {
+                    continue;
+                }
+                const bindings = currentEffective[entry.id];
+                if (!bindings || bindings.length === 0) {
+                    continue;
+                }
+                for (const binding of bindings) {
+                    if (editableTarget && isShiftOnlyPrintableBinding(binding)) {
+                        continue;
+                    }
+                    if (matchesShortcutBinding(event, binding)) {
+                        event.preventDefault();
+                        handler();
+                        return;
+                    }
+                }
+            }
         }
-        // composer 作用域命令由输入框的 Lexical 插件消费，全局分发零感知
-        if (entry.scope === "composer") {
-          continue;
-        }
-        const handler = currentHandlers[entry.id];
-        if (!handler) {
-          continue;
-        }
-        const bindings = currentEffective[entry.id];
-        if (!bindings || bindings.length === 0) {
-          continue;
-        }
-        for (const binding of bindings) {
-          if (editableTarget && isShiftOnlyPrintableBinding(binding)) {
-            continue;
-          }
-          if (matchesShortcutBinding(event, binding)) {
-            event.preventDefault();
-            handler();
-            return;
-          }
-        }
-      }
-    }
 
-    window.addEventListener("keydown", handleWindowKeydown, true);
-    return () => {
-      window.removeEventListener("keydown", handleWindowKeydown, true);
-    };
-  }, []);
+        window.addEventListener("keydown", handleWindowKeydown, true);
+        return () => {
+            window.removeEventListener("keydown", handleWindowKeydown, true);
+        };
+    }, []);
 }

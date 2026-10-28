@@ -4,15 +4,15 @@ import type { ZCodePersistedMessage, ZCodeTaskPersistStatus } from "@zcode/share
 export type ClaudeNativeImportSourceProvider = "claude";
 
 export interface ClaudeNativeImportedSessionSource {
-  provider: ClaudeNativeImportSourceProvider;
-  sessionId: string;
-  workspacePath: string;
-  sourcePath: string;
-  createdAt: number;
-  updatedAt: number;
-  title?: string;
-  model?: string;
-  status?: ZCodeTaskPersistStatus;
-  migrationSource?: "claudeCode";
-  messages: ZCodePersistedMessage[];
+    provider: ClaudeNativeImportSourceProvider;
+    sessionId: string;
+    workspacePath: string;
+    sourcePath: string;
+    createdAt: number;
+    updatedAt: number;
+    title?: string;
+    model?: string;
+    status?: ZCodeTaskPersistStatus;
+    migrationSource?: "claudeCode";
+    messages: ZCodePersistedMessage[];
 }

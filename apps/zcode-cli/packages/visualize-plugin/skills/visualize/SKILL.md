@@ -77,9 +77,9 @@ Read this file in full before authoring. Reread truncated ranges in smaller call
 - Available theme variables include `--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--primary`, `--primary-foreground`, `--secondary`, `--secondary-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground`, `--destructive`, `--border`, `--input`, `--ring`, `--blue`, `--orange`, `--green`, `--red`, `--purple`, and `--yellow`. Use `currentColor` inside SVG.
 - Never add decorative borders, outlines, or strokes to progress tracks, meters, bars, stacked segments, or other filled quantitative marks. Use a subtle neutral or translucent track and distinguish marks with fill, contrast, spacing, or opacity.
 - Use `--viz-series-1` for one measure or active state. Use `--viz-series-2` through `--viz-series-6` only for important persistent category, series, or status identity; never give every peer a different color by default.
-  - For categorical tiles or nodes, prefer a soft low-opacity series fill with a neutral or transparent border; never color every outline.
-  - Keep mappings stable and pair color with labels, shapes, or line styles.
-  - Secondary series colors are theme-derived; never assume hues or use them decoratively.
+    - For categorical tiles or nodes, prefer a soft low-opacity series fill with a neutral or transparent border; never color every outline.
+    - Keep mappings stable and pair color with labels, shapes, or line styles.
+    - Secondary series colors are theme-derived; never assume hues or use them decoratively.
 - When color encodes a category or series, apply it consistently to the corresponding visual marks—not just the legend—and keep large-area fills subtle.
 - Use series colors only for chart lines, marks, and legend swatches. Keep values, axis text, and direct labels in `--foreground` or `--muted-foreground`.
 - Keep chart grids and inactive structure thin and neutral. Use 1-2px neutral structural paths; never thicken, dash, or double-stroke the whole structure.
@@ -204,26 +204,26 @@ Use the host typography scale: body and controls use the body size; h1 is body +
 
 ```html
 <div class="nav nav-pills" role="tablist" aria-label="Platform">
-  <button
-    class="nav-link active"
-    id="mac"
-    role="tab"
-    aria-controls="mac-panel"
-    aria-selected="true"
-    type="button"
-  >
-    macOS
-  </button>
-  <button
-    class="nav-link"
-    id="linux"
-    role="tab"
-    aria-controls="linux-panel"
-    aria-selected="false"
-    type="button"
-  >
-    Linux
-  </button>
+    <button
+        class="nav-link active"
+        id="mac"
+        role="tab"
+        aria-controls="mac-panel"
+        aria-selected="true"
+        type="button"
+    >
+        macOS
+    </button>
+    <button
+        class="nav-link"
+        id="linux"
+        role="tab"
+        aria-controls="linux-panel"
+        aria-selected="false"
+        type="button"
+    >
+        Linux
+    </button>
 </div>
 <div id="mac-panel" role="tabpanel" aria-labelledby="mac">macOS content</div>
 <div id="linux-panel" role="tabpanel" aria-labelledby="linux" hidden>Linux content</div>
@@ -280,9 +280,9 @@ Use the host typography scale: body and controls use the body size; h1 is body +
 
 - Use the sandbox-provided global `lucide`. Add an icon name with `data-lucide`:
 
-  ```html
-  <i data-lucide="search" aria-hidden="true"></i>
-  ```
+    ```html
+    <i data-lucide="search" aria-hidden="true"></i>
+    ```
 
 - Never author inline icon SVG or icon paths. Use only supplied Lucide names; the sandbox replaces each placeholder with a host-sized `currentColor` SVG. Reserve authored inline SVG for charts and data marks.
 - Mark decorative icons `aria-hidden="true"`. Put action icons inside labeled controls; use a visible label or `aria-label` for icon-only actions.

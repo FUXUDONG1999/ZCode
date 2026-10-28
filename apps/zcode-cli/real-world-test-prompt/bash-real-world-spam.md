@@ -11,8 +11,8 @@
 5. 不要修改代码，不要提交，不要清理临时文件。
 6. 不要给 semantic exit 相关命令追加 `echo $?`、`true`、`echo done` 或任何会覆盖最终 exit code 的语句。
 7. 执行完成后，只回复两行：
-   - `Executed: ...`
-   - `Not executed: ...`
+    - `Executed: ...`
+    - `Not executed: ...`
 
 ## A. 基础能力
 

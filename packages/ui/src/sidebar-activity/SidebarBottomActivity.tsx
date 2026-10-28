@@ -12,12 +12,12 @@ import type { GlobalNoticeStore } from "@/global-notice/globalNoticeStore.js";
  * 两者都不可见时 GlobalNoticeSurface 返回 null，槽位不产生多余 DOM。
  */
 export function SidebarBottomActivity({
-  noticeStore,
+    noticeStore,
 }: {
-  noticeStore?: GlobalNoticeStore | null;
+    noticeStore?: GlobalNoticeStore | null;
 } = {}) {
-  const bannerVisible = useMarketingBannerVisible();
-  if (bannerVisible) return <MarketingBanner />;
-  // 未注入时走 GlobalNoticeSurface 默认的 browserGlobalNoticeStore。
-  return <GlobalNoticeSurface store={noticeStore ?? undefined} />;
+    const bannerVisible = useMarketingBannerVisible();
+    if (bannerVisible) return <MarketingBanner />;
+    // 未注入时走 GlobalNoticeSurface 默认的 browserGlobalNoticeStore。
+    return <GlobalNoticeSurface store={noticeStore ?? undefined} />;
 }

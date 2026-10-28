@@ -14,19 +14,19 @@
 //      run-settled 载荷上裁定——dynamic-workflow-run.port.ts 的既有裁定「渲染服务端布尔」照旧。
 
 import {
-  reduceWorkflowRunsState,
-  workflowRunStepCounts as sharedWorkflowRunStepCounts,
-  type WorkflowRunActor,
-  type WorkflowRunUsage,
-  type WorkflowRunProgressEnvelope,
-  type WorkflowRunState,
-  type WorkflowRunsState,
+    reduceWorkflowRunsState,
+    workflowRunStepCounts as sharedWorkflowRunStepCounts,
+    type WorkflowRunActor,
+    type WorkflowRunUsage,
+    type WorkflowRunProgressEnvelope,
+    type WorkflowRunState,
+    type WorkflowRunsState,
 } from "@zcode/shared/zcode-protocol-v4";
 
 /** log 尾的界：条数与单条长度都限，避免一个话多的 run 把镜像吃成无界。 */
 const TUI_WORKFLOW_LOG_TAIL_LIMITS = {
-  maxEntries: 10,
-  maxEntryLength: 200,
+    maxEntries: 10,
+    maxEntryLength: 200,
 } as const;
 
 /**
@@ -36,22 +36,22 @@ const TUI_WORKFLOW_LOG_TAIL_LIMITS = {
  * 服务端还没带上时就是 undefined，渲染侧一律退回 runId，绝不在这里造一个假 label。
  */
 export type TuiWorkflowRunSeed = {
-  runId: string;
-  label?: string;
-  updatedAt?: number;
+    runId: string;
+    label?: string;
+    updatedAt?: number;
 };
 
 export type TuiWorkflowMirror = {
-  /** 共享 reducer 维护的权威运行态。 */
-  state: WorkflowRunsState;
-  logTailByRunId: Readonly<Record<string, readonly string[]>>;
-  seedByRunId: Readonly<Record<string, TuiWorkflowRunSeed>>;
+    /** 共享 reducer 维护的权威运行态。 */
+    state: WorkflowRunsState;
+    logTailByRunId: Readonly<Record<string, readonly string[]>>;
+    seedByRunId: Readonly<Record<string, TuiWorkflowRunSeed>>;
 };
 
 export const EMPTY_TUI_WORKFLOW_MIRROR: TuiWorkflowMirror = {
-  state: { revision: 0, runs: [] },
-  logTailByRunId: {},
-  seedByRunId: {},
+    state: { revision: 0, runs: [] },
+    logTailByRunId: {},
+    seedByRunId: {},
 };
 
 /**
@@ -61,17 +61,17 @@ export const EMPTY_TUI_WORKFLOW_MIRROR: TuiWorkflowMirror = {
  * 共享 reducer 的「null = 语义无变化」契约在这里落成「不重绘」，不需要额外的相等判断。
  */
 export function applyWorkflowProgressToMirror(
-  mirror: TuiWorkflowMirror,
-  envelope: WorkflowRunProgressEnvelope,
+    mirror: TuiWorkflowMirror,
+    envelope: WorkflowRunProgressEnvelope,
 ): TuiWorkflowMirror {
-  const state = reduceWorkflowRunsState(mirror.state, envelope);
-  const logTailByRunId = appendWorkflowLogTail(mirror.logTailByRunId, envelope);
-  if (state === null && logTailByRunId === mirror.logTailByRunId) return mirror;
-  return {
-    ...mirror,
-    ...(state === null ? {} : { state }),
-    logTailByRunId,
-  };
+    const state = reduceWorkflowRunsState(mirror.state, envelope);
+    const logTailByRunId = appendWorkflowLogTail(mirror.logTailByRunId, envelope);
+    if (state === null && logTailByRunId === mirror.logTailByRunId) return mirror;
+    return {
+        ...mirror,
+        ...(state === null ? {} : { state }),
+        logTailByRunId,
+    };
 }
 
 /**
@@ -81,20 +81,20 @@ export function applyWorkflowProgressToMirror(
  * 给出，与重启前逐字节一致；摘要没有的东西（label 之外）这里一个也不造。
  */
 export function seedWorkflowMirror(
-  mirror: TuiWorkflowMirror,
-  seeds: readonly TuiWorkflowRunSeed[],
+    mirror: TuiWorkflowMirror,
+    seeds: readonly TuiWorkflowRunSeed[],
 ): TuiWorkflowMirror {
-  if (seeds.length === 0) return mirror;
-  const seedByRunId = { ...mirror.seedByRunId };
-  let changed = false;
-  for (const seed of seeds) {
-    if (!seed.runId) continue;
-    const existing = seedByRunId[seed.runId];
-    if (existing && sameSeed(existing, seed)) continue;
-    seedByRunId[seed.runId] = seed;
-    changed = true;
-  }
-  return changed ? { ...mirror, seedByRunId } : mirror;
+    if (seeds.length === 0) return mirror;
+    const seedByRunId = { ...mirror.seedByRunId };
+    let changed = false;
+    for (const seed of seeds) {
+        if (!seed.runId) continue;
+        const existing = seedByRunId[seed.runId];
+        if (existing && sameSeed(existing, seed)) continue;
+        seedByRunId[seed.runId] = seed;
+        changed = true;
+    }
+    return changed ? { ...mirror, seedByRunId } : mirror;
 }
 
 /**
@@ -108,29 +108,29 @@ export function seedWorkflowMirror(
  * 本函数只保留 TUI 的字段名（卡片与 i18n 说的是 nodesSettled / nodesTotal）。
  */
 export function workflowRunStepCounts(run: WorkflowRunState): {
-  nodesSettled: number;
-  nodesTotal: number;
+    nodesSettled: number;
+    nodesTotal: number;
 } {
-  const { total, settled } = sharedWorkflowRunStepCounts(run);
-  return { nodesSettled: settled, nodesTotal: total };
+    const { total, settled } = sharedWorkflowRunStepCounts(run);
+    return { nodesSettled: settled, nodesTotal: total };
 }
 
 /** 卡片渲染需要的全部事实——让视图成为 props 的纯函数（TUI 测试按函数式调用组件）。 */
 export type TuiWorkflowCard = {
-  runId: string;
-  status: WorkflowRunState["status"];
-  /** `stopped` 的原因；reducer 从 run-settled 载荷搬运。 */
-  stopReason?: WorkflowRunState["stopReason"];
-  nodesSettled: number;
-  nodesTotal: number;
-  label?: string;
-  resumable?: boolean;
-  usage?: WorkflowRunUsage;
-  actors: readonly WorkflowRunActor[];
-  logTail: readonly string[];
-  error?: string;
-  resultPreview?: string;
-  truncated?: boolean;
+    runId: string;
+    status: WorkflowRunState["status"];
+    /** `stopped` 的原因；reducer 从 run-settled 载荷搬运。 */
+    stopReason?: WorkflowRunState["stopReason"];
+    nodesSettled: number;
+    nodesTotal: number;
+    label?: string;
+    resumable?: boolean;
+    usage?: WorkflowRunUsage;
+    actors: readonly WorkflowRunActor[];
+    logTail: readonly string[];
+    error?: string;
+    resultPreview?: string;
+    truncated?: boolean;
 };
 
 /**
@@ -139,60 +139,60 @@ export type TuiWorkflowCard = {
  * 冷回放经同一个 reducer），补种只给展示名。
  */
 export function buildTuiWorkflowCardIndex(
-  mirror: TuiWorkflowMirror,
+    mirror: TuiWorkflowMirror,
 ): ReadonlyMap<string, TuiWorkflowCard> {
-  const byToolCallId = new Map<string, TuiWorkflowCard>();
-  for (const run of mirror.state.runs) {
-    // 没有 toolCallId 的 run 没有可联接的卡片，不进表。
-    if (!run.toolCallId) continue;
-    byToolCallId.set(run.toolCallId, cardFromRun(run, mirror));
-  }
-  return byToolCallId;
+    const byToolCallId = new Map<string, TuiWorkflowCard>();
+    for (const run of mirror.state.runs) {
+        // 没有 toolCallId 的 run 没有可联接的卡片，不进表。
+        if (!run.toolCallId) continue;
+        byToolCallId.set(run.toolCallId, cardFromRun(run, mirror));
+    }
+    return byToolCallId;
 }
 
 function cardFromRun(run: WorkflowRunState, mirror: TuiWorkflowMirror): TuiWorkflowCard {
-  const { nodesSettled, nodesTotal } = workflowRunStepCounts(run);
-  const seed = mirror.seedByRunId[run.runId];
-  return {
-    runId: run.runId,
-    status: run.status,
-    ...(run.stopReason === undefined ? {} : { stopReason: run.stopReason }),
-    nodesSettled,
-    nodesTotal,
-    // label 只有服务端知道；投影条目不带它，命中补种就用补种的。
-    ...(seed?.label === undefined ? {} : { label: seed.label }),
-    // resumable 是状态位（CLI 在 run-settled 载荷上裁定，reducer 搬运），TUI 不重推导。
-    ...(run.resumable === undefined ? {} : { resumable: run.resumable }),
-    usage: run.usage,
-    actors: run.actors,
-    logTail: mirror.logTailByRunId[run.runId] ?? [],
-    ...(run.error === undefined ? {} : { error: run.error }),
-    ...(run.resultPreview === undefined ? {} : { resultPreview: run.resultPreview }),
-    ...(run.truncated === undefined ? {} : { truncated: run.truncated }),
-  };
+    const { nodesSettled, nodesTotal } = workflowRunStepCounts(run);
+    const seed = mirror.seedByRunId[run.runId];
+    return {
+        runId: run.runId,
+        status: run.status,
+        ...(run.stopReason === undefined ? {} : { stopReason: run.stopReason }),
+        nodesSettled,
+        nodesTotal,
+        // label 只有服务端知道；投影条目不带它，命中补种就用补种的。
+        ...(seed?.label === undefined ? {} : { label: seed.label }),
+        // resumable 是状态位（CLI 在 run-settled 载荷上裁定，reducer 搬运），TUI 不重推导。
+        ...(run.resumable === undefined ? {} : { resumable: run.resumable }),
+        usage: run.usage,
+        actors: run.actors,
+        logTail: mirror.logTailByRunId[run.runId] ?? [],
+        ...(run.error === undefined ? {} : { error: run.error }),
+        ...(run.resultPreview === undefined ? {} : { resultPreview: run.resultPreview }),
+        ...(run.truncated === undefined ? {} : { truncated: run.truncated }),
+    };
 }
 
 function appendWorkflowLogTail(
-  current: Readonly<Record<string, readonly string[]>>,
-  envelope: WorkflowRunProgressEnvelope,
+    current: Readonly<Record<string, readonly string[]>>,
+    envelope: WorkflowRunProgressEnvelope,
 ): Readonly<Record<string, readonly string[]>> {
-  if (envelope.eventType !== "log" || !envelope.runId) return current;
-  const message = logMessage(envelope.payload);
-  if (message === undefined) return current;
-  const previous = current[envelope.runId] ?? [];
-  const appended = [...previous, message].slice(-TUI_WORKFLOW_LOG_TAIL_LIMITS.maxEntries);
-  return { ...current, [envelope.runId]: appended };
+    if (envelope.eventType !== "log" || !envelope.runId) return current;
+    const message = logMessage(envelope.payload);
+    if (message === undefined) return current;
+    const previous = current[envelope.runId] ?? [];
+    const appended = [...previous, message].slice(-TUI_WORKFLOW_LOG_TAIL_LIMITS.maxEntries);
+    return { ...current, [envelope.runId]: appended };
 }
 
 function logMessage(payload: Record<string, unknown> | undefined): string | undefined {
-  if (!payload) return undefined;
-  const raw = payload.message;
-  if (typeof raw !== "string") return undefined;
-  const collapsed = raw.replace(/\s+/gu, " ").trim();
-  if (collapsed.length === 0) return undefined;
-  return collapsed.slice(0, TUI_WORKFLOW_LOG_TAIL_LIMITS.maxEntryLength);
+    if (!payload) return undefined;
+    const raw = payload.message;
+    if (typeof raw !== "string") return undefined;
+    const collapsed = raw.replace(/\s+/gu, " ").trim();
+    if (collapsed.length === 0) return undefined;
+    return collapsed.slice(0, TUI_WORKFLOW_LOG_TAIL_LIMITS.maxEntryLength);
 }
 
 function sameSeed(left: TuiWorkflowRunSeed, right: TuiWorkflowRunSeed): boolean {
-  return left.label === right.label && left.updatedAt === right.updatedAt;
+    return left.label === right.label && left.updatedAt === right.updatedAt;
 }

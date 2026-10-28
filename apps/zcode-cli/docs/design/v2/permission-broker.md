@@ -53,9 +53,9 @@ Tool 执行前的权限流程：
    `permission-responder-race.md`；broker 必须在 `requestPermission` 调用内同步建立
    应答通道，abort 时清理 pending 提示）。
 5. 客户端返回：
-   - `allow`：记录 `permission_resolved`，用原始输入执行 tool。
-   - `modify`：记录 `permission_resolved`，用 `modifiedInput` 执行 tool。
-   - `deny`：记录 `permission_resolved`，tool 不执行，返回结构化 `permission_denied` 错误。
+    - `allow`：记录 `permission_resolved`，用原始输入执行 tool。
+    - `modify`：记录 `permission_resolved`，用 `modifiedInput` 执行 tool。
+    - `deny`：记录 `permission_resolved`，tool 不执行，返回结构化 `permission_denied` 错误。
 6. 如果客户端返回 `permissionUpdates`，core 在执行 tool 前先写入 project permission ruleset，并更新当前权限判断上下文。
 
 `ask` 不是错误态。只有客户端拒绝、请求超时、执行被取消或 broker 自身失败时，才转换成 tool error。

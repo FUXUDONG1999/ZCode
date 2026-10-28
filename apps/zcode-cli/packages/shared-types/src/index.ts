@@ -1,16 +1,16 @@
 export type JsonValue =
-  | boolean
-  | null
-  | number
-  | string
-  | JsonValue[]
-  | { [key: string]: JsonValue };
+    | boolean
+    | null
+    | number
+    | string
+    | JsonValue[]
+    | { [key: string]: JsonValue };
 
 export type RunContext = {
-  argv: string[];
-  stderr: NodeJS.WriteStream;
-  stdin: NodeJS.ReadStream;
-  stdout: NodeJS.WriteStream;
+    argv: string[];
+    stderr: NodeJS.WriteStream;
+    stdin: NodeJS.ReadStream;
+    stdout: NodeJS.WriteStream;
 };
 
 export type GlobalLocale = "auto" | "en-US" | "zh-CN";
@@ -28,24 +28,24 @@ export type GlobalDetectedLocale = Exclude<GlobalLocale, "auto">;
 export type GlobalOutputFormat = "text" | "json" | "stream-json";
 
 export type GlobalOptions = {
-  browserExecutable?: string;
-  browserUse?: "headless";
-  detectedLocale?: GlobalDetectedLocale;
-  force: boolean;
-  json: boolean;
-  locale?: GlobalLocale;
-  memoryBench?: boolean;
-  noColor: boolean;
-  outputFormat?: GlobalOutputFormat;
-  verbose: boolean;
+    browserExecutable?: string;
+    browserUse?: "headless";
+    detectedLocale?: GlobalDetectedLocale;
+    force: boolean;
+    json: boolean;
+    locale?: GlobalLocale;
+    memoryBench?: boolean;
+    noColor: boolean;
+    outputFormat?: GlobalOutputFormat;
+    verbose: boolean;
 };
 
 export type RuntimeInfo = {
-  arch: NodeJS.Architecture;
-  cwd: string;
-  execPath: string;
-  node: string;
-  platform: NodeJS.Platform;
-  sea: boolean;
-  versions: NodeJS.ProcessVersions;
+    arch: NodeJS.Architecture;
+    cwd: string;
+    execPath: string;
+    node: string;
+    platform: NodeJS.Platform;
+    sea: boolean;
+    versions: NodeJS.ProcessVersions;
 };

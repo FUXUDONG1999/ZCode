@@ -230,24 +230,24 @@ P0 enablement is config-driven:
 
 ```json
 {
-  "plugins": {
-    "enabled": true,
-    "dirs": ["/absolute/path/to/plugin"],
-    "enabledPlugins": {
-      "android-emulator@zcode-plugins-official": true,
-      "ios-simulator@zcode-plugins-official": true,
-      "restore-legacy-sessions@zcode-plugins-official": true
-    },
-    "options": {
-      "android-emulator@zcode-plugins-official": {
-        "default_avd": "medium_phone",
-        "api_level": "35"
-      },
-      "ios-simulator@zcode-plugins-official": {
-        "default_device": "iPhone 16"
-      }
+    "plugins": {
+        "enabled": true,
+        "dirs": ["/absolute/path/to/plugin"],
+        "enabledPlugins": {
+            "android-emulator@zcode-plugins-official": true,
+            "ios-simulator@zcode-plugins-official": true,
+            "restore-legacy-sessions@zcode-plugins-official": true
+        },
+        "options": {
+            "android-emulator@zcode-plugins-official": {
+                "default_avd": "medium_phone",
+                "api_level": "35"
+            },
+            "ios-simulator@zcode-plugins-official": {
+                "default_device": "iPhone 16"
+            }
+        }
     }
-  }
 }
 ```
 
@@ -376,14 +376,14 @@ MCP config file. It is valid inside `.zcode-plugin/plugin.json`, for example:
 
 ```json
 {
-  "name": "ios-simulator",
-  "mcpServers": {
-    "ios-simulator": {
-      "command": "node",
-      "args": ["${ZCODE_PLUGIN_ROOT}/dist/mcp/server.js"],
-      "cwd": "${ZCODE_PROJECT_DIR}"
+    "name": "ios-simulator",
+    "mcpServers": {
+        "ios-simulator": {
+            "command": "node",
+            "args": ["${ZCODE_PLUGIN_ROOT}/dist/mcp/server.js"],
+            "cwd": "${ZCODE_PROJECT_DIR}"
+        }
     }
-  }
 }
 ```
 
@@ -395,12 +395,12 @@ A `.mcp.json` file may use Claude's wrapper shape:
 
 ```json
 {
-  "mcpServers": {
-    "ios-simulator": {
-      "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/dist/mcp/server.js"]
+    "mcpServers": {
+        "ios-simulator": {
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/dist/mcp/server.js"]
+        }
     }
-  }
 }
 ```
 

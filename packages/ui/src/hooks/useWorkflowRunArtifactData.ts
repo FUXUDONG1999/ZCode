@@ -29,11 +29,11 @@ import { useV4Conversation } from "@/v4/V4ConversationContext.js";
 const MAX_FOLLOW_UP_ROUNDS = 8;
 
 interface WorkflowRunArtifactDataState {
-  items: readonly ArtifactItem[];
-  loading: boolean;
-  /** 会话不支持产物取数（老 CLI）：看板画不出来，与「还没有数据」区分。 */
-  unavailable: boolean;
-  error: string | null;
+    items: readonly ArtifactItem[];
+    loading: boolean;
+    /** 会话不支持产物取数（老 CLI）：看板画不出来，与「还没有数据」区分。 */
+    unavailable: boolean;
+    error: string | null;
 }
 
 /**
@@ -41,8 +41,8 @@ interface WorkflowRunArtifactDataState {
  * message（`unrecognized_keys` 与键名）。认出它就退回取整条 item 重试。
  */
 function isFieldsParamUnsupported(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.includes("unrecognized_keys") && message.includes("fields");
+    const message = error instanceof Error ? error.message : String(error);
+    return message.includes("unrecognized_keys") && message.includes("fields");
 }
 
 /**
@@ -56,180 +56,192 @@ const FIELD_KEY_SEPARATOR = "\u0000";
 
 /** 能力缺席的判据同 `useWorkflowRunArtifacts`：跨 JSON-RPC 之后只剩 message 可靠。 */
 function isWorkflowRunArtifactDataCapabilityMissing(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.includes("capabilityUnsupported") || message.includes("ArtifactItems");
+    const message = error instanceof Error ? error.message : String(error);
+    return message.includes("capabilityUnsupported") || message.includes("ArtifactItems");
 }
 
 function emptyState(): WorkflowRunArtifactDataState {
-  return { items: [], loading: false, unavailable: false, error: null };
+    return { items: [], loading: false, unavailable: false, error: null };
 }
 
 export function useWorkflowRunArtifactData(options: {
-  sessionId: string;
-  runId: string;
-  artifactId: string;
-  /**
-   * 刷新信号 = 投影里该 id 的 `itemCount`。抬升即增量拉取；它可能**多算一个**
-   * （3a 记录的有意取舍），所以只当「也许还有」用，绝不当条目数用——真正的条数是
-   * `items.length`。
-   */
-  itemCount?: number;
-  enabled?: boolean;
-  /**
-   * 看板会读到的字段路径（`artifactPresetFieldPaths`）。给了它就只让 CLI 取这些字段，一条 1 MiB
-   * 的 item 不会整条进渲染器；缺省取整条 item。
-   */
-  fields?: readonly string[];
+    sessionId: string;
+    runId: string;
+    artifactId: string;
+    /**
+     * 刷新信号 = 投影里该 id 的 `itemCount`。抬升即增量拉取；它可能**多算一个**
+     * （3a 记录的有意取舍），所以只当「也许还有」用，绝不当条目数用——真正的条数是
+     * `items.length`。
+     */
+    itemCount?: number;
+    enabled?: boolean;
+    /**
+     * 看板会读到的字段路径（`artifactPresetFieldPaths`）。给了它就只让 CLI 取这些字段，一条 1 MiB
+     * 的 item 不会整条进渲染器；缺省取整条 item。
+     */
+    fields?: readonly string[];
 }): WorkflowRunArtifactDataState {
-  const { workflowRunArtifactData } = useV4Conversation();
-  const [state, setState] = useState<WorkflowRunArtifactDataState>(emptyState);
-  const requestVersionRef = useRef(0);
-  const inFlightRef = useRef(false);
-  /** 一次拉取途中又来了新的刷新信号：收尾前必须补拉，否则最后那个点永远不出现。 */
-  const pendingRef = useRef(false);
-  /**
-   * 已收到的最后一条的 `sequence`——增量读的游标。
-   *
-   * 刻意用 ref 而不是从 `state.items` 末尾现读：`setState` 之后 `state` 要到下一次渲染
-   * 才更新，而补拉发生在**同一个 async 函数里**，读 state 会拿到上一轮的末尾并把同一段
-   * sequence 追加两次。
-   */
-  const cursorRef = useRef<number | undefined>(undefined);
-  /**
-   * 上一次据以续拉的 `itemCount`。`undefined` = 这一轮还没定基线（挂载 / 刚切产物），
-   * 那一帧的取数归整份重取管，增量 effect 只记下基线就退场——否则每挂载一个看板都会白发
-   * 一次必然返回空的增量查询。
-   */
-  const lastDrainedCountRef = useRef<number | undefined>(undefined);
+    const { workflowRunArtifactData } = useV4Conversation();
+    const [state, setState] = useState<WorkflowRunArtifactDataState>(emptyState);
+    const requestVersionRef = useRef(0);
+    const inFlightRef = useRef(false);
+    /** 一次拉取途中又来了新的刷新信号：收尾前必须补拉，否则最后那个点永远不出现。 */
+    const pendingRef = useRef(false);
+    /**
+     * 已收到的最后一条的 `sequence`——增量读的游标。
+     *
+     * 刻意用 ref 而不是从 `state.items` 末尾现读：`setState` 之后 `state` 要到下一次渲染
+     * 才更新，而补拉发生在**同一个 async 函数里**，读 state 会拿到上一轮的末尾并把同一段
+     * sequence 追加两次。
+     */
+    const cursorRef = useRef<number | undefined>(undefined);
+    /**
+     * 上一次据以续拉的 `itemCount`。`undefined` = 这一轮还没定基线（挂载 / 刚切产物），
+     * 那一帧的取数归整份重取管，增量 effect 只记下基线就退场——否则每挂载一个看板都会白发
+     * 一次必然返回空的增量查询。
+     */
+    const lastDrainedCountRef = useRef<number | undefined>(undefined);
 
-  const { artifactId, runId, sessionId } = options;
-  const fieldsKey = options.fields?.join(FIELD_KEY_SEPARATOR);
-  const fields = useMemo(() => fieldsKey?.split(FIELD_KEY_SEPARATOR), [fieldsKey]);
-  const enabled =
-    options.enabled !== false && sessionId.length > 0 && runId.length > 0 && artifactId.length > 0;
+    const { artifactId, runId, sessionId } = options;
+    const fieldsKey = options.fields?.join(FIELD_KEY_SEPARATOR);
+    const fields = useMemo(() => fieldsKey?.split(FIELD_KEY_SEPARATOR), [fieldsKey]);
+    const enabled =
+        options.enabled !== false &&
+        sessionId.length > 0 &&
+        runId.length > 0 &&
+        artifactId.length > 0;
 
-  /**
-   * 从游标一路翻到排空。`replace` 是整份重取（切产物 / 切 run），`append` 是增量追加。
-   *
-   * 单飞门（`inFlightRef`）：`itemCount` 在一次拉取途中再抬升是常态（脚本每轮 report 一次），
-   * 重入会让同一段 sequence 被追加两次。被挡下的那一次**不丢弃**，而是记在 `pendingRef` 上，
-   * 由正在跑的这一次在收尾前补拉——否则一个 run 的**最后一条** report 会永远画不出来
-   * （它之后不会再有 `itemCount` 变化来触发下一次拉取）。
-   */
-  const drain = useCallback(
-    async (mode: "replace" | "append") => {
-      if (!enabled) return;
-      if (inFlightRef.current) {
-        pendingRef.current = true;
-        return;
-      }
-      inFlightRef.current = true;
-      const requestVersion = ++requestVersionRef.current;
-      setState((current) => ({ ...current, loading: true, error: null }));
-      try {
-        let round = 0;
-        let currentMode = mode;
-        for (;;) {
-          pendingRef.current = false;
-          const collected: ArtifactItem[] = [];
-          let cursor = currentMode === "append" ? cursorRef.current : undefined;
-          // 一直翻到存储层说没有了为止。修复前这里最多翻 16 页（3,200 条）：report 上限还是
-          // 256 条时那是一道防死循环的保险，上限提到 65,536 之后它成了静默截断——一个已结束、
-          // 打了 5,000 条标签的 run，看板永远只画出前 3,200 条，而之后不会再有 itemCount 变化
-          // 来触发续拉。防死循环改由「游标必须前进」来保证：一页没有让游标变大就停。
-          for (;;) {
-            const request = {
-              sessionId,
-              runId,
-              artifactId,
-              ...(cursor === undefined ? {} : { afterSequence: cursor }),
-              limit: WORKFLOW_ARTIFACT_LIMITS.defaultItemsPerPage,
-            };
-            const withFields = fields !== undefined && !sessionsWithoutFieldReads.has(sessionId);
-            let result;
-            try {
-              result = await workflowRunArtifactData(withFields ? { ...request, fields } : request);
-            } catch (caught) {
-              if (!withFields || !isFieldsParamUnsupported(caught)) throw caught;
-              sessionsWithoutFieldReads.add(sessionId);
-              logger.info("[workflow-artifacts] CLI 不支持只取字段，退回取整条条目", { sessionId });
-              result = await workflowRunArtifactData(request);
+    /**
+     * 从游标一路翻到排空。`replace` 是整份重取（切产物 / 切 run），`append` 是增量追加。
+     *
+     * 单飞门（`inFlightRef`）：`itemCount` 在一次拉取途中再抬升是常态（脚本每轮 report 一次），
+     * 重入会让同一段 sequence 被追加两次。被挡下的那一次**不丢弃**，而是记在 `pendingRef` 上，
+     * 由正在跑的这一次在收尾前补拉——否则一个 run 的**最后一条** report 会永远画不出来
+     * （它之后不会再有 `itemCount` 变化来触发下一次拉取）。
+     */
+    const drain = useCallback(
+        async (mode: "replace" | "append") => {
+            if (!enabled) return;
+            if (inFlightRef.current) {
+                pendingRef.current = true;
+                return;
             }
-            if (requestVersion !== requestVersionRef.current) return;
-            collected.push(...result.items);
-            const lastSequence = result.items.at(-1)?.sequence;
-            const advanced =
-              lastSequence !== undefined && (cursor === undefined || lastSequence > cursor);
-            if (lastSequence !== undefined) cursor = lastSequence;
-            if (!result.hasMore || !advanced) break;
-          }
-          if (requestVersion !== requestVersionRef.current) return;
-          cursorRef.current = cursor;
-          const settledMode = currentMode;
-          setState((current) => ({
-            items: settledMode === "replace" ? collected : [...current.items, ...collected],
-            loading: false,
-            unavailable: false,
-            error: null,
-          }));
-          round += 1;
-          if (!pendingRef.current || round >= MAX_FOLLOW_UP_ROUNDS) break;
-          currentMode = "append";
+            inFlightRef.current = true;
+            const requestVersion = ++requestVersionRef.current;
+            setState((current) => ({ ...current, loading: true, error: null }));
+            try {
+                let round = 0;
+                let currentMode = mode;
+                for (;;) {
+                    pendingRef.current = false;
+                    const collected: ArtifactItem[] = [];
+                    let cursor = currentMode === "append" ? cursorRef.current : undefined;
+                    // 一直翻到存储层说没有了为止。修复前这里最多翻 16 页（3,200 条）：report 上限还是
+                    // 256 条时那是一道防死循环的保险，上限提到 65,536 之后它成了静默截断——一个已结束、
+                    // 打了 5,000 条标签的 run，看板永远只画出前 3,200 条，而之后不会再有 itemCount 变化
+                    // 来触发续拉。防死循环改由「游标必须前进」来保证：一页没有让游标变大就停。
+                    for (;;) {
+                        const request = {
+                            sessionId,
+                            runId,
+                            artifactId,
+                            ...(cursor === undefined ? {} : { afterSequence: cursor }),
+                            limit: WORKFLOW_ARTIFACT_LIMITS.defaultItemsPerPage,
+                        };
+                        const withFields =
+                            fields !== undefined && !sessionsWithoutFieldReads.has(sessionId);
+                        let result;
+                        try {
+                            result = await workflowRunArtifactData(
+                                withFields ? { ...request, fields } : request,
+                            );
+                        } catch (caught) {
+                            if (!withFields || !isFieldsParamUnsupported(caught)) throw caught;
+                            sessionsWithoutFieldReads.add(sessionId);
+                            logger.info("[workflow-artifacts] CLI 不支持只取字段，退回取整条条目", {
+                                sessionId,
+                            });
+                            result = await workflowRunArtifactData(request);
+                        }
+                        if (requestVersion !== requestVersionRef.current) return;
+                        collected.push(...result.items);
+                        const lastSequence = result.items.at(-1)?.sequence;
+                        const advanced =
+                            lastSequence !== undefined &&
+                            (cursor === undefined || lastSequence > cursor);
+                        if (lastSequence !== undefined) cursor = lastSequence;
+                        if (!result.hasMore || !advanced) break;
+                    }
+                    if (requestVersion !== requestVersionRef.current) return;
+                    cursorRef.current = cursor;
+                    const settledMode = currentMode;
+                    setState((current) => ({
+                        items:
+                            settledMode === "replace"
+                                ? collected
+                                : [...current.items, ...collected],
+                        loading: false,
+                        unavailable: false,
+                        error: null,
+                    }));
+                    round += 1;
+                    if (!pendingRef.current || round >= MAX_FOLLOW_UP_ROUNDS) break;
+                    currentMode = "append";
+                }
+            } catch (caught) {
+                if (requestVersion !== requestVersionRef.current) return;
+                if (isWorkflowRunArtifactDataCapabilityMissing(caught)) {
+                    setState((current) => ({
+                        items: mode === "replace" ? [] : current.items,
+                        loading: false,
+                        unavailable: true,
+                        error: null,
+                    }));
+                    return;
+                }
+                const message = caught instanceof Error ? caught.message : String(caught);
+                logger.warn("[workflow-artifacts] 读取看板条目失败", {
+                    artifactId,
+                    error: message,
+                    runId,
+                    sessionId,
+                });
+                setState((current) => ({ ...current, loading: false, error: message }));
+            } finally {
+                inFlightRef.current = false;
+                pendingRef.current = false;
+            }
+        },
+        [artifactId, enabled, fields, runId, sessionId, workflowRunArtifactData],
+    );
+
+    // 切产物 / 切 run / 从关到开：先清空再整份重取。别的看板的点绝不能留在这块画布上。
+    useEffect(() => {
+        requestVersionRef.current += 1;
+        cursorRef.current = undefined;
+        lastDrainedCountRef.current = undefined;
+        setState(emptyState());
+        if (!enabled) return;
+        void drain("replace");
+    }, [drain, enabled]);
+
+    // 增量：`itemCount` 抬升即续拉。
+    //
+    // 门里**没有**「本地一条都还没有就不拉」这一条：一个在脚本顶部声明、之后每轮才被 report
+    // 喂数据的看板，挂载那一刻本地就是空的，用空判据挡下来等于让它永远画不出第一个点。
+    // 挂载时那次重复触发由单飞门吞掉（重取 effect 先跑，已经占住了门）。
+    const itemCount = options.itemCount ?? 0;
+    useEffect(() => {
+        if (!enabled) return;
+        // 本轮的第一帧：整份重取正在跑，这里只记基线。effect 的声明顺序保证重取那一个先跑。
+        if (lastDrainedCountRef.current === undefined) {
+            lastDrainedCountRef.current = itemCount;
+            return;
         }
-      } catch (caught) {
-        if (requestVersion !== requestVersionRef.current) return;
-        if (isWorkflowRunArtifactDataCapabilityMissing(caught)) {
-          setState((current) => ({
-            items: mode === "replace" ? [] : current.items,
-            loading: false,
-            unavailable: true,
-            error: null,
-          }));
-          return;
-        }
-        const message = caught instanceof Error ? caught.message : String(caught);
-        logger.warn("[workflow-artifacts] 读取看板条目失败", {
-          artifactId,
-          error: message,
-          runId,
-          sessionId,
-        });
-        setState((current) => ({ ...current, loading: false, error: message }));
-      } finally {
-        inFlightRef.current = false;
-        pendingRef.current = false;
-      }
-    },
-    [artifactId, enabled, fields, runId, sessionId, workflowRunArtifactData],
-  );
+        if (itemCount === lastDrainedCountRef.current) return;
+        lastDrainedCountRef.current = itemCount;
+        void drain("append");
+    }, [drain, enabled, itemCount]);
 
-  // 切产物 / 切 run / 从关到开：先清空再整份重取。别的看板的点绝不能留在这块画布上。
-  useEffect(() => {
-    requestVersionRef.current += 1;
-    cursorRef.current = undefined;
-    lastDrainedCountRef.current = undefined;
-    setState(emptyState());
-    if (!enabled) return;
-    void drain("replace");
-  }, [drain, enabled]);
-
-  // 增量：`itemCount` 抬升即续拉。
-  //
-  // 门里**没有**「本地一条都还没有就不拉」这一条：一个在脚本顶部声明、之后每轮才被 report
-  // 喂数据的看板，挂载那一刻本地就是空的，用空判据挡下来等于让它永远画不出第一个点。
-  // 挂载时那次重复触发由单飞门吞掉（重取 effect 先跑，已经占住了门）。
-  const itemCount = options.itemCount ?? 0;
-  useEffect(() => {
-    if (!enabled) return;
-    // 本轮的第一帧：整份重取正在跑，这里只记基线。effect 的声明顺序保证重取那一个先跑。
-    if (lastDrainedCountRef.current === undefined) {
-      lastDrainedCountRef.current = itemCount;
-      return;
-    }
-    if (itemCount === lastDrainedCountRef.current) return;
-    lastDrainedCountRef.current = itemCount;
-    void drain("append");
-  }, [drain, enabled, itemCount]);
-
-  return useMemo(() => state, [state]);
+    return useMemo(() => state, [state]);
 }

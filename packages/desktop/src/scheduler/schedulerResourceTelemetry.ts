@@ -8,76 +8,80 @@
  */
 
 import {
-  createNodeSelfResourceSampler,
-  NODE_SELF_RESOURCE_SAMPLE_INTERVAL_MS,
-  type NodeSelfResourceSamplerOptions,
+    createNodeSelfResourceSampler,
+    NODE_SELF_RESOURCE_SAMPLE_INTERVAL_MS,
+    type NodeSelfResourceSamplerOptions,
 } from "@zcode/shared/node";
 import type { SchedulerToMainMessage } from "./schedulerProtocol.js";
 
 interface SchedulerResourceTelemetryTimerHandle {
-  unref?(): void;
+    unref?(): void;
 }
 
 export interface StartSchedulerResourceTelemetryOptions extends NodeSelfResourceSamplerOptions {
-  /** parentPort 的发送口；parentPort 不可用时调用方传一个 no-op。 */
-  postMessage: (message: SchedulerToMainMessage) => void;
-  readMemoryUsage?: () => NodeJS.MemoryUsage;
-  intervalMs?: number;
-  timer?: {
-    setInterval(callback: () => void, intervalMs: number): SchedulerResourceTelemetryTimerHandle;
-    clearInterval(handle: SchedulerResourceTelemetryTimerHandle): void;
-  };
+    /** parentPort 的发送口；parentPort 不可用时调用方传一个 no-op。 */
+    postMessage: (message: SchedulerToMainMessage) => void;
+    readMemoryUsage?: () => NodeJS.MemoryUsage;
+    intervalMs?: number;
+    timer?: {
+        setInterval(
+            callback: () => void,
+            intervalMs: number,
+        ): SchedulerResourceTelemetryTimerHandle;
+        clearInterval(handle: SchedulerResourceTelemetryTimerHandle): void;
+    };
 }
 
 export interface SchedulerResourceTelemetry {
-  stop(): void;
+    stop(): void;
 }
 
 export function startSchedulerResourceTelemetry(
-  options: StartSchedulerResourceTelemetryOptions,
+    options: StartSchedulerResourceTelemetryOptions,
 ): SchedulerResourceTelemetry {
-  const sampler = createNodeSelfResourceSampler(options);
-  const readMemoryUsage = options.readMemoryUsage ?? (() => process.memoryUsage());
-  const timer = options.timer ?? {
-    setInterval: (callback: () => void, intervalMs: number) => setInterval(callback, intervalMs),
-    clearInterval: (handle: SchedulerResourceTelemetryTimerHandle) =>
-      clearInterval(handle as ReturnType<typeof setInterval>),
-  };
+    const sampler = createNodeSelfResourceSampler(options);
+    const readMemoryUsage = options.readMemoryUsage ?? (() => process.memoryUsage());
+    const timer = options.timer ?? {
+        setInterval: (callback: () => void, intervalMs: number) =>
+            setInterval(callback, intervalMs),
+        clearInterval: (handle: SchedulerResourceTelemetryTimerHandle) =>
+            clearInterval(handle as ReturnType<typeof setInterval>),
+    };
 
-  const sampleNow = (): void => {
+    const sampleNow = (): void => {
+        try {
+            const sample = sampler.sample(readMemoryUsage());
+            if (!sample) {
+                return;
+            }
+            options.postMessage({ type: "scheduler-resource-sample", sample });
+        } catch {
+            // 读数异常、parentPort 不可用或 postMessage 抛错时只丢当前样本。
+        }
+    };
+
+    let handle: SchedulerResourceTelemetryTimerHandle | undefined = timer.setInterval(
+        sampleNow,
+        options.intervalMs ?? NODE_SELF_RESOURCE_SAMPLE_INTERVAL_MS,
+    );
     try {
-      const sample = sampler.sample(readMemoryUsage());
-      if (!sample) {
-        return;
-      }
-      options.postMessage({ type: "scheduler-resource-sample", sample });
+        handle.unref?.();
     } catch {
-      // 读数异常、parentPort 不可用或 postMessage 抛错时只丢当前样本。
+        // unref 不可用时仍保留 handle 供 stop 回收。
     }
-  };
 
-  let handle: SchedulerResourceTelemetryTimerHandle | undefined = timer.setInterval(
-    sampleNow,
-    options.intervalMs ?? NODE_SELF_RESOURCE_SAMPLE_INTERVAL_MS,
-  );
-  try {
-    handle.unref?.();
-  } catch {
-    // unref 不可用时仍保留 handle 供 stop 回收。
-  }
-
-  return {
-    stop() {
-      if (!handle) {
-        return;
-      }
-      const current = handle;
-      handle = undefined;
-      try {
-        timer.clearInterval(current);
-      } catch {
-        // 清理失败不能阻塞 scheduler 既有退出流程。
-      }
-    },
-  };
+    return {
+        stop() {
+            if (!handle) {
+                return;
+            }
+            const current = handle;
+            handle = undefined;
+            try {
+                timer.clearInterval(current);
+            } catch {
+                // 清理失败不能阻塞 scheduler 既有退出流程。
+            }
+        },
+    };
 }

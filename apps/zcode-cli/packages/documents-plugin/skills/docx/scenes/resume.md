@@ -188,13 +188,13 @@ When industry is unspecified, use default warm neutral palette. This aligns with
 
 ```js
 const S = {
-  bg: "3B4F5C", // sidebar background (dark grey-blue)
-  text: "D8E2E8", // sidebar text
-  label: "8BA0AD", // sidebar secondary text
-  accent: "2F97B8", // accent color (blue-cyan)
-  title: "1A2D38", // body heading
-  body: "2C3E4A", // body content
-  sec: "6B8592", // secondary info (dates etc.)
+    bg: "3B4F5C", // sidebar background (dark grey-blue)
+    text: "D8E2E8", // sidebar text
+    label: "8BA0AD", // sidebar secondary text
+    accent: "2F97B8", // accent color (blue-cyan)
+    title: "1A2D38", // body heading
+    body: "2C3E4A", // body content
+    sec: "6B8592", // secondary info (dates etc.)
 };
 ```
 
@@ -251,37 +251,37 @@ page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } }
 ```js
 // Full-width bar background + white Chinese text + lighter English text
 new Table({
-  columnWidths: [7600],
-  rows: [
-    new TableRow({
-      children: [
-        new TableCell({
-          shading: { fill: S.accent, type: ShadingType.CLEAR },
-          margins: { top: 40, bottom: 40, left: 200, right: 100 },
-          children: [
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: "Work Experience  ",
-                  size: 22,
-                  bold: true,
-                  color: "FFFFFF",
-                  font: "SimHei",
+    columnWidths: [7600],
+    rows: [
+        new TableRow({
+            children: [
+                new TableCell({
+                    shading: { fill: S.accent, type: ShadingType.CLEAR },
+                    margins: { top: 40, bottom: 40, left: 200, right: 100 },
+                    children: [
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "Work Experience  ",
+                                    size: 22,
+                                    bold: true,
+                                    color: "FFFFFF",
+                                    font: "SimHei",
+                                }),
+                                new TextRun({
+                                    text: "Experience",
+                                    size: 18,
+                                    color: "C8E8F0",
+                                    font: "Times New Roman",
+                                    italics: true,
+                                }),
+                            ],
+                        }),
+                    ],
                 }),
-                new TextRun({
-                  text: "Experience",
-                  size: 18,
-                  color: "C8E8F0",
-                  font: "Times New Roman",
-                  italics: true,
-                }),
-              ],
-            }),
-          ],
+            ],
         }),
-      ],
-    }),
-  ],
+    ],
 });
 ```
 
@@ -290,12 +290,12 @@ new Table({
 ```js
 // Line 1: Company(bold) + Title(accent) + Date(right-aligned)
 new Paragraph({
-  tabStops: [{ type: TabStopType.RIGHT, position: 7200 }],
-  children: [
-    new TextRun({ text: "Company Name", size: 22, bold: true, color: S.title }),
-    new TextRun({ text: "    Role Title", size: 20, color: S.accent }),
-    new TextRun({ text: "\t2023.06 — Present", size: 17, color: S.sec }),
-  ],
+    tabStops: [{ type: TabStopType.RIGHT, position: 7200 }],
+    children: [
+        new TextRun({ text: "Company Name", size: 22, bold: true, color: S.title }),
+        new TextRun({ text: "    Role Title", size: 20, color: S.accent }),
+        new TextRun({ text: "\t2023.06 — Present", size: 17, color: S.sec }),
+    ],
 });
 // Line 2+: ▸ bullet points
 ```
@@ -308,12 +308,12 @@ new Paragraph({
 
 ```js
 const C = {
-  dark: "1A3352", // header background (dark blue)
-  accent: "2980B9", // accent color
-  title: "1A2636", // heading
-  body: "2C3E50", // body text
-  sec: "6B8599", // secondary info
-  light: "E8EFF5", // light background
+    dark: "1A3352", // header background (dark blue)
+    accent: "2980B9", // accent color
+    title: "1A2636", // heading
+    body: "2C3E50", // body text
+    sec: "6B8599", // secondary info
+    light: "E8EFF5", // light background
 };
 ```
 
@@ -350,24 +350,24 @@ const C = {
 ```js
 // Table single row single column, dark background, height 2400 DXA
 new Table({
-  columnWidths: [11906],
-  rows: [
-    new TableRow({
-      height: { value: 2400, rule: "exact" },
-      children: [
-        new TableCell({
-          shading: { fill: C.dark },
-          margins: { top: 300, bottom: 200, left: 800, right: 800 },
-          verticalAlign: VerticalAlign.TOP, // Never use CENTER in exact-height rows (WPS incompatible)
-          children: [
-            // Line 1: Name(48pt white) + Title
-            // Line 2: Phone | Email | Location
-            // Line 3: DOB | Degree | School
-          ],
+    columnWidths: [11906],
+    rows: [
+        new TableRow({
+            height: { value: 2400, rule: "exact" },
+            children: [
+                new TableCell({
+                    shading: { fill: C.dark },
+                    margins: { top: 300, bottom: 200, left: 800, right: 800 },
+                    verticalAlign: VerticalAlign.TOP, // Never use CENTER in exact-height rows (WPS incompatible)
+                    children: [
+                        // Line 1: Name(48pt white) + Title
+                        // Line 2: Phone | Email | Location
+                        // Line 3: DOB | Degree | School
+                    ],
+                }),
+            ],
         }),
-      ],
-    }),
-  ],
+    ],
 });
 ```
 
@@ -375,11 +375,17 @@ new Table({
 
 ```js
 new Paragraph({
-  borders: { bottom: { style: BorderStyle.SINGLE, size: 2, color: C.accent } },
-  children: [
-    new TextRun({ text: "Work Experience", size: 24, bold: true, color: C.accent, font: "SimHei" }),
-    new TextRun({ text: "  Experience", size: 18, color: C.sec, italics: true }),
-  ],
+    borders: { bottom: { style: BorderStyle.SINGLE, size: 2, color: C.accent } },
+    children: [
+        new TextRun({
+            text: "Work Experience",
+            size: 24,
+            bold: true,
+            color: C.accent,
+            font: "SimHei",
+        }),
+        new TextRun({ text: "  Experience", size: 18, color: C.sec, italics: true }),
+    ],
 });
 ```
 
@@ -388,11 +394,11 @@ new Paragraph({
 ```js
 // Name(bold) + ●○ rating + specific tools list
 new Paragraph({
-  children: [
-    new TextRun({ text: "Programming  ", size: 19, bold: true, color: C.title }),
-    new TextRun({ text: "●●●●○  ", size: 13, color: C.accent }),
-    new TextRun({ text: "Java / Go / Python / TypeScript", size: 18, color: C.sec }),
-  ],
+    children: [
+        new TextRun({ text: "Programming  ", size: 19, bold: true, color: C.title }),
+        new TextRun({ text: "●●●●○  ", size: 13, color: C.accent }),
+        new TextRun({ text: "Java / Go / Python / TypeScript", size: 18, color: C.sec }),
+    ],
 });
 ```
 
@@ -404,15 +410,15 @@ new Paragraph({
 
 ```js
 const C = {
-  side: "4A7C8F", // sidebar background (teal-blue)
-  text: "FFFFFF", // sidebar text
-  label: "A0C4D0", // sidebar secondary text
-  accent: "357A8F", // accent color
-  dot: "2F8FAD", // skill dot fill color
-  dotDim: "B8D4DE", // skill dot empty color
-  title: "1A3040", // body heading
-  body: "2C4050", // body content
-  sec: "6B8A98", // secondary info
+    side: "4A7C8F", // sidebar background (teal-blue)
+    text: "FFFFFF", // sidebar text
+    label: "A0C4D0", // sidebar secondary text
+    accent: "357A8F", // accent color
+    dot: "2F8FAD", // skill dot fill color
+    dotDim: "B8D4DE", // skill dot empty color
+    title: "1A3040", // body heading
+    body: "2C4050", // body content
+    sec: "6B8A98", // secondary info
 };
 ```
 
@@ -422,8 +428,8 @@ const C = {
 
 ```js
 new Paragraph({
-  alignment: AlignmentType.CENTER,
-  children: [new TextRun({ text: "◯", size: 80, color: C.label })],
+    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text: "◯", size: 80, color: C.label })],
 });
 ```
 
@@ -438,12 +444,18 @@ new Paragraph({
 
 ```js
 new Paragraph({
-  borders: { left: { style: BorderStyle.SINGLE, size: 8, color: C.accent, space: 8 } },
-  indent: { left: 120 },
-  children: [
-    new TextRun({ text: "Work Experience", size: 24, bold: true, color: C.title, font: "SimHei" }),
-    new TextRun({ text: "  Experience", size: 18, color: C.sec, italics: true }),
-  ],
+    borders: { left: { style: BorderStyle.SINGLE, size: 8, color: C.accent, space: 8 } },
+    indent: { left: 120 },
+    children: [
+        new TextRun({
+            text: "Work Experience",
+            size: 24,
+            bold: true,
+            color: C.title,
+            font: "SimHei",
+        }),
+        new TextRun({ text: "  Experience", size: 18, color: C.sec, italics: true }),
+    ],
 });
 ```
 
@@ -503,16 +515,16 @@ Page 1 and Page 2 must be **different sections** for independent margin and layo
 
 ```js
 sections: [
-  {
-    // Page 1 section — margin 0 (sidebar layout needs full-page)
-    properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
-    children: [page1Table],
-  },
-  {
-    // Page 2 section — normal margins with header bar
-    properties: { page: { margin: { top: 800, bottom: 600, left: 800, right: 800 } } },
-    children: [pageHeader(name, title), ...page2Content],
-  },
+    {
+        // Page 1 section — margin 0 (sidebar layout needs full-page)
+        properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
+        children: [page1Table],
+    },
+    {
+        // Page 2 section — normal margins with header bar
+        properties: { page: { margin: { top: 800, bottom: 600, left: 800, right: 800 } } },
+        children: [pageHeader(name, title), ...page2Content],
+    },
 ];
 ```
 
@@ -534,37 +546,46 @@ Template B header banner uses Table simulation:
 ```js
 // Concise header bar for page 2+
 function pageHeader(name, title) {
-  return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: {
-      top: NB,
-      left: NB,
-      right: NB,
-      insideHorizontal: NB,
-      insideVertical: NB,
-      bottom: { style: BorderStyle.SINGLE, size: 1, color: "D0D0D0" },
-    },
-    rows: [
-      new TableRow({
-        cantSplit: true,
-        height: { value: 500, rule: "atLeast" },
-        children: [
-          new TableCell({
-            margins: { top: 60, bottom: 60, left: 200, right: 200 },
-            borders: { top: NB, left: NB, right: NB, bottom: NB },
-            children: [
-              new Paragraph({
+    return new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: {
+            top: NB,
+            left: NB,
+            right: NB,
+            insideHorizontal: NB,
+            insideVertical: NB,
+            bottom: { style: BorderStyle.SINGLE, size: 1, color: "D0D0D0" },
+        },
+        rows: [
+            new TableRow({
+                cantSplit: true,
+                height: { value: 500, rule: "atLeast" },
                 children: [
-                  new TextRun({ text: name, size: 20, bold: true, color: S.title || C.title }),
-                  new TextRun({ text: `  |  ${title}`, size: 18, color: S.sec || C.sec }),
+                    new TableCell({
+                        margins: { top: 60, bottom: 60, left: 200, right: 200 },
+                        borders: { top: NB, left: NB, right: NB, bottom: NB },
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: name,
+                                        size: 20,
+                                        bold: true,
+                                        color: S.title || C.title,
+                                    }),
+                                    new TextRun({
+                                        text: `  |  ${title}`,
+                                        size: 18,
+                                        color: S.sec || C.sec,
+                                    }),
+                                ],
+                            }),
+                        ],
+                    }),
                 ],
-              }),
-            ],
-          }),
+            }),
         ],
-      }),
-    ],
-  });
+    });
 }
 ```
 
@@ -606,10 +627,10 @@ In addition to universal checks (see `references/common-rules.md`):
 Single-page resumes must fully utilize page space — **large bottom whitespace is forbidden:**
 
 1. If content is insufficient → **proactively expand:**
-   - Add project details, skill keywords, achievement data
-   - Add supplementary modules: profile summary, interests, awards
+    - Add project details, skill keywords, achievement data
+    - Add supplementary modules: profile summary, interests, awards
 2. Use section spacing (`spacing.before/after`) to **distribute content evenly**
 3. Sidebar templates (A/C): sidebar height should approach full page
-   - If sidebar content is sparse, increase element spacing
-   - Or add supplementary modules: "Languages", "Interests"
+    - If sidebar content is sparse, increase element spacing
+    - Or add supplementary modules: "Languages", "Interests"
 4. Assessment: after generation, check last content element position; if >2500 twips from page bottom, adjust

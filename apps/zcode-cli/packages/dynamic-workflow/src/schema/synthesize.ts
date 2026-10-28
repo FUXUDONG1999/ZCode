@@ -23,10 +23,10 @@ import { SCHEMA_DIAGNOSTIC_CODE } from "./types.js";
  */
 
 export interface SchemaSynthesisResult {
-  /** 每个有类型 ask 站点的 JSON Schema，按站点 id 归档。 */
-  schemas: Record<string, JsonSchema>;
-  /** 拒绝性诊断，定位在对应 ask 站点。 */
-  diagnostics: CompileDiagnostic[];
+    /** 每个有类型 ask 站点的 JSON Schema，按站点 id 归档。 */
+    schemas: Record<string, JsonSchema>;
+    /** 拒绝性诊断，定位在对应 ask 站点。 */
+    diagnostics: CompileDiagnostic[];
 }
 
 /**
@@ -41,10 +41,10 @@ export interface SchemaSynthesisResult {
  * 构造 askSpecs 一律走 {@link buildAskSpecs}（按站点表遍历）。
  */
 function askResultType(checker: ts.TypeChecker, call: ts.CallExpression): ts.Type | undefined {
-  const typeNode = call.typeArguments?.[0];
-  if (typeNode === undefined) return undefined;
-  const type = checker.getTypeFromTypeNode(typeNode);
-  return (type.flags & ts.TypeFlags.String) !== 0 ? undefined : type;
+    const typeNode = call.typeArguments?.[0];
+    if (typeNode === undefined) return undefined;
+    const type = checker.getTypeFromTypeNode(typeNode);
+    return (type.flags & ts.TypeFlags.String) !== 0 ? undefined : type;
 }
 
 /**
@@ -53,35 +53,35 @@ function askResultType(checker: ts.TypeChecker, call: ts.CallExpression): ts.Typ
  * 以便拿到 `toScriptLoc` 做定位诊断。
  */
 export function synthesizeAskSchemas(
-  workflow: WorkflowProgram,
-  table: SiteTable,
+    workflow: WorkflowProgram,
+    table: SiteTable,
 ): SchemaSynthesisResult {
-  const checker = workflow.program.getTypeChecker();
-  const schemas: Record<string, JsonSchema> = {};
-  const diagnostics: CompileDiagnostic[] = [];
+    const checker = workflow.program.getTypeChecker();
+    const schemas: Record<string, JsonSchema> = {};
+    const diagnostics: CompileDiagnostic[] = [];
 
-  for (const site of table.asks) {
-    const type = askResultType(checker, site.call);
-    if (type === undefined) continue; // 无类型 ask：结果即最终文本，不发射 schema
+    for (const site of table.asks) {
+        const type = askResultType(checker, site.call);
+        if (type === undefined) continue; // 无类型 ask：结果即最终文本，不发射 schema
 
-    try {
-      const typeNode = site.call.typeArguments![0]!;
-      const emitter = new SchemaEmitter(checker, typeNode);
-      schemas[site.id] = attachTopDoc(emitter.emitTop(type), type, checker);
-    } catch (error) {
-      if (!(error instanceof SchemaRejection)) throw error;
-      diagnostics.push({
-        code: SCHEMA_DIAGNOSTIC_CODE,
-        column: site.loc.column,
-        line: site.loc.line,
-        message: rejectionMessage(error, "ask result type"),
-      });
+        try {
+            const typeNode = site.call.typeArguments![0]!;
+            const emitter = new SchemaEmitter(checker, typeNode);
+            schemas[site.id] = attachTopDoc(emitter.emitTop(type), type, checker);
+        } catch (error) {
+            if (!(error instanceof SchemaRejection)) throw error;
+            diagnostics.push({
+                code: SCHEMA_DIAGNOSTIC_CODE,
+                column: site.loc.column,
+                line: site.loc.line,
+                message: rejectionMessage(error, "ask result type"),
+            });
+        }
     }
-  }
 
-  for (const site of table.reports) diagnostics.push(...reportItemDiagnostics(checker, site));
+    for (const site of table.reports) diagnostics.push(...reportItemDiagnostics(checker, site));
 
-  return { diagnostics, schemas };
+    return { diagnostics, schemas };
 }
 
 /**
@@ -101,25 +101,25 @@ export function synthesizeAskSchemas(
  *      /Promise 则在调用点被定位拒绝。
  */
 function reportItemDiagnostics(
-  checker: ts.TypeChecker,
-  site: SiteTable["reports"][number],
+    checker: ts.TypeChecker,
+    site: SiteTable["reports"][number],
 ): CompileDiagnostic[] {
-  // 实参缺席由 typecheck 负责报错（facade 的 `item` 是必填参数），这里无事可做。
-  if (site.item === undefined) return [];
-  try {
-    new SchemaEmitter(checker, site.item).emitTop(checker.getTypeAtLocation(site.item));
-    return [];
-  } catch (error) {
-    if (!(error instanceof SchemaRejection)) throw error;
-    return [
-      {
-        code: SCHEMA_DIAGNOSTIC_CODE,
-        column: site.loc.column,
-        line: site.loc.line,
-        message: rejectionMessage(error, "report item type"),
-      },
-    ];
-  }
+    // 实参缺席由 typecheck 负责报错（facade 的 `item` 是必填参数），这里无事可做。
+    if (site.item === undefined) return [];
+    try {
+        new SchemaEmitter(checker, site.item).emitTop(checker.getTypeAtLocation(site.item));
+        return [];
+    } catch (error) {
+        if (!(error instanceof SchemaRejection)) throw error;
+        return [
+            {
+                code: SCHEMA_DIAGNOSTIC_CODE,
+                column: site.loc.column,
+                line: site.loc.line,
+                message: rejectionMessage(error, "report item type"),
+            },
+        ];
+    }
 }
 
 /**
@@ -128,10 +128,10 @@ function reportItemDiagnostics(
  * 若脚本本身 typecheck 不通过，返回其编译诊断且不合成。
  */
 export function synthesizeWorkflowSchemas(scriptText: string): SchemaSynthesisResult {
-  const workflow = createWorkflowProgram(scriptText);
-  const compileDiagnostics = collectDiagnostics(workflow.program);
-  if (compileDiagnostics.length > 0) return { diagnostics: compileDiagnostics, schemas: {} };
-  return synthesizeAskSchemas(workflow, collectSites(workflow));
+    const workflow = createWorkflowProgram(scriptText);
+    const compileDiagnostics = collectDiagnostics(workflow.program);
+    if (compileDiagnostics.length > 0) return { diagnostics: compileDiagnostics, schemas: {} };
+    return synthesizeAskSchemas(workflow, collectSites(workflow));
 }
 
 /**
@@ -148,25 +148,25 @@ export function synthesizeWorkflowSchemas(scriptText: string): SchemaSynthesisRe
  * 一律用它，不要各自实现。站点表是身份的唯一真源——schemas 里对不上任何站点的键被忽略。
  */
 export function buildAskSpecs(
-  table: SiteTable,
-  schemas: Record<string, JsonSchema>,
+    table: SiteTable,
+    schemas: Record<string, JsonSchema>,
 ): Map<string, AskSpec> {
-  const specs = new Map<string, AskSpec>();
-  for (const site of table.asks) {
-    const schema = schemas[site.id];
-    specs.set(site.id, schema === undefined ? { typed: false } : { typed: true, schema });
-  }
-  return specs;
+    const specs = new Map<string, AskSpec>();
+    for (const site of table.asks) {
+        const schema = schemas[site.id];
+        specs.set(site.id, schema === undefined ? { typed: false } : { typed: true, schema });
+    }
+    return specs;
 }
 
 /** 顶层类型的 description/约束：源自其别名或符号（具名 interface/type alias）。 */
 function attachTopDoc(schema: JsonSchema, type: ts.Type, checker: ts.TypeChecker): JsonSchema {
-  const symbol = type.aliasSymbol ?? type.getSymbol();
-  if (symbol === undefined) return schema;
-  return mergeConstraints(schema, harvestConstraints(symbol, checker));
+    const symbol = type.aliasSymbol ?? type.getSymbol();
+    if (symbol === undefined) return schema;
+    return mergeConstraints(schema, harvestConstraints(symbol, checker));
 }
 
 function rejectionMessage(error: SchemaRejection, subject: string): string {
-  const where = error.path !== "$" && error.path.length > 0 ? ` (at ${error.path})` : "";
-  return `unsupported ${subject}: ${error.reason}${where}`;
+    const where = error.path !== "$" && error.path.length > 0 ? ` (at ${error.path})` : "";
+    return `unsupported ${subject}: ${error.reason}${where}`;
 }

@@ -17,14 +17,14 @@
  * （原实现按 legacy `Workflow` 的 `output.response` 取值，正是那个桌面实测 bug 的成因）。
  */
 export function serializeWorkflowArtifact(value: unknown): string | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value === "string") return value;
-  try {
-    // JSON.stringify 对 undefined / function / symbol 回 undefined，对循环引用抛错——
-    // 两种情况都退到 String(value)，绝不把值整段丢掉。
-    const text = JSON.stringify(value, null, 2);
-    return text === undefined ? String(value) : text;
-  } catch {
-    return String(value);
-  }
+    if (value === undefined) return undefined;
+    if (typeof value === "string") return value;
+    try {
+        // JSON.stringify 对 undefined / function / symbol 回 undefined，对循环引用抛错——
+        // 两种情况都退到 String(value)，绝不把值整段丢掉。
+        const text = JSON.stringify(value, null, 2);
+        return text === undefined ? String(value) : text;
+    } catch {
+        return String(value);
+    }
 }

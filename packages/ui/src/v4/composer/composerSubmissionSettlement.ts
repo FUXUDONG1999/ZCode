@@ -10,37 +10,39 @@
 // 账本只存在 renderer 内存中（与 composerDraftRevision 同级），不进入草稿持久化或协议，
 // 也不重放命令；它只负责把 registry 已给出的权威结论送达到当前持有该正文的 composer。
 import {
-  pendingCommandRegistry,
-  type PendingCommandResolution,
+    pendingCommandRegistry,
+    type PendingCommandResolution,
 } from "@/v4/pendingCommandRegistry.js";
 
 export interface UnsettledComposerSubmission {
-  commandId: string;
-  /** 提交时冻结的完整正文；消费方据此确认回填的草稿仍是这次提交，而非用户新输入。 */
-  text: string;
+    commandId: string;
+    /** 提交时冻结的完整正文；消费方据此确认回填的草稿仍是这次提交，而非用户新输入。 */
+    text: string;
 }
 
 type SettledListener = (submission: UnsettledComposerSubmission) => void;
 
 interface TrackedSubmission extends UnsettledComposerSubmission {
-  settled: boolean;
-  unsubscribe: () => void;
+    settled: boolean;
+    unsubscribe: () => void;
 }
 
 const trackedByScope = new Map<string, TrackedSubmission>();
 const listenersByScope = new Map<string, Set<SettledListener>>();
 
 function isAuthoritativeResolution(resolution: PendingCommandResolution): boolean {
-  return resolution === "accepted" || resolution === "duplicate" || resolution === "authoritative";
+    return (
+        resolution === "accepted" || resolution === "duplicate" || resolution === "authoritative"
+    );
 }
 
 function deliver(scopeKey: string, tracked: TrackedSubmission): void {
-  const listeners = listenersByScope.get(scopeKey);
-  if (!listeners || listeners.size === 0) return;
-  // 一次结算只消费一次：投递给当前挂载的 composer 后即从账本移除。
-  trackedByScope.delete(scopeKey);
-  const submission = { commandId: tracked.commandId, text: tracked.text };
-  for (const listener of listeners) listener(submission);
+    const listeners = listenersByScope.get(scopeKey);
+    if (!listeners || listeners.size === 0) return;
+    // 一次结算只消费一次：投递给当前挂载的 composer 后即从账本移除。
+    trackedByScope.delete(scopeKey);
+    const submission = { commandId: tracked.commandId, text: tracked.text };
+    for (const listener of listeners) listener(submission);
 }
 
 /**
@@ -48,29 +50,29 @@ function deliver(scopeKey: string, tracked: TrackedSubmission): void {
  * 同一 scope 只保留最近一次提交：更早的提交若仍未结算，其正文已被后一次提交覆盖或消费。
  */
 export function trackUnsettledComposerSubmission(
-  scopeKey: string,
-  submission: UnsettledComposerSubmission,
+    scopeKey: string,
+    submission: UnsettledComposerSubmission,
 ): void {
-  trackedByScope.get(scopeKey)?.unsubscribe();
-  const tracked: TrackedSubmission = {
-    ...submission,
-    settled: false,
-    unsubscribe: () => undefined,
-  };
-  trackedByScope.set(scopeKey, tracked);
-  tracked.unsubscribe = pendingCommandRegistry.subscribeResolution(
-    submission.commandId,
-    (resolution) => {
-      if (trackedByScope.get(scopeKey) !== tracked) return;
-      if (!isAuthoritativeResolution(resolution)) {
-        // failed/unknown/discarded：原文应继续留在草稿里，交给既有的恢复 UI 处理。
-        trackedByScope.delete(scopeKey);
-        return;
-      }
-      tracked.settled = true;
-      deliver(scopeKey, tracked);
-    },
-  );
+    trackedByScope.get(scopeKey)?.unsubscribe();
+    const tracked: TrackedSubmission = {
+        ...submission,
+        settled: false,
+        unsubscribe: () => undefined,
+    };
+    trackedByScope.set(scopeKey, tracked);
+    tracked.unsubscribe = pendingCommandRegistry.subscribeResolution(
+        submission.commandId,
+        (resolution) => {
+            if (trackedByScope.get(scopeKey) !== tracked) return;
+            if (!isAuthoritativeResolution(resolution)) {
+                // failed/unknown/discarded：原文应继续留在草稿里，交给既有的恢复 UI 处理。
+                trackedByScope.delete(scopeKey);
+                return;
+            }
+            tracked.settled = true;
+            deliver(scopeKey, tracked);
+        },
+    );
 }
 
 /**
@@ -78,17 +80,17 @@ export function trackUnsettledComposerSubmission(
  * 返回取消订阅函数；组件卸载时取消，账本中的提交继续等待下一次挂载。
  */
 export function subscribeComposerSubmissionSettled(
-  scopeKey: string,
-  listener: SettledListener,
+    scopeKey: string,
+    listener: SettledListener,
 ): () => void {
-  const listeners = listenersByScope.get(scopeKey) ?? new Set<SettledListener>();
-  listeners.add(listener);
-  listenersByScope.set(scopeKey, listeners);
-  const tracked = trackedByScope.get(scopeKey);
-  if (tracked?.settled) deliver(scopeKey, tracked);
-  return () => {
-    const current = listenersByScope.get(scopeKey);
-    current?.delete(listener);
-    if (current?.size === 0) listenersByScope.delete(scopeKey);
-  };
+    const listeners = listenersByScope.get(scopeKey) ?? new Set<SettledListener>();
+    listeners.add(listener);
+    listenersByScope.set(scopeKey, listeners);
+    const tracked = trackedByScope.get(scopeKey);
+    if (tracked?.settled) deliver(scopeKey, tracked);
+    return () => {
+        const current = listenersByScope.get(scopeKey);
+        current?.delete(listener);
+        if (current?.size === 0) listenersByScope.delete(scopeKey);
+    };
 }

@@ -143,15 +143,15 @@ p,
 td,
 li,
 .content {
-  overflow-wrap: break-word;
-  word-break: break-word;
-  hyphens: auto;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 /* Strict CJK line-break rules */
 body {
-  line-break: strict;
-  word-break: normal;
+    line-break: strict;
+    word-break: normal;
 }
 
 /* Table cells must constrain content */
@@ -159,9 +159,9 @@ body {
    Multi-line td should use overflow-wrap: break-word, not overflow: hidden,
    otherwise text gets truncated. Especially important in Playwright PDFs. */
 td {
-  max-width: 0; /* Forces column to respect assigned width */
-  overflow: hidden;
-  text-overflow: ellipsis; /* Only for single-line cells */
+    max-width: 0; /* Forces column to respect assigned width */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Only for single-line cells */
 }
 ```
 
@@ -219,10 +219,10 @@ story.append(img)
 img,
 svg,
 .chart-container {
-  max-width: 100%;
-  max-height: 45vh; /* Prevent one image from eating an entire page */
-  height: auto;
-  object-fit: contain; /* Preserve aspect ratio */
+    max-width: 100%;
+    max-height: 45vh; /* Prevent one image from eating an entire page */
+    height: auto;
+    object-fit: contain; /* Preserve aspect ratio */
 }
 ```
 
@@ -246,10 +246,10 @@ svg,
 .step-row,
 .tag-row,
 .icon-grid {
-  display: flex;
-  flex-wrap: wrap; /* MANDATORY for 3+ items */
-  gap: 12px; /* Consistent spacing */
-  max-width: 100%; /* Never exceed container */
+    display: flex;
+    flex-wrap: wrap; /* MANDATORY for 3+ items */
+    gap: 12px; /* Consistent spacing */
+    max-width: 100%; /* Never exceed container */
 }
 ```
 
@@ -258,11 +258,11 @@ svg,
 ```css
 .flow-step,
 .tag-item {
-  flex: 1 1 auto; /* Grow, shrink, auto basis */
-  min-width: 80px; /* Prevent crushing to 0 */
-  max-width: 100%; /* Never exceed container alone */
-  overflow-wrap: break-word; /* Break long words */
-  word-break: break-all; /* CJK fallback */
+    flex: 1 1 auto; /* Grow, shrink, auto basis */
+    min-width: 80px; /* Prevent crushing to 0 */
+    max-width: 100%; /* Never exceed container alone */
+    overflow-wrap: break-word; /* Break long words */
+    word-break: break-all; /* CJK fallback */
 }
 ```
 
@@ -276,10 +276,10 @@ svg,
 
 /* ✅ RIGHT — arrow as pseudo-element, doesn't affect flex layout */
 .flow-step + .flow-step::before {
-  content: "→";
-  margin: 0 8px;
-  color: #999;
-  flex-shrink: 0;
+    content: "→";
+    margin: 0 8px;
+    color: #999;
+    flex-shrink: 0;
 }
 ```
 

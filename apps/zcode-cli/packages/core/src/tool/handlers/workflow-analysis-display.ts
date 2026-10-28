@@ -9,10 +9,10 @@
 // 谁都不再在调用点手拼 `boundCausalityGraph(...)` 的实参。
 
 import {
-  CREATE_WORKFLOW_TOOL_NAME,
-  type CreateWorkflowCausalityGraph,
-  type CreateWorkflowOutput,
-  type ToolResultDisplayPayload,
+    CREATE_WORKFLOW_TOOL_NAME,
+    type CreateWorkflowCausalityGraph,
+    type CreateWorkflowOutput,
+    type ToolResultDisplayPayload,
 } from "@zcode/contracts";
 import type { AnalyzeResult } from "@zcode/dynamic-workflow";
 import { createCreateWorkflowDisplay } from "../executor/result-display.js";
@@ -20,11 +20,11 @@ import { boundCausalityGraph } from "./create-workflow-graph-bounds.js";
 
 /** 分析结果的有界显示图；脚本连一个站点都分析不出（编译失败早于因果图）时缺席。 */
 export function boundGraphOfAnalysis(
-  analysis: AnalyzeResult,
+    analysis: AnalyzeResult,
 ): CreateWorkflowCausalityGraph | undefined {
-  return analysis.causality === undefined
-    ? undefined
-    : boundCausalityGraph(analysis.causality, analysis.flow, analysis.handoff);
+    return analysis.causality === undefined
+        ? undefined
+        : boundCausalityGraph(analysis.causality, analysis.flow, analysis.handoff);
 }
 
 /**
@@ -33,14 +33,14 @@ export function boundGraphOfAnalysis(
  * 共用同一个 display kind。
  */
 export function displayOfAnalysis(
-  analysis: AnalyzeResult,
-  toolName: string = CREATE_WORKFLOW_TOOL_NAME,
+    analysis: AnalyzeResult,
+    toolName: string = CREATE_WORKFLOW_TOOL_NAME,
 ): ToolResultDisplayPayload | undefined {
-  const causalityGraph = boundGraphOfAnalysis(analysis);
-  return createCreateWorkflowDisplay(toolName, {
-    diagnostics: analysis.diagnostics,
-    ok: analysis.ok,
-    response: "",
-    ...(causalityGraph === undefined ? {} : { causalityGraph }),
-  } satisfies CreateWorkflowOutput);
+    const causalityGraph = boundGraphOfAnalysis(analysis);
+    return createCreateWorkflowDisplay(toolName, {
+        diagnostics: analysis.diagnostics,
+        ok: analysis.ok,
+        response: "",
+        ...(causalityGraph === undefined ? {} : { causalityGraph }),
+    } satisfies CreateWorkflowOutput);
 }

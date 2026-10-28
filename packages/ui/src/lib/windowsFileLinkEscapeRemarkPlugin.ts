@@ -1,15 +1,15 @@
 import type { Plugin } from "unified";
 
 interface MarkdownPoint {
-  offset?: number;
+    offset?: number;
 }
 
 interface MarkdownNode {
-  children?: MarkdownNode[];
-  position?: { end?: MarkdownPoint; start?: MarkdownPoint };
-  title?: string | null;
-  type: string;
-  url?: string;
+    children?: MarkdownNode[];
+    position?: { end?: MarkdownPoint; start?: MarkdownPoint };
+    title?: string | null;
+    type: string;
+    url?: string;
 }
 
 // 盘符绝对路径与 UNC。只有命中它们才回原文切片，普通 URL 完全不进本插件的改写面。
@@ -22,7 +22,7 @@ const windowsDestinationPattern = /^(?:[a-zA-Z]:[\\/]|\\)/u;
 const punctuationEscapePattern = /\\([!-/:-@[-`{-~])/gu;
 
 function unescapeCommonMarkPunctuation(raw: string): string {
-  return raw.replace(punctuationEscapePattern, "$1");
+    return raw.replace(punctuationEscapePattern, "$1");
 }
 
 /**
@@ -35,14 +35,14 @@ function unescapeCommonMarkPunctuation(raw: string): string {
  *   提供，同一个转义丢失在这里同样成立，必须一起还原。
  */
 function extractRawDestination(node: MarkdownNode, slice: string): string | null {
-  if (node.type === "definition") {
-    const marker = slice.indexOf("]:");
-    return marker < 0 ? null : slice.slice(marker + 2).trim();
-  }
+    if (node.type === "definition") {
+        const marker = slice.indexOf("]:");
+        return marker < 0 ? null : slice.slice(marker + 2).trim();
+    }
 
-  if (!slice.endsWith(")")) return null;
-  const marker = slice.lastIndexOf("](");
-  return marker < 0 ? null : slice.slice(marker + 2, -1).trim();
+    if (!slice.endsWith(")")) return null;
+    const marker = slice.lastIndexOf("](");
+    return marker < 0 ? null : slice.slice(marker + 2, -1).trim();
 }
 
 /**
@@ -57,39 +57,39 @@ function extractRawDestination(node: MarkdownNode, slice: string): string | null
  * 无歧义；否则宁可保持现状，不写入可能错误的路径。
  */
 function recoverRawDestination(node: MarkdownNode, source: string): string | null {
-  const url = node.url;
-  if (typeof url !== "string" || !windowsDestinationPattern.test(url)) return null;
-  // 带 title 的链接需要解析引号语法才能定位 destination 结尾，切错就会把引号算进
-  // 路径；本场景不出现，直接放弃还原。
-  if (node.title !== null && node.title !== undefined) return null;
+    const url = node.url;
+    if (typeof url !== "string" || !windowsDestinationPattern.test(url)) return null;
+    // 带 title 的链接需要解析引号语法才能定位 destination 结尾，切错就会把引号算进
+    // 路径；本场景不出现，直接放弃还原。
+    if (node.title !== null && node.title !== undefined) return null;
 
-  const start = node.position?.start?.offset;
-  const end = node.position?.end?.offset;
-  if (typeof start !== "number" || typeof end !== "number" || end <= start) return null;
+    const start = node.position?.start?.offset;
+    const end = node.position?.end?.offset;
+    if (typeof start !== "number" || typeof end !== "number" || end <= start) return null;
 
-  const raw = extractRawDestination(node, source.slice(start, end));
-  // 尖括号形式的转义规则与裸形式不同，同样按不还原处理。
-  if (raw === null || !raw || raw.startsWith("<") || raw === url) return null;
-  if (unescapeCommonMarkPunctuation(raw) !== url) return null;
+    const raw = extractRawDestination(node, source.slice(start, end));
+    // 尖括号形式的转义规则与裸形式不同，同样按不还原处理。
+    if (raw === null || !raw || raw.startsWith("<") || raw === url) return null;
+    if (unescapeCommonMarkPunctuation(raw) !== url) return null;
 
-  return raw;
+    return raw;
 }
 
 export const windowsFileLinkEscapeRemarkPlugin: Plugin =
-  function windowsFileLinkEscapeRemarkPlugin() {
-    return (tree: unknown, file: unknown) => {
-      const source = String(file ?? "");
-      if (!source) return;
+    function windowsFileLinkEscapeRemarkPlugin() {
+        return (tree: unknown, file: unknown) => {
+            const source = String(file ?? "");
+            if (!source) return;
 
-      const visit = (node: MarkdownNode): void => {
-        if (node.type === "link" || node.type === "image" || node.type === "definition") {
-          const raw = recoverRawDestination(node, source);
-          if (raw !== null) node.url = raw;
-        }
+            const visit = (node: MarkdownNode): void => {
+                if (node.type === "link" || node.type === "image" || node.type === "definition") {
+                    const raw = recoverRawDestination(node, source);
+                    if (raw !== null) node.url = raw;
+                }
 
-        node.children?.forEach(visit);
-      };
+                node.children?.forEach(visit);
+            };
 
-      visit(tree as MarkdownNode);
+            visit(tree as MarkdownNode);
+        };
     };
-  };

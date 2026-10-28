@@ -26,25 +26,25 @@ const ROW_OVERHEAD_BYTES = 64;
 
 /** 一个字段路径的全部 SQLite JSON 路径候选；超过展开上限时为空（该字段恒为「没有」）。 */
 export function fieldPathCandidates(path: string): string[] {
-  const segments = path.split(".");
-  const indexLike = segments.filter((segment) => arrayIndexOf(segment) !== undefined).length;
-  if (indexLike > MAX_INDEX_LIKE_SEGMENTS) return [];
-  let candidates = ["$.item"];
-  for (const segment of segments) {
-    // JSON.stringify 给出带引号、已转义的键：SQLite 的路径标签认同一套转义。
-    const asKey = `.${JSON.stringify(segment)}`;
-    const index = arrayIndexOf(segment);
-    candidates = candidates.flatMap((prefix) =>
-      index === undefined ? [prefix + asKey] : [prefix + asKey, `${prefix}[${index}]`],
-    );
-  }
-  return candidates;
+    const segments = path.split(".");
+    const indexLike = segments.filter((segment) => arrayIndexOf(segment) !== undefined).length;
+    if (indexLike > MAX_INDEX_LIKE_SEGMENTS) return [];
+    let candidates = ["$.item"];
+    for (const segment of segments) {
+        // JSON.stringify 给出带引号、已转义的键：SQLite 的路径标签认同一套转义。
+        const asKey = `.${JSON.stringify(segment)}`;
+        const index = arrayIndexOf(segment);
+        candidates = candidates.flatMap((prefix) =>
+            index === undefined ? [prefix + asKey] : [prefix + asKey, `${prefix}[${index}]`],
+        );
+    }
+    return candidates;
 }
 
 /** `readWorkflowArtifactField` 在数组上的下标判据：`Number(段)` 是非负整数。 */
 function arrayIndexOf(segment: string): number | undefined {
-  const index = Number(segment);
-  return Number.isInteger(index) && index >= 0 ? index : undefined;
+    const index = Number(segment);
+    return Number.isInteger(index) && index >= 0 ? index : undefined;
 }
 
 /**
@@ -52,33 +52,33 @@ function arrayIndexOf(segment: string): number | undefined {
  * 关联子查询里，外层的 `case` 引用它的结果列。
  */
 function fieldExpression(path: string, maxValueBytes: number): { sql: string; params: string[] } {
-  const candidates = fieldPathCandidates(path);
-  if (candidates.length === 0) return { sql: "null", params: [] };
-  const value = `coalesce(${candidates.map(() => "e.payload_json -> ?").join(", ")}, null)`;
-  const sql = `(select case
+    const candidates = fieldPathCandidates(path);
+    if (candidates.length === 0) return { sql: "null", params: [] };
+    const value = `coalesce(${candidates.map(() => "e.payload_json -> ?").join(", ")}, null)`;
+    const sql = `(select case
       when v is null then null
       when octet_length(v) <= ${maxValueBytes} then v
       when json_type(v) = 'text' then json_quote(substr(v ->> '$', 1, ${CLIPPED_CHARS}) || '…')
       else json_quote(substr(v, 1, ${CLIPPED_CHARS}) || '…')
     end from (select ${value} as v))`;
-  return { sql, params: candidates };
+    return { sql, params: candidates };
 }
 
 /** 只取字段的一页（游标、两道界与 `hasMore` 的语义同 dwf-journal-pages.ts）。 */
 export interface DwfArtifactFieldPageQuery {
-  afterSequence?: number;
-  fields: readonly string[];
-  limit: number;
-  maxBytes: number;
-  maxValueBytes: number;
+    afterSequence?: number;
+    fields: readonly string[];
+    limit: number;
+    maxBytes: number;
+    maxValueBytes: number;
 }
 
 /** 一条只取字段的条目。 */
 export interface DwfArtifactFieldItem {
-  fields: Record<string, unknown>;
-  ordinal: number;
-  sequence: number;
-  siteId: string;
+    fields: Record<string, unknown>;
+    ordinal: number;
+    sequence: number;
+    siteId: string;
 }
 
 /**
@@ -88,20 +88,20 @@ export interface DwfArtifactFieldItem {
  * （每个至多 `maxValueBytes`），所以临时表里没有整条 item。
  */
 export function listArtifactFieldItems(
-  db: DatabaseSync,
-  runId: string,
-  artifactId: string,
-  query: DwfArtifactFieldPageQuery,
+    db: DatabaseSync,
+    runId: string,
+    artifactId: string,
+    query: DwfArtifactFieldPageQuery,
 ): { items: DwfArtifactFieldItem[]; hasMore: boolean } {
-  if (query.limit <= 0) return { items: [], hasMore: false };
-  const fields = query.fields.map((path) => fieldExpression(path, query.maxValueBytes));
-  const columns = fields.map((field, index) => `${field.sql} as f${index}`).join(",\n");
-  const bytes = fields.map((_field, index) => `coalesce(octet_length(f${index}), 0)`).join(" + ");
-  const after = query.afterSequence;
-  const cursor = after === undefined ? "" : " and e.sequence > ?";
-  const rows = db
-    .prepare(
-      `
+    if (query.limit <= 0) return { items: [], hasMore: false };
+    const fields = query.fields.map((path) => fieldExpression(path, query.maxValueBytes));
+    const columns = fields.map((field, index) => `${field.sql} as f${index}`).join(",\n");
+    const bytes = fields.map((_field, index) => `coalesce(octet_length(f${index}), 0)`).join(" + ");
+    const after = query.afterSequence;
+    const cursor = after === undefined ? "" : " and e.sequence > ?";
+    const rows = db
+        .prepare(
+            `
       with page as (
         select e.sequence,
                json_extract(e.payload_json, '$.instance.siteId') as site_id,
@@ -122,32 +122,33 @@ export function listArtifactFieldItems(
       )
       select * from ranked order by sequence
       `,
-    )
-    .all(
-      ...fields.flatMap((field) => field.params),
-      runId,
-      artifactId,
-      ...(after === undefined ? [] : [after]),
-      query.limit + 1,
-    ) as unknown as Array<Record<string, string | number | null>>;
-  const maxBytes = Math.max(0, query.maxBytes);
-  const end = rows.findIndex(
-    (row) =>
-      row.rn !== 1 && ((row.rn as number) > query.limit || (row.through as number) > maxBytes),
-  );
-  const inPage = end === -1 ? rows : rows.slice(0, end);
-  const items = inPage.map((row) => {
-    const values: Record<string, unknown> = {};
-    query.fields.forEach((path, index) => {
-      const text = row[`f${index}`];
-      if (typeof text === "string") values[path] = JSON.parse(text);
+        )
+        .all(
+            ...fields.flatMap((field) => field.params),
+            runId,
+            artifactId,
+            ...(after === undefined ? [] : [after]),
+            query.limit + 1,
+        ) as unknown as Array<Record<string, string | number | null>>;
+    const maxBytes = Math.max(0, query.maxBytes);
+    const end = rows.findIndex(
+        (row) =>
+            row.rn !== 1 &&
+            ((row.rn as number) > query.limit || (row.through as number) > maxBytes),
+    );
+    const inPage = end === -1 ? rows : rows.slice(0, end);
+    const items = inPage.map((row) => {
+        const values: Record<string, unknown> = {};
+        query.fields.forEach((path, index) => {
+            const text = row[`f${index}`];
+            if (typeof text === "string") values[path] = JSON.parse(text);
+        });
+        return {
+            sequence: row.sequence as number,
+            siteId: String(row.site_id),
+            ordinal: Number(row.ordinal),
+            fields: values,
+        };
     });
-    return {
-      sequence: row.sequence as number,
-      siteId: String(row.site_id),
-      ordinal: Number(row.ordinal),
-      fields: values,
-    };
-  });
-  return { items, hasMore: end !== -1 };
+    return { items, hasMore: end !== -1 };
 }

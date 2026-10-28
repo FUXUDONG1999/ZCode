@@ -6,23 +6,23 @@ import { parseParams, type ZCodeProtocolAgentServerContext } from "./server-type
  * 因此协议层同时缓存偏好供未来 session 继承，并立即更新已有 session，避免新旧任务行为分裂。
  */
 export async function updateModelIoPreferences(
-  context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ) {
-  const params = parseParams(zcodeWorkspaceUpdateModelIoPreferencesParamsSchema, rawParams);
-  const enabled = params.preferences.fullRetentionEnabled;
-  context.appRuntimePreferences.modelIoFullRetentionEnabled = enabled;
+    const params = parseParams(zcodeWorkspaceUpdateModelIoPreferencesParamsSchema, rawParams);
+    const enabled = params.preferences.fullRetentionEnabled;
+    context.appRuntimePreferences.modelIoFullRetentionEnabled = enabled;
 
-  let updatedSessionCount = 0;
-  for (const record of context.sessions.values()) {
-    if (!record.app.setModelIoFullRetentionEnabled) continue;
-    record.app.setModelIoFullRetentionEnabled(enabled);
-    updatedSessionCount += 1;
-  }
+    let updatedSessionCount = 0;
+    for (const record of context.sessions.values()) {
+        if (!record.app.setModelIoFullRetentionEnabled) continue;
+        record.app.setModelIoFullRetentionEnabled(enabled);
+        updatedSessionCount += 1;
+    }
 
-  return {
-    workspace: params.workspace,
-    fullRetentionEnabled: enabled,
-    updatedSessionCount,
-  };
+    return {
+        workspace: params.workspace,
+        fullRetentionEnabled: enabled,
+        updatedSessionCount,
+    };
 }

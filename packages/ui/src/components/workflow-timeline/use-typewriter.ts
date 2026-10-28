@@ -22,49 +22,49 @@ export const PEN_MS = 24;
 export const PEN_GAP_MS = 120;
 
 export interface TypewriterState {
-  /** 已揭示的站数（笔到过的站）；后面的站还不在轨道上。 */
-  visible: number;
-  /** 每个已揭示站已写出的字符数。 */
-  shown: readonly number[];
-  /** 笔追上了流（没有可写的字、没有可揭示的站）：光标闪烁。 */
-  idle: boolean;
+    /** 已揭示的站数（笔到过的站）；后面的站还不在轨道上。 */
+    visible: number;
+    /** 每个已揭示站已写出的字符数。 */
+    shown: readonly number[];
+    /** 笔追上了流（没有可写的字、没有可揭示的站）：光标闪烁。 */
+    idle: boolean;
 }
 
 interface PenState {
-  visible: number;
-  shown: number[];
+    visible: number;
+    shown: number[];
 }
 
 const SILENT: TypewriterState = { idle: false, shown: [], visible: 0 };
 
 function prefersReducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    typeof window.matchMedia === "function" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
+    return (
+        typeof window !== "undefined" &&
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
 }
 
 function commonPrefix(a: string, b: string): number {
-  let i = 0;
-  while (i < a.length && i < b.length && a[i] === b[i]) i += 1;
-  return i;
+    let i = 0;
+    while (i < a.length && i < b.length && a[i] === b[i]) i += 1;
+    return i;
 }
 
 /** 站名变了（变短 / 前缀变了 / 站数变少）时把笔退回到仍然成立的位置；没变就原样返回。 */
 function reconcile(
-  state: PenState,
-  names: readonly string[],
-  previous: readonly string[],
+    state: PenState,
+    names: readonly string[],
+    previous: readonly string[],
 ): PenState {
-  const visible = Math.min(state.visible, names.length);
-  let changed = visible !== state.visible;
-  const shown = state.shown.slice(0, visible).map((count, i) => {
-    const next = Math.min(count, commonPrefix(previous[i] ?? "", names[i]!));
-    if (next !== count) changed = true;
-    return next;
-  });
-  return changed ? { shown, visible } : state;
+    const visible = Math.min(state.visible, names.length);
+    let changed = visible !== state.visible;
+    const shown = state.shown.slice(0, visible).map((count, i) => {
+        const next = Math.min(count, commonPrefix(previous[i] ?? "", names[i]!));
+        if (next !== count) changed = true;
+        return next;
+    });
+    return changed ? { shown, visible } : state;
 }
 
 /**
@@ -73,55 +73,55 @@ function reconcile(
  * 记一笔。
  */
 function shownOf(state: PenState, names: readonly string[], reduced: boolean): readonly number[] {
-  return reduced ? state.shown.map((_, i) => names[i]?.length ?? 0) : state.shown;
+    return reduced ? state.shown.map((_, i) => names[i]?.length ?? 0) : state.shown;
 }
 
 export function useTypewriter(names: readonly string[] | undefined): TypewriterState {
-  const [state, setState] = useState<PenState>({ shown: [], visible: 0 });
-  // 分隔符是 NUL（站名里不会出现），["a b"] 与 ["a", "b"] 才不会撞成同一个键。源码里不能直接写一个
-  // 裸 NUL 字节，git 把整个文件当二进制看；改成转义写法，内容不变。
-  const key = names?.join("\u0000");
-  const namesRef = useRef<readonly string[]>([]);
-  const lastRef = useRef<readonly string[]>([]);
-  if (names !== undefined) namesRef.current = names;
+    const [state, setState] = useState<PenState>({ shown: [], visible: 0 });
+    // 分隔符是 NUL（站名里不会出现），["a b"] 与 ["a", "b"] 才不会撞成同一个键。源码里不能直接写一个
+    // 裸 NUL 字节，git 把整个文件当二进制看；改成转义写法，内容不变。
+    const key = names?.join("\u0000");
+    const namesRef = useRef<readonly string[]>([]);
+    const lastRef = useRef<readonly string[]>([]);
+    if (names !== undefined) namesRef.current = names;
 
-  useEffect(() => {
-    if (key === undefined) return undefined;
-    const current = namesRef.current;
-    const previous = lastRef.current;
-    lastRef.current = current;
-    const pen = reconcile(state, current, previous);
-    if (pen !== state) {
-      setState(pen);
-      return undefined;
-    }
-    const reduced = prefersReducedMotion();
-    const at = pen.visible - 1;
-    const target = at >= 0 ? current[at]! : undefined;
-    const written = target === undefined ? 0 : (shownOf(pen, current, reduced)[at] ?? 0);
-    if (target !== undefined && written < target.length) {
-      // 逐字写当前站（reduced-motion 下 written 已经是整站，不会进到这里）。
-      const timer = setTimeout(() => {
-        const shown = pen.shown.slice();
-        shown[at] = written + 1;
-        setState({ shown, visible: pen.visible });
-      }, PEN_MS);
-      return () => clearTimeout(timer);
-    }
-    // 当前站写完了（或还没有站）：**有下一站才揭示**——空草稿什么都不做。
-    if (current.length <= pen.visible) return undefined;
-    const reveal = () => setState({ shown: [...pen.shown, 0], visible: pen.visible + 1 });
-    if (target === undefined) {
-      reveal();
-      return undefined;
-    }
-    const timer = setTimeout(reveal, PEN_GAP_MS);
-    return () => clearTimeout(timer);
-  }, [key, state]);
+    useEffect(() => {
+        if (key === undefined) return undefined;
+        const current = namesRef.current;
+        const previous = lastRef.current;
+        lastRef.current = current;
+        const pen = reconcile(state, current, previous);
+        if (pen !== state) {
+            setState(pen);
+            return undefined;
+        }
+        const reduced = prefersReducedMotion();
+        const at = pen.visible - 1;
+        const target = at >= 0 ? current[at]! : undefined;
+        const written = target === undefined ? 0 : (shownOf(pen, current, reduced)[at] ?? 0);
+        if (target !== undefined && written < target.length) {
+            // 逐字写当前站（reduced-motion 下 written 已经是整站，不会进到这里）。
+            const timer = setTimeout(() => {
+                const shown = pen.shown.slice();
+                shown[at] = written + 1;
+                setState({ shown, visible: pen.visible });
+            }, PEN_MS);
+            return () => clearTimeout(timer);
+        }
+        // 当前站写完了（或还没有站）：**有下一站才揭示**——空草稿什么都不做。
+        if (current.length <= pen.visible) return undefined;
+        const reveal = () => setState({ shown: [...pen.shown, 0], visible: pen.visible + 1 });
+        if (target === undefined) {
+            reveal();
+            return undefined;
+        }
+        const timer = setTimeout(reveal, PEN_GAP_MS);
+        return () => clearTimeout(timer);
+    }, [key, state]);
 
-  if (names === undefined) return SILENT;
-  const shown = shownOf(state, names, prefersReducedMotion());
-  const at = state.visible - 1;
-  const idle = at >= 0 && state.visible === names.length && (shown[at] ?? 0) >= names[at]!.length;
-  return { idle, shown, visible: state.visible };
+    if (names === undefined) return SILENT;
+    const shown = shownOf(state, names, prefersReducedMotion());
+    const at = state.visible - 1;
+    const idle = at >= 0 && state.visible === names.length && (shown[at] ?? 0) >= names[at]!.length;
+    return { idle, shown, visible: state.visible };
 }

@@ -14,28 +14,28 @@ import { useZCodeIntl } from "@/i18n/IntlProvider.js";
  * 触界置位（workflow-runs.ts），那时步数一个不少，再念一句「仅展示 40/40 步」是句废话。
  */
 export function WorkflowTruncatedNotice({
-  className,
-  run,
-  testId,
+    className,
+    run,
+    testId,
 }: {
-  className?: string;
-  /** 活投影里的这条 run；缺席（run 已被淘汰出投影）即无从谈起。 */
-  run: WorkflowRunState | undefined;
-  testId: string;
+    className?: string;
+    /** 活投影里的这条 run；缺席（run 已被淘汰出投影）即无从谈起。 */
+    run: WorkflowRunState | undefined;
+    testId: string;
 }) {
-  const { intl } = useZCodeIntl();
-  if (run?.truncated !== true) return null;
-  const shown = run.nodes.length;
-  const { total } = workflowRunStepCounts(run);
-  if (shown >= total) return null;
-  return (
-    <p
-      className={cn("min-w-0 text-ui-xs text-foreground-subtlest", className)}
-      data-testid={testId}
-    >
-      {/* 两个数不加千分位：紧挨着的摘要行那一段（`{done}/{total} steps`）就是裸数字，
+    const { intl } = useZCodeIntl();
+    if (run?.truncated !== true) return null;
+    const shown = run.nodes.length;
+    const { total } = workflowRunStepCounts(run);
+    if (shown >= total) return null;
+    return (
+        <p
+            className={cn("min-w-0 text-ui-xs text-foreground-subtlest", className)}
+            data-testid={testId}
+        >
+            {/* 两个数不加千分位：紧挨着的摘要行那一段（`{done}/{total} steps`）就是裸数字，
           同一块里一个「2,001」一个「2001」比多一个分隔符更刺眼。 */}
-      {intl.formatMessage({ id: "chat.toolCall.workflow.run.truncated" }, { shown, total })}
-    </p>
-  );
+            {intl.formatMessage({ id: "chat.toolCall.workflow.run.truncated" }, { shown, total })}
+        </p>
+    );
 }

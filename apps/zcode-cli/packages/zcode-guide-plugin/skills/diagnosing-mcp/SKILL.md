@@ -39,26 +39,26 @@ Canonical examples:
 
 ```json
 {
-  "mcp": {
-    "servers": {
-      "mysql-local": {
-        "type": "stdio",
-        "command": "npx",
-        "args": ["-y", "@benborla29/mcp-server-mysql"],
-        "env": {
-          "MYSQL_HOST": "127.0.0.1",
-          "MYSQL_PORT": "3306"
+    "mcp": {
+        "servers": {
+            "mysql-local": {
+                "type": "stdio",
+                "command": "npx",
+                "args": ["-y", "@benborla29/mcp-server-mysql"],
+                "env": {
+                    "MYSQL_HOST": "127.0.0.1",
+                    "MYSQL_PORT": "3306"
+                }
+            },
+            "remote-reader": {
+                "type": "http",
+                "url": "https://example.com/mcp",
+                "headers": {
+                    "Authorization": "Bearer ..."
+                }
+            }
         }
-      },
-      "remote-reader": {
-        "type": "http",
-        "url": "https://example.com/mcp",
-        "headers": {
-          "Authorization": "Bearer ..."
-        }
-      }
     }
-  }
 }
 ```
 

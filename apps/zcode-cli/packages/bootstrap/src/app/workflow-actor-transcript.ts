@@ -17,15 +17,15 @@
 // 的根基就是这一条。
 
 import {
-  createMessageId,
-  createPartId,
-  type Logger,
-  type MessageId,
-  type MessageInfo,
-  type MessagePart,
-  type MessageWithParts,
-  type PartId,
-  type SessionId,
+    createMessageId,
+    createPartId,
+    type Logger,
+    type MessageId,
+    type MessageInfo,
+    type MessagePart,
+    type MessageWithParts,
+    type PartId,
+    type SessionId,
 } from "@zcode/contracts";
 import { cloneMessageForFork, clonePartForFork } from "@zcode/core";
 import { WorkflowError, type ActorSessionSeed } from "@zcode/dynamic-workflow";
@@ -38,9 +38,9 @@ import { WorkflowError, type ActorSessionSeed } from "@zcode/dynamic-workflow";
  * 只需要这三个方法，声明成整个 store 会让"driver 依赖会话存储的全部能力"变成一句真话。
  */
 export interface ActorTranscriptStore {
-  messages(input: { sessionID: SessionId }): Promise<MessageWithParts[]>;
-  saveMessage(input: MessageInfo): Promise<void>;
-  savePart(input: MessagePart): Promise<void>;
+    messages(input: { sessionID: SessionId }): Promise<MessageWithParts[]>;
+    saveMessage(input: MessageInfo): Promise<void>;
+    savePart(input: MessagePart): Promise<void>;
 }
 
 /**
@@ -50,10 +50,10 @@ export interface ActorTranscriptStore {
  * 完成（core 的 persistMessage / persistPart），所以此刻的落库量就是这次交换的全部产出。
  */
 export async function countActorTranscript(
-  store: ActorTranscriptStore,
-  sessionId: SessionId,
+    store: ActorTranscriptStore,
+    sessionId: SessionId,
 ): Promise<number> {
-  return (await store.messages({ sessionID: sessionId })).length;
+    return (await store.messages({ sessionID: sessionId })).length;
 }
 
 /**
@@ -94,61 +94,64 @@ export async function countActorTranscript(
  *          两者的处理相同：不再水化第二次，见 workflow-driver-transcript.ts 的 seedActorSession）。
  */
 export async function seedActorTranscript(input: {
-  logger?: Logger;
-  seed: ActorSessionSeed;
-  store: ActorTranscriptStore;
-  targetSessionId: SessionId;
+    logger?: Logger;
+    seed: ActorSessionSeed;
+    store: ActorTranscriptStore;
+    targetSessionId: SessionId;
 }): Promise<number | undefined> {
-  const { logger, seed, store, targetSessionId } = input;
-  const existing = await store.messages({ sessionID: targetSessionId });
-  if (existing.length >= seed.messageCount) return undefined;
-  if (!holdsOnlySeedMessages(existing, targetSessionId)) {
-    // 记一条：走到这里说明种子边界比上一次大了，而这是唯一能看见它的地方。
-    logger?.warn?.("Dynamic workflow actor session already has its own history; seeding skipped", {
-      event: "dynamic_workflow.actor.seed_skipped_live_session",
-      existingMessageCount: existing.length,
-      messageCount: seed.messageCount,
-      module: "bootstrap.app",
-      sessionId: targetSessionId,
-    });
-    return undefined;
-  }
-
-  const source = await store.messages({ sessionID: seed.sourceSessionId as SessionId });
-  if (source.length < seed.messageCount) {
-    throw new WorkflowError(
-      "DriverError",
-      `Cannot seed the subagent transcript: source session ${seed.sourceSessionId} has only ` +
-        `${source.length} messages, but the boundary requires the first ${seed.messageCount}.`,
-      { mismatch: { expected: String(seed.messageCount), got: String(source.length) } },
-    );
-  }
-
-  // 老 id → 新 id：assistant 的 parentID 与 part 的内嵌锚点都按它重映射。前缀是连续的，
-  // 所以每条消息引用到的更早消息必然已经在表里（下标严格递增）。
-  const messageIds = new Map<MessageId, MessageId>();
-  for (let index = 0; index < seed.messageCount; index++) {
-    const message = source[index]!;
-    const nextMessageId = seededMessageId(targetSessionId, index);
-    const cloned = cloneMessageForFork(message.info, {
-      forkedSessionId: targetSessionId,
-      messageIdMap: messageIds,
-      nextMessageId,
-    });
-    messageIds.set(message.info.id, nextMessageId);
-    await store.saveMessage(cloned);
-    for (const [partIndex, part] of message.parts.entries()) {
-      await store.savePart(
-        clonePartForFork(part, {
-          forkedSessionId: targetSessionId,
-          messageIdMap: messageIds,
-          nextMessageId,
-          nextPartId: seededPartId(targetSessionId, index, partIndex),
-        }),
-      );
+    const { logger, seed, store, targetSessionId } = input;
+    const existing = await store.messages({ sessionID: targetSessionId });
+    if (existing.length >= seed.messageCount) return undefined;
+    if (!holdsOnlySeedMessages(existing, targetSessionId)) {
+        // 记一条：走到这里说明种子边界比上一次大了，而这是唯一能看见它的地方。
+        logger?.warn?.(
+            "Dynamic workflow actor session already has its own history; seeding skipped",
+            {
+                event: "dynamic_workflow.actor.seed_skipped_live_session",
+                existingMessageCount: existing.length,
+                messageCount: seed.messageCount,
+                module: "bootstrap.app",
+                sessionId: targetSessionId,
+            },
+        );
+        return undefined;
     }
-  }
-  return seed.messageCount;
+
+    const source = await store.messages({ sessionID: seed.sourceSessionId as SessionId });
+    if (source.length < seed.messageCount) {
+        throw new WorkflowError(
+            "DriverError",
+            `Cannot seed the subagent transcript: source session ${seed.sourceSessionId} has only ` +
+                `${source.length} messages, but the boundary requires the first ${seed.messageCount}.`,
+            { mismatch: { expected: String(seed.messageCount), got: String(source.length) } },
+        );
+    }
+
+    // 老 id → 新 id：assistant 的 parentID 与 part 的内嵌锚点都按它重映射。前缀是连续的，
+    // 所以每条消息引用到的更早消息必然已经在表里（下标严格递增）。
+    const messageIds = new Map<MessageId, MessageId>();
+    for (let index = 0; index < seed.messageCount; index++) {
+        const message = source[index]!;
+        const nextMessageId = seededMessageId(targetSessionId, index);
+        const cloned = cloneMessageForFork(message.info, {
+            forkedSessionId: targetSessionId,
+            messageIdMap: messageIds,
+            nextMessageId,
+        });
+        messageIds.set(message.info.id, nextMessageId);
+        await store.saveMessage(cloned);
+        for (const [partIndex, part] of message.parts.entries()) {
+            await store.savePart(
+                clonePartForFork(part, {
+                    forkedSessionId: targetSessionId,
+                    messageIdMap: messageIds,
+                    nextMessageId,
+                    nextPartId: seededPartId(targetSessionId, index, partIndex),
+                }),
+            );
+        }
+    }
+    return seed.messageCount;
 }
 
 /**
@@ -159,12 +162,12 @@ export async function seedActorTranscript(input: {
  * 当然可以抄）。`messages()` 按 `sequence` 升序返回，而种子是按下标顺序写的，所以下标就是位置。
  */
 function holdsOnlySeedMessages(
-  existing: readonly MessageWithParts[],
-  targetSessionId: SessionId,
+    existing: readonly MessageWithParts[],
+    targetSessionId: SessionId,
 ): boolean {
-  return existing.every(
-    (message, index) => message.info.id === seededMessageId(targetSessionId, index),
-  );
+    return existing.every(
+        (message, index) => message.info.id === seededMessageId(targetSessionId, index),
+    );
 }
 
 /**
@@ -174,9 +177,9 @@ function holdsOnlySeedMessages(
  * 而不是在旁边再长出一份。会话 id 已经含 runId 与 actorRef，所以两个不同目标会话的副本天然不撞。
  */
 function seededMessageId(targetSessionId: SessionId, index: number): MessageId {
-  return createMessageId(`${targetSessionId}-seed-${index}`);
+    return createMessageId(`${targetSessionId}-seed-${index}`);
 }
 
 function seededPartId(targetSessionId: SessionId, index: number, partIndex: number): PartId {
-  return createPartId(`${targetSessionId}-seed-${index}-${partIndex}`);
+    return createPartId(`${targetSessionId}-seed-${index}-${partIndex}`);
 }

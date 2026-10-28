@@ -545,17 +545,17 @@ If a generated PDF shows cover + TOC on the same page, it is a **critical bug** 
 - **CJK body**: Use `TA_LEFT` + 2-char indent. Headings: no indent.
 - **Font sizes**: Body 11pt, subheadings 14pt, headings 18-20pt
 - **Line height**: 1.5-1.6 (leading at **1.4x font size minimum**, recommended 1.5x for CJK)
-  - CJK characters are taller than Latin - 1.2x causes cramped lines
-  - Quick reference: 10pt→14pt min/18pt rec; 14pt→20pt min/22pt rec; 36pt→50pt min/54pt rec
+    - CJK characters are taller than Latin - 1.2x causes cramped lines
+    - Quick reference: 10pt→14pt min/18pt rec; 14pt→20pt min/22pt rec; 36pt→50pt min/54pt rec
 - **⛔ Prohibited: fixed `rowHeights` in Table()**. Use `TOPPADDING` / `BOTTOMPADDING` to control row spacing. Fixed rowHeights cause content overflow clipping - the text renders but gets invisibly cut off.
 - **CRITICAL: Alignment Selection Rule**:
-  - Use `TA_JUSTIFY` only when ALL of:
-    - Text is predominantly English (≥ 90%)
-    - Column width is sufficiently wide (A4 single-column body)
-    - Font: Western fonts (Times New Roman / Calibri)
-    - Chinese content: None or negligible
-  - Otherwise, always default to `TA_LEFT`
-  - For Chinese text, always add `wordWrap='CJK'` to ParagraphStyle
+    - Use `TA_JUSTIFY` only when ALL of:
+        - Text is predominantly English (≥ 90%)
+        - Column width is sufficiently wide (A4 single-column body)
+        - Font: Western fonts (Times New Roman / Calibri)
+        - Chinese content: None or negligible
+    - Otherwise, always default to `TA_LEFT`
+    - For Chinese text, always add `wordWrap='CJK'` to ParagraphStyle
 
 ### Style Configuration
 
@@ -1240,11 +1240,11 @@ Single-column, clean layout optimised for Applicant Tracking Systems (ATS). No g
 
 - **Goal: Fill ≥85% of the page height.** Content should reach at least the bottom quarter of the page. A resume that stops at 60% height with blank space below = FAIL.
 - **Adaptive spacing strategy** (apply in order until page is ≥85% filled):
-  1. Increase `spaceBefore` / `spaceAfter` on section headers (from 10pt up to 18pt)
-  2. Increase `leading` (line height) on body text (from 14pt up to 18pt)
-  3. Increase body `fontSize` by 0.5-1pt (from 10pt up to 11.5pt max)
-  4. Add a "Professional Summary" or "Key Achievements" section if none exists
-  5. Increase margins slightly (from 1.5cm up to 2cm) to reduce line width and push content downward
+    1. Increase `spaceBefore` / `spaceAfter` on section headers (from 10pt up to 18pt)
+    2. Increase `leading` (line height) on body text (from 14pt up to 18pt)
+    3. Increase body `fontSize` by 0.5-1pt (from 10pt up to 11.5pt max)
+    4. Add a "Professional Summary" or "Key Achievements" section if none exists
+    5. Increase margins slightly (from 1.5cm up to 2cm) to reduce line width and push content downward
 - **Never leave a visible blank area > 3cm at the bottom of the page.**
 - **If content overflows to page 2**: do the reverse - reduce spacing, tighten leading (min 12pt), reduce fontSize (min 9pt / 12px), before removing content.
 

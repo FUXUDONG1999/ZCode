@@ -4,14 +4,14 @@ import { attachCurrentSessionMetadata } from "../metadata.js";
 import type { CommandCenterDeps, TuiSubmitOptions } from "../types.js";
 
 export async function handleCustomCommand(
-  name: string,
-  args: string,
-  deps: CommandCenterDeps,
-  options: TuiSubmitOptions,
+    name: string,
+    args: string,
+    deps: CommandCenterDeps,
+    options: TuiSubmitOptions,
 ): Promise<TuiSubmitPromptResult | undefined> {
-  const prompt = await buildCustomCommandPrompt(name, args, deps);
-  if (!prompt) return undefined;
-  const app = await deps.getApp();
-  const result = await app.submitPrompt(prompt, options);
-  return attachCurrentSessionMetadata(result, deps, app);
+    const prompt = await buildCustomCommandPrompt(name, args, deps);
+    if (!prompt) return undefined;
+    const app = await deps.getApp();
+    const result = await app.submitPrompt(prompt, options);
+    return attachCurrentSessionMetadata(result, deps, app);
 }

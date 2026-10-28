@@ -8,34 +8,34 @@ const subscribeToNothing = () => () => undefined;
 const getEmptyStatuses = () => emptyStatuses;
 
 export function useSourceServerStatuses() {
-  const management = useBaseWorkspaceServices().sourceServerManagementService;
-  const registry = useMemo(
-    () => (management ? getSourceServerStatusRegistry(management) : null),
-    [management],
-  );
-  return useSyncExternalStore(
-    registry?.subscribe ?? subscribeToNothing,
-    registry?.getSnapshot ?? getEmptyStatuses,
-    registry?.getSnapshot ?? getEmptyStatuses,
-  );
+    const management = useBaseWorkspaceServices().sourceServerManagementService;
+    const registry = useMemo(
+        () => (management ? getSourceServerStatusRegistry(management) : null),
+        [management],
+    );
+    return useSyncExternalStore(
+        registry?.subscribe ?? subscribeToNothing,
+        registry?.getSnapshot ?? getEmptyStatuses,
+        registry?.getSnapshot ?? getEmptyStatuses,
+    );
 }
 
 const emptyInputs: ReadonlyMap<
-  string,
-  import("@/lib/remoteConnectionPresentation.js").RemoteConnectionPresentationInput
+    string,
+    import("@/lib/remoteConnectionPresentation.js").RemoteConnectionPresentationInput
 > = new Map();
 const getEmptyInputs = () => emptyInputs;
 
 export function useRemoteDevicePresentationInput(sourceServerId?: string) {
-  const management = useBaseWorkspaceServices().sourceServerManagementService;
-  const registry = useMemo(
-    () => (management ? getSourceServerStatusRegistry(management) : null),
-    [management],
-  );
-  const inputs = useSyncExternalStore(
-    registry?.subscribe ?? subscribeToNothing,
-    registry?.getInputs ?? getEmptyInputs,
-    registry?.getInputs ?? getEmptyInputs,
-  );
-  return sourceServerId ? inputs.get(sourceServerId) : undefined;
+    const management = useBaseWorkspaceServices().sourceServerManagementService;
+    const registry = useMemo(
+        () => (management ? getSourceServerStatusRegistry(management) : null),
+        [management],
+    );
+    const inputs = useSyncExternalStore(
+        registry?.subscribe ?? subscribeToNothing,
+        registry?.getInputs ?? getEmptyInputs,
+        registry?.getInputs ?? getEmptyInputs,
+    );
+    return sourceServerId ? inputs.get(sourceServerId) : undefined;
 }

@@ -14,13 +14,13 @@
 
 import { submitResultToolEntry } from "@zcode/core";
 import {
-  GENERIC_SUBMIT_PROFILE,
-  canonicalJson,
-  refToString,
-  WorkflowError,
-  type AskMessage,
-  type InstanceRef,
-  type WorkflowReportSink,
+    GENERIC_SUBMIT_PROFILE,
+    canonicalJson,
+    refToString,
+    WorkflowError,
+    type AskMessage,
+    type InstanceRef,
+    type WorkflowReportSink,
 } from "@zcode/dynamic-workflow";
 import type { AgentRuntimeWorkflowDriverDeps, SessionState } from "./workflow-driver-types.js";
 
@@ -32,42 +32,47 @@ const SUBMIT_PROFILE_MISMATCH_EVENT = "dynamic_workflow.submit_profile.mismatch"
  * turn。generic 会话与 schema 相同的 mono 会话原样通过。
  */
 export function ensureSubmitProfileFits(
-  deps: AgentRuntimeWorkflowDriverDeps,
-  sink: WorkflowReportSink,
-  state: SessionState,
-  instance: InstanceRef,
-  message: AskMessage,
+    deps: AgentRuntimeWorkflowDriverDeps,
+    sink: WorkflowReportSink,
+    state: SessionState,
+    instance: InstanceRef,
+    message: AskMessage,
 ): boolean {
-  const profile = state.submitProfile;
-  if (profile.kind === "generic") return true;
-  if (profile.kind === "mono" && canonicalJson(profile.schema) === canonicalJson(message.schema)) {
-    return true;
-  }
-  if (profile.kind === "untyped") {
-    sink.askFailed(
-      instance,
-      new WorkflowError(
-        "DriverError",
-        `Typed ask ${refToString(instance)} reached subagent session ${state.sessionId} whose static ` +
-          `submit profile is "untyped" (no submit_result registered): the ask→actor analysis missed this ask.`,
-      ),
+    const profile = state.submitProfile;
+    if (profile.kind === "generic") return true;
+    if (
+        profile.kind === "mono" &&
+        canonicalJson(profile.schema) === canonicalJson(message.schema)
+    ) {
+        return true;
+    }
+    if (profile.kind === "untyped") {
+        sink.askFailed(
+            instance,
+            new WorkflowError(
+                "DriverError",
+                `Typed ask ${refToString(instance)} reached subagent session ${state.sessionId} whose static ` +
+                    `submit profile is "untyped" (no submit_result registered): the ask→actor analysis missed this ask.`,
+            ),
+        );
+        return false;
+    }
+    deps.logger?.warn?.(
+        "Dynamic workflow submit profile mismatch: falling back to the generic submit_result",
+        {
+            event: SUBMIT_PROFILE_MISMATCH_EVENT,
+            module: "bootstrap.app",
+            instance: refToString(instance),
+            runId: deps.runId ?? "run",
+            sessionId: state.sessionId,
+        },
     );
-    return false;
-  }
-  deps.logger?.warn?.(
-    "Dynamic workflow submit profile mismatch: falling back to the generic submit_result",
-    {
-      event: SUBMIT_PROFILE_MISMATCH_EVENT,
-      module: "bootstrap.app",
-      instance: refToString(instance),
-      runId: deps.runId ?? "run",
-      sessionId: state.sessionId,
-    },
-  );
-  // 同一个注册表、同一个名字：register 覆盖 typed 条目；静默，因为覆盖正是意图。缓存必须失效，
-  // 否则 getTools 会继续把旧的 typed 声明发给模型。
-  state.runtime.getToolRegistry().register(submitResultToolEntry, { silentDuplicateWarning: true });
-  state.runtime.invalidateToolCache();
-  state.submitProfile = GENERIC_SUBMIT_PROFILE;
-  return true;
+    // 同一个注册表、同一个名字：register 覆盖 typed 条目；静默，因为覆盖正是意图。缓存必须失效，
+    // 否则 getTools 会继续把旧的 typed 声明发给模型。
+    state.runtime
+        .getToolRegistry()
+        .register(submitResultToolEntry, { silentDuplicateWarning: true });
+    state.runtime.invalidateToolCache();
+    state.submitProfile = GENERIC_SUBMIT_PROFILE;
+    return true;
 }

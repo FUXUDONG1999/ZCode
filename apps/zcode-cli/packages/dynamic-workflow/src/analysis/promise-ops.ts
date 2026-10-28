@@ -1,12 +1,12 @@
 import ts from "typescript";
 import {
-  clearExact,
-  cloneValue,
-  collapse,
-  collapseInto,
-  emptyValue,
-  mergeInto,
-  type AbstractValue,
+    clearExact,
+    cloneValue,
+    collapse,
+    collapseInto,
+    emptyValue,
+    mergeInto,
+    type AbstractValue,
 } from "./domain.js";
 import type { EvalContext, Evaluator } from "./taint.js";
 import { applyPessimistically, recordCall } from "./calls.js";
@@ -20,15 +20,15 @@ import { applyPessimistically, recordCall } from "./calls.js";
 /** The taint fed to invocations of function `fn`'s parameters (the promise resolve/reject/
  * continuation pattern). Empty for a non-tracked fn or one whose params are never invoked. */
 function appliedCallbackTaint(ev: Evaluator, fn: ts.Node): AbstractValue {
-  const out = emptyValue();
-  const id = ev.s.fnId.get(fn);
-  if (id === undefined) return out;
-  const paramCount = (ev.s.fnParamSymbols.get(id) ?? []).length;
-  for (let param = 0; param < paramCount; param += 1) {
-    const captured = ev.s.phCallActualsOf(id, param);
-    if (captured !== undefined) mergeInto(out, captured);
-  }
-  return out;
+    const out = emptyValue();
+    const id = ev.s.fnId.get(fn);
+    if (id === undefined) return out;
+    const paramCount = (ev.s.fnParamSymbols.get(id) ?? []).length;
+    for (let param = 0; param < paramCount; param += 1) {
+        const captured = ev.s.phCallActualsOf(id, param);
+        if (captured !== undefined) mergeInto(out, captured);
+    }
+    return out;
 }
 
 /**
@@ -42,24 +42,24 @@ function appliedCallbackTaint(ev: Evaluator, fn: ts.Node): AbstractValue {
  * what fn's params receive — never special-cased by name.
  */
 export function handleNewUnknown(
-  ev: Evaluator,
-  node: ts.NewExpression,
-  ctx: EvalContext,
+    ev: Evaluator,
+    node: ts.NewExpression,
+    ctx: EvalContext,
 ): AbstractValue {
-  const out = emptyValue();
-  const argVals = (node.arguments ?? []).map((arg) => ev.evalExpr(arg, ctx));
-  for (const argVal of argVals) collapseInto(out, argVal);
-  // The pot the constructor may feed to a callback arg's params is the sibling DATA, not the
-  // callables themselves (a function arg is the callback being invoked, not data passed to a
-  // sibling), so strip `fns`: otherwise binding a param to the executor's own fn would make
-  // `resolve(draft)` dispatch as the executor and bypass the placeholder-invocation capture.
-  const pot = clearExact(out);
-  pot.fns.clear();
-  for (const argVal of argVals) {
-    applyPessimistically(ev, argVal, pot, ctx, out, node);
-    for (const fn of argVal.fns) mergeInto(out, appliedCallbackTaint(ev, fn));
-  }
-  return out;
+    const out = emptyValue();
+    const argVals = (node.arguments ?? []).map((arg) => ev.evalExpr(arg, ctx));
+    for (const argVal of argVals) collapseInto(out, argVal);
+    // The pot the constructor may feed to a callback arg's params is the sibling DATA, not the
+    // callables themselves (a function arg is the callback being invoked, not data passed to a
+    // sibling), so strip `fns`: otherwise binding a param to the executor's own fn would make
+    // `resolve(draft)` dispatch as the executor and bypass the placeholder-invocation capture.
+    const pot = clearExact(out);
+    pot.fns.clear();
+    for (const argVal of argVals) {
+        applyPessimistically(ev, argVal, pot, ctx, out, node);
+        for (const fn of argVal.fns) mergeInto(out, appliedCallbackTaint(ev, fn));
+    }
+    return out;
 }
 
 /**
@@ -74,48 +74,48 @@ export function handleNewUnknown(
  * the evaluator is untouched, so no transfer rule changes.
  */
 export function evalAwait(
-  ev: Evaluator,
-  node: ts.AwaitExpression,
-  ctx: EvalContext,
+    ev: Evaluator,
+    node: ts.AwaitExpression,
+    ctx: EvalContext,
 ): AbstractValue {
-  const at = node.getStart(ev.s.scriptFile);
-  const inner = ev.evalExpr(node.expression, ctx);
-  const thenField = inner.fields.get("then");
-  if (thenField === undefined || thenField.fns.size === 0) {
-    ev.s.mergeSink(ev.s.awaitVal, at, inner);
-    return inner;
-  }
-  const out = cloneValue(inner);
-  for (const fn of thenField.fns) {
-    const id = ev.s.fnId.get(fn);
-    if (id !== undefined) ev.s.markCalled(ctx.regionStack, id);
-    mergeInto(out, appliedCallbackTaint(ev, fn));
-  }
-  ev.s.mergeSink(ev.s.awaitVal, at, out);
-  return out;
+    const at = node.getStart(ev.s.scriptFile);
+    const inner = ev.evalExpr(node.expression, ctx);
+    const thenField = inner.fields.get("then");
+    if (thenField === undefined || thenField.fns.size === 0) {
+        ev.s.mergeSink(ev.s.awaitVal, at, inner);
+        return inner;
+    }
+    const out = cloneValue(inner);
+    for (const fn of thenField.fns) {
+        const id = ev.s.fnId.get(fn);
+        if (id !== undefined) ev.s.markCalled(ctx.regionStack, id);
+        mergeInto(out, appliedCallbackTaint(ev, fn));
+    }
+    ev.s.mergeSink(ev.s.awaitVal, at, out);
+    return out;
 }
 
 /** `Promise.reject(x)` — a rejected promise. Await unwraps it as a THROW, so feed collapse(x)
  * into the global thrown set (read by every catch binding). Returns collapse(x) as before
  * (the unknown-call result), so nothing on the resolved path regresses. */
 export function handlePromiseReject(
-  ev: Evaluator,
-  node: ts.CallExpression,
-  ctx: EvalContext,
+    ev: Evaluator,
+    node: ts.CallExpression,
+    ctx: EvalContext,
 ): AbstractValue {
-  const arg = node.arguments[0];
-  const val = arg === undefined ? emptyValue() : collapse(ev.evalExpr(arg, ctx));
-  ev.s.mergeThrown(val);
-  return val;
+    const arg = node.arguments[0];
+    const val = arg === undefined ? emptyValue() : collapse(ev.evalExpr(arg, ctx));
+    ev.s.mergeThrown(val);
+    return val;
 }
 
 /** `Promise.reject` on the global Promise (textual match, mirroring {@link isJsonStringify}). */
 export function isPromiseReject(access: ts.PropertyAccessExpression): boolean {
-  return (
-    ts.isIdentifier(access.expression) &&
-    access.expression.text === "Promise" &&
-    access.name.text === "reject"
-  );
+    return (
+        ts.isIdentifier(access.expression) &&
+        access.expression.text === "Promise" &&
+        access.name.text === "reject"
+    );
 }
 
 /**
@@ -128,21 +128,21 @@ export function isPromiseReject(access: ts.PropertyAccessExpression): boolean {
  * this call's result. A direct `new`/`super` keeps exactness (no clearing).
  */
 export function applyConstructor(
-  ev: Evaluator,
-  id: number,
-  ctx: EvalContext,
-  argVals: AbstractValue[],
-  argPlaces?: (AbstractValue | undefined)[],
-  site?: ts.Node,
+    ev: Evaluator,
+    id: number,
+    ctx: EvalContext,
+    argVals: AbstractValue[],
+    argPlaces?: (AbstractValue | undefined)[],
+    site?: ts.Node,
 ): void {
-  recordCall(
-    ev,
-    id,
-    ctx.regionStack,
-    argVals,
-    argPlaces,
-    site === undefined ? undefined : { site, via: "callee" },
-  );
+    recordCall(
+        ev,
+        id,
+        ctx.regionStack,
+        argVals,
+        argPlaces,
+        site === undefined ? undefined : { site, via: "callee" },
+    );
 }
 
 /**
@@ -154,14 +154,14 @@ export function applyConstructor(
  * args (the keystone: the base ctor may invoke them). Never a drop.
  */
 export function applyMixinConstructor(
-  ev: Evaluator,
-  ctx: EvalContext,
-  instance: AbstractValue,
-  argVals: AbstractValue[],
+    ev: Evaluator,
+    ctx: EvalContext,
+    instance: AbstractValue,
+    argVals: AbstractValue[],
 ): void {
-  const pot = emptyValue();
-  for (const arg of argVals) collapseInto(pot, arg);
-  const inexact = clearExact(pot);
-  if (mergeInto(instance, inexact)) ev.s.changed = true;
-  for (const arg of argVals) applyPessimistically(ev, arg, inexact, ctx, instance);
+    const pot = emptyValue();
+    for (const arg of argVals) collapseInto(pot, arg);
+    const inexact = clearExact(pot);
+    if (mergeInto(instance, inexact)) ev.s.changed = true;
+    for (const arg of argVals) applyPessimistically(ev, arg, inexact, ctx, instance);
 }

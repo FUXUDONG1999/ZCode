@@ -27,42 +27,42 @@
 import { realpath } from "node:fs/promises";
 import { basename } from "node:path";
 import {
-  isFileSystemPortError,
-  type FileSystemPort,
-  type FileSystemReadBytesResult,
-  type SessionId,
-  type ToolArtifactStorePort,
-  type ToolArtifactWriteResult,
+    isFileSystemPortError,
+    type FileSystemPort,
+    type FileSystemReadBytesResult,
+    type SessionId,
+    type ToolArtifactStorePort,
+    type ToolArtifactWriteResult,
 } from "@zcode/contracts";
 import {
-  ARTIFACT_CAPS,
-  ARTIFACT_ID_PATTERN,
-  WorkflowError,
-  type ArtifactPublishRequest,
-  type ArtifactVersionRecord,
+    ARTIFACT_CAPS,
+    ARTIFACT_ID_PATTERN,
+    WorkflowError,
+    type ArtifactPublishRequest,
+    type ArtifactVersionRecord,
 } from "@zcode/dynamic-workflow";
 import { resolveWithinWorkspace, toWorkspaceRelative } from "./workflow-world-read.js";
 
 /** 产物发布需要的端口与基准目录（driver deps 的一个子集，同 {@link WorldReadDeps}）。 */
 interface ArtifactPublishDeps {
-  /** 读取被发布文件的字节所用的文件系统端口。 */
-  readonly fileSystemPort: FileSystemPort;
-  /** 路径解析与相对化的基准目录（workspace 根）。 */
-  readonly cwd: string;
-  /**
-   * 字节的落点。**可选**：纯 replay / fake 装配没有 store。
-   * 缺席时内容成员以 `ArtifactStoreUnavailable` 大声拒绝——不是静默降级成
-   * 「发布了一个空产物」，也不是退回写工作区。
-   */
-  readonly artifactStore?: ToolArtifactStorePort;
-  /**
-   * store 写入的会话作用域 = 本 run 的**父会话**。与 `artifactStore`
-   * 成对出现：store 的每次写入都按会话记账（`zcode-artifact://<session>/<id>`），没有会话 id
-   * 就写不出一条日后读得回来的记录。两者都在场才算装配了发布能力，缺一即
-   * `ArtifactStoreUnavailable`（缺 store 是「这个装配没有存储」，缺 id 是接线错误——两者对
-   * 脚本是同一件事：这次发布做不了，且必须大声）。
-   */
-  readonly parentSessionId?: SessionId;
+    /** 读取被发布文件的字节所用的文件系统端口。 */
+    readonly fileSystemPort: FileSystemPort;
+    /** 路径解析与相对化的基准目录（workspace 根）。 */
+    readonly cwd: string;
+    /**
+     * 字节的落点。**可选**：纯 replay / fake 装配没有 store。
+     * 缺席时内容成员以 `ArtifactStoreUnavailable` 大声拒绝——不是静默降级成
+     * 「发布了一个空产物」，也不是退回写工作区。
+     */
+    readonly artifactStore?: ToolArtifactStorePort;
+    /**
+     * store 写入的会话作用域 = 本 run 的**父会话**。与 `artifactStore`
+     * 成对出现：store 的每次写入都按会话记账（`zcode-artifact://<session>/<id>`），没有会话 id
+     * 就写不出一条日后读得回来的记录。两者都在场才算装配了发布能力，缺一即
+     * `ArtifactStoreUnavailable`（缺 store 是「这个装配没有存储」，缺 id 是接线错误——两者对
+     * 脚本是同一件事：这次发布做不了，且必须大声）。
+     */
+    readonly parentSessionId?: SessionId;
 }
 
 /**
@@ -74,42 +74,44 @@ interface ArtifactPublishDeps {
  * （「这个装配根本没有存储」）。
  */
 export async function executeArtifactPublish(
-  deps: ArtifactPublishDeps,
-  request: ArtifactPublishRequest,
+    deps: ArtifactPublishDeps,
+    request: ArtifactPublishRequest,
 ): Promise<ArtifactVersionRecord> {
-  assertArtifactId(request);
-  const opts = artifactPublishOptions(request);
-  const store = requireArtifactStore(deps, request);
-  const payload =
-    request.op === "file" ? await readFilePayload(deps, request, opts) : markdownPayload(request);
-  const written = await writePayload(store, request, payload);
-  return {
-    id: request.id,
-    kind: request.op,
-    version: request.version,
-    ...(opts.title === undefined ? {} : { title: opts.title }),
-    ...(opts.description === undefined ? {} : { description: opts.description }),
-    // contentType 取**本地算出的**那一个而不是 store 的回执：扩展名表 + `opts.contentType`
-    // 覆盖共同决定内容类型，UI 在这个字符串上做 switch 分派；让 store 的归一化（它按
-    // 落盘文件名回推类型）成为权威，会让一次分派结果取决于 store 实现。
-    contentType: payload.contentType,
-    // bytes / uri 取 store 的回执：那是**真正落进 store 的那一份**，也是日后读回来的那一份。
-    bytes: written.bytes,
-    uri: written.uri,
-    ...(payload.kind === "binary" ? { sourcePath: payload.sourcePath } : {}),
-    // 引擎没有时钟（纯核心，可重放），所以发布时刻由这一侧填。发布时刻为必填字段。
-    publishedAt: Date.now(),
-  };
+    assertArtifactId(request);
+    const opts = artifactPublishOptions(request);
+    const store = requireArtifactStore(deps, request);
+    const payload =
+        request.op === "file"
+            ? await readFilePayload(deps, request, opts)
+            : markdownPayload(request);
+    const written = await writePayload(store, request, payload);
+    return {
+        id: request.id,
+        kind: request.op,
+        version: request.version,
+        ...(opts.title === undefined ? {} : { title: opts.title }),
+        ...(opts.description === undefined ? {} : { description: opts.description }),
+        // contentType 取**本地算出的**那一个而不是 store 的回执：扩展名表 + `opts.contentType`
+        // 覆盖共同决定内容类型，UI 在这个字符串上做 switch 分派；让 store 的归一化（它按
+        // 落盘文件名回推类型）成为权威，会让一次分派结果取决于 store 实现。
+        contentType: payload.contentType,
+        // bytes / uri 取 store 的回执：那是**真正落进 store 的那一份**，也是日后读回来的那一份。
+        bytes: written.bytes,
+        uri: written.uri,
+        ...(payload.kind === "binary" ? { sourcePath: payload.sourcePath } : {}),
+        // 引擎没有时钟（纯核心，可重放），所以发布时刻由这一侧填。发布时刻为必填字段。
+        publishedAt: Date.now(),
+    };
 }
 
 // ——————————————————————————————— 内部：形状校验 ———————————————————————————————
 
 /** 校验过的 `opts`（facade 的 `ArtifactOptions` / `ArtifactFileOptions`）。 */
 interface ArtifactPublishOptions {
-  title?: string;
-  description?: string;
-  /** 只有 `file` 读它：markdown 恒 `text/markdown`。 */
-  contentType?: string;
+    title?: string;
+    description?: string;
+    /** 只有 `file` 读它：markdown 恒 `text/markdown`。 */
+    contentType?: string;
 }
 
 /**
@@ -119,14 +121,14 @@ interface ArtifactPublishOptions {
  * 用 `DriverError` 而不是某个 `Artifact*` 码，让那些码只表示它们各自的那件事。
  */
 function assertArtifactId(request: ArtifactPublishRequest): void {
-  const { id } = request;
-  if (id.length > ARTIFACT_CAPS.maxIdLength || !ARTIFACT_ID_PATTERN.test(id)) {
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.${request.op}: id '${id}' is not a valid artifact id. Use at most ` +
-        `${ARTIFACT_CAPS.maxIdLength} characters from [A-Za-z0-9_.-].`,
-    );
-  }
+    const { id } = request;
+    if (id.length > ARTIFACT_CAPS.maxIdLength || !ARTIFACT_ID_PATTERN.test(id)) {
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.${request.op}: id '${id}' is not a valid artifact id. Use at most ` +
+                `${ARTIFACT_CAPS.maxIdLength} characters from [A-Za-z0-9_.-].`,
+        );
+    }
 }
 
 /**
@@ -138,56 +140,56 @@ function assertArtifactId(request: ArtifactPublishRequest): void {
  *      把一个编译期问题搬到运行期）。`markdown` 一族因此根本不读 `contentType`。
  */
 function artifactPublishOptions(request: ArtifactPublishRequest): ArtifactPublishOptions {
-  const raw = request.opts;
-  if (raw === undefined) return {};
-  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.${request.op}: opts must be an options object, got ${describeArg(raw)}. ` +
-        `Pass an object or omit the argument.`,
+    const raw = request.opts;
+    if (raw === undefined) return {};
+    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.${request.op}: opts must be an options object, got ${describeArg(raw)}. ` +
+                `Pass an object or omit the argument.`,
+        );
+    }
+    const bag = raw as { title?: unknown; description?: unknown; contentType?: unknown };
+    const title = optionalText(request, "title", bag.title, ARTIFACT_CAPS.maxTitleLength);
+    const description = optionalText(
+        request,
+        "description",
+        bag.description,
+        ARTIFACT_CAPS.maxDescriptionLength,
     );
-  }
-  const bag = raw as { title?: unknown; description?: unknown; contentType?: unknown };
-  const title = optionalText(request, "title", bag.title, ARTIFACT_CAPS.maxTitleLength);
-  const description = optionalText(
-    request,
-    "description",
-    bag.description,
-    ARTIFACT_CAPS.maxDescriptionLength,
-  );
-  const contentType =
-    request.op === "file" ? optionalContentType(request, bag.contentType) : undefined;
-  return {
-    ...(title === undefined ? {} : { title }),
-    ...(description === undefined ? {} : { description }),
-    ...(contentType === undefined ? {} : { contentType }),
-  };
+    const contentType =
+        request.op === "file" ? optionalContentType(request, bag.contentType) : undefined;
+    return {
+        ...(title === undefined ? {} : { title }),
+        ...(description === undefined ? {} : { description }),
+        ...(contentType === undefined ? {} : { contentType }),
+    };
 }
 
 /** 一个可选的有界文本选项（title / description）。长度按字符数（UTF-16 码元）计。 */
 function optionalText(
-  request: ArtifactPublishRequest,
-  name: string,
-  value: unknown,
-  max: number,
+    request: ArtifactPublishRequest,
+    name: string,
+    value: unknown,
+    max: number,
 ): string | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value !== "string") {
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.${request.op}: opts.${name} must be a string, got ${describeArg(value)}.`,
-    );
-  }
-  if (value.length > max) {
-    // 拒绝而不是截断：一个被砍掉后半句的标题是一件**看起来正常**的坏交付物，而卡片上
-    // 没有任何地方能显示"这里被截过"。
-    throw new WorkflowError(
-      "ArtifactTooLarge",
-      `artifact.${request.op}: opts.${name} is ${value.length} characters, over the cap of ` +
-        `${max}. Shorten it.`,
-    );
-  }
-  return value;
+    if (value === undefined) return undefined;
+    if (typeof value !== "string") {
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.${request.op}: opts.${name} must be a string, got ${describeArg(value)}.`,
+        );
+    }
+    if (value.length > max) {
+        // 拒绝而不是截断：一个被砍掉后半句的标题是一件**看起来正常**的坏交付物，而卡片上
+        // 没有任何地方能显示"这里被截过"。
+        throw new WorkflowError(
+            "ArtifactTooLarge",
+            `artifact.${request.op}: opts.${name} is ${value.length} characters, over the cap of ` +
+                `${max}. Shorten it.`,
+        );
+    }
+    return value;
 }
 
 /**
@@ -196,71 +198,71 @@ function optionalText(
  * 一条 `text/markdown; charset=utf-8` 会整条错过那个分支，表现是「明明写了类型却掉进下载卡」。
  */
 function optionalContentType(request: ArtifactPublishRequest, value: unknown): string | undefined {
-  if (value === undefined) return undefined;
-  if (typeof value !== "string") {
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.file: opts.contentType must be a string, got ${describeArg(value)}.`,
-    );
-  }
-  if (!CONTENT_TYPE_PATTERN.test(value)) {
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.file: opts.contentType '${value}' is not a bare MIME type such as ` +
-        `'application/pdf'. Drop any parameters ('; charset=...'); the viewer dispatches on ` +
-        `the exact string.`,
-    );
-  }
-  return value;
+    if (value === undefined) return undefined;
+    if (typeof value !== "string") {
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.file: opts.contentType must be a string, got ${describeArg(value)}.`,
+        );
+    }
+    if (!CONTENT_TYPE_PATTERN.test(value)) {
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.file: opts.contentType '${value}' is not a bare MIME type such as ` +
+                `'application/pdf'. Drop any parameters ('; charset=...'); the viewer dispatches on ` +
+                `the exact string.`,
+        );
+    }
+    return value;
 }
 
 // ——————————————————————————————— 内部：取字节 ———————————————————————————————
 
 /** 待写入 store 的一份内容。`file` 走二进制写，`markdown` 走文本写。 */
 type ArtifactPayload =
-  | {
-      readonly kind: "binary";
-      readonly bytes: Uint8Array;
-      readonly contentType: string;
-      /** 落盘文件名的扩展名（store 读回时按文件名回推类型，所以要保真）。 */
-      readonly extension?: string;
-      /** 工作区相对的原路径（出处 + 「在工作区显示」）。 */
-      readonly sourcePath: string;
-    }
-  | { readonly kind: "text"; readonly text: string; readonly contentType: "text/markdown" };
+    | {
+          readonly kind: "binary";
+          readonly bytes: Uint8Array;
+          readonly contentType: string;
+          /** 落盘文件名的扩展名（store 读回时按文件名回推类型，所以要保真）。 */
+          readonly extension?: string;
+          /** 工作区相对的原路径（出处 + 「在工作区显示」）。 */
+          readonly sourcePath: string;
+      }
+    | { readonly kind: "text"; readonly text: string; readonly contentType: "text/markdown" };
 
 /**
  * `artifact.file(id, path, opts)`：解析路径 → 读字节（cap+1 探测）→ 定 contentType。
  */
 async function readFilePayload(
-  deps: ArtifactPublishDeps,
-  request: ArtifactPublishRequest,
-  opts: ArtifactPublishOptions,
+    deps: ArtifactPublishDeps,
+    request: ArtifactPublishRequest,
+    opts: ArtifactPublishOptions,
 ): Promise<ArtifactPayload> {
-  const given = request.path;
-  if (typeof given !== "string" || given === "") {
-    // 引擎已验过 payload 是字符串；空串只可能来自接线错误。
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.file: path must be a non-empty string, got ${describeArg(given)}. Pass the ` +
-        `workspace-relative path the subagent wrote.`,
-    );
-  }
-  const { real, relative } = await resolveWorkspaceFile(deps, given);
-  const bytes = await readCappedBytes(deps, given, real);
-  const extension = fileExtension(real);
-  return {
-    kind: "binary",
-    bytes,
-    contentType:
-      opts.contentType ??
-      (extension === undefined ? undefined : EXTENSION_CONTENT_TYPES[extension]) ??
-      // 未列入扩展名表 = 不猜（不做 magic bytes 嗅探）。UI 据此给「下载 / 在工作区
-      // 显示」卡而不是渲染一份它读不懂的东西。
-      "application/octet-stream",
-    ...(extension === undefined ? {} : { extension }),
-    sourcePath: relative,
-  };
+    const given = request.path;
+    if (typeof given !== "string" || given === "") {
+        // 引擎已验过 payload 是字符串；空串只可能来自接线错误。
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.file: path must be a non-empty string, got ${describeArg(given)}. Pass the ` +
+                `workspace-relative path the subagent wrote.`,
+        );
+    }
+    const { real, relative } = await resolveWorkspaceFile(deps, given);
+    const bytes = await readCappedBytes(deps, given, real);
+    const extension = fileExtension(real);
+    return {
+        kind: "binary",
+        bytes,
+        contentType:
+            opts.contentType ??
+            (extension === undefined ? undefined : EXTENSION_CONTENT_TYPES[extension]) ??
+            // 未列入扩展名表 = 不猜（不做 magic bytes 嗅探）。UI 据此给「下载 / 在工作区
+            // 显示」卡而不是渲染一份它读不懂的东西。
+            "application/octet-stream",
+        ...(extension === undefined ? {} : { extension }),
+        sourcePath: relative,
+    };
 }
 
 /**
@@ -276,34 +278,34 @@ async function readFilePayload(
  * 每一个文件都会被判成越界。
  */
 async function resolveWorkspaceFile(
-  deps: ArtifactPublishDeps,
-  given: string,
+    deps: ArtifactPublishDeps,
+    given: string,
 ): Promise<{ real: string; relative: string }> {
-  const resolved = resolveWithinWorkspace(deps.cwd, given);
-  if (resolved === undefined) throw outsideWorkspace(given);
-  // 出处用的是**脚本给的那个路径**（归一后），不是 realpath：卡片上的「在工作区显示」要
-  // 指回用户认得的那个位置，而不是软链的落点。
-  const relative = toWorkspaceRelative(deps.cwd, resolved);
+    const resolved = resolveWithinWorkspace(deps.cwd, given);
+    if (resolved === undefined) throw outsideWorkspace(given);
+    // 出处用的是**脚本给的那个路径**（归一后），不是 realpath：卡片上的「在工作区显示」要
+    // 指回用户认得的那个位置，而不是软链的落点。
+    const relative = toWorkspaceRelative(deps.cwd, resolved);
 
-  let realCwd: string;
-  let real: string;
-  try {
-    realCwd = await realpath(deps.cwd);
-  } catch (cause) {
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.file: cannot resolve the workspace root '${deps.cwd}': ${errorText(cause)}`,
-      { cause },
-    );
-  }
-  try {
-    real = await realpath(resolved);
-  } catch (cause) {
-    // ENOENT（含中途某一段不存在）走这里：路径不存在与"指向一个不存在的软链目标"是同一件事。
-    throw sourceMissing(given, cause);
-  }
-  if (resolveWithinWorkspace(realCwd, real) === undefined) throw outsideWorkspace(given);
-  return { real, relative };
+    let realCwd: string;
+    let real: string;
+    try {
+        realCwd = await realpath(deps.cwd);
+    } catch (cause) {
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.file: cannot resolve the workspace root '${deps.cwd}': ${errorText(cause)}`,
+            { cause },
+        );
+    }
+    try {
+        real = await realpath(resolved);
+    } catch (cause) {
+        // ENOENT（含中途某一段不存在）走这里：路径不存在与"指向一个不存在的软链目标"是同一件事。
+        throw sourceMissing(given, cause);
+    }
+    if (resolveWithinWorkspace(realCwd, real) === undefined) throw outsideWorkspace(given);
+    return { real, relative };
 }
 
 /**
@@ -312,63 +314,63 @@ async function resolveWorkspaceFile(
  * 与 `files.grep` / `git.diff` 的同一惯用法。
  */
 async function readCappedBytes(
-  deps: ArtifactPublishDeps,
-  given: string,
-  path: string,
+    deps: ArtifactPublishDeps,
+    given: string,
+    path: string,
 ): Promise<Uint8Array> {
-  const cap = ARTIFACT_CAPS.maxFileBytes;
-  let result: FileSystemReadBytesResult;
-  try {
-    result = await deps.fileSystemPort.readBinaryFile({ path, maxBytes: cap + 1 });
-  } catch (cause) {
-    if (isFileSystemPortError(cause)) {
-      if (cause.code === "too_large") throw tooLarge(given, cap);
-      // not_found / is_directory / not_file 都是"这里没有一个可发布的普通文件"。
-      if (
-        cause.code === "not_found" ||
-        cause.code === "is_directory" ||
-        cause.code === "not_file"
-      ) {
-        throw sourceMissing(given, cause);
-      }
+    const cap = ARTIFACT_CAPS.maxFileBytes;
+    let result: FileSystemReadBytesResult;
+    try {
+        result = await deps.fileSystemPort.readBinaryFile({ path, maxBytes: cap + 1 });
+    } catch (cause) {
+        if (isFileSystemPortError(cause)) {
+            if (cause.code === "too_large") throw tooLarge(given, cap);
+            // not_found / is_directory / not_file 都是"这里没有一个可发布的普通文件"。
+            if (
+                cause.code === "not_found" ||
+                cause.code === "is_directory" ||
+                cause.code === "not_file"
+            ) {
+                throw sourceMissing(given, cause);
+            }
+        }
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.file: failed to read '${given}': ${errorText(cause)}`,
+            { cause },
+        );
     }
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.file: failed to read '${given}': ${errorText(cause)}`,
-      { cause },
-    );
-  }
-  if (result.content.byteLength > cap) throw tooLarge(given, cap);
-  return result.content;
+    if (result.content.byteLength > cap) throw tooLarge(given, cap);
+    return result.content;
 }
 
 /** `artifact.markdown(id, content, opts)`：正文按 UTF-8 计字节，超限拒绝。 */
 function markdownPayload(request: ArtifactPublishRequest): ArtifactPayload {
-  const content = request.content;
-  if (typeof content !== "string") {
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.markdown: content must be a string, got ${describeArg(content)}.`,
-    );
-  }
-  const bytes = Buffer.byteLength(content, "utf8");
-  const cap = ARTIFACT_CAPS.maxMarkdownBytes;
-  if (bytes > cap) {
-    throw new WorkflowError(
-      "ArtifactTooLarge",
-      `artifact.markdown: content is ${bytes} bytes, over the cap of ${cap} bytes. Shorten ` +
-        `it, or write the long content to a workspace file and publish it with artifact.file.`,
-    );
-  }
-  return { kind: "text", text: content, contentType: "text/markdown" };
+    const content = request.content;
+    if (typeof content !== "string") {
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.markdown: content must be a string, got ${describeArg(content)}.`,
+        );
+    }
+    const bytes = Buffer.byteLength(content, "utf8");
+    const cap = ARTIFACT_CAPS.maxMarkdownBytes;
+    if (bytes > cap) {
+        throw new WorkflowError(
+            "ArtifactTooLarge",
+            `artifact.markdown: content is ${bytes} bytes, over the cap of ${cap} bytes. Shorten ` +
+                `it, or write the long content to a workspace file and publish it with artifact.file.`,
+        );
+    }
+    return { kind: "text", text: content, contentType: "text/markdown" };
 }
 
 // ——————————————————————————————— 内部：写 store ———————————————————————————————
 
 /** 已确认可用的发布落点：store 本体 + 会话作用域（见 {@link ArtifactPublishDeps}）。 */
 interface ArtifactStoreTarget {
-  readonly store: ToolArtifactStorePort;
-  readonly sessionId: SessionId;
+    readonly store: ToolArtifactStorePort;
+    readonly sessionId: SessionId;
 }
 
 /**
@@ -378,35 +380,35 @@ interface ArtifactStoreTarget {
  * UTF-8 塞进文本通道（那会静默毁掉字节）。
  */
 function requireArtifactStore(
-  deps: ArtifactPublishDeps,
-  request: ArtifactPublishRequest,
+    deps: ArtifactPublishDeps,
+    request: ArtifactPublishRequest,
 ): ArtifactStoreTarget {
-  const store = deps.artifactStore;
-  if (store === undefined) {
-    throw new WorkflowError(
-      "ArtifactStoreUnavailable",
-      `artifact.${request.op}: cannot publish "${request.id}" because this assembly has no ` +
-        `artifact store.`,
-    );
-  }
-  if (request.op === "file" && store.writeToolResultBinaryArtifact === undefined) {
-    throw new WorkflowError(
-      "ArtifactStoreUnavailable",
-      `artifact.file: cannot publish "${request.id}" because this assembly's artifact store ` +
-        `does not support binary writes.`,
-    );
-  }
-  const sessionId = deps.parentSessionId;
-  if (sessionId === undefined || sessionId === "") {
-    // store 在场而会话 id 缺席只可能是接线错误（两者在生产装配里同进同出）。仍然报同一个
-    // 码：对脚本而言这是同一件事——这次发布没有落点。
-    throw new WorkflowError(
-      "ArtifactStoreUnavailable",
-      `artifact.${request.op}: cannot publish "${request.id}" because the artifact store has ` +
-        `no session scope (parent session id not wired).`,
-    );
-  }
-  return { store, sessionId };
+    const store = deps.artifactStore;
+    if (store === undefined) {
+        throw new WorkflowError(
+            "ArtifactStoreUnavailable",
+            `artifact.${request.op}: cannot publish "${request.id}" because this assembly has no ` +
+                `artifact store.`,
+        );
+    }
+    if (request.op === "file" && store.writeToolResultBinaryArtifact === undefined) {
+        throw new WorkflowError(
+            "ArtifactStoreUnavailable",
+            `artifact.file: cannot publish "${request.id}" because this assembly's artifact store ` +
+                `does not support binary writes.`,
+        );
+    }
+    const sessionId = deps.parentSessionId;
+    if (sessionId === undefined || sessionId === "") {
+        // store 在场而会话 id 缺席只可能是接线错误（两者在生产装配里同进同出）。仍然报同一个
+        // 码：对脚本而言这是同一件事——这次发布没有落点。
+        throw new WorkflowError(
+            "ArtifactStoreUnavailable",
+            `artifact.${request.op}: cannot publish "${request.id}" because the artifact store has ` +
+                `no session scope (parent session id not wired).`,
+        );
+    }
+    return { store, sessionId };
 }
 
 /**
@@ -418,53 +420,53 @@ function requireArtifactStore(
  *   - `sessionId` = 父会话。
  */
 async function writePayload(
-  target: ArtifactStoreTarget,
-  request: ArtifactPublishRequest,
-  payload: ArtifactPayload,
+    target: ArtifactStoreTarget,
+    request: ArtifactPublishRequest,
+    payload: ArtifactPayload,
 ): Promise<ToolArtifactWriteResult> {
-  const common = {
-    sessionId: target.sessionId,
-    toolCallId: `${request.runId}:${request.siteId}@${request.ordinal}`,
-    toolName: ARTIFACT_TOOL_NAME,
-    retention: "project" as const,
-  };
-  try {
-    if (payload.kind === "text") {
-      return await target.store.writeToolResultArtifact({
-        ...common,
-        content: payload.text,
-        contentType: payload.contentType,
-      });
+    const common = {
+        sessionId: target.sessionId,
+        toolCallId: `${request.runId}:${request.siteId}@${request.ordinal}`,
+        toolName: ARTIFACT_TOOL_NAME,
+        retention: "project" as const,
+    };
+    try {
+        if (payload.kind === "text") {
+            return await target.store.writeToolResultArtifact({
+                ...common,
+                content: payload.text,
+                contentType: payload.contentType,
+            });
+        }
+        // 二进制写的存在性已在 requireArtifactStore 里探测过（op === "file" 分支）。
+        const writeBinary = target.store.writeToolResultBinaryArtifact;
+        if (writeBinary === undefined) {
+            throw new WorkflowError(
+                "ArtifactStoreUnavailable",
+                `artifact.file: cannot publish "${request.id}" because this assembly's artifact store ` +
+                    `does not support binary writes.`,
+            );
+        }
+        return await writeBinary.call(target.store, {
+            ...common,
+            content: payload.bytes,
+            contentType: payload.contentType,
+            // 扩展名随字节一起交给 store：它读回时按落盘文件名回推类型，丢了扩展名就等于把一份
+            // .xlsx 读成 application/octet-stream。
+            ...(payload.extension === undefined ? {} : { extension: payload.extension }),
+        });
+    } catch (cause) {
+        if (cause instanceof WorkflowError) throw cause;
+        // 写失败（磁盘满、权限、store 自身的错误）是一次**具体**的失败，与"没有 store"不是
+        // 同一件事，所以不复用 ArtifactStoreUnavailable：带上原因文本，让 journal 里的
+        // failure_json 说得出为什么。
+        throw new WorkflowError(
+            "DriverError",
+            `artifact.${request.op}: writing "${request.id}" v${request.version} to the artifact ` +
+                `store failed: ${errorText(cause)}`,
+            { cause },
+        );
     }
-    // 二进制写的存在性已在 requireArtifactStore 里探测过（op === "file" 分支）。
-    const writeBinary = target.store.writeToolResultBinaryArtifact;
-    if (writeBinary === undefined) {
-      throw new WorkflowError(
-        "ArtifactStoreUnavailable",
-        `artifact.file: cannot publish "${request.id}" because this assembly's artifact store ` +
-          `does not support binary writes.`,
-      );
-    }
-    return await writeBinary.call(target.store, {
-      ...common,
-      content: payload.bytes,
-      contentType: payload.contentType,
-      // 扩展名随字节一起交给 store：它读回时按落盘文件名回推类型，丢了扩展名就等于把一份
-      // .xlsx 读成 application/octet-stream。
-      ...(payload.extension === undefined ? {} : { extension: payload.extension }),
-    });
-  } catch (cause) {
-    if (cause instanceof WorkflowError) throw cause;
-    // 写失败（磁盘满、权限、store 自身的错误）是一次**具体**的失败，与"没有 store"不是
-    // 同一件事，所以不复用 ArtifactStoreUnavailable：带上原因文本，让 journal 里的
-    // failure_json 说得出为什么。
-    throw new WorkflowError(
-      "DriverError",
-      `artifact.${request.op}: writing "${request.id}" v${request.version} to the artifact ` +
-        `store failed: ${errorText(cause)}`,
-      { cause },
-    );
-  }
 }
 
 // ——————————————————————————————— 纯辅助 ———————————————————————————————
@@ -481,23 +483,23 @@ const ARTIFACT_TOOL_NAME = "CreateWorkflow";
  * 分派，兜底必须是"我不认识它，给下载卡"——同一个兜底在两处的正确值恰好相反。
  */
 const EXTENSION_CONTENT_TYPES: Readonly<Record<string, string>> = {
-  csv: "text/csv",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  gif: "image/gif",
-  htm: "text/html",
-  html: "text/html",
-  jpeg: "image/jpeg",
-  jpg: "image/jpeg",
-  json: "application/json",
-  markdown: "text/markdown",
-  md: "text/markdown",
-  pdf: "application/pdf",
-  png: "image/png",
-  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  svg: "image/svg+xml",
-  txt: "text/plain",
-  webp: "image/webp",
-  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    csv: "text/csv",
+    docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    gif: "image/gif",
+    htm: "text/html",
+    html: "text/html",
+    jpeg: "image/jpeg",
+    jpg: "image/jpeg",
+    json: "application/json",
+    markdown: "text/markdown",
+    md: "text/markdown",
+    pdf: "application/pdf",
+    png: "image/png",
+    pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    svg: "image/svg+xml",
+    txt: "text/plain",
+    webp: "image/webp",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
 };
 
 /** 裸 MIME（`type/subtype`，不带参数）。见 {@link optionalContentType} 的理由。 */
@@ -508,46 +510,46 @@ const CONTENT_TYPE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9!#$&^_.+-]*\/[A-Za-z0-9][A-Z
  * `Makefile`、`.gitignore`（点开头无后缀）与 `report.v2 final` 一律无扩展名。
  */
 function fileExtension(path: string): string | undefined {
-  const name = basename(path);
-  const dot = name.lastIndexOf(".");
-  if (dot <= 0 || dot === name.length - 1) return undefined;
-  const ext = name.slice(dot + 1).toLowerCase();
-  return /^[a-z0-9]+$/.test(ext) ? ext : undefined;
+    const name = basename(path);
+    const dot = name.lastIndexOf(".");
+    if (dot <= 0 || dot === name.length - 1) return undefined;
+    const ext = name.slice(dot + 1).toLowerCase();
+    return /^[a-z0-9]+$/.test(ext) ? ext : undefined;
 }
 
 function outsideWorkspace(given: string): WorkflowError {
-  return new WorkflowError(
-    "ArtifactPathOutsideWorkspace",
-    `artifact.file: path '${given}' resolves outside the workspace (symlinks are judged by ` +
-      `their real path). Only files inside the workspace can be published.`,
-  );
+    return new WorkflowError(
+        "ArtifactPathOutsideWorkspace",
+        `artifact.file: path '${given}' resolves outside the workspace (symlinks are judged by ` +
+            `their real path). Only files inside the workspace can be published.`,
+    );
 }
 
 function sourceMissing(given: string, cause: unknown): WorkflowError {
-  return new WorkflowError(
-    "ArtifactSourceMissing",
-    `artifact.file: '${given}' does not exist or is not a regular file. Confirm the subagent ` +
-      `actually wrote it before publishing.`,
-    { cause },
-  );
+    return new WorkflowError(
+        "ArtifactSourceMissing",
+        `artifact.file: '${given}' does not exist or is not a regular file. Confirm the subagent ` +
+            `actually wrote it before publishing.`,
+        { cause },
+    );
 }
 
 function tooLarge(given: string, cap: number): WorkflowError {
-  return new WorkflowError(
-    "ArtifactTooLarge",
-    `artifact.file: '${given}' is over the cap of ${cap} bytes. Publish a smaller artifact ` +
-      `(a summary, a slice, or a compressed version).`,
-  );
+    return new WorkflowError(
+        "ArtifactTooLarge",
+        `artifact.file: '${given}' is over the cap of ${cap} bytes. Publish a smaller artifact ` +
+            `(a summary, a slice, or a compressed version).`,
+    );
 }
 
 /** 实参形状的简短描述（只用于错误消息，不回显完整内容）。 */
 function describeArg(value: unknown): string {
-  if (value === undefined) return "undefined";
-  if (value === null) return "null";
-  return Array.isArray(value) ? "array" : typeof value;
+    if (value === undefined) return "undefined";
+    if (value === null) return "null";
+    return Array.isArray(value) ? "array" : typeof value;
 }
 
 /** 任意抛出物的单行文本（错误消息用）。 */
 function errorText(cause: unknown): string {
-  return cause instanceof Error ? cause.message : String(cause);
+    return cause instanceof Error ? cause.message : String(cause);
 }

@@ -232,8 +232,8 @@ A skill is a set of local instructions stored in SKILL.md. Use the Skill tool to
 
 ```json
 {
-  "name": "my-skill",
-  "args": "optional user/model supplied arguments"
+    "name": "my-skill",
+    "args": "optional user/model supplied arguments"
 }
 ```
 

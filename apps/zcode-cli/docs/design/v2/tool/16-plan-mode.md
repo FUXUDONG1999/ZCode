@@ -18,8 +18,8 @@ ZCode 第一版不引入 plan file、auto mode gate、teammate mailbox、专用 
 - 副作用：`sideEffectScope: "session"`，不是 read-only。
 - 并发：不安全，必须串行。mode 变更不能和其它 session mutation 并行。
 - 失败：
-  - 工具执行失败：返回 tool error，mode 不变。
-  - runtime 未注入 session mode port：configuration error。
+    - 工具执行失败：返回 tool error，mode 不变。
+    - runtime 未注入 session mode port：configuration error。
 
 模型可见说明需覆盖：
 
@@ -34,17 +34,17 @@ ZCode 第一版不引入 plan file、auto mode gate、teammate mailbox、专用 
 
 - 名称：`ExitPlanMode`
 - 输入：
-  - `plan: string`：展示给用户审批的计划正文。
-  - `allowedPrompts?: { tool: "Bash"; prompt: string }[]`：第一版仅保留到输入/输出和 UI/permission projection，不自动写 permission rules。
+    - `plan: string`：展示给用户审批的计划正文。
+    - `allowedPrompts?: { tool: "Bash"; prompt: string }[]`：第一版仅保留到输入/输出和 UI/permission projection，不自动写 permission rules。
 - 输出：`{ plan, previousMode, mode, approved: true, allowedPrompts? }`
 - 能力：在 plan mode 下提交最终计划，并请求用户同意退出 plan mode。
 - 权限：默认必须走用户审批。审批通过后恢复进入 plan mode 前的 mode；没有记录时恢复 `build`。如果进入前是 `yolo`（bypass permissions），`ExitPlanMode` 直接恢复 `yolo`，不再弹审批。
 - 副作用：`sideEffectScope: "session"`，不是 read-only。
 - 并发：不安全，必须串行。
 - 失败：
-  - 当前不是 plan mode：稳定失败，不弹无意义审批。
-  - `plan` 为空：schema 校验失败。
-  - 用户拒绝：返回 permission denied tool error，保持 plan mode。
+    - 当前不是 plan mode：稳定失败，不弹无意义审批。
+    - `plan` 为空：schema 校验失败。
+    - 用户拒绝：返回 permission denied tool error，保持 plan mode。
 
 模型可见说明需覆盖：
 

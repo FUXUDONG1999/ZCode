@@ -3,16 +3,16 @@ export { createHookExecutionDescriptor, sanitizeHookDisplayText } from "./displa
 export { InMemoryHookRunner, createInMemoryHookRunner } from "./runner.js";
 export { createSessionMailboxHookRegistrations } from "./session-mailbox.js";
 export type {
-  ConfiguredHookRunnerOptions,
-  HookCallback,
-  HookCallbackContext,
-  HookCallbackDiagnostics,
-  HookCallbackResult,
-  HookRegistration,
-  HookRunOptions,
-  HookRunResult,
-  HookRunner,
-  HookRunnerOptions,
+    ConfiguredHookRunnerOptions,
+    HookCallback,
+    HookCallbackContext,
+    HookCallbackDiagnostics,
+    HookCallbackResult,
+    HookRegistration,
+    HookRunOptions,
+    HookRunResult,
+    HookRunner,
+    HookRunnerOptions,
 } from "./types.js";
 export * from "./workspace-hook-trust-domain.js";
 

@@ -40,11 +40,11 @@ zcode hooks trust status --workspace /absolute/path/to/project --json
 
 ```json
 {
-  "sessionId": "sess_example",
-  "traceId": "trace_example",
-  "response": "ready",
-  "eventCount": 4,
-  "projection": { "status": "idle", "turnCount": 1 }
+    "sessionId": "sess_example",
+    "traceId": "trace_example",
+    "response": "ready",
+    "eventCount": 4,
+    "projection": { "status": "idle", "turnCount": 1 }
 }
 ```
 

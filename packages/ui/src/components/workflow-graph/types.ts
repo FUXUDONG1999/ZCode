@@ -45,9 +45,9 @@ export type StepStatusTable = Partial<Record<string, StepRunStatus>>;
  */
 export type WorkflowGraphSelectionKind = "participant" | "phase" | "sink";
 export interface WorkflowCausalityGraphSelection {
-  id: string;
-  kind: WorkflowGraphSelectionKind;
-  line?: number;
+    id: string;
+    kind: WorkflowGraphSelectionKind;
+    line?: number;
 }
 
 /** The single lane every `files.*` read runs in. */
@@ -86,11 +86,11 @@ export const IMPLICIT_PHASE_ID = "workflow";
 export type LaneClass = "agent" | "workspace" | "unresolved";
 
 export function laneClassOf(laneId: string): LaneClass {
-  if (laneId === WORKSPACE_LANE_ID) return "workspace";
-  if (laneId === UNKNOWN_LANE_ID) return "unresolved";
-  return "agent";
+    if (laneId === WORKSPACE_LANE_ID) return "workspace";
+    if (laneId === UNKNOWN_LANE_ID) return "unresolved";
+    return "agent";
 }
 
 export function isSyntheticLaneId(id: string): boolean {
-  return id === WORKSPACE_LANE_ID || id === UNKNOWN_LANE_ID || id === MAIN_LANE_ID;
+    return id === WORKSPACE_LANE_ID || id === UNKNOWN_LANE_ID || id === MAIN_LANE_ID;
 }

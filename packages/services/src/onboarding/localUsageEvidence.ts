@@ -34,12 +34,12 @@ const DEFAULT_SESSION_DB_PATH = "~/.zcode/cli/db/db.sqlite";
 
 /** 目录非空。仅 ENOENT 视为"无证据"；其他异常上抛，由 UI 侧保守判不弹。 */
 async function hasDirEntry(dir: string): Promise<boolean> {
-  try {
-    return (await readdir(dir)).length > 0;
-  } catch (cause) {
-    if ((cause as NodeJS.ErrnoException).code === "ENOENT") return false;
-    throw cause;
-  }
+    try {
+        return (await readdir(dir)).length > 0;
+    } catch (cause) {
+        if ((cause as NodeJS.ErrnoException).code === "ENOENT") return false;
+        throw cause;
+    }
 }
 
 /**
@@ -47,30 +47,33 @@ async function hasDirEntry(dir: string): Promise<boolean> {
  * 相对路径的解析基准是 agent 进程的工作区 cwd（各工作区不同），host 无法镜像。
  */
 function resolveMirroredSessionDbPath(path: string, home: string): string | null {
-  if (path.startsWith("~/")) return join(home, path.slice(2));
-  if (isAbsolute(path)) return path;
-  return null;
+    if (path.startsWith("~/")) return join(home, path.slice(2));
+    if (isAbsolute(path)) return path;
+    return null;
 }
 
 /** env 双别名按 env 键序取最后出现的值（与 CLI env adapter 的覆盖顺序一致）。 */
 function pickEnvSessionDbPath(env: NodeJS.ProcessEnv): string | undefined {
-  let picked: string | undefined;
-  for (const [key, value] of Object.entries(env)) {
-    if ((key === "ZCODE_SESSION_DB_PATH" || key === "ZCODE_SESSION_DB") && value !== undefined) {
-      picked = value;
+    let picked: string | undefined;
+    for (const [key, value] of Object.entries(env)) {
+        if (
+            (key === "ZCODE_SESSION_DB_PATH" || key === "ZCODE_SESSION_DB") &&
+            value !== undefined
+        ) {
+            picked = value;
+        }
     }
-  }
-  return picked?.trim() || undefined;
+    return picked?.trim() || undefined;
 }
 
 export interface ResolveAgentSessionDbPathOptions {
-  /** 默认 process.env。 */
-  env?: NodeJS.ProcessEnv;
-  /** 默认 os.homedir()。 */
-  homedirPath?: string;
-  /** 默认 ~/.zcode/cli/config.json（CLI createConfig 的默认 user config 位置）。 */
-  userConfigPath?: string;
-  readConfigFile?: (path: string) => Promise<string>;
+    /** 默认 process.env。 */
+    env?: NodeJS.ProcessEnv;
+    /** 默认 os.homedir()。 */
+    homedirPath?: string;
+    /** 默认 ~/.zcode/cli/config.json（CLI createConfig 的默认 user config 位置）。 */
+    userConfigPath?: string;
+    readConfigFile?: (path: string) => Promise<string>;
 }
 
 /**
@@ -80,35 +83,35 @@ export interface ResolveAgentSessionDbPathOptions {
  * 解析失败（非 ENOENT）仍上抛：读不出 ≠ 没有。
  */
 export async function resolveAgentSessionDbPath(
-  options: ResolveAgentSessionDbPathOptions = {},
+    options: ResolveAgentSessionDbPathOptions = {},
 ): Promise<string | null> {
-  const env = options.env ?? process.env;
-  const home = options.homedirPath ?? homedir();
-  const readConfigFile = options.readConfigFile ?? ((path) => readFile(path, "utf-8"));
+    const env = options.env ?? process.env;
+    const home = options.homedirPath ?? homedir();
+    const readConfigFile = options.readConfigFile ?? ((path) => readFile(path, "utf-8"));
 
-  const fromEnv = pickEnvSessionDbPath(env);
-  if (fromEnv) return resolveMirroredSessionDbPath(fromEnv, home);
+    const fromEnv = pickEnvSessionDbPath(env);
+    if (fromEnv) return resolveMirroredSessionDbPath(fromEnv, home);
 
-  // CLI createConfig 的默认 user config 位置在 home（~/.zcode/cli/config.json），
-  // 与 App dataBaseDir 无关（评审三轮 CR-01 第 1 条，zcode-protocol-entrypoint 实证）。
-  const userConfigPath = options.userConfigPath ?? join(home, ".zcode", "cli", "config.json");
-  let raw: string;
-  try {
-    raw = await readConfigFile(userConfigPath);
-  } catch (cause) {
-    if ((cause as NodeJS.ErrnoException).code === "ENOENT") {
-      return resolveMirroredSessionDbPath(DEFAULT_SESSION_DB_PATH, home);
+    // CLI createConfig 的默认 user config 位置在 home（~/.zcode/cli/config.json），
+    // 与 App dataBaseDir 无关（评审三轮 CR-01 第 1 条，zcode-protocol-entrypoint 实证）。
+    const userConfigPath = options.userConfigPath ?? join(home, ".zcode", "cli", "config.json");
+    let raw: string;
+    try {
+        raw = await readConfigFile(userConfigPath);
+    } catch (cause) {
+        if ((cause as NodeJS.ErrnoException).code === "ENOENT") {
+            return resolveMirroredSessionDbPath(DEFAULT_SESSION_DB_PATH, home);
+        }
+        throw cause;
     }
-    throw cause;
-  }
-  const parsed = JSON.parse(raw) as { storage?: { sessionDbPath?: string } };
-  const configured = parsed.storage?.sessionDbPath?.trim();
-  if (configured) {
-    const mirrored = resolveMirroredSessionDbPath(configured, home);
-    if (mirrored === null) return null;
-    return mirrored;
-  }
-  return resolveMirroredSessionDbPath(DEFAULT_SESSION_DB_PATH, home);
+    const parsed = JSON.parse(raw) as { storage?: { sessionDbPath?: string } };
+    const configured = parsed.storage?.sessionDbPath?.trim();
+    if (configured) {
+        const mirrored = resolveMirroredSessionDbPath(configured, home);
+        if (mirrored === null) return null;
+        return mirrored;
+    }
+    return resolveMirroredSessionDbPath(DEFAULT_SESSION_DB_PATH, home);
 }
 
 /**
@@ -119,45 +122,45 @@ export async function resolveAgentSessionDbPath(
  * 与 TaskIndexRepo 同一先例。
  */
 export async function hasAnyAgentSessionRow(dbPath: string): Promise<boolean> {
-  try {
-    await stat(dbPath);
-  } catch (cause) {
-    if ((cause as NodeJS.ErrnoException).code === "ENOENT") return false;
-    throw cause;
-  }
-  const db = new DatabaseSync(dbPath, { readOnly: true });
-  try {
-    // busy_timeout：与运行中的 CLI（WAL 持有方）并发时短暂等待而不是立即 BUSY。
-    db.exec("PRAGMA busy_timeout = 2000");
-    const hasTable = db
-      .prepare(
-        "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'session') AS has",
-      )
-      .get();
-    if (!hasTable?.has) return false;
-    return Boolean(db.prepare("SELECT 1 FROM session LIMIT 1").get());
-  } finally {
-    db.close();
-  }
+    try {
+        await stat(dbPath);
+    } catch (cause) {
+        if ((cause as NodeJS.ErrnoException).code === "ENOENT") return false;
+        throw cause;
+    }
+    const db = new DatabaseSync(dbPath, { readOnly: true });
+    try {
+        // busy_timeout：与运行中的 CLI（WAL 持有方）并发时短暂等待而不是立即 BUSY。
+        db.exec("PRAGMA busy_timeout = 2000");
+        const hasTable = db
+            .prepare(
+                "SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'session') AS has",
+            )
+            .get();
+        if (!hasTable?.has) return false;
+        return Boolean(db.prepare("SELECT 1 FROM session LIMIT 1").get());
+    } finally {
+        db.close();
+    }
 }
 
 export interface CreateHasExistingLocalTaskOptions {
-  /** 设备全局任务索引查询；装配层须传 includeDeleted: true（tombstone 也是使用证据）。 */
-  listIndexTasks: () => Promise<unknown[]>;
-  /** agent 会话库行查询（组合 resolveAgentSessionDbPath + hasAnyAgentSessionRow）；惰性调用。 */
-  hasAgentSessionRow: () => Promise<boolean>;
-  /** 旧版任务快照目录（{dataBaseDir}/.zcode/v2/sessions，含 .deleted.json）；惰性解析。 */
-  resolveLegacyTaskSessionsDir: () => string;
+    /** 设备全局任务索引查询；装配层须传 includeDeleted: true（tombstone 也是使用证据）。 */
+    listIndexTasks: () => Promise<unknown[]>;
+    /** agent 会话库行查询（组合 resolveAgentSessionDbPath + hasAnyAgentSessionRow）；惰性调用。 */
+    hasAgentSessionRow: () => Promise<boolean>;
+    /** 旧版任务快照目录（{dataBaseDir}/.zcode/v2/sessions，含 .deleted.json）；惰性解析。 */
+    resolveLegacyTaskSessionsDir: () => string;
 }
 
 export type HasExistingLocalTask = () => Promise<boolean>;
 
 export function createHasExistingLocalTask(
-  options: CreateHasExistingLocalTaskOptions,
+    options: CreateHasExistingLocalTaskOptions,
 ): HasExistingLocalTask {
-  return async () => {
-    if ((await options.listIndexTasks()).length > 0) return true;
-    if (await options.hasAgentSessionRow()) return true;
-    return hasDirEntry(options.resolveLegacyTaskSessionsDir());
-  };
+    return async () => {
+        if ((await options.listIndexTasks()).length > 0) return true;
+        if (await options.hasAgentSessionRow()) return true;
+        return hasDirEntry(options.resolveLegacyTaskSessionsDir());
+    };
 }

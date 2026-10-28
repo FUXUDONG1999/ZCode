@@ -27,8 +27,8 @@ import type { IBotsService } from "./bots/bots.js";
 import type { IFileWatcherService } from "./fileWatcher/fileWatcher.js";
 import type { IOAuthService } from "./oauth/oauth.js";
 import type {
-  IModelSelectionService,
-  IProviderSettingsService,
+    IModelSelectionService,
+    IProviderSettingsService,
 } from "./model-provider/providerFacadeServices.js";
 import type { IUsageStatsService } from "./usage-stats/usageStats.js";
 import type { ICodingPlanSubscriptionService } from "./coding-plan-subscription/codingPlanSubscription.js";
@@ -56,69 +56,69 @@ import type { IConversationShareService } from "./conversation-share/conversatio
 
 /** UI 层消费的统一服务接口 */
 export interface IServiceAccessor {
-  readonly taskGroupService?: ITaskGroupService;
-  readonly projectService?: IProjectService;
-  readonly remoteProjectService?: IRemoteProjectService;
-  readonly windowProjectDirectory?: WindowProjectDirectoryServices;
-  readonly fileService: IFileService;
-  readonly mediaPreviewService?: IMediaPreviewService;
-  readonly cloudContentService?: ICloudContentService;
-  readonly marketingTouchService?: IMarketingTouchService;
-  readonly gitService: IGitService;
-  readonly gitCheckpointService: IGitCheckpointService;
-  readonly systemService: ISystemService;
-  readonly terminalService: ITerminalService;
-  readonly settingService: ISettingService;
-  /** Onboarding 完成记录（本地持久化）；旧测试 double / 不支持的 host 可不提供。 */
-  readonly onboardingRecordService?: IOnboardingRecordService;
-  readonly credentialService: ICredentialService;
-  readonly broadcastService: IBroadcastService;
-  readonly zcodeTaskService: IZCodeTaskService;
-  /** 窗口 Host 聚合面；旧 server wire 或测试 double 可暂不提供。 */
-  readonly windowControllerService?: IWindowControllerService;
-  readonly zcodeAgentService: IZCodeAgentService;
-  readonly zcodeSessionService: IZCodeSessionService;
-  // CUA 是 opt-in 内测特性：local macOS host 提供，远端 等 host 没有。可选避免连锁必填。
-  readonly cuaPermissionService?: ICuaPermissionService;
-  readonly conversationShareService: IConversationShareService;
-  readonly botsService: IBotsService;
-  readonly fileWatcherService: IFileWatcherService;
-  readonly oauthService: IOAuthService;
-  /** 当前 Environment 的 Provider 配置与设置视图。 */
-  readonly providerSettingsService: IProviderSettingsService;
-  /** 当前 Environment Registry 发布的唯一模型选择 View。 */
-  readonly modelSelectionService: IModelSelectionService;
-  /** Source Server 端 workspace 身份解析；本地 Host 也注册一份以保持合同一致。 */
-  readonly sourceServerWorkspaceService: ISourceServerWorkspaceService;
-  /** 仅桌面窗口 Host 的 base attachment 注册；远端 / Web 不提供。 */
-  readonly sourceServerManagementService?: ISourceServerManagementService;
-  readonly usageStatsService: IUsageStatsService;
-  readonly codingPlanSubscriptionService: ICodingPlanSubscriptionService;
-  readonly clientConfigService: IClientConfigService;
-  readonly clientScenesService: IClientScenesService;
-  /** 闲时任务管理（独立服务面）。 */
-  readonly offPeakTaskService: IOffPeakTaskService;
-  readonly highspeedCardService: IHighspeedCardService;
-  readonly skillsService: ISkillsService;
-  readonly skillSyncService: ISkillSyncService;
-  readonly mcpSyncService: IMcpSyncService;
-  /** 插件 UI 桥；web 或旧 host 可不提供，UI 据此回退普通 MCP 卡片。 */
-  readonly genUiService?: IGenUiService;
-  readonly pluginUiBridgeService?: IPluginUiBridgeService;
-  /** 页面 sampling；只有桌面本地任务开放。 */
-  readonly pluginUiSamplingService?: IPluginUiSamplingService;
-  /** App-Provided Tools；只有桌面本地 agent 时存在。 */
-  readonly pluginUiAppToolsService?: IPluginUiAppToolsService;
-  readonly pluginSyncService: IPluginSyncService;
-  readonly pluginsService: IPluginsService;
-  /** 设置页插件管理（UI 不再直触 zcodeAgentService 的 plugins/* 面） */
-  readonly pluginManagementService: IPluginManagementService;
-  readonly subagentsService: ISubagentsService;
-  readonly commandsService: ICommandsService;
-  readonly hooksService: IHooksService;
-  readonly memoryService: IMemoryService;
-  readonly outputStyleService: IOutputStyleService;
-  readonly settingsSyncService: ISettingsSyncService;
-  readonly feedbackService: IFeedbackService;
-  readonly promptAttachmentTransferService: IPromptAttachmentTransferService;
+    readonly taskGroupService?: ITaskGroupService;
+    readonly projectService?: IProjectService;
+    readonly remoteProjectService?: IRemoteProjectService;
+    readonly windowProjectDirectory?: WindowProjectDirectoryServices;
+    readonly fileService: IFileService;
+    readonly mediaPreviewService?: IMediaPreviewService;
+    readonly cloudContentService?: ICloudContentService;
+    readonly marketingTouchService?: IMarketingTouchService;
+    readonly gitService: IGitService;
+    readonly gitCheckpointService: IGitCheckpointService;
+    readonly systemService: ISystemService;
+    readonly terminalService: ITerminalService;
+    readonly settingService: ISettingService;
+    /** Onboarding 完成记录（本地持久化）；旧测试 double / 不支持的 host 可不提供。 */
+    readonly onboardingRecordService?: IOnboardingRecordService;
+    readonly credentialService: ICredentialService;
+    readonly broadcastService: IBroadcastService;
+    readonly zcodeTaskService: IZCodeTaskService;
+    /** 窗口 Host 聚合面；旧 server wire 或测试 double 可暂不提供。 */
+    readonly windowControllerService?: IWindowControllerService;
+    readonly zcodeAgentService: IZCodeAgentService;
+    readonly zcodeSessionService: IZCodeSessionService;
+    // CUA 是 opt-in 内测特性：local macOS host 提供，远端 等 host 没有。可选避免连锁必填。
+    readonly cuaPermissionService?: ICuaPermissionService;
+    readonly conversationShareService: IConversationShareService;
+    readonly botsService: IBotsService;
+    readonly fileWatcherService: IFileWatcherService;
+    readonly oauthService: IOAuthService;
+    /** 当前 Environment 的 Provider 配置与设置视图。 */
+    readonly providerSettingsService: IProviderSettingsService;
+    /** 当前 Environment Registry 发布的唯一模型选择 View。 */
+    readonly modelSelectionService: IModelSelectionService;
+    /** Source Server 端 workspace 身份解析；本地 Host 也注册一份以保持合同一致。 */
+    readonly sourceServerWorkspaceService: ISourceServerWorkspaceService;
+    /** 仅桌面窗口 Host 的 base attachment 注册；远端 / Web 不提供。 */
+    readonly sourceServerManagementService?: ISourceServerManagementService;
+    readonly usageStatsService: IUsageStatsService;
+    readonly codingPlanSubscriptionService: ICodingPlanSubscriptionService;
+    readonly clientConfigService: IClientConfigService;
+    readonly clientScenesService: IClientScenesService;
+    /** 闲时任务管理（独立服务面）。 */
+    readonly offPeakTaskService: IOffPeakTaskService;
+    readonly highspeedCardService: IHighspeedCardService;
+    readonly skillsService: ISkillsService;
+    readonly skillSyncService: ISkillSyncService;
+    readonly mcpSyncService: IMcpSyncService;
+    /** 插件 UI 桥；web 或旧 host 可不提供，UI 据此回退普通 MCP 卡片。 */
+    readonly genUiService?: IGenUiService;
+    readonly pluginUiBridgeService?: IPluginUiBridgeService;
+    /** 页面 sampling；只有桌面本地任务开放。 */
+    readonly pluginUiSamplingService?: IPluginUiSamplingService;
+    /** App-Provided Tools；只有桌面本地 agent 时存在。 */
+    readonly pluginUiAppToolsService?: IPluginUiAppToolsService;
+    readonly pluginSyncService: IPluginSyncService;
+    readonly pluginsService: IPluginsService;
+    /** 设置页插件管理（UI 不再直触 zcodeAgentService 的 plugins/* 面） */
+    readonly pluginManagementService: IPluginManagementService;
+    readonly subagentsService: ISubagentsService;
+    readonly commandsService: ICommandsService;
+    readonly hooksService: IHooksService;
+    readonly memoryService: IMemoryService;
+    readonly outputStyleService: IOutputStyleService;
+    readonly settingsSyncService: ISettingsSyncService;
+    readonly feedbackService: IFeedbackService;
+    readonly promptAttachmentTransferService: IPromptAttachmentTransferService;
 }

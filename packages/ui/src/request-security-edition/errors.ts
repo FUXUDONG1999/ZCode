@@ -1,17 +1,17 @@
 export const REQUEST_VERIFICATION_REJECTED_MESSAGE = "";
 export function resolveRequestVerificationBusinessCode(
-  _code: string | undefined,
-  _message: string | undefined,
+    _code: string | undefined,
+    _message: string | undefined,
 ): "3007" | undefined {
-  return undefined;
+    return undefined;
 }
 export function isRequestVerificationTerminalError(
-  _error: { code?: string; message?: string } | null | undefined,
+    _error: { code?: string; message?: string } | null | undefined,
 ): boolean {
-  return false;
+    return false;
 }
 export function isRequestVerificationRejectedMessage(_message: string | undefined): boolean {
-  return false;
+    return false;
 }
 export const requestVerificationRecoveryAction = null;
 export type RequestVerificationRecoveryAction = never;

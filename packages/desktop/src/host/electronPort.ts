@@ -9,22 +9,22 @@ import type { MessagePortLike, MessagePortPayload } from "@zcode/rpc";
  * 此适配器弥合两者差异，使 MessagePortProtocol 可以直接在 utilityProcess 中使用。
  */
 export function wrapElectronPort(port: MessagePortMain): MessagePortLike {
-  return {
-    addEventListener(_type: "message", listener: (e: { data: MessagePortPayload }) => void) {
-      // MessagePortMain 的 message 事件已经是 { data } 结构，直接转发
-      port.on("message", listener);
-    },
-    removeEventListener(_type: "message", listener: (e: { data: MessagePortPayload }) => void) {
-      port.off("message", listener);
-    },
-    postMessage(data: MessagePortPayload) {
-      port.postMessage(data);
-    },
-    start() {
-      port.start();
-    },
-    close() {
-      port.close();
-    },
-  };
+    return {
+        addEventListener(_type: "message", listener: (e: { data: MessagePortPayload }) => void) {
+            // MessagePortMain 的 message 事件已经是 { data } 结构，直接转发
+            port.on("message", listener);
+        },
+        removeEventListener(_type: "message", listener: (e: { data: MessagePortPayload }) => void) {
+            port.off("message", listener);
+        },
+        postMessage(data: MessagePortPayload) {
+            port.postMessage(data);
+        },
+        start() {
+            port.start();
+        },
+        close() {
+            port.close();
+        },
+    };
 }

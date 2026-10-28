@@ -6,18 +6,18 @@ import { parseParams, type ZCodeProtocolAgentServerContext } from "./server-type
  * 内主任务、后台任务与子 Agent 共用的权威 gate。
  */
 export async function updateInteractionPreferences(
-  context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ) {
-  const params = parseParams(zcodeWorkspaceUpdateInteractionPreferencesParamsSchema, rawParams);
-  const enabled = params.preferences.askUserQuestionAutoResolutionEnabled;
-  context.appRuntimePreferences.askUserQuestionAutoResolutionEnabled = enabled;
-  const snoozedInteractionCount =
-    await context.v4Interactions.setAskUserQuestionAutoResolutionEnabled(enabled);
+    const params = parseParams(zcodeWorkspaceUpdateInteractionPreferencesParamsSchema, rawParams);
+    const enabled = params.preferences.askUserQuestionAutoResolutionEnabled;
+    context.appRuntimePreferences.askUserQuestionAutoResolutionEnabled = enabled;
+    const snoozedInteractionCount =
+        await context.v4Interactions.setAskUserQuestionAutoResolutionEnabled(enabled);
 
-  return {
-    workspace: params.workspace,
-    askUserQuestionAutoResolutionEnabled: enabled,
-    snoozedInteractionCount,
-  };
+    return {
+        workspace: params.workspace,
+        askUserQuestionAutoResolutionEnabled: enabled,
+        snoozedInteractionCount,
+    };
 }

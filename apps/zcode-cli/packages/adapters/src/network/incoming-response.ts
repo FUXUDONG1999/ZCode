@@ -24,54 +24,54 @@ export const UNSUPPORTED_HTTP_STATUS_CODE = "ZCODE_UNSUPPORTED_HTTP_STATUS";
 
 /** 原样读出的响应：状态码不做任何裁剪，正文是流（无正文状态为 `null`）。 */
 export interface IncomingResponse {
-  status: number;
-  statusText: string;
-  headers: Headers;
-  body: ReadableStream<Uint8Array> | null;
+    status: number;
+    statusText: string;
+    headers: Headers;
+    body: ReadableStream<Uint8Array> | null;
 }
 
 /**
  * `Response` 表示不了的状态码。形状跟随原生 fetch 的网络失败（`TypeError`），调用方按错误码而不是文本区分。
  */
 export class UnsupportedHttpStatusError extends TypeError {
-  readonly code = UNSUPPORTED_HTTP_STATUS_CODE;
+    readonly code = UNSUPPORTED_HTTP_STATUS_CODE;
 
-  constructor(readonly status: number) {
-    super(
-      `HTTP response status ${status} is outside ${MIN_WEB_RESPONSE_STATUS}-${MAX_WEB_RESPONSE_STATUS} and cannot be returned as a fetch Response`,
-    );
-  }
+    constructor(readonly status: number) {
+        super(
+            `HTTP response status ${status} is outside ${MIN_WEB_RESPONSE_STATUS}-${MAX_WEB_RESPONSE_STATUS} and cannot be returned as a fetch Response`,
+        );
+    }
 }
 
 export function readIncomingResponse(message: http.IncomingMessage): IncomingResponse {
-  const status = message.statusCode ?? MISSING_STATUS;
-  const headers = new Headers();
-  for (const [name, value] of Object.entries(message.headers)) {
-    if (Array.isArray(value)) {
-      for (const item of value) headers.append(name, item);
-    } else if (value !== undefined) {
-      headers.append(name, String(value));
+    const status = message.statusCode ?? MISSING_STATUS;
+    const headers = new Headers();
+    for (const [name, value] of Object.entries(message.headers)) {
+        if (Array.isArray(value)) {
+            for (const item of value) headers.append(name, item);
+        } else if (value !== undefined) {
+            headers.append(name, String(value));
+        }
     }
-  }
-  const nullBody = NULL_BODY_STATUSES.has(status);
-  // 无正文状态照样把消息读完，socket 才能回到连接池。
-  if (nullBody) message.resume();
-  return {
-    body: nullBody ? null : (Readable.toWeb(message) as ReadableStream<Uint8Array>),
-    headers,
-    status,
-    statusText: message.statusMessage ?? "",
-  };
+    const nullBody = NULL_BODY_STATUSES.has(status);
+    // 无正文状态照样把消息读完，socket 才能回到连接池。
+    if (nullBody) message.resume();
+    return {
+        body: nullBody ? null : (Readable.toWeb(message) as ReadableStream<Uint8Array>),
+        headers,
+        status,
+        statusText: message.statusMessage ?? "",
+    };
 }
 
 /** 交给只认 `Response` 的调用方（proxy-aware fetch）；表示不了的状态码抛 {@link UnsupportedHttpStatusError}。 */
 export function toWebResponse(incoming: IncomingResponse): Response {
-  if (incoming.status < MIN_WEB_RESPONSE_STATUS || incoming.status > MAX_WEB_RESPONSE_STATUS) {
-    throw new UnsupportedHttpStatusError(incoming.status);
-  }
-  return new Response(incoming.body, {
-    headers: incoming.headers,
-    status: incoming.status,
-    statusText: incoming.statusText,
-  });
+    if (incoming.status < MIN_WEB_RESPONSE_STATUS || incoming.status > MAX_WEB_RESPONSE_STATUS) {
+        throw new UnsupportedHttpStatusError(incoming.status);
+    }
+    return new Response(incoming.body, {
+        headers: incoming.headers,
+        status: incoming.status,
+        statusText: incoming.statusText,
+    });
 }

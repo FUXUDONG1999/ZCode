@@ -17,8 +17,8 @@
 
 ```json
 {
-  "description": "Print platform details before Windows shell resolve cases",
-  "command": "printf 'W0 shell0=%s\\n' \"$0\"\nprintf 'W0 bash=%s\\n' \"${BASH_VERSION:-}\"\nprintf 'W0 shell_env=%s\\n' \"${SHELL:-}\"\nif command -v uname >/dev/null 2>&1; then uname -a | sed 's/^/W0 uname=/'; else printf 'W0 uname=missing\\n'; fi\nif command -v pwd >/dev/null 2>&1; then pwd -W 2>/dev/null | sed 's/^/W0 pwd_windows=/'; fi"
+    "description": "Print platform details before Windows shell resolve cases",
+    "command": "printf 'W0 shell0=%s\\n' \"$0\"\nprintf 'W0 bash=%s\\n' \"${BASH_VERSION:-}\"\nprintf 'W0 shell_env=%s\\n' \"${SHELL:-}\"\nif command -v uname >/dev/null 2>&1; then uname -a | sed 's/^/W0 uname=/'; else printf 'W0 uname=missing\\n'; fi\nif command -v pwd >/dev/null 2>&1; then pwd -W 2>/dev/null | sed 's/^/W0 pwd_windows=/'; fi"
 }
 ```
 
@@ -26,8 +26,8 @@
 
 ```json
 {
-  "description": "Print Windows Bash shell identity",
-  "command": "printf 'W1 shell0=%s\\n' \"$0\"\nprintf 'W1 bash=%s\\n' \"${BASH_VERSION:-}\"\nprintf 'W1 zsh=%s\\n' \"${ZSH_VERSION:-}\"\nprintf 'W1 shell_env=%s\\n' \"${SHELL:-}\"\nprintf 'W1 git_editor=%s\\n' \"${GIT_EDITOR:-}\"\nprintf 'W1 pwd_posix=%s\\n' \"$(pwd -P)\"\nif command -v uname >/dev/null 2>&1; then uname -a | sed 's/^/W1 uname=/'; fi\nif command -v pwd >/dev/null 2>&1; then pwd -W 2>/dev/null | sed 's/^/W1 pwd_windows=/'; fi"
+    "description": "Print Windows Bash shell identity",
+    "command": "printf 'W1 shell0=%s\\n' \"$0\"\nprintf 'W1 bash=%s\\n' \"${BASH_VERSION:-}\"\nprintf 'W1 zsh=%s\\n' \"${ZSH_VERSION:-}\"\nprintf 'W1 shell_env=%s\\n' \"${SHELL:-}\"\nprintf 'W1 git_editor=%s\\n' \"${GIT_EDITOR:-}\"\nprintf 'W1 pwd_posix=%s\\n' \"$(pwd -P)\"\nif command -v uname >/dev/null 2>&1; then uname -a | sed 's/^/W1 uname=/'; fi\nif command -v pwd >/dev/null 2>&1; then pwd -W 2>/dev/null | sed 's/^/W1 pwd_windows=/'; fi"
 }
 ```
 
@@ -35,8 +35,8 @@
 
 ```json
 {
-  "description": "Run Bash-only syntax on resolved Windows shell",
-  "command": "arr=(win bash resolver)\nprintf 'W2 array=%s\\n' \"${arr[1]}-${arr[2]}\"\nif [[ \"windows-bash-2026\" =~ ^windows-bash-[0-9]+$ ]]; then printf 'W2 regex=match\\n'; else printf 'W2 regex=no-match\\n'; fi\ncat <(printf 'W2 process-substitution-ok\\n')"
+    "description": "Run Bash-only syntax on resolved Windows shell",
+    "command": "arr=(win bash resolver)\nprintf 'W2 array=%s\\n' \"${arr[1]}-${arr[2]}\"\nif [[ \"windows-bash-2026\" =~ ^windows-bash-[0-9]+$ ]]; then printf 'W2 regex=match\\n'; else printf 'W2 regex=no-match\\n'; fi\ncat <(printf 'W2 process-substitution-ok\\n')"
 }
 ```
 
@@ -44,8 +44,8 @@
 
 ```json
 {
-  "description": "Print Bash pipeline status",
-  "command": "false | true\nprintf 'W3 pipe=%s %s\\n' \"${PIPESTATUS[0]}\" \"${PIPESTATUS[1]}\""
+    "description": "Print Bash pipeline status",
+    "command": "false | true\nprintf 'W3 pipe=%s %s\\n' \"${PIPESTATUS[0]}\" \"${PIPESTATUS[1]}\""
 }
 ```
 
@@ -53,8 +53,8 @@
 
 ```json
 {
-  "description": "Check login shell and Git editor environment",
-  "command": "shopt -q login_shell\nprintf 'W4 login_rc=%s\\n' \"$?\"\nprintf 'W4 shell_env=%s\\n' \"${SHELL:-}\"\nprintf 'W4 git_editor=%s\\n' \"${GIT_EDITOR:-}\""
+    "description": "Check login shell and Git editor environment",
+    "command": "shopt -q login_shell\nprintf 'W4 login_rc=%s\\n' \"$?\"\nprintf 'W4 shell_env=%s\\n' \"${SHELL:-}\"\nprintf 'W4 git_editor=%s\\n' \"${GIT_EDITOR:-}\""
 }
 ```
 
@@ -62,8 +62,8 @@
 
 ```json
 {
-  "description": "Change cwd to an existing workspace subdirectory",
-  "command": "START=\"$(pwd -P)\"\nif [ -d \"$START/apps/zcode-cli\" ]; then\n  NEXT=\"$START/apps/zcode-cli\"\nelif [ -d \"$START/packages\" ]; then\n  NEXT=\"$START/packages\"\nelif [ -d \"$START/src\" ]; then\n  NEXT=\"$START/src\"\nelse\n  NEXT=\"$START\"\nfi\ncd \"$NEXT\"\nprintf 'W5 start=%s\\n' \"$START\"\nprintf 'W5 next=%s\\n' \"$NEXT\"\nprintf 'W5 pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W5 pwd_windows=/'"
+    "description": "Change cwd to an existing workspace subdirectory",
+    "command": "START=\"$(pwd -P)\"\nif [ -d \"$START/apps/zcode-cli\" ]; then\n  NEXT=\"$START/apps/zcode-cli\"\nelif [ -d \"$START/packages\" ]; then\n  NEXT=\"$START/packages\"\nelif [ -d \"$START/src\" ]; then\n  NEXT=\"$START/src\"\nelse\n  NEXT=\"$START\"\nfi\ncd \"$NEXT\"\nprintf 'W5 start=%s\\n' \"$START\"\nprintf 'W5 next=%s\\n' \"$NEXT\"\nprintf 'W5 pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W5 pwd_windows=/'"
 }
 ```
 
@@ -71,8 +71,8 @@
 
 ```json
 {
-  "description": "Print cwd after in-workspace cwd capture",
-  "command": "printf 'W6 pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W6 pwd_windows=/'"
+    "description": "Print cwd after in-workspace cwd capture",
+    "command": "printf 'W6 pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W6 pwd_windows=/'"
 }
 ```
 
@@ -80,8 +80,8 @@
 
 ```json
 {
-  "description": "Change cwd outside workspace through Git Bash temp path",
-  "command": "cd /tmp\nprintf 'W7 pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W7 pwd_windows=/'"
+    "description": "Change cwd outside workspace through Git Bash temp path",
+    "command": "cd /tmp\nprintf 'W7 pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W7 pwd_windows=/'"
 }
 ```
 
@@ -89,8 +89,8 @@
 
 ```json
 {
-  "description": "Print cwd immediately after outside cwd reset",
-  "command": "printf 'W8 after_reset_pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W8 after_reset_pwd_windows=/'"
+    "description": "Print cwd immediately after outside cwd reset",
+    "command": "printf 'W8 after_reset_pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W8 after_reset_pwd_windows=/'"
 }
 ```
 
@@ -98,8 +98,8 @@
 
 ```json
 {
-  "description": "Recheck cwd in a second command after outside cwd reset",
-  "command": "printf 'W9 recheck_pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W9 recheck_pwd_windows=/'"
+    "description": "Recheck cwd in a second command after outside cwd reset",
+    "command": "printf 'W9 recheck_pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W9 recheck_pwd_windows=/'"
 }
 ```
 
@@ -107,8 +107,8 @@
 
 ```json
 {
-  "description": "Print Windows path conversion from Git Bash",
-  "command": "printf 'W10 comspec=%s\\n' \"${COMSPEC:-${ComSpec:-}}\"\nif command -v cygpath >/dev/null 2>&1; then\n  cygpath -u \"${COMSPEC:-${ComSpec:-C:\\\\Windows\\\\System32\\\\cmd.exe}}\" | sed 's/^/W10 comspec_posix=/'\n  cygpath -w \"$(pwd -P)\" | sed 's/^/W10 pwd_windows=/'\nelse\n  printf 'W10 cygpath=missing\\n'\nfi"
+    "description": "Print Windows path conversion from Git Bash",
+    "command": "printf 'W10 comspec=%s\\n' \"${COMSPEC:-${ComSpec:-}}\"\nif command -v cygpath >/dev/null 2>&1; then\n  cygpath -u \"${COMSPEC:-${ComSpec:-C:\\\\Windows\\\\System32\\\\cmd.exe}}\" | sed 's/^/W10 comspec_posix=/'\n  cygpath -w \"$(pwd -P)\" | sed 's/^/W10 pwd_windows=/'\nelse\n  printf 'W10 cygpath=missing\\n'\nfi"
 }
 ```
 
@@ -118,9 +118,9 @@ Tool 参数：`run_in_background: true`
 
 ```json
 {
-  "description": "Run background Bash syntax on Windows shell resolver",
-  "run_in_background": true,
-  "command": "arr=(background bash)\nprintf 'W11 array=%s\\n' \"${arr[1]}\"\ncat <(printf 'W11 process-substitution-ok\\n')\nprintf 'W11 stderr\\n' >&2"
+    "description": "Run background Bash syntax on Windows shell resolver",
+    "run_in_background": true,
+    "command": "arr=(background bash)\nprintf 'W11 array=%s\\n' \"${arr[1]}\"\ncat <(printf 'W11 process-substitution-ok\\n')\nprintf 'W11 stderr\\n' >&2"
 }
 ```
 
@@ -128,7 +128,7 @@ Tool 参数：`run_in_background: true`
 
 ```json
 {
-  "description": "Print final Windows Bash shell state",
-  "command": "printf 'W12 shell0=%s\\n' \"$0\"\nprintf 'W12 bash=%s\\n' \"${BASH_VERSION:-}\"\nprintf 'W12 shell_env=%s\\n' \"${SHELL:-}\"\nprintf 'W12 pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W12 pwd_windows=/'"
+    "description": "Print final Windows Bash shell state",
+    "command": "printf 'W12 shell0=%s\\n' \"$0\"\nprintf 'W12 bash=%s\\n' \"${BASH_VERSION:-}\"\nprintf 'W12 shell_env=%s\\n' \"${SHELL:-}\"\nprintf 'W12 pwd=%s\\n' \"$(pwd -P)\"\npwd -W 2>/dev/null | sed 's/^/W12 pwd_windows=/'"
 }
 ```

@@ -14,23 +14,23 @@ const MAX_ARGS_KEPT = 8;
 
 /** UTF-8 字节数。用 `TextEncoder` 而不是 `Buffer`：本包保持零 node 内建依赖（engine.ts 同一条纪律）。 */
 function utf8Length(text: string): number {
-  return new TextEncoder().encode(text).length;
+    return new TextEncoder().encode(text).length;
 }
 
 /** 一个实参的字符串预览：字符串原样，其余 JSON；超长切尾加省略号。 */
 function previewArg(value: unknown): string {
-  let text: string;
-  if (typeof value === "string") text = value;
-  else {
-    try {
-      text = JSON.stringify(value) ?? String(value);
-    } catch {
-      text = String(value);
+    let text: string;
+    if (typeof value === "string") text = value;
+    else {
+        try {
+            text = JSON.stringify(value) ?? String(value);
+        } catch {
+            text = String(value);
+        }
     }
-  }
-  return text.length > TRUNCATED_ARG_MAX_CHARS
-    ? `${text.slice(0, TRUNCATED_ARG_MAX_CHARS)}…`
-    : text;
+    return text.length > TRUNCATED_ARG_MAX_CHARS
+        ? `${text.slice(0, TRUNCATED_ARG_MAX_CHARS)}…`
+        : text;
 }
 
 /**
@@ -41,16 +41,16 @@ function previewArg(value: unknown): string {
  * 不可序列化的实参（带环、BigInt）走同一条慢路径——它们在 journal 里本来也表示不了。
  */
 export function boundWorldReadInput(op: string, args: readonly unknown[]): WorldReadInput {
-  const plain: WorldReadInput = { op, args: [...args] };
-  try {
-    const text = JSON.stringify(plain);
-    if (text !== undefined && utf8Length(text) <= WORLD_READ_INPUT_MAX_BYTES) return plain;
-  } catch {
-    // 落到下面的预览路径。
-  }
-  return {
-    op,
-    args: args.slice(0, MAX_ARGS_KEPT).map(previewArg),
-    truncated: true,
-  };
+    const plain: WorldReadInput = { op, args: [...args] };
+    try {
+        const text = JSON.stringify(plain);
+        if (text !== undefined && utf8Length(text) <= WORLD_READ_INPUT_MAX_BYTES) return plain;
+    } catch {
+        // 落到下面的预览路径。
+    }
+    return {
+        op,
+        args: args.slice(0, MAX_ARGS_KEPT).map(previewArg),
+        truncated: true,
+    };
 }

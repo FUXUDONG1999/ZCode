@@ -123,18 +123,18 @@ const { Break } = require("docx");
 
 // Check if heading needs manual line break to prevent orphan
 function buildHeadingRuns(text, maxCharsPerLine, runProps) {
-  // If text fits in one line, no action needed
-  if (text.length <= maxCharsPerLine) {
-    return [new TextRun({ text, ...runProps })];
-  }
-  // Use splitTitleLines to find semantic break points
-  const lines = splitTitleLines(text, maxCharsPerLine);
-  const runs = [];
-  for (let i = 0; i < lines.length; i++) {
-    if (i > 0) runs.push(new TextRun({ break: 1, ...runProps, text: "" })); // soft line break
-    runs.push(new TextRun({ text: lines[i], ...runProps }));
-  }
-  return runs;
+    // If text fits in one line, no action needed
+    if (text.length <= maxCharsPerLine) {
+        return [new TextRun({ text, ...runProps })];
+    }
+    // Use splitTitleLines to find semantic break points
+    const lines = splitTitleLines(text, maxCharsPerLine);
+    const runs = [];
+    for (let i = 0; i < lines.length; i++) {
+        if (i > 0) runs.push(new TextRun({ break: 1, ...runProps, text: "" })); // soft line break
+        runs.push(new TextRun({ text: lines[i], ...runProps }));
+    }
+    return runs;
 }
 ```
 
@@ -149,16 +149,16 @@ Generated code MUST guard against outputting literal `undefined`, `null`, `NaN`,
 ```js
 // ✅ MANDATORY: Safe text helper — use for ALL user-facing text values
 function safeText(value, placeholder) {
-  if (
-    value === undefined ||
-    value === null ||
-    value === "" ||
-    String(value) === "NaN" ||
-    String(value) === "undefined"
-  ) {
-    return placeholder || "【Please fill in】";
-  }
-  return String(value);
+    if (
+        value === undefined ||
+        value === null ||
+        value === "" ||
+        String(value) === "NaN" ||
+        String(value) === "undefined"
+    ) {
+        return placeholder || "【Please fill in】";
+    }
+    return String(value);
 }
 
 // Usage:

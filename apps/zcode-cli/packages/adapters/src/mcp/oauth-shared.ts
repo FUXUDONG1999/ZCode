@@ -9,9 +9,9 @@ export const MCP_OAUTH_DISCOVERY_FETCHED_AT_KEY = "discovery_state_fetched_at";
 export const MCP_OAUTH_DISCOVERY_TTL_MS = 24 * 60 * 60 * 1000;
 
 export interface McpOAuthAuthorizationContext {
-  authorizationUrl: string;
-  redirectUrl: string;
-  serverName: string;
+    authorizationUrl: string;
+    redirectUrl: string;
+    serverName: string;
 }
 
 /**
@@ -23,15 +23,15 @@ export interface McpOAuthAuthorizationContext {
  * 向后兼容的做法。
  */
 export async function saveDiscoveryRecord(
-  credentialStore: SharedZCodeCredentialStore,
-  keyPrefix: string,
-  state: OAuthDiscoveryState,
-  now = Date.now(),
+    credentialStore: SharedZCodeCredentialStore,
+    keyPrefix: string,
+    state: OAuthDiscoveryState,
+    now = Date.now(),
 ): Promise<void> {
-  await credentialStore.saveMany({
-    [mcpOAuthCredentialKey(keyPrefix, MCP_OAUTH_DISCOVERY_STATE_KEY)]: JSON.stringify(state),
-    [mcpOAuthCredentialKey(keyPrefix, MCP_OAUTH_DISCOVERY_FETCHED_AT_KEY)]: String(now),
-  });
+    await credentialStore.saveMany({
+        [mcpOAuthCredentialKey(keyPrefix, MCP_OAUTH_DISCOVERY_STATE_KEY)]: JSON.stringify(state),
+        [mcpOAuthCredentialKey(keyPrefix, MCP_OAUTH_DISCOVERY_FETCHED_AT_KEY)]: String(now),
+    });
 }
 
 /**
@@ -41,43 +41,43 @@ export async function saveDiscoveryRecord(
  * 时间戳，自愈。
  */
 export async function loadDiscoveryRecord(
-  credentialStore: SharedZCodeCredentialStore,
-  keyPrefix: string,
-  options: { expectedIssuer?: string; now?: number; ttlMs?: number } = {},
+    credentialStore: SharedZCodeCredentialStore,
+    keyPrefix: string,
+    options: { expectedIssuer?: string; now?: number; ttlMs?: number } = {},
 ): Promise<OAuthDiscoveryState | undefined> {
-  const now = options.now ?? Date.now();
-  const ttlMs = options.ttlMs ?? MCP_OAUTH_DISCOVERY_TTL_MS;
-  const stateKey = mcpOAuthCredentialKey(keyPrefix, MCP_OAUTH_DISCOVERY_STATE_KEY);
-  const fetchedAtKey = mcpOAuthCredentialKey(keyPrefix, MCP_OAUTH_DISCOVERY_FETCHED_AT_KEY);
-  const values = await credentialStore.loadMany([stateKey, fetchedAtKey]);
-  const raw = values[stateKey];
-  if (!raw) return undefined;
+    const now = options.now ?? Date.now();
+    const ttlMs = options.ttlMs ?? MCP_OAUTH_DISCOVERY_TTL_MS;
+    const stateKey = mcpOAuthCredentialKey(keyPrefix, MCP_OAUTH_DISCOVERY_STATE_KEY);
+    const fetchedAtKey = mcpOAuthCredentialKey(keyPrefix, MCP_OAUTH_DISCOVERY_FETCHED_AT_KEY);
+    const values = await credentialStore.loadMany([stateKey, fetchedAtKey]);
+    const raw = values[stateKey];
+    if (!raw) return undefined;
 
-  const fetchedAt = Number(values[fetchedAtKey]);
-  if (!Number.isFinite(fetchedAt) || now - fetchedAt >= ttlMs) return undefined;
+    const fetchedAt = Number(values[fetchedAtKey]);
+    if (!Number.isFinite(fetchedAt) || now - fetchedAt >= ttlMs) return undefined;
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return undefined;
-  }
-  if (!isRecord(parsed) || typeof parsed.authorizationServerUrl !== "string") return undefined;
+    let parsed: unknown;
+    try {
+        parsed = JSON.parse(raw);
+    } catch {
+        return undefined;
+    }
+    if (!isRecord(parsed) || typeof parsed.authorizationServerUrl !== "string") return undefined;
 
-  const state = parsed as unknown as OAuthDiscoveryState;
-  if (options.expectedIssuer && !issuersMatch(state, options.expectedIssuer)) {
-    // canonical 记录的 issuer 与缓存不一致：授权服务器换了，缓存必须作废。
-    return undefined;
-  }
-  return state;
+    const state = parsed as unknown as OAuthDiscoveryState;
+    if (options.expectedIssuer && !issuersMatch(state, options.expectedIssuer)) {
+        // canonical 记录的 issuer 与缓存不一致：授权服务器换了，缓存必须作废。
+        return undefined;
+    }
+    return state;
 }
 
 function issuersMatch(state: OAuthDiscoveryState, expectedIssuer: string): boolean {
-  const cachedIssuer = state.authorizationServerMetadata?.issuer ?? state.authorizationServerUrl;
-  if (!cachedIssuer) return false;
-  return normalizeIssuer(cachedIssuer) === normalizeIssuer(expectedIssuer);
+    const cachedIssuer = state.authorizationServerMetadata?.issuer ?? state.authorizationServerUrl;
+    if (!cachedIssuer) return false;
+    return normalizeIssuer(cachedIssuer) === normalizeIssuer(expectedIssuer);
 }
 
 function normalizeIssuer(value: string): string {
-  return value.endsWith("/") ? value.slice(0, -1) : value;
+    return value.endsWith("/") ? value.slice(0, -1) : value;
 }

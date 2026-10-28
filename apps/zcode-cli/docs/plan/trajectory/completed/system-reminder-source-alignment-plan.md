@@ -73,59 +73,59 @@ Descriptor 是 core-local source contract，不是 provider payload。当前实�
 
 ```ts
 export type SystemReminderDeliveryChannel =
-  | "request_prefix"
-  | "current_turn"
-  | "tool_result"
-  | "history_continuity"
-  | "mid_turn_event"
-  | "real_user";
+    | "request_prefix"
+    | "current_turn"
+    | "tool_result"
+    | "history_continuity"
+    | "mid_turn_event"
+    | "real_user";
 
 export type SystemReminderLifecycle =
-  | "request_prefix"
-  | "per_current_turn"
-  | "runtime_local"
-  | "tool_result"
-  | "resume_history"
-  | "mid_turn_event"
-  | "real_user";
+    | "request_prefix"
+    | "per_current_turn"
+    | "runtime_local"
+    | "tool_result"
+    | "resume_history"
+    | "mid_turn_event"
+    | "real_user";
 
 export type SystemReminderProviderVisibility = "provider_visible" | "provider_hidden";
 
 export type SystemReminderPrefixSource = "context_prefix" | "skills_listing";
 
 export type SystemReminderPersistedSource =
-  | "todo_reminder"
-  | "task_status"
-  | "tool_result_warning"
-  | "resume_todo_state"
-  | "resume_goal_state"
-  | "target_continuation"
-  | "goal_completion_verification"
-  | "rewind_notice"
-  | "queued_system_notification";
+    | "todo_reminder"
+    | "task_status"
+    | "tool_result_warning"
+    | "resume_todo_state"
+    | "resume_goal_state"
+    | "target_continuation"
+    | "goal_completion_verification"
+    | "rewind_notice"
+    | "queued_system_notification";
 
 export type SystemReminderPerRequestSource =
-  | "hook_context"
-  | "relevant_memory"
-  | "runtime_mode"
-  | "output_style"
-  | "date_change"
-  | "model_anomaly"
-  | "prompt_attachment"
-  | "diagnostics";
+    | "hook_context"
+    | "relevant_memory"
+    | "runtime_mode"
+    | "output_style"
+    | "date_change"
+    | "model_anomaly"
+    | "prompt_attachment"
+    | "diagnostics";
 
 export type SystemReminderSource =
-  | SystemReminderPrefixSource
-  | SystemReminderPersistedSource
-  | SystemReminderPerRequestSource;
+    | SystemReminderPrefixSource
+    | SystemReminderPersistedSource
+    | SystemReminderPerRequestSource;
 
 export interface SystemReminderSourceDescriptor {
-  source: SystemReminderSource;
-  channel: SystemReminderDeliveryChannel;
-  lifecycle: SystemReminderLifecycle;
-  isMeta: boolean;
-  providerVisibility: SystemReminderProviderVisibility;
-  evidenceLabel: string;
+    source: SystemReminderSource;
+    channel: SystemReminderDeliveryChannel;
+    lifecycle: SystemReminderLifecycle;
+    isMeta: boolean;
+    providerVisibility: SystemReminderProviderVisibility;
+    evidenceLabel: string;
 }
 ```
 

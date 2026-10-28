@@ -3,8 +3,8 @@ import type { BrowserGuestExecutionContext } from "./browserGuestManager.js";
 
 /** 构造 main→renderer 关闭通知所需的 owner scope 子集；完整 execution context 的其余字段与 renderer 无关。 */
 export type BrowserCloseTabNotificationOwner = Pick<
-  BrowserGuestExecutionContext,
-  "workspaceKey" | "sessionId" | "remoteSessionId"
+    BrowserGuestExecutionContext,
+    "workspaceKey" | "sessionId" | "remoteSessionId"
 >;
 
 /**
@@ -21,16 +21,16 @@ export type BrowserCloseTabNotificationOwner = Pick<
  * owner 允许缺省：recovery-orphan 等内部路径只有 tabId，renderer 此时退回“仅当前 workspace”语义。
  */
 export function buildBrowserViewCloseTabNotification(
-  tabId: string,
-  owner?: BrowserCloseTabNotificationOwner,
+    tabId: string,
+    owner?: BrowserCloseTabNotificationOwner,
 ): BrowserViewCloseTabNotification {
-  if (!owner) return { tabId };
-  return {
-    tabId,
-    workspaceKey: owner.workspaceKey,
-    sessionId: owner.sessionId,
-    // remote workspace 才有 remoteSessionId；本地 workspace 必须让该字段缺席而不是显式 undefined，
-    // renderer 侧按 `payload.remoteSessionId` 是否存在区分作用域。
-    ...(owner.remoteSessionId ? { remoteSessionId: owner.remoteSessionId } : {}),
-  };
+    if (!owner) return { tabId };
+    return {
+        tabId,
+        workspaceKey: owner.workspaceKey,
+        sessionId: owner.sessionId,
+        // remote workspace 才有 remoteSessionId；本地 workspace 必须让该字段缺席而不是显式 undefined，
+        // renderer 侧按 `payload.remoteSessionId` 是否存在区分作用域。
+        ...(owner.remoteSessionId ? { remoteSessionId: owner.remoteSessionId } : {}),
+    };
 }

@@ -8,11 +8,11 @@ import type { AppSettings } from "@zcode/shared";
  * 从 host/index.ts 提取为纯编排函数以便单测门禁行为；运行时行为与提取前一致。
  */
 export async function runStartupReconnectBatch<TCandidate, TResult>(deps: {
-  getSettings: () => Promise<Pick<AppSettings, "remoteStartupAutoReconnectEnabled">>;
-  listCandidates: () => Promise<TCandidate[]>;
-  reconnect: (candidates: TCandidate[]) => Promise<TResult[]>;
+    getSettings: () => Promise<Pick<AppSettings, "remoteStartupAutoReconnectEnabled">>;
+    listCandidates: () => Promise<TCandidate[]>;
+    reconnect: (candidates: TCandidate[]) => Promise<TResult[]>;
 }): Promise<TResult[]> {
-  const settings = await deps.getSettings();
-  if (settings.remoteStartupAutoReconnectEnabled === false) return [];
-  return await deps.reconnect(await deps.listCandidates());
+    const settings = await deps.getSettings();
+    if (settings.remoteStartupAutoReconnectEnabled === false) return [];
+    return await deps.reconnect(await deps.listCandidates());
 }

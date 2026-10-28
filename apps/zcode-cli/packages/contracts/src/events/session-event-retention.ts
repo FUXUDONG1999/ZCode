@@ -7,10 +7,10 @@ import { SessionEventType } from "./session.events.js";
  * 已完成 turn 的文本由持久化消息重新合成，reducer / rewind / fork / checkpoint 不消费这些类型。
  */
 export const TRANSIENT_SESSION_EVENT_TYPES: ReadonlySet<SessionEventType> = new Set([
-  SessionEventType.ModelStreaming,
-  SessionEventType.ToolCallProgress,
-  SessionEventType.StreamingToolLedgerUpdated,
-  SessionEventType.ModelNetworkStatus,
+    SessionEventType.ModelStreaming,
+    SessionEventType.ToolCallProgress,
+    SessionEventType.StreamingToolLedgerUpdated,
+    SessionEventType.ModelNetworkStatus,
 ]);
 
 /**
@@ -22,7 +22,7 @@ export const TRANSIENT_SESSION_EVENT_TYPES: ReadonlySet<SessionEventType> = new 
 export const SEALED_TURN_TRANSIENT_GRACE_MS = 120_000;
 
 export function isTransientSessionEvent(event: Pick<SessionEvent, "type">): boolean {
-  return TRANSIENT_SESSION_EVENT_TYPES.has(event.type);
+    return TRANSIENT_SESSION_EVENT_TYPES.has(event.type);
 }
 
 /**
@@ -33,36 +33,36 @@ export function isTransientSessionEvent(event: Pick<SessionEvent, "type">): bool
  * 因此只把驻留副本换成 `messageCount`，事件 id / seq / 其它 payload 字段保持不变。
  */
 export function slimRetainedModelRequest(event: SessionEvent): SessionEvent {
-  if (event.type !== SessionEventType.ModelRequest) {
-    return event;
-  }
-  const payload = event.payload as { messages?: unknown } | null | undefined;
-  if (!payload || !Array.isArray(payload.messages)) {
-    return event;
-  }
-  const { messages, ...metadata } = payload;
-  return { ...event, payload: { ...metadata, messageCount: messages.length } } as SessionEvent;
+    if (event.type !== SessionEventType.ModelRequest) {
+        return event;
+    }
+    const payload = event.payload as { messages?: unknown } | null | undefined;
+    if (!payload || !Array.isArray(payload.messages)) {
+        return event;
+    }
+    const { messages, ...metadata } = payload;
+    return { ...event, payload: { ...metadata, messageCount: messages.length } } as SessionEvent;
 }
 
 export type SessionEventRetentionMode = "unbounded" | "turn-window";
 
 export interface SessionEventRetentionPolicy {
-  /**
-   * 每次 append 后调用一次。返回值是应从内存淘汰其瞬态事件的 turnId 列表；空数组表示不淘汰。
-   * 策略只看事件序列本身，不依赖持久化结果。
-   */
-  onAppend(event: Pick<SessionEvent, "type" | "turnId">, nowMs: number): readonly string[];
-  /**
-   * 时间兜底：返回在 `nowMs - graceMs` 之前就已结束、且至今没有后继 turn 的 sealed turnId 列表，
-   * 并把它们从待淘汰集合移除。由低频 tick 调用。
-   */
-  collectExpired(nowMs: number, graceMs: number): readonly string[];
+    /**
+     * 每次 append 后调用一次。返回值是应从内存淘汰其瞬态事件的 turnId 列表；空数组表示不淘汰。
+     * 策略只看事件序列本身，不依赖持久化结果。
+     */
+    onAppend(event: Pick<SessionEvent, "type" | "turnId">, nowMs: number): readonly string[];
+    /**
+     * 时间兜底：返回在 `nowMs - graceMs` 之前就已结束、且至今没有后继 turn 的 sealed turnId 列表，
+     * 并把它们从待淘汰集合移除。由低频 tick 调用。
+     */
+    collectExpired(nowMs: number, graceMs: number): readonly string[];
 }
 
 const NO_EVICTION: readonly string[] = [];
 
 function createUnboundedRetention(): SessionEventRetentionPolicy {
-  return { onAppend: () => NO_EVICTION, collectExpired: () => NO_EVICTION };
+    return { onAppend: () => NO_EVICTION, collectExpired: () => NO_EVICTION };
 }
 
 /**
@@ -72,50 +72,50 @@ function createUnboundedRetention(): SessionEventRetentionPolicy {
  * 下一 turn 开始意味着用户又发了消息，上一 turn 必定已持久化。
  */
 function createTurnWindowRetention(): SessionEventRetentionPolicy {
-  const openTurns = new Set<string>();
-  const sealedAt = new Map<string, number>();
-  return {
-    onAppend(event, nowMs) {
-      const turnId = event.turnId;
-      if (!turnId) {
-        return NO_EVICTION;
-      }
-      switch (event.type) {
-        case SessionEventType.TurnStarted: {
-          const evict = [...sealedAt.keys()].filter((sealed) => sealed !== turnId);
-          sealedAt.clear();
-          openTurns.add(turnId);
-          return evict;
-        }
-        case SessionEventType.TurnComplete:
-        case SessionEventType.TurnError: {
-          openTurns.delete(turnId);
-          if (!sealedAt.has(turnId)) {
-            sealedAt.set(turnId, nowMs);
-          }
-          return NO_EVICTION;
-        }
-        default:
-          return NO_EVICTION;
-      }
-    },
-    collectExpired(nowMs, graceMs) {
-      const expired: string[] = [];
-      for (const [turnId, at] of sealedAt) {
-        if (nowMs - at >= graceMs) {
-          expired.push(turnId);
-        }
-      }
-      for (const turnId of expired) {
-        sealedAt.delete(turnId);
-      }
-      return expired;
-    },
-  };
+    const openTurns = new Set<string>();
+    const sealedAt = new Map<string, number>();
+    return {
+        onAppend(event, nowMs) {
+            const turnId = event.turnId;
+            if (!turnId) {
+                return NO_EVICTION;
+            }
+            switch (event.type) {
+                case SessionEventType.TurnStarted: {
+                    const evict = [...sealedAt.keys()].filter((sealed) => sealed !== turnId);
+                    sealedAt.clear();
+                    openTurns.add(turnId);
+                    return evict;
+                }
+                case SessionEventType.TurnComplete:
+                case SessionEventType.TurnError: {
+                    openTurns.delete(turnId);
+                    if (!sealedAt.has(turnId)) {
+                        sealedAt.set(turnId, nowMs);
+                    }
+                    return NO_EVICTION;
+                }
+                default:
+                    return NO_EVICTION;
+            }
+        },
+        collectExpired(nowMs, graceMs) {
+            const expired: string[] = [];
+            for (const [turnId, at] of sealedAt) {
+                if (nowMs - at >= graceMs) {
+                    expired.push(turnId);
+                }
+            }
+            for (const turnId of expired) {
+                sealedAt.delete(turnId);
+            }
+            return expired;
+        },
+    };
 }
 
 export function createSessionEventRetentionPolicy(
-  mode: SessionEventRetentionMode,
+    mode: SessionEventRetentionMode,
 ): SessionEventRetentionPolicy {
-  return mode === "unbounded" ? createUnboundedRetention() : createTurnWindowRetention();
+    return mode === "unbounded" ? createUnboundedRetention() : createTurnWindowRetention();
 }

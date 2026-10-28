@@ -10,82 +10,82 @@
 import { unlink, writeFile } from "node:fs/promises";
 import { SavedWorkflowMetaSchema, isValidSavedWorkflowName } from "@zcode/contracts";
 import {
-  listSavedWorkflows,
-  moveSavedWorkflow,
-  resolveSavedWorkflow,
-  savedWorkflowPath,
-  savedWorkflowRoot,
-  serializeSavedWorkflow,
-  type SavedWorkflowResolveFailure,
+    listSavedWorkflows,
+    moveSavedWorkflow,
+    resolveSavedWorkflow,
+    savedWorkflowPath,
+    savedWorkflowRoot,
+    serializeSavedWorkflow,
+    type SavedWorkflowResolveFailure,
 } from "@zcode/core";
 import {
-  ZCODE_WORKFLOWS_RUNS_MAX_LIMIT,
-  zcodeWorkflowsDeleteParamsSchema,
-  zcodeWorkflowsGetParamsSchema,
-  zcodeWorkflowsListParamsSchema,
-  zcodeWorkflowsMoveParamsSchema,
-  zcodeWorkflowsRunsParamsSchema,
-  zcodeWorkflowsUpdateMetaParamsSchema,
-  type ZCodeSavedWorkflowRun,
-  type ZCodeSavedWorkflowScope,
-  type ZCodeWorkflowsDeleteResult,
-  type ZCodeWorkflowsGetResult,
-  type ZCodeWorkflowsListResult,
-  type ZCodeWorkflowsMoveResult,
-  type ZCodeWorkflowsRunsResult,
-  type ZCodeWorkflowsUpdateMetaResult,
+    ZCODE_WORKFLOWS_RUNS_MAX_LIMIT,
+    zcodeWorkflowsDeleteParamsSchema,
+    zcodeWorkflowsGetParamsSchema,
+    zcodeWorkflowsListParamsSchema,
+    zcodeWorkflowsMoveParamsSchema,
+    zcodeWorkflowsRunsParamsSchema,
+    zcodeWorkflowsUpdateMetaParamsSchema,
+    type ZCodeSavedWorkflowRun,
+    type ZCodeSavedWorkflowScope,
+    type ZCodeWorkflowsDeleteResult,
+    type ZCodeWorkflowsGetResult,
+    type ZCodeWorkflowsListResult,
+    type ZCodeWorkflowsMoveResult,
+    type ZCodeWorkflowsRunsResult,
+    type ZCodeWorkflowsUpdateMetaResult,
 } from "@zcode/shared";
 import type { JournalStorePort } from "@zcode/dynamic-workflow";
 import { artifactsOf } from "../app/dynamic-workflow-run-observation.js";
 import {
-  resolveDynamicWorkflowJournalStore,
-  supportsRunIntrospection,
+    resolveDynamicWorkflowJournalStore,
+    supportsRunIntrospection,
 } from "../app/dynamic-workflow-run-service.js";
 import { parseParams, type ZCodeProtocolAgentServerContext } from "./server-types.js";
 
 // 缺省即 `project`：不给 scope 的旧 GUI 与项目档调用逐字走本项目根，形状不变（版本偏斜）。
 function scopeOf(params: { scope?: ZCodeSavedWorkflowScope }): ZCodeSavedWorkflowScope {
-  return params.scope ?? "project";
+    return params.scope ?? "project";
 }
 
 export async function listSavedWorkflowsOp(
-  _context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    _context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ): Promise<ZCodeWorkflowsListResult> {
-  const params = parseParams(zcodeWorkflowsListParamsSchema, rawParams);
-  const cwd = params.workspace.workspacePath;
-  const scope = scopeOf(params);
-  // 中枢的 PROJECT 组只列本项目那一份，全局组只列全局那一份——**永远**传定向 scope，绝不走
-  // 无向变体（两根 first-wins 会把 global 混进 project 组，把被遮蔽的 global 从全局组里藏掉）。
-  const listed = listSavedWorkflows({ cwd, scope });
-  // 扫过的目录（即使不存在也回）：GUI 的文件监听靠它 watch。
-  return {
-    workflows: listed.entries,
-    invalid: listed.invalid,
-    dir: savedWorkflowRoot(cwd, scope).dir,
-  };
+    const params = parseParams(zcodeWorkflowsListParamsSchema, rawParams);
+    const cwd = params.workspace.workspacePath;
+    const scope = scopeOf(params);
+    // 中枢的 PROJECT 组只列本项目那一份，全局组只列全局那一份——**永远**传定向 scope，绝不走
+    // 无向变体（两根 first-wins 会把 global 混进 project 组，把被遮蔽的 global 从全局组里藏掉）。
+    const listed = listSavedWorkflows({ cwd, scope });
+    // 扫过的目录（即使不存在也回）：GUI 的文件监听靠它 watch。
+    return {
+        workflows: listed.entries,
+        invalid: listed.invalid,
+        dir: savedWorkflowRoot(cwd, scope).dir,
+    };
 }
 
 export async function getSavedWorkflowOp(
-  _context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    _context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ): Promise<ZCodeWorkflowsGetResult> {
-  const params = parseParams(zcodeWorkflowsGetParamsSchema, rawParams);
-  // 定向 scope：`global` 只查全局根、不做遮蔽——中枢的全局组要看到被项目档遮蔽的那份。
-  const resolved = resolveSavedWorkflow({
-    cwd: params.workspace.workspacePath,
-    name: params.name,
-    scope: scopeOf(params),
-  });
-  if (!resolved.ok) return toFailure(resolved);
-  return {
-    ok: true,
-    name: resolved.name,
-    path: resolved.path,
-    scope: resolved.scope,
-    meta: resolved.meta,
-    script: resolved.script,
-  };
+    const params = parseParams(zcodeWorkflowsGetParamsSchema, rawParams);
+    // 定向 scope：`global` 只查全局根、不做遮蔽——中枢的全局组要看到被项目档遮蔽的那份。
+    const resolved = resolveSavedWorkflow({
+        cwd: params.workspace.workspacePath,
+        name: params.name,
+        scope: scopeOf(params),
+    });
+    if (!resolved.ok) return toFailure(resolved);
+    return {
+        ok: true,
+        name: resolved.name,
+        path: resolved.path,
+        scope: resolved.scope,
+        meta: resolved.meta,
+        script: resolved.script,
+    };
 }
 
 /**
@@ -93,21 +93,21 @@ export async function getSavedWorkflowOp(
  * 读-改-写在同一次调用内完成；不做三方合并（文件小、单机、用户自己在改）。
  */
 export async function updateSavedWorkflowMetaOp(
-  _context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    _context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ): Promise<ZCodeWorkflowsUpdateMetaResult> {
-  const params = parseParams(zcodeWorkflowsUpdateMetaParamsSchema, rawParams);
-  // shared 与 contracts 的 meta schema 逐字对齐，但序列化器认的是 contracts 那份类型；再过一遍
-  // 让「两边漂移」在这里炸成 -32602 而不是写出一个自己读不回来的文件。
-  const meta = SavedWorkflowMetaSchema.parse(params.meta);
-  const resolved = resolveSavedWorkflow({
-    cwd: params.workspace.workspacePath,
-    name: params.name,
-    scope: scopeOf(params),
-  });
-  if (!resolved.ok) return toFailure(resolved);
-  await writeFile(resolved.path, serializeSavedWorkflow(meta, resolved.script), "utf8");
-  return { ok: true, path: resolved.path };
+    const params = parseParams(zcodeWorkflowsUpdateMetaParamsSchema, rawParams);
+    // shared 与 contracts 的 meta schema 逐字对齐，但序列化器认的是 contracts 那份类型；再过一遍
+    // 让「两边漂移」在这里炸成 -32602 而不是写出一个自己读不回来的文件。
+    const meta = SavedWorkflowMetaSchema.parse(params.meta);
+    const resolved = resolveSavedWorkflow({
+        cwd: params.workspace.workspacePath,
+        name: params.name,
+        scope: scopeOf(params),
+    });
+    if (!resolved.ok) return toFailure(resolved);
+    await writeFile(resolved.path, serializeSavedWorkflow(meta, resolved.script), "utf8");
+    return { ok: true, path: resolved.path };
 }
 
 /**
@@ -116,23 +116,23 @@ export async function updateSavedWorkflowMetaOp(
  * `global` 删本机全局根那一份。同名的 legacy `.workflow.js` 是另一套解析器的文件，不在视野里。
  */
 export async function deleteSavedWorkflowOp(
-  _context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    _context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ): Promise<ZCodeWorkflowsDeleteResult> {
-  const params = parseParams(zcodeWorkflowsDeleteParamsSchema, rawParams);
-  if (!isValidSavedWorkflowName(params.name)) {
-    return { ok: false, reason: "invalid_name" };
-  }
-  const root = savedWorkflowRoot(params.workspace.workspacePath, scopeOf(params));
-  const path = savedWorkflowPath(root, params.name);
-  try {
-    await unlink(path);
-  } catch (error) {
-    const code = (error as NodeJS.ErrnoException | undefined)?.code;
-    if (code === "ENOENT" || code === "ENOTDIR") return { ok: false, reason: "not_found" };
-    return { ok: false, reason: "read_error", detail: describeError(error) };
-  }
-  return { ok: true, path };
+    const params = parseParams(zcodeWorkflowsDeleteParamsSchema, rawParams);
+    if (!isValidSavedWorkflowName(params.name)) {
+        return { ok: false, reason: "invalid_name" };
+    }
+    const root = savedWorkflowRoot(params.workspace.workspacePath, scopeOf(params));
+    const path = savedWorkflowPath(root, params.name);
+    try {
+        await unlink(path);
+    } catch (error) {
+        const code = (error as NodeJS.ErrnoException | undefined)?.code;
+        if (code === "ENOENT" || code === "ENOTDIR") return { ok: false, reason: "not_found" };
+        return { ok: false, reason: "read_error", detail: describeError(error) };
+    }
+    return { ok: true, path };
 }
 
 /**
@@ -144,44 +144,44 @@ export async function deleteSavedWorkflowOp(
  * 取该名字的运行历史（全局工作流在任何项目里跑，历史因此跨 cwd）；每行回 `cwd` 供 GUI 标项目。
  */
 export async function listSavedWorkflowRunsOp(
-  context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ): Promise<ZCodeWorkflowsRunsResult> {
-  const params = parseParams(zcodeWorkflowsRunsParamsSchema, rawParams);
-  const journal = resolveDynamicWorkflowJournalStore(context.deps.sessionStore);
-  if (journal === undefined || !supportsRunIntrospection(journal)) return { runs: [] };
-  const limit = Math.min(ZCODE_WORKFLOWS_RUNS_MAX_LIMIT, params.limit);
-  const global = scopeOf(params) === "global";
-  // 多取一条**只为判定 truncated**（run service 的同一惯例）。
-  // 全局变体省掉 cwd 谓词（journal 的 cwd 可选 = 跨所有项目）；项目变体传 cwd，逐字不变。
-  const rows = journal.listRuns({
-    ...(global ? {} : { cwd: params.workspace.workspacePath }),
-    limit: limit + 1,
-    ...(params.name === undefined ? {} : { name: params.name }),
-  });
-  const truncated = rows.length > limit;
-  const page = truncated ? rows.slice(0, limit) : rows;
-  // 产物汇总：每行一次 `listArtifactRows`（journal 的持久家），只在能力在场时做——缺席即
-  // 整字段缺席，中枢的 chips 就不画。**只对这一页的行**取数，所以代价与页大小同阶（≤ 50）。
-  const artifactsByRun = savedWorkflowRunArtifacts(journal, page);
-  const runs: ZCodeSavedWorkflowRun[] = page.map((row) => ({
-    runId: row.runId,
-    ...(row.name === undefined ? {} : { name: row.name }),
-    status: row.status,
-    ...(row.stopReason === undefined ? {} : { stopReason: row.stopReason }),
-    createdAt: row.timeCreated,
-    updatedAt: row.timeUpdated,
-    spentTokens: row.spentTokens,
-    ...(row.parentSessionId === undefined ? {} : { parentSessionId: row.parentSessionId }),
-    ...(row.toolCallId === undefined ? {} : { toolCallId: row.toolCallId }),
-    ...(row.args === undefined ? {} : { args: row.args }),
-    // 实际运行的项目目录：全局变体用它给每行标项目；项目变体里它恒等于 workspacePath，无害。
-    ...(row.cwd === undefined ? {} : { cwd: row.cwd }),
-    ...(artifactsByRun.get(row.runId) === undefined
-      ? {}
-      : { artifacts: artifactsByRun.get(row.runId)! }),
-  }));
-  return { runs, ...(truncated ? { truncated: true } : {}) };
+    const params = parseParams(zcodeWorkflowsRunsParamsSchema, rawParams);
+    const journal = resolveDynamicWorkflowJournalStore(context.deps.sessionStore);
+    if (journal === undefined || !supportsRunIntrospection(journal)) return { runs: [] };
+    const limit = Math.min(ZCODE_WORKFLOWS_RUNS_MAX_LIMIT, params.limit);
+    const global = scopeOf(params) === "global";
+    // 多取一条**只为判定 truncated**（run service 的同一惯例）。
+    // 全局变体省掉 cwd 谓词（journal 的 cwd 可选 = 跨所有项目）；项目变体传 cwd，逐字不变。
+    const rows = journal.listRuns({
+        ...(global ? {} : { cwd: params.workspace.workspacePath }),
+        limit: limit + 1,
+        ...(params.name === undefined ? {} : { name: params.name }),
+    });
+    const truncated = rows.length > limit;
+    const page = truncated ? rows.slice(0, limit) : rows;
+    // 产物汇总：每行一次 `listArtifactRows`（journal 的持久家），只在能力在场时做——缺席即
+    // 整字段缺席，中枢的 chips 就不画。**只对这一页的行**取数，所以代价与页大小同阶（≤ 50）。
+    const artifactsByRun = savedWorkflowRunArtifacts(journal, page);
+    const runs: ZCodeSavedWorkflowRun[] = page.map((row) => ({
+        runId: row.runId,
+        ...(row.name === undefined ? {} : { name: row.name }),
+        status: row.status,
+        ...(row.stopReason === undefined ? {} : { stopReason: row.stopReason }),
+        createdAt: row.timeCreated,
+        updatedAt: row.timeUpdated,
+        spentTokens: row.spentTokens,
+        ...(row.parentSessionId === undefined ? {} : { parentSessionId: row.parentSessionId }),
+        ...(row.toolCallId === undefined ? {} : { toolCallId: row.toolCallId }),
+        ...(row.args === undefined ? {} : { args: row.args }),
+        // 实际运行的项目目录：全局变体用它给每行标项目；项目变体里它恒等于 workspacePath，无害。
+        ...(row.cwd === undefined ? {} : { cwd: row.cwd }),
+        ...(artifactsByRun.get(row.runId) === undefined
+            ? {}
+            : { artifacts: artifactsByRun.get(row.runId)! }),
+    }));
+    return { runs, ...(truncated ? { truncated: true } : {}) };
 }
 
 /** 中枢 chips 上界：一行画得下的 kind 图标数（协议 schema 的 `.max(8)` 同值）。 */
@@ -201,25 +201,27 @@ const SAVED_WORKFLOW_RUN_ARTIFACTS_LIMIT = 8;
  * 零件的 run 不进表——调用方据此让整字段缺席，而不是发一个空数组。
  */
 function savedWorkflowRunArtifacts(
-  journal: JournalStorePort,
-  page: readonly { runId: string }[],
+    journal: JournalStorePort,
+    page: readonly { runId: string }[],
 ): Map<string, ZCodeSavedWorkflowRun["artifacts"]> {
-  const byRun = new Map<string, ZCodeSavedWorkflowRun["artifacts"]>();
-  for (const row of page) {
-    const { artifacts } = artifactsOf(row.runId, journal);
-    if (artifacts === undefined || artifacts.length === 0) continue;
-    byRun.set(
-      row.runId,
-      artifacts.slice(0, SAVED_WORKFLOW_RUN_ARTIFACTS_LIMIT).map((artifact) => ({
-        id: artifact.id,
-        kind: artifact.kind,
-        ...(artifact.title === undefined ? {} : { title: artifact.title }),
-        version: artifact.version,
-        ...(artifact.contentType === undefined ? {} : { contentType: artifact.contentType }),
-      })),
-    );
-  }
-  return byRun;
+    const byRun = new Map<string, ZCodeSavedWorkflowRun["artifacts"]>();
+    for (const row of page) {
+        const { artifacts } = artifactsOf(row.runId, journal);
+        if (artifacts === undefined || artifacts.length === 0) continue;
+        byRun.set(
+            row.runId,
+            artifacts.slice(0, SAVED_WORKFLOW_RUN_ARTIFACTS_LIMIT).map((artifact) => ({
+                id: artifact.id,
+                kind: artifact.kind,
+                ...(artifact.title === undefined ? {} : { title: artifact.title }),
+                version: artifact.version,
+                ...(artifact.contentType === undefined
+                    ? {}
+                    : { contentType: artifact.contentType }),
+            })),
+        );
+    }
+    return byRun;
 }
 
 /**
@@ -228,40 +230,40 @@ function savedWorkflowRunArtifacts(
  * `workspace` 既是载体也是目标项目：core 据它的 cwd 与本机 home 算出两个根。
  */
 export async function moveSavedWorkflowOp(
-  _context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    _context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ): Promise<ZCodeWorkflowsMoveResult> {
-  const params = parseParams(zcodeWorkflowsMoveParamsSchema, rawParams);
-  const result = moveSavedWorkflow({ cwd: params.workspace.workspacePath, name: params.name });
-  if (result.ok) {
-    return { ok: true, from: result.from, to: result.to };
-  }
-  // core 的失败分支与协议 result 逐字对齐；path / detail 在场时原样带出（缺席即省键）。
-  switch (result.reason) {
-    case "invalid_name":
-      return { ok: false, reason: "invalid_name", detail: result.detail };
-    case "not_found":
-      return { ok: false, reason: "not_found" };
-    case "target_exists":
-      return { ok: false, reason: "target_exists", path: result.path };
-    case "read_error":
-    case "write_error":
-      return { ok: false, reason: result.reason, path: result.path, detail: result.detail };
-  }
+    const params = parseParams(zcodeWorkflowsMoveParamsSchema, rawParams);
+    const result = moveSavedWorkflow({ cwd: params.workspace.workspacePath, name: params.name });
+    if (result.ok) {
+        return { ok: true, from: result.from, to: result.to };
+    }
+    // core 的失败分支与协议 result 逐字对齐；path / detail 在场时原样带出（缺席即省键）。
+    switch (result.reason) {
+        case "invalid_name":
+            return { ok: false, reason: "invalid_name", detail: result.detail };
+        case "not_found":
+            return { ok: false, reason: "not_found" };
+        case "target_exists":
+            return { ok: false, reason: "target_exists", path: result.path };
+        case "read_error":
+        case "write_error":
+            return { ok: false, reason: result.reason, path: result.path, detail: result.detail };
+    }
 }
 
 function toFailure(failure: SavedWorkflowResolveFailure) {
-  switch (failure.reason) {
-    case "invalid_name":
-      return { ok: false as const, reason: failure.reason, detail: failure.detail };
-    case "not_found":
-      return { ok: false as const, reason: failure.reason };
-    case "parse_error":
-    case "read_error":
-      return { ok: false as const, reason: failure.reason, detail: failure.detail };
-  }
+    switch (failure.reason) {
+        case "invalid_name":
+            return { ok: false as const, reason: failure.reason, detail: failure.detail };
+        case "not_found":
+            return { ok: false as const, reason: failure.reason };
+        case "parse_error":
+        case "read_error":
+            return { ok: false as const, reason: failure.reason, detail: failure.detail };
+    }
 }
 
 function describeError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+    return error instanceof Error ? error.message : String(error);
 }

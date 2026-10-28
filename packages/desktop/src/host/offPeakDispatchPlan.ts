@@ -10,20 +10,20 @@ import { OffPeakPermanentDispatchError } from "@zcode/services/node";
 export type OffPeakDispatchKind = "resume" | "bound-first-run" | "init";
 
 export function resolveOffPeakDispatchKind(request: {
-  conversationId?: string;
-  sessionId?: string;
+    conversationId?: string;
+    sessionId?: string;
 }): OffPeakDispatchKind {
-  if (request.conversationId?.trim()) return "resume";
-  if (request.sessionId?.trim()) return "bound-first-run";
-  return "init";
+    if (request.conversationId?.trim()) return "resume";
+    if (request.sessionId?.trim()) return "bound-first-run";
+    return "init";
 }
 
 /** 绑定会话已被用户删除：重试无意义，permanent（否则会一直退避到票过期再重取号）。 */
 export class OffPeakBoundSessionDeletedError extends OffPeakPermanentDispatchError {
-  constructor(readonly sessionId: string) {
-    super(`off-peak bound session was deleted: ${sessionId}`);
-    this.name = "OffPeakBoundSessionDeletedError";
-  }
+    constructor(readonly sessionId: string) {
+        super(`off-peak bound session was deleted: ${sessionId}`);
+        this.name = "OffPeakBoundSessionDeletedError";
+    }
 }
 
 /**
@@ -32,17 +32,17 @@ export class OffPeakBoundSessionDeletedError extends OffPeakPermanentDispatchErr
  * 但 setMode 没有活跃 turn 检查，先写配置再撞忙会把用户会话悄悄切成任务的权限模式。
  */
 export class OffPeakBoundSessionBusyError extends Error {
-  constructor(readonly sessionId: string) {
-    super(`off-peak bound session is busy: ${sessionId}`);
-    this.name = "OffPeakBoundSessionBusyError";
-  }
+    constructor(readonly sessionId: string) {
+        super(`off-peak bound session is busy: ${sessionId}`);
+        this.name = "OffPeakBoundSessionBusyError";
+    }
 }
 
 export function assertBoundSessionDispatchable(params: {
-  sessionId: string;
-  deleted: boolean;
-  running: boolean;
+    sessionId: string;
+    deleted: boolean;
+    running: boolean;
 }): void {
-  if (params.deleted) throw new OffPeakBoundSessionDeletedError(params.sessionId);
-  if (params.running) throw new OffPeakBoundSessionBusyError(params.sessionId);
+    if (params.deleted) throw new OffPeakBoundSessionDeletedError(params.sessionId);
+    if (params.running) throw new OffPeakBoundSessionBusyError(params.sessionId);
 }

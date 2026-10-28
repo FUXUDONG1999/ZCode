@@ -25,47 +25,47 @@ import { WorkflowSettingsChangeRow } from "@/components/workflow-timeline/Workfl
  * 就地生效没有前驱（workflow-row-meta.ts）。
  */
 function retuneAsAmendMeta(
-  requested: number | null,
-  defaultConcurrency: number | undefined,
+    requested: number | null,
+    defaultConcurrency: number | undefined,
 ): WorkflowSettingsAmendMeta {
-  return {
-    maxConcurrency: requested === null ? {} : { to: requested },
-    ...(defaultConcurrency === undefined ? {} : { ceiling: defaultConcurrency }),
-  };
+    return {
+        maxConcurrency: requested === null ? {} : { to: requested },
+        ...(defaultConcurrency === undefined ? {} : { ceiling: defaultConcurrency }),
+    };
 }
 
 export function WorkflowRetuneRow({
-  defaultConcurrency,
-  onOpen,
-  requested,
-  runId,
+    defaultConcurrency,
+    onOpen,
+    requested,
+    runId,
 }: {
-  /** 默认并发 D（那条 run 的投影读数 `run.concurrencyCeiling`）；未知时缺席。 */
-  defaultConcurrency?: number;
-  /** 打开这条 run 的详情页；宿主没给（只读面、灰度关）时这一行只是记录。 */
-  onOpen?: () => void;
-  requested: number | null;
-  runId: string;
+    /** 默认并发 D（那条 run 的投影读数 `run.concurrencyCeiling`）；未知时缺席。 */
+    defaultConcurrency?: number;
+    /** 打开这条 run 的详情页；宿主没给（只读面、灰度关）时这一行只是记录。 */
+    onOpen?: () => void;
+    requested: number | null;
+    runId: string;
 }) {
-  const row = (
-    <WorkflowSettingsChangeRow amend={retuneAsAmendMeta(requested, defaultConcurrency)} />
-  );
-  if (onOpen === undefined) {
-    return (
-      <div data-testid="workflow-retune-row" data-workflow-retune-run-id={runId}>
-        {row}
-      </div>
+    const row = (
+        <WorkflowSettingsChangeRow amend={retuneAsAmendMeta(requested, defaultConcurrency)} />
     );
-  }
-  return (
-    <button
-      className="flex w-full min-w-0 cursor-pointer rounded-md px-1 text-left transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring/40"
-      data-testid="workflow-retune-row"
-      data-workflow-retune-run-id={runId}
-      onClick={onOpen}
-      type="button"
-    >
-      {row}
-    </button>
-  );
+    if (onOpen === undefined) {
+        return (
+            <div data-testid="workflow-retune-row" data-workflow-retune-run-id={runId}>
+                {row}
+            </div>
+        );
+    }
+    return (
+        <button
+            className="flex w-full min-w-0 cursor-pointer rounded-md px-1 text-left transition-colors hover:bg-surface-hover focus-visible:ring-2 focus-visible:ring-ring/40"
+            data-testid="workflow-retune-row"
+            data-workflow-retune-run-id={runId}
+            onClick={onOpen}
+            type="button"
+        >
+            {row}
+        </button>
+    );
 }

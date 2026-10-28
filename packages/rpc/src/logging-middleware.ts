@@ -25,41 +25,41 @@ export type RPCLogger = (message: string, ...args: unknown[]) => void;
 // ============================================================================
 
 class LoggingServerChannel<TContext> implements IServerChannel<TContext> {
-  constructor(
-    private inner: IServerChannel<TContext>,
-    private channelName: string,
-    private logger: RPCLogger,
-  ) {}
+    constructor(
+        private inner: IServerChannel<TContext>,
+        private channelName: string,
+        private logger: RPCLogger,
+    ) {}
 
-  async call<T>(
-    ctx: TContext,
-    command: string,
-    arg?: any,
-    cancellationToken?: CancellationToken,
-  ): Promise<T> {
-    const start = performance.now();
-    try {
-      const result = await this.inner.call<T>(ctx, command, arg, cancellationToken);
-      const elapsed = (performance.now() - start).toFixed(1);
-      this.logger(`[rpc:call] ${this.channelName}.${command} OK (${elapsed}ms)`);
-      return result;
-    } catch (err) {
-      const elapsed = (performance.now() - start).toFixed(1);
-      this.logger(`[rpc:call] ${this.channelName}.${command} FAIL (${elapsed}ms)`, err);
-      throw err;
+    async call<T>(
+        ctx: TContext,
+        command: string,
+        arg?: any,
+        cancellationToken?: CancellationToken,
+    ): Promise<T> {
+        const start = performance.now();
+        try {
+            const result = await this.inner.call<T>(ctx, command, arg, cancellationToken);
+            const elapsed = (performance.now() - start).toFixed(1);
+            this.logger(`[rpc:call] ${this.channelName}.${command} OK (${elapsed}ms)`);
+            return result;
+        } catch (err) {
+            const elapsed = (performance.now() - start).toFixed(1);
+            this.logger(`[rpc:call] ${this.channelName}.${command} FAIL (${elapsed}ms)`, err);
+            throw err;
+        }
     }
-  }
 
-  listen<T>(ctx: TContext, event: string, arg?: any): Event<T> {
-    try {
-      const result = this.inner.listen<T>(ctx, event, arg);
-      this.logger(`[rpc:listen] ${this.channelName}.${event} subscribed`);
-      return result;
-    } catch (err) {
-      this.logger(`[rpc:listen] ${this.channelName}.${event} FAIL`, err);
-      throw err;
+    listen<T>(ctx: TContext, event: string, arg?: any): Event<T> {
+        try {
+            const result = this.inner.listen<T>(ctx, event, arg);
+            this.logger(`[rpc:listen] ${this.channelName}.${event} subscribed`);
+            return result;
+        } catch (err) {
+            this.logger(`[rpc:listen] ${this.channelName}.${event} FAIL`, err);
+            throw err;
+        }
     }
-  }
 }
 
 // ============================================================================
@@ -77,22 +77,22 @@ class LoggingServerChannel<TContext> implements IServerChannel<TContext> {
  * ```
  */
 export class LoggingChannelServer<TContext = string> implements IChannelServer<TContext> {
-  constructor(
-    private inner: IChannelServer<TContext>,
-    private logger: RPCLogger,
-  ) {}
+    constructor(
+        private inner: IChannelServer<TContext>,
+        private logger: RPCLogger,
+    ) {}
 
-  registerChannel(channelName: string, channel: IServerChannel<TContext>): void {
-    this.logger(`[rpc:register] channel "${channelName}"`);
-    this.inner.registerChannel(
-      channelName,
-      new LoggingServerChannel(channel, channelName, this.logger),
-    );
-  }
+    registerChannel(channelName: string, channel: IServerChannel<TContext>): void {
+        this.logger(`[rpc:register] channel "${channelName}"`);
+        this.inner.registerChannel(
+            channelName,
+            new LoggingServerChannel(channel, channelName, this.logger),
+        );
+    }
 
-  ready(): void {
-    this.inner.ready?.();
-  }
+    ready(): void {
+        this.inner.ready?.();
+    }
 }
 
 // ============================================================================
@@ -100,30 +100,30 @@ export class LoggingChannelServer<TContext = string> implements IChannelServer<T
 // ============================================================================
 
 class LoggingChannel implements IChannel {
-  constructor(
-    private inner: IChannel,
-    private channelName: string,
-    private logger: RPCLogger,
-  ) {}
+    constructor(
+        private inner: IChannel,
+        private channelName: string,
+        private logger: RPCLogger,
+    ) {}
 
-  async call<T>(command: string, arg?: any, cancellationToken?: CancellationToken): Promise<T> {
-    const start = performance.now();
-    try {
-      const result = await this.inner.call<T>(command, arg, cancellationToken);
-      const elapsed = (performance.now() - start).toFixed(1);
-      this.logger(`[rpc:call] ${this.channelName}.${command} → OK (${elapsed}ms)`);
-      return result;
-    } catch (err) {
-      const elapsed = (performance.now() - start).toFixed(1);
-      this.logger(`[rpc:call] ${this.channelName}.${command} → FAIL (${elapsed}ms)`, err);
-      throw err;
+    async call<T>(command: string, arg?: any, cancellationToken?: CancellationToken): Promise<T> {
+        const start = performance.now();
+        try {
+            const result = await this.inner.call<T>(command, arg, cancellationToken);
+            const elapsed = (performance.now() - start).toFixed(1);
+            this.logger(`[rpc:call] ${this.channelName}.${command} → OK (${elapsed}ms)`);
+            return result;
+        } catch (err) {
+            const elapsed = (performance.now() - start).toFixed(1);
+            this.logger(`[rpc:call] ${this.channelName}.${command} → FAIL (${elapsed}ms)`, err);
+            throw err;
+        }
     }
-  }
 
-  listen<T>(event: string, arg?: any): Event<T> {
-    this.logger(`[rpc:listen] ${this.channelName}.${event} → subscribed`);
-    return this.inner.listen<T>(event, arg);
-  }
+    listen<T>(event: string, arg?: any): Event<T> {
+        this.logger(`[rpc:listen] ${this.channelName}.${event} → subscribed`);
+        return this.inner.listen<T>(event, arg);
+    }
 }
 
 // ============================================================================
@@ -141,17 +141,17 @@ class LoggingChannel implements IChannel {
  * ```
  */
 export class LoggingChannelClient implements IChannelClient {
-  constructor(
-    private inner: IChannelClient,
-    private logger: RPCLogger,
-  ) {}
+    constructor(
+        private inner: IChannelClient,
+        private logger: RPCLogger,
+    ) {}
 
-  getChannel<T extends IChannel>(channelName: string): T {
-    const channel = this.inner.getChannel<T>(channelName);
-    return new LoggingChannel(
-      channel as unknown as IChannel,
-      channelName,
-      this.logger,
-    ) as unknown as T;
-  }
+    getChannel<T extends IChannel>(channelName: string): T {
+        const channel = this.inner.getChannel<T>(channelName);
+        return new LoggingChannel(
+            channel as unknown as IChannel,
+            channelName,
+            this.logger,
+        ) as unknown as T;
+    }
 }

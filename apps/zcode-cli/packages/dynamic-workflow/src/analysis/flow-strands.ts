@@ -22,16 +22,16 @@ import type { Src } from "./flow-graph.js";
  * separate file only because flow-graph.ts sits at the 400-line cap.
  */
 export interface StrandPark {
-  /** Phases running alongside a mark: everything parked, minus its own and its ancestors'. */
-  alongside: (phase: string, regions: readonly string[]) => string[];
-  /** Forget everything parked, connecting nothing: a detached body's strands have no position. */
-  discard: () => void;
-  /** Take every exit still parked (the sink's share), leaving the park empty. */
-  drain: () => Src[];
-  /** Take the exits of the named strands; a name that parked nothing contributes none. */
-  join: (regions: readonly string[]) => Src[];
-  /** Record one strand's exits and the phases of the nodes its body created. */
-  park: (region: string, exits: readonly Src[], phases: readonly string[]) => void;
+    /** Phases running alongside a mark: everything parked, minus its own and its ancestors'. */
+    alongside: (phase: string, regions: readonly string[]) => string[];
+    /** Forget everything parked, connecting nothing: a detached body's strands have no position. */
+    discard: () => void;
+    /** Take every exit still parked (the sink's share), leaving the park empty. */
+    drain: () => Src[];
+    /** Take the exits of the named strands; a name that parked nothing contributes none. */
+    join: (regions: readonly string[]) => Src[];
+    /** Record one strand's exits and the phases of the nodes its body created. */
+    park: (region: string, exits: readonly Src[], phases: readonly string[]) => void;
 }
 
 /**
@@ -39,40 +39,40 @@ export interface StrandPark {
  * {@link UNPHASED_ID} first (as in `collectFlowPhases`), then first-reach order.
  */
 export function createStrandPark(phases: readonly PhaseInfo[]): StrandPark {
-  const parked = new Map<string, { exits: Src[]; phases: readonly string[] }>();
-  const rank = new Map<string, number>(phases.map((phase, index) => [phase.id, index + 1]));
-  rank.set(UNPHASED_ID, 0);
-  const at = (id: string): number => rank.get(id) ?? rank.size;
-  return {
-    alongside: (phase, regions) => {
-      // A mark inside a strand is not alongside it: the strand is where the mark IS. The
-      // whole enclosing chain is excluded, not just the innermost region.
-      const enclosing = new Set(regions);
-      const running = new Set<string>();
-      for (const [region, strand] of parked) {
-        if (enclosing.has(region)) continue;
-        for (const id of strand.phases) if (id !== phase) running.add(id);
-      }
-      return [...running].sort((a, b) => at(a) - at(b));
-    },
-    discard: () => parked.clear(),
-    drain: () => {
-      const out = [...parked.values()].flatMap((strand) => strand.exits);
-      parked.clear();
-      return out;
-    },
-    join: (regions) => {
-      const out: Src[] = [];
-      for (const region of regions) {
-        const strand = parked.get(region);
-        if (strand === undefined) continue;
-        parked.delete(region);
-        out.push(...strand.exits);
-      }
-      return out;
-    },
-    park: (region, exits, phaseIds) => {
-      parked.set(region, { exits: [...exits], phases: [...phaseIds] });
-    },
-  };
+    const parked = new Map<string, { exits: Src[]; phases: readonly string[] }>();
+    const rank = new Map<string, number>(phases.map((phase, index) => [phase.id, index + 1]));
+    rank.set(UNPHASED_ID, 0);
+    const at = (id: string): number => rank.get(id) ?? rank.size;
+    return {
+        alongside: (phase, regions) => {
+            // A mark inside a strand is not alongside it: the strand is where the mark IS. The
+            // whole enclosing chain is excluded, not just the innermost region.
+            const enclosing = new Set(regions);
+            const running = new Set<string>();
+            for (const [region, strand] of parked) {
+                if (enclosing.has(region)) continue;
+                for (const id of strand.phases) if (id !== phase) running.add(id);
+            }
+            return [...running].sort((a, b) => at(a) - at(b));
+        },
+        discard: () => parked.clear(),
+        drain: () => {
+            const out = [...parked.values()].flatMap((strand) => strand.exits);
+            parked.clear();
+            return out;
+        },
+        join: (regions) => {
+            const out: Src[] = [];
+            for (const region of regions) {
+                const strand = parked.get(region);
+                if (strand === undefined) continue;
+                parked.delete(region);
+                out.push(...strand.exits);
+            }
+            return out;
+        },
+        park: (region, exits, phaseIds) => {
+            parked.set(region, { exits: [...exits], phases: [...phaseIds] });
+        },
+    };
 }

@@ -24,7 +24,7 @@ const I18N_PREFIX = "chat.toolCall.workflow.getRun.";
 
 /** 情势区块的容器：与同一张卡里的日志面板同款低层容器，不是第二种卡面。 */
 export const SITUATION_BLOCK_CLASS =
-  "min-w-0 space-y-1 rounded-lg border border-border bg-surface px-2 py-1.5";
+    "min-w-0 space-y-1 rounded-lg border border-border bg-surface px-2 py-1.5";
 
 /** 情势区块里的一行：窄屏折行，基线对齐（数字与文字混排时才不会互相顶高）。 */
 export const SITUATION_ROW_CLASS = "flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5";
@@ -34,10 +34,10 @@ export const SITUATION_ROW_CLASS = "flex min-w-0 flex-wrap items-baseline gap-x-
  * 在动的用活动色 warning，完成用 success，还没发生的最弱，终态没结算的居中。
  */
 const PHASE_STATE_TEXT: Record<WorkflowRunPhaseView["state"], string> = {
-  done: "text-success",
-  current: "text-warning",
-  ahead: "text-foreground-subtlest",
-  unfinished: "text-foreground-subtle",
+    done: "text-success",
+    current: "text-warning",
+    ahead: "text-foreground-subtlest",
+    unfinished: "text-foreground-subtle",
 };
 
 /**
@@ -45,86 +45,91 @@ const PHASE_STATE_TEXT: Record<WorkflowRunPhaseView["state"], string> = {
  * 没有轮次也没有步数可说。
  */
 export function WorkflowRunPhaseTrack({
-  phases,
-  generatedAt,
-  terminal,
+    phases,
+    generatedAt,
+    terminal,
 }: {
-  phases: readonly WorkflowRunPhaseView[];
-  generatedAt: number | undefined;
-  terminal: boolean;
+    phases: readonly WorkflowRunPhaseView[];
+    generatedAt: number | undefined;
+    terminal: boolean;
 }) {
-  const { intl } = useZCodeIntl();
-  if (phases.length === 0) return null;
-  return (
-    <div className={SITUATION_BLOCK_CLASS} data-testid="workflow-run-phases">
-      {phases.map((phase, index) => {
-        const cells: string[] = [];
-        // rounds 为 0 只可能是 `ahead`：没进过的阶段说不出「进过几次」。
-        if (phase.rounds > 0) {
-          cells.push(
-            intl.formatMessage(
-              { id: `${I18N_PREFIX}phase.${phase.rounds === 1 ? "roundsOne" : "rounds"}` },
-              { count: phase.rounds },
-            ),
-          );
-        }
-        if (phase.nodesSettled > 0) {
-          cells.push(
-            intl.formatMessage(
-              { id: `${I18N_PREFIX}phase.settled` },
-              { count: phase.nodesSettled },
-            ),
-          );
-        }
-        if (phase.nodesRunning > 0) {
-          // 终态 run 里的「还在跑」是没结算，不是在动。
-          cells.push(
-            intl.formatMessage(
-              { id: `${I18N_PREFIX}phase.${terminal ? "unfinished" : "running"}` },
-              { count: phase.nodesRunning },
-            ),
-          );
-        }
-        const duration = phaseDuration(phase, generatedAt, terminal, intl.formatMessage);
-        return (
-          <div className={SITUATION_ROW_CLASS} key={`${phase.name}-${index}`}>
-            <span className="shrink-0 tabular-nums text-foreground-subtlest">{index + 1}.</span>
-            <span className="min-w-0 break-words text-foreground">{phase.name}</span>
-            <span className={`shrink-0 ${PHASE_STATE_TEXT[phase.state]}`}>
-              {intl.formatMessage({ id: `${I18N_PREFIX}phase.state.${phase.state}` })}
-            </span>
-            {cells.map((cell) => (
-              <span className="text-foreground-subtle" key={cell}>
-                {cell}
-              </span>
-            ))}
-            {duration === undefined ? null : (
-              <span className="text-foreground-subtlest">{duration}</span>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
+    const { intl } = useZCodeIntl();
+    if (phases.length === 0) return null;
+    return (
+        <div className={SITUATION_BLOCK_CLASS} data-testid="workflow-run-phases">
+            {phases.map((phase, index) => {
+                const cells: string[] = [];
+                // rounds 为 0 只可能是 `ahead`：没进过的阶段说不出「进过几次」。
+                if (phase.rounds > 0) {
+                    cells.push(
+                        intl.formatMessage(
+                            {
+                                id: `${I18N_PREFIX}phase.${phase.rounds === 1 ? "roundsOne" : "rounds"}`,
+                            },
+                            { count: phase.rounds },
+                        ),
+                    );
+                }
+                if (phase.nodesSettled > 0) {
+                    cells.push(
+                        intl.formatMessage(
+                            { id: `${I18N_PREFIX}phase.settled` },
+                            { count: phase.nodesSettled },
+                        ),
+                    );
+                }
+                if (phase.nodesRunning > 0) {
+                    // 终态 run 里的「还在跑」是没结算，不是在动。
+                    cells.push(
+                        intl.formatMessage(
+                            { id: `${I18N_PREFIX}phase.${terminal ? "unfinished" : "running"}` },
+                            { count: phase.nodesRunning },
+                        ),
+                    );
+                }
+                const duration = phaseDuration(phase, generatedAt, terminal, intl.formatMessage);
+                return (
+                    <div className={SITUATION_ROW_CLASS} key={`${phase.name}-${index}`}>
+                        <span className="shrink-0 tabular-nums text-foreground-subtlest">
+                            {index + 1}.
+                        </span>
+                        <span className="min-w-0 break-words text-foreground">{phase.name}</span>
+                        <span className={`shrink-0 ${PHASE_STATE_TEXT[phase.state]}`}>
+                            {intl.formatMessage({ id: `${I18N_PREFIX}phase.state.${phase.state}` })}
+                        </span>
+                        {cells.map((cell) => (
+                            <span className="text-foreground-subtle" key={cell}>
+                                {cell}
+                            </span>
+                        ))}
+                        {duration === undefined ? null : (
+                            <span className="text-foreground-subtlest">{duration}</span>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+    );
 }
 
 type FormatMessage = ReturnType<typeof useZCodeIntl>["intl"]["formatMessage"];
 
 function phaseDuration(
-  phase: WorkflowRunPhaseView,
-  generatedAt: number | undefined,
-  terminal: boolean,
-  formatMessage: FormatMessage,
+    phase: WorkflowRunPhaseView,
+    generatedAt: number | undefined,
+    terminal: boolean,
+    formatMessage: FormatMessage,
 ): string | undefined {
-  if (phase.enteredAt === undefined) return undefined;
-  if (phase.exitedAt !== undefined) return formatWorkflowDuration(phase.exitedAt - phase.enteredAt);
-  // 没有离开时刻：活着的 run 说「到现在为止」；终态 run 什么也不说——它的离开时刻无人记录，
-  // 拿快照时刻去减等于把进程死后的那几个小时算进这个阶段。
-  if (terminal) return undefined;
-  const soFar = formatWorkflowAge(generatedAt, phase.enteredAt);
-  return soFar === undefined
-    ? undefined
-    : formatMessage({ id: `${I18N_PREFIX}phase.soFar` }, { duration: soFar });
+    if (phase.enteredAt === undefined) return undefined;
+    if (phase.exitedAt !== undefined)
+        return formatWorkflowDuration(phase.exitedAt - phase.enteredAt);
+    // 没有离开时刻：活着的 run 说「到现在为止」；终态 run 什么也不说——它的离开时刻无人记录，
+    // 拿快照时刻去减等于把进程死后的那几个小时算进这个阶段。
+    if (terminal) return undefined;
+    const soFar = formatWorkflowAge(generatedAt, phase.enteredAt);
+    return soFar === undefined
+        ? undefined
+        : formatMessage({ id: `${I18N_PREFIX}phase.soFar` }, { duration: soFar });
 }
 
 /**
@@ -138,89 +143,99 @@ function phaseDuration(
  * 而卡面比模型面更吝惜行。
  */
 export function WorkflowRunHealthLine({
-  health,
-  generatedAt,
-  terminal,
+    health,
+    generatedAt,
+    terminal,
 }: {
-  health: WorkflowRunHealthView;
-  generatedAt: number | undefined;
-  terminal: boolean;
+    health: WorkflowRunHealthView;
+    generatedAt: number | undefined;
+    terminal: boolean;
 }) {
-  const { intl } = useZCodeIntl();
-  const cells: string[] = [];
+    const { intl } = useZCodeIntl();
+    const cells: string[] = [];
 
-  const lastProgress = formatWorkflowAge(generatedAt, health.lastProgressAt);
-  if (lastProgress !== undefined) {
-    cells.push(
-      intl.formatMessage({ id: `${I18N_PREFIX}health.lastProgress` }, { age: lastProgress }),
-    );
-  }
-
-  if (health.concurrency !== undefined) {
-    const { effective, cap, reason, since } = health.concurrency;
-    cells.push(intl.formatMessage({ id: `${I18N_PREFIX}health.concurrency` }, { effective, cap }));
-    // 原因与起始时刻各占一格，不塞进括号：括号的形状中英文不同，而这一行本来就是按格读的。
-    // reason 是开放字符串，认识的映射成短标签，不认识的原样显示。
-    if (reason !== undefined) cells.push(throttleReasonLabel(reason, intl.formatMessage));
-    const sinceAge = formatWorkflowAge(generatedAt, since);
-    if (sinceAge !== undefined) {
-      cells.push(
-        intl.formatMessage({ id: `${I18N_PREFIX}health.concurrencySince` }, { age: sinceAge }),
-      );
+    const lastProgress = formatWorkflowAge(generatedAt, health.lastProgressAt);
+    if (lastProgress !== undefined) {
+        cells.push(
+            intl.formatMessage({ id: `${I18N_PREFIX}health.lastProgress` }, { age: lastProgress }),
+        );
     }
-  }
 
-  if (!terminal) {
-    const stalledAge = formatWorkflowAge(generatedAt, health.stalledSince);
-    cells.push(
-      health.stalledSince === undefined
-        ? intl.formatMessage({ id: `${I18N_PREFIX}health.notStalled` })
-        : stalledAge === undefined
-          ? intl.formatMessage({ id: `${I18N_PREFIX}health.stalledNoClock` })
-          : intl.formatMessage({ id: `${I18N_PREFIX}health.stalled` }, { age: stalledAge }),
-    );
-  }
+    if (health.concurrency !== undefined) {
+        const { effective, cap, reason, since } = health.concurrency;
+        cells.push(
+            intl.formatMessage({ id: `${I18N_PREFIX}health.concurrency` }, { effective, cap }),
+        );
+        // 原因与起始时刻各占一格，不塞进括号：括号的形状中英文不同，而这一行本来就是按格读的。
+        // reason 是开放字符串，认识的映射成短标签，不认识的原样显示。
+        if (reason !== undefined) cells.push(throttleReasonLabel(reason, intl.formatMessage));
+        const sinceAge = formatWorkflowAge(generatedAt, since);
+        if (sinceAge !== undefined) {
+            cells.push(
+                intl.formatMessage(
+                    { id: `${I18N_PREFIX}health.concurrencySince` },
+                    { age: sinceAge },
+                ),
+            );
+        }
+    }
 
-  if (health.consecutiveFailures > 0) {
-    cells.push(
-      intl.formatMessage(
-        {
-          id: `${I18N_PREFIX}health.${health.consecutiveFailures === 1 ? "failuresOne" : "failures"}`,
-        },
-        { count: health.consecutiveFailures },
-      ),
-    );
-  }
-  if (health.cachedSteps > 0) {
-    cells.push(
-      intl.formatMessage(
-        {
-          id: `${I18N_PREFIX}health.${health.cachedSteps === 1 ? "cachedStepsOne" : "cachedSteps"}`,
-        },
-        { count: health.cachedSteps },
-      ),
-    );
-  }
+    if (!terminal) {
+        const stalledAge = formatWorkflowAge(generatedAt, health.stalledSince);
+        cells.push(
+            health.stalledSince === undefined
+                ? intl.formatMessage({ id: `${I18N_PREFIX}health.notStalled` })
+                : stalledAge === undefined
+                  ? intl.formatMessage({ id: `${I18N_PREFIX}health.stalledNoClock` })
+                  : intl.formatMessage({ id: `${I18N_PREFIX}health.stalled` }, { age: stalledAge }),
+        );
+    }
 
-  const leftover = terminal ? health.leftoverRunning : undefined;
-  if (cells.length === 0 && leftover === undefined) return null;
-  return (
-    <div className="min-w-0 space-y-1" data-testid="workflow-run-health">
-      {cells.length === 0 ? null : (
-        <div className={`${SITUATION_ROW_CLASS} text-ui-sm text-foreground-subtlest`}>
-          {cells.map((cell) => (
-            <span key={cell}>{cell}</span>
-          ))}
+    if (health.consecutiveFailures > 0) {
+        cells.push(
+            intl.formatMessage(
+                {
+                    id: `${I18N_PREFIX}health.${health.consecutiveFailures === 1 ? "failuresOne" : "failures"}`,
+                },
+                { count: health.consecutiveFailures },
+            ),
+        );
+    }
+    if (health.cachedSteps > 0) {
+        cells.push(
+            intl.formatMessage(
+                {
+                    id: `${I18N_PREFIX}health.${health.cachedSteps === 1 ? "cachedStepsOne" : "cachedSteps"}`,
+                },
+                { count: health.cachedSteps },
+            ),
+        );
+    }
+
+    const leftover = terminal ? health.leftoverRunning : undefined;
+    if (cells.length === 0 && leftover === undefined) return null;
+    return (
+        <div className="min-w-0 space-y-1" data-testid="workflow-run-health">
+            {cells.length === 0 ? null : (
+                <div className={`${SITUATION_ROW_CLASS} text-ui-sm text-foreground-subtlest`}>
+                    {cells.map((cell) => (
+                        <span key={cell}>{cell}</span>
+                    ))}
+                </div>
+            )}
+            {leftover === undefined ? null : (
+                <p
+                    className="break-words text-ui-sm text-warning"
+                    data-testid="workflow-run-leftover"
+                >
+                    {intl.formatMessage(
+                        {
+                            id: `${I18N_PREFIX}health.${leftover === 1 ? "leftoverOne" : "leftover"}`,
+                        },
+                        { count: leftover },
+                    )}
+                </p>
+            )}
         </div>
-      )}
-      {leftover === undefined ? null : (
-        <p className="break-words text-ui-sm text-warning" data-testid="workflow-run-leftover">
-          {intl.formatMessage(
-            { id: `${I18N_PREFIX}health.${leftover === 1 ? "leftoverOne" : "leftover"}` },
-            { count: leftover },
-          )}
-        </p>
-      )}
-    </div>
-  );
+    );
 }

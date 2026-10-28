@@ -34,44 +34,44 @@ import { IPCClient } from "./ipc.js";
  * 远程连接类型
  */
 export enum RemoteConnectionType {
-  WebSocket = 0,
-  Managed = 1,
+    WebSocket = 0,
+    Managed = 1,
 }
 
 /**
  * WebSocket 连接：直接连到 host:port
  */
 export class WebSocketRemoteConnection {
-  readonly type = RemoteConnectionType.WebSocket;
-  constructor(
-    public readonly host: string,
-    public readonly port: number,
-  ) {}
+    readonly type = RemoteConnectionType.WebSocket;
+    constructor(
+        public readonly host: string,
+        public readonly port: number,
+    ) {}
 
-  toString(): string {
-    return `WebSocket(${this.host}:${this.port})`;
-  }
+    toString(): string {
+        return `WebSocket(${this.host}:${this.port})`;
+    }
 }
 
 /**
  * 托管连接：通过 ID 引用已建立的连接（如 tunnel）
  */
 export class ManagedRemoteConnection {
-  readonly type = RemoteConnectionType.Managed;
-  constructor(public readonly id: number) {}
+    readonly type = RemoteConnectionType.Managed;
+    constructor(public readonly id: number) {}
 
-  toString(): string {
-    return `Managed(${this.id})`;
-  }
+    toString(): string {
+        return `Managed(${this.id})`;
+    }
 }
 
 export type RemoteConnection = WebSocketRemoteConnection | ManagedRemoteConnection;
 
 /** 解析后的远程地址 */
 export interface ResolvedAuthority {
-  readonly authority: string;
-  readonly connectTo: RemoteConnection;
-  readonly connectionToken: string | undefined;
+    readonly authority: string;
+    readonly connectTo: RemoteConnection;
+    readonly connectionToken: string | undefined;
 }
 
 // ============================================================================
@@ -89,37 +89,37 @@ export interface ResolvedAuthority {
  * 每种远程类型都知道如何解析自己的 authority 并返回可连接的地址。
  */
 export interface IRemoteAuthorityResolver {
-  resolve(authority: string): Promise<ResolvedAuthority>;
+    resolve(authority: string): Promise<ResolvedAuthority>;
 }
 
 /**
  * RemoteAuthorityResolverService 管理多个 resolver
  */
 export class RemoteAuthorityResolverService {
-  private resolvers = new Map<string, IRemoteAuthorityResolver>();
+    private resolvers = new Map<string, IRemoteAuthorityResolver>();
 
-  /** 注册一个 authority 类型的 resolver */
-  registerResolver(type: string, resolver: IRemoteAuthorityResolver): IDisposable {
-    this.resolvers.set(type, resolver);
-    return toDisposable(() => this.resolvers.delete(type));
-  }
-
-  /**
-   * 解析 authority
-   * @param authority 如 "ssh+myserver", "wsl+Ubuntu"
-   */
-  async resolveAuthority(authority: string): Promise<ResolvedAuthority> {
-    // 从 authority 中提取类型：ssh+myserver → ssh
-    const plusIndex = authority.indexOf("+");
-    const type = plusIndex >= 0 ? authority.substring(0, plusIndex) : authority;
-
-    const resolver = this.resolvers.get(type);
-    if (!resolver) {
-      throw new Error(`No resolver registered for remote type: ${type}`);
+    /** 注册一个 authority 类型的 resolver */
+    registerResolver(type: string, resolver: IRemoteAuthorityResolver): IDisposable {
+        this.resolvers.set(type, resolver);
+        return toDisposable(() => this.resolvers.delete(type));
     }
 
-    return resolver.resolve(authority);
-  }
+    /**
+     * 解析 authority
+     * @param authority 如 "ssh+myserver", "wsl+Ubuntu"
+     */
+    async resolveAuthority(authority: string): Promise<ResolvedAuthority> {
+        // 从 authority 中提取类型：ssh+myserver → ssh
+        const plusIndex = authority.indexOf("+");
+        const type = plusIndex >= 0 ? authority.substring(0, plusIndex) : authority;
+
+        const resolver = this.resolvers.get(type);
+        if (!resolver) {
+            throw new Error(`No resolver registered for remote type: ${type}`);
+        }
+
+        return resolver.resolve(authority);
+    }
 }
 
 // ============================================================================
@@ -130,8 +130,12 @@ export class RemoteAuthorityResolverService {
  * ISocketFactory 创建特定类型的 socket 连接
  */
 export interface ISocketFactory<T extends RemoteConnectionType = RemoteConnectionType> {
-  supports(connectTo: RemoteConnection & { type: T }): boolean;
-  connect(connectTo: RemoteConnection & { type: T }, path: string, query: string): Promise<ISocket>;
+    supports(connectTo: RemoteConnection & { type: T }): boolean;
+    connect(
+        connectTo: RemoteConnection & { type: T },
+        path: string,
+        query: string,
+    ): Promise<ISocket>;
 }
 
 /**
@@ -143,32 +147,32 @@ export interface ISocketFactory<T extends RemoteConnectionType = RemoteConnectio
  * - 每种 RemoteConnectionType 可以有多个工厂，按 supports() 选择
  */
 export class RemoteSocketFactoryService {
-  private readonly factories: Map<RemoteConnectionType, ISocketFactory[]> = new Map();
+    private readonly factories: Map<RemoteConnectionType, ISocketFactory[]> = new Map();
 
-  register<T extends RemoteConnectionType>(type: T, factory: ISocketFactory<T>): IDisposable {
-    if (!this.factories.has(type)) {
-      this.factories.set(type, []);
-    }
-    this.factories.get(type)!.push(factory as ISocketFactory);
-    return toDisposable(() => {
-      const list = this.factories.get(type);
-      if (list) {
-        const idx = list.indexOf(factory as ISocketFactory);
-        if (idx >= 0) {
-          list.splice(idx, 1);
+    register<T extends RemoteConnectionType>(type: T, factory: ISocketFactory<T>): IDisposable {
+        if (!this.factories.has(type)) {
+            this.factories.set(type, []);
         }
-      }
-    });
-  }
-
-  async connect(connectTo: RemoteConnection, path: string, query: string): Promise<ISocket> {
-    const factories = this.factories.get(connectTo.type) || [];
-    const factory = factories.find((f) => f.supports(connectTo as any));
-    if (!factory) {
-      throw new Error(`No socket factory found for ${connectTo}`);
+        this.factories.get(type)!.push(factory as ISocketFactory);
+        return toDisposable(() => {
+            const list = this.factories.get(type);
+            if (list) {
+                const idx = list.indexOf(factory as ISocketFactory);
+                if (idx >= 0) {
+                    list.splice(idx, 1);
+                }
+            }
+        });
     }
-    return factory.connect(connectTo as any, path, query);
-  }
+
+    async connect(connectTo: RemoteConnection, path: string, query: string): Promise<ISocket> {
+        const factories = this.factories.get(connectTo.type) || [];
+        const factory = factories.find((f) => f.supports(connectTo as any));
+        if (!factory) {
+            throw new Error(`No socket factory found for ${connectTo}`);
+        }
+        return factory.connect(connectTo as any, path, query);
+    }
 }
 
 // ============================================================================
@@ -192,17 +196,17 @@ export class RemoteSocketFactoryService {
  *     vscode-local:///local/path → file:///local/path
  */
 export interface IURITransformer {
-  /** 客户端 URI → 服务端 URI */
-  transformIncoming(uri: SimpleURI): SimpleURI;
-  /** 服务端 URI → 客户端 URI */
-  transformOutgoing(uri: SimpleURI): SimpleURI;
+    /** 客户端 URI → 服务端 URI */
+    transformIncoming(uri: SimpleURI): SimpleURI;
+    /** 服务端 URI → 客户端 URI */
+    transformOutgoing(uri: SimpleURI): SimpleURI;
 }
 
 /** 简化的 URI 表示 */
 export interface SimpleURI {
-  scheme: string;
-  authority: string;
-  path: string;
+    scheme: string;
+    authority: string;
+    path: string;
 }
 
 /**
@@ -210,31 +214,31 @@ export interface SimpleURI {
  * @param remoteAuthority 远程 authority 字符串，如 "ssh+myserver"
  */
 export function createURITransformer(remoteAuthority: string): IURITransformer {
-  return {
-    transformIncoming(uri: SimpleURI): SimpleURI {
-      // vscode-remote://authority/path → file:///path
-      if (uri.scheme === "vscode-remote" && uri.authority === remoteAuthority) {
-        return { scheme: "file", authority: "", path: uri.path };
-      }
-      // file:///local → vscode-local:///local
-      if (uri.scheme === "file") {
-        return { scheme: "vscode-local", authority: "", path: uri.path };
-      }
-      return uri;
-    },
+    return {
+        transformIncoming(uri: SimpleURI): SimpleURI {
+            // vscode-remote://authority/path → file:///path
+            if (uri.scheme === "vscode-remote" && uri.authority === remoteAuthority) {
+                return { scheme: "file", authority: "", path: uri.path };
+            }
+            // file:///local → vscode-local:///local
+            if (uri.scheme === "file") {
+                return { scheme: "vscode-local", authority: "", path: uri.path };
+            }
+            return uri;
+        },
 
-    transformOutgoing(uri: SimpleURI): SimpleURI {
-      // file:///path → vscode-remote://authority/path
-      if (uri.scheme === "file") {
-        return { scheme: "vscode-remote", authority: remoteAuthority, path: uri.path };
-      }
-      // vscode-local:///local → file:///local
-      if (uri.scheme === "vscode-local") {
-        return { scheme: "file", authority: "", path: uri.path };
-      }
-      return uri;
-    },
-  };
+        transformOutgoing(uri: SimpleURI): SimpleURI {
+            // file:///path → vscode-remote://authority/path
+            if (uri.scheme === "file") {
+                return { scheme: "vscode-remote", authority: remoteAuthority, path: uri.path };
+            }
+            // vscode-local:///local → file:///local
+            if (uri.scheme === "vscode-local") {
+                return { scheme: "file", authority: "", path: uri.path };
+            }
+            return uri;
+        },
+    };
 }
 
 // ============================================================================
@@ -247,7 +251,7 @@ export function createURITransformer(remoteAuthority: string): IURITransformer {
 const RECONNECT_DELAYS = [0, 5, 5, 10, 10, 10, 10, 10, 30]; // 秒
 
 export interface RemoteConnectionState {
-  type: "connected" | "reconnecting" | "disconnected";
+    type: "connected" | "reconnecting" | "disconnected";
 }
 
 /**
@@ -261,69 +265,69 @@ export interface RemoteConnectionState {
  * 5. 断线后自动重连
  */
 export class RemoteAgentConnection implements IDisposable {
-  private protocol: PersistentProtocol | null = null;
-  private client: IPCClient<string> | null = null;
+    private protocol: PersistentProtocol | null = null;
+    private client: IPCClient<string> | null = null;
 
-  private readonly _onDidStateChange = new Emitter<RemoteConnectionState>();
-  readonly onDidStateChange = this._onDidStateChange.event;
+    private readonly _onDidStateChange = new Emitter<RemoteConnectionState>();
+    readonly onDidStateChange = this._onDidStateChange.event;
 
-  constructor(
-    private readonly authority: string,
-    private readonly resolverService: RemoteAuthorityResolverService,
-    private readonly socketFactory: RemoteSocketFactoryService,
-  ) {}
+    constructor(
+        private readonly authority: string,
+        private readonly resolverService: RemoteAuthorityResolverService,
+        private readonly socketFactory: RemoteSocketFactoryService,
+    ) {}
 
-  /**
-   * 建立连接并返回 IPCClient
-   */
-  async connect(): Promise<IPCClient<string>> {
-    // Step 1: 解析 authority
-    const resolved = await this.resolverService.resolveAuthority(this.authority);
+    /**
+     * 建立连接并返回 IPCClient
+     */
+    async connect(): Promise<IPCClient<string>> {
+        // Step 1: 解析 authority
+        const resolved = await this.resolverService.resolveAuthority(this.authority);
 
-    // Step 2: 建立 socket
-    const query = resolved.connectionToken ? `token=${resolved.connectionToken}` : "";
-    const socket = await this.socketFactory.connect(resolved.connectTo, "/", query);
+        // Step 2: 建立 socket
+        const query = resolved.connectionToken ? `token=${resolved.connectionToken}` : "";
+        const socket = await this.socketFactory.connect(resolved.connectTo, "/", query);
 
-    // Step 3: 用 PersistentProtocol 包装（加 ACK + 重连能力）
-    this.protocol = new PersistentProtocol(socket);
+        // Step 3: 用 PersistentProtocol 包装（加 ACK + 重连能力）
+        this.protocol = new PersistentProtocol(socket);
 
-    // Step 4: 包装为 IPCClient
-    this.client = new IPCClient(this.protocol, this.authority);
+        // Step 4: 包装为 IPCClient
+        this.client = new IPCClient(this.protocol, this.authority);
 
-    // Step 5: 监听断线，触发重连
-    this.protocol.onSocketClose(() => {
-      this._onDidStateChange.fire({ type: "reconnecting" });
-      this.reconnect(resolved, 0);
-    });
+        // Step 5: 监听断线，触发重连
+        this.protocol.onSocketClose(() => {
+            this._onDidStateChange.fire({ type: "reconnecting" });
+            this.reconnect(resolved, 0);
+        });
 
-    this._onDidStateChange.fire({ type: "connected" });
-    return this.client;
-  }
-
-  private async reconnect(resolved: ResolvedAuthority, attempt: number): Promise<void> {
-    if (attempt >= RECONNECT_DELAYS.length) {
-      this._onDidStateChange.fire({ type: "disconnected" });
-      return;
+        this._onDidStateChange.fire({ type: "connected" });
+        return this.client;
     }
 
-    const delay = RECONNECT_DELAYS[attempt] * 1000;
-    await new Promise((r) => setTimeout(r, delay));
+    private async reconnect(resolved: ResolvedAuthority, attempt: number): Promise<void> {
+        if (attempt >= RECONNECT_DELAYS.length) {
+            this._onDidStateChange.fire({ type: "disconnected" });
+            return;
+        }
 
-    try {
-      const query = resolved.connectionToken ? `token=${resolved.connectionToken}` : "";
-      const newSocket = await this.socketFactory.connect(resolved.connectTo, "/", query);
+        const delay = RECONNECT_DELAYS[attempt] * 1000;
+        await new Promise((r) => setTimeout(r, delay));
 
-      // 用新 socket 替换，PersistentProtocol 会自动重放未确认的消息
-      this.protocol!.replaceSocket(newSocket);
-      this._onDidStateChange.fire({ type: "connected" });
-    } catch {
-      this.reconnect(resolved, attempt + 1);
+        try {
+            const query = resolved.connectionToken ? `token=${resolved.connectionToken}` : "";
+            const newSocket = await this.socketFactory.connect(resolved.connectTo, "/", query);
+
+            // 用新 socket 替换，PersistentProtocol 会自动重放未确认的消息
+            this.protocol!.replaceSocket(newSocket);
+            this._onDidStateChange.fire({ type: "connected" });
+        } catch {
+            this.reconnect(resolved, attempt + 1);
+        }
     }
-  }
 
-  dispose(): void {
-    this.client?.dispose();
-    this.protocol?.dispose();
-    this._onDidStateChange.dispose();
-  }
+    dispose(): void {
+        this.client?.dispose();
+        this.protocol?.dispose();
+        this._onDidStateChange.dispose();
+    }
 }

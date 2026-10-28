@@ -7,10 +7,10 @@ import { useServices } from "./useServices.js";
  * useContext 在 try 内调用且每次渲染都会执行，hook 调用顺序保持稳定。
  */
 export function useOnboardingRecordService() {
-  try {
-    const services = useServices();
-    return services.onboardingRecordService ?? null;
-  } catch {
-    return null;
-  }
+    try {
+        const services = useServices();
+        return services.onboardingRecordService ?? null;
+    } catch {
+        return null;
+    }
 }

@@ -23,47 +23,47 @@ const CRLF_PATTERN = /\r\n/gu;
 const LF = "\n";
 
 export async function recordAuthoredWorkflowDraft(
-  context: ToolExecutionContext,
-  draft: { path: string; source: string; toolName: WorkflowDraftAuthoringTool },
+    context: ToolExecutionContext,
+    draft: { path: string; source: string; toolName: WorkflowDraftAuthoringTool },
 ): Promise<void> {
-  const { fileSystemPort, readFileState } = context;
-  if (readFileState === undefined || fileSystemPort === undefined) return;
+    const { fileSystemPort, readFileState } = context;
+    if (readFileState === undefined || fileSystemPort === undefined) return;
 
-  let revision: { id: string; mtimeMs?: number; sizeBytes?: number } | undefined;
-  try {
-    // 与 Edit / Write 之后的 stale 校验读同一个端口，revision 的口径因此一致。stat 发生在写之后：
-    // 记下的 mtime 不早于草稿的真实 mtime，其后任何外部改动都会让 mtime 前进并判 stale。
-    const info = await fileSystemPort.stat(
-      { path: draft.path, trace: context.traceContext },
-      { signal: context.abortSignal },
-    );
-    revision = info.revision;
-  } catch {
-    return;
-  }
-  if (revision === undefined) return;
+    let revision: { id: string; mtimeMs?: number; sizeBytes?: number } | undefined;
+    try {
+        // 与 Edit / Write 之后的 stale 校验读同一个端口，revision 的口径因此一致。stat 发生在写之后：
+        // 记下的 mtime 不早于草稿的真实 mtime，其后任何外部改动都会让 mtime 前进并判 stale。
+        const info = await fileSystemPort.stat(
+            { path: draft.path, trace: context.traceContext },
+            { signal: context.abortSignal },
+        );
+        revision = info.revision;
+    } catch {
+        return;
+    }
+    if (revision === undefined) return;
 
-  const entry: ReadFileStateEntry = {
-    path: draft.path,
-    // 端口读回的文本统一成 LF（FileSystemReadTextResult.content），快照跟随同一口径。
-    content: draft.source.replace(CRLF_PATTERN, LF),
-    offset: undefined,
-    limit: undefined,
-    isPartialView: false,
-    readAt: new Date(),
-    sourceTool: draft.toolName,
-    revisionId: revision.id,
-    mtimeMs: normalizeReadFileStateMtimeMs(revision.mtimeMs),
-    sizeBytes: revision.sizeBytes ?? Buffer.byteLength(draft.source, "utf8"),
-  };
-  readFileState.set(createReadFileStateKey(draft.path, 1, undefined), entry);
+    const entry: ReadFileStateEntry = {
+        path: draft.path,
+        // 端口读回的文本统一成 LF（FileSystemReadTextResult.content），快照跟随同一口径。
+        content: draft.source.replace(CRLF_PATTERN, LF),
+        offset: undefined,
+        limit: undefined,
+        isPartialView: false,
+        readAt: new Date(),
+        sourceTool: draft.toolName,
+        revisionId: revision.id,
+        mtimeMs: normalizeReadFileStateMtimeMs(revision.mtimeMs),
+        sizeBytes: revision.sizeBytes ?? Buffer.byteLength(draft.source, "utf8"),
+    };
+    readFileState.set(createReadFileStateKey(draft.path, 1, undefined), entry);
 
-  // resume 只从 tool part metadata 恢复 read-state（read-file-state-hydrator.ts），不落这一笔，
-  // 会话恢复后同一个 bug 原样回来。
-  const metadata = createReadFileStateMetadataFromEntry({
-    completedAt: entry.readAt,
-    entry,
-    toolName: draft.toolName,
-  });
-  if (metadata !== undefined) context.recordReadFileStateMetadata?.(metadata);
+    // resume 只从 tool part metadata 恢复 read-state（read-file-state-hydrator.ts），不落这一笔，
+    // 会话恢复后同一个 bug 原样回来。
+    const metadata = createReadFileStateMetadataFromEntry({
+        completedAt: entry.readAt,
+        entry,
+        toolName: draft.toolName,
+    });
+    if (metadata !== undefined) context.recordReadFileStateMetadata?.(metadata);
 }

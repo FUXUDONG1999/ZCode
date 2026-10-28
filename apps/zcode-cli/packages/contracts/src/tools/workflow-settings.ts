@@ -23,16 +23,16 @@ const WORKFLOW_SETTINGS_MAX_MODEL_CHARS = 512;
  * 姿态：解析结果而不是可填的参数，模型的 JSON schema 不列它，模型硬填会被无条件覆盖。
  */
 export const WorkflowAdjustableSettingsSchema = z
-  .object({
-    /** 宿主有模型目录、能解析确认窗里选的模型。false 时确认窗只让调上界，模型那一行是一句话。 */
-    subagent_model: z.boolean(),
-    /**
-     * 默认并发 D（键名早于「默认并发」这个概念，为兼容旧端保留）；端口说不出来时缺席。它不是上限：
-     * 步进器没有上界，只拿它写「默认 N」的提示与判「等于默认 = 不设自己的界」。
-     */
-    concurrency_ceiling: z.number().int().positive().optional(),
-  })
-  .strict();
+    .object({
+        /** 宿主有模型目录、能解析确认窗里选的模型。false 时确认窗只让调上界，模型那一行是一句话。 */
+        subagent_model: z.boolean(),
+        /**
+         * 默认并发 D（键名早于「默认并发」这个概念，为兼容旧端保留）；端口说不出来时缺席。它不是上限：
+         * 步进器没有上界，只拿它写「默认 N」的提示与判「等于默认 = 不设自己的界」。
+         */
+        concurrency_ceiling: z.number().int().positive().optional(),
+    })
+    .strict();
 
 export type WorkflowAdjustableSettings = z.infer<typeof WorkflowAdjustableSettingsSchema>;
 
@@ -50,13 +50,13 @@ const WORKFLOW_MODEL_NAME_MAX_CHARS = 512;
  * 决定），只据它在场把模型那一句改口成「子代理默认运行在」；应答里也没有改它的字段。
  */
 export const WorkflowModelBindingsSchema = z
-  .record(
-    z.string().min(1).max(WORKFLOW_MODEL_NAME_MAX_CHARS),
-    z.string().trim().min(1).max(WORKFLOW_SETTINGS_MAX_MODEL_CHARS),
-  )
-  .refine((bindings) => Object.keys(bindings).length <= WORKFLOW_MODEL_BINDINGS_MAX_ENTRIES, {
-    message: `at most ${WORKFLOW_MODEL_BINDINGS_MAX_ENTRIES} model names`,
-  });
+    .record(
+        z.string().min(1).max(WORKFLOW_MODEL_NAME_MAX_CHARS),
+        z.string().trim().min(1).max(WORKFLOW_SETTINGS_MAX_MODEL_CHARS),
+    )
+    .refine((bindings) => Object.keys(bindings).length <= WORKFLOW_MODEL_BINDINGS_MAX_ENTRIES, {
+        message: `at most ${WORKFLOW_MODEL_BINDINGS_MAX_ENTRIES} model names`,
+    });
 
 export type WorkflowModelBindings = z.infer<typeof WorkflowModelBindingsSchema>;
 
@@ -69,30 +69,30 @@ export type WorkflowModelBindings = z.infer<typeof WorkflowModelBindingsSchema>;
  * 键就把用户的两项改动一起作废。
  */
 export const WorkflowSettingsAdjustmentSchema = z.object({
-  subagent_model: z
-    .string()
-    .trim()
-    .min(1)
-    .max(WORKFLOW_SETTINGS_MAX_MODEL_CHARS)
-    .nullable()
-    .optional(),
-  max_concurrency: z.number().int().positive().nullable().optional(),
+    subagent_model: z
+        .string()
+        .trim()
+        .min(1)
+        .max(WORKFLOW_SETTINGS_MAX_MODEL_CHARS)
+        .nullable()
+        .optional(),
+    max_concurrency: z.number().int().positive().nullable().optional(),
 });
 
 export type WorkflowSettingsAdjustment = z.infer<typeof WorkflowSettingsAdjustmentSchema>;
 
 /** 解析一份应答 `content`：认得的键组成的改动；不合形状或一个键都没有即 `undefined`。 */
 export function parseWorkflowSettingsAdjustment(
-  content: unknown,
+    content: unknown,
 ): WorkflowSettingsAdjustment | undefined {
-  const parsed = WorkflowSettingsAdjustmentSchema.safeParse(content);
-  if (!parsed.success) return undefined;
-  const adjustment: WorkflowSettingsAdjustment = {};
-  if (parsed.data.subagent_model !== undefined) {
-    adjustment.subagent_model = parsed.data.subagent_model;
-  }
-  if (parsed.data.max_concurrency !== undefined) {
-    adjustment.max_concurrency = parsed.data.max_concurrency;
-  }
-  return Object.keys(adjustment).length === 0 ? undefined : adjustment;
+    const parsed = WorkflowSettingsAdjustmentSchema.safeParse(content);
+    if (!parsed.success) return undefined;
+    const adjustment: WorkflowSettingsAdjustment = {};
+    if (parsed.data.subagent_model !== undefined) {
+        adjustment.subagent_model = parsed.data.subagent_model;
+    }
+    if (parsed.data.max_concurrency !== undefined) {
+        adjustment.max_concurrency = parsed.data.max_concurrency;
+    }
+    return Object.keys(adjustment).length === 0 ? undefined : adjustment;
 }

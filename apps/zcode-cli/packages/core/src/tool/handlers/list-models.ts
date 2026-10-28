@@ -12,13 +12,13 @@
 // ——端口每次调用现读注册表视图，绝不返回构造期的冻结拷贝。
 
 import {
-  LIST_MODELS_TOOL_NAME,
-  ListModelsInputJsonSchema,
-  ListModelsInputSchema,
-  ListModelsOutputJsonSchema,
-  ListModelsOutputSchema,
-  type ListModelsOutput,
-  type ModelMessageContent,
+    LIST_MODELS_TOOL_NAME,
+    ListModelsInputJsonSchema,
+    ListModelsInputSchema,
+    ListModelsOutputJsonSchema,
+    ListModelsOutputSchema,
+    type ListModelsOutput,
+    type ModelMessageContent,
 } from "@zcode/contracts";
 import type { ToolEntry, ToolHandler, ToolHandlerFailure } from "../types.js";
 import { formatModelCatalogId } from "./model-reference.js";
@@ -35,12 +35,12 @@ const LIST_MODELS_MODEL_BYTES = 24_000;
 const LIST_MODELS_ERROR_CODE = { CATALOG_UNAVAILABLE: 31 } as const;
 
 const LIST_MODELS_DESCRIPTION = [
-  "Lists the models this host has configured, so a dynamic workflow's subagents can be pointed at one.",
-  "",
-  "- Each row's `id` (`providerId/modelId`) pastes verbatim into the `subagent_model` field of CreateWorkflow or AmendWorkflow. Append `$<level>` to pick a reasoning level from that row's `reasoningLevels`.",
-  "- This tool does NOT change the model you are running on. The session model is the user's choice and only the user changes it; `subagent_model` only moves the workflow's subagents.",
-  "- The model the session is on right now is marked `[current]` — setting the subagents to that one is the same as omitting the field.",
-  "- A row marked `disabled` cannot be used (no API key, disabled by policy). Resolve that with the user rather than picking around it silently.",
+    "Lists the models this host has configured, so a dynamic workflow's subagents can be pointed at one.",
+    "",
+    "- Each row's `id` (`providerId/modelId`) pastes verbatim into the `subagent_model` field of CreateWorkflow or AmendWorkflow. Append `$<level>` to pick a reasoning level from that row's `reasoningLevels`.",
+    "- This tool does NOT change the model you are running on. The session model is the user's choice and only the user changes it; `subagent_model` only moves the workflow's subagents.",
+    "- The model the session is on right now is marked `[current]` — setting the subagents to that one is the same as omitting the field.",
+    "- A row marked `disabled` cannot be used (no API key, disabled by policy). Resolve that with the user rather than picking around it silently.",
 ].join("\n");
 
 /**
@@ -49,42 +49,42 @@ const LIST_MODELS_DESCRIPTION = [
  * 然后据此告诉用户他一个模型都没有——而他正在用一个。
  */
 function modelCatalogUnavailableFailure(): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: LIST_MODELS_ERROR_CODE.CATALOG_UNAVAILABLE,
-    message:
-      "model_catalog_unavailable: this session cannot list models — the host did not provide a model catalog. This is a capability gap, not an empty configuration. Omit `subagent_model` on CreateWorkflow and AmendWorkflow; the workflow's subagents will run on the session model.",
-  };
+    return {
+        result: false,
+        errorCode: LIST_MODELS_ERROR_CODE.CATALOG_UNAVAILABLE,
+        message:
+            "model_catalog_unavailable: this session cannot list models — the host did not provide a model catalog. This is a capability gap, not an empty configuration. Omit `subagent_model` on CreateWorkflow and AmendWorkflow; the workflow's subagents will run on the session model.",
+    };
 }
 
 const listModelsHandler: ToolHandler = async (input, context) => {
-  ListModelsInputSchema.parse(input);
+    ListModelsInputSchema.parse(input);
 
-  const port = context.modelCatalogPort;
-  if (port === undefined) return modelCatalogUnavailableFailure();
+    const port = context.modelCatalogPort;
+    if (port === undefined) return modelCatalogUnavailableFailure();
 
-  const entries = port.listModels();
-  const current = entries.find((entry) => entry.current);
+    const entries = port.listModels();
+    const current = entries.find((entry) => entry.current);
 
-  return {
-    // 目录里一条都没标 current 时缺席（端口契约允许：会话的选择可能指向一个已被删掉的
-    // provider）。造一个空字符串会让模型把"没有当前模型"读成"当前模型叫空"。
-    ...(current === undefined ? {} : { current: formatModelCatalogId(current) }),
-    models: entries.map((entry) => ({
-      id: formatModelCatalogId(entry),
-      providerId: entry.providerId,
-      modelId: entry.modelId,
-      ...(entry.providerLabel === undefined ? {} : { providerLabel: entry.providerLabel }),
-      // 没有档位的模型给空数组而不是缺席：读侧据此知道"接 `$` 是错的"，而缺席读起来像
-      // "这一行没说"。
-      reasoningLevels: [...entry.reasoningLevels],
-      ...(entry.defaultReasoningLevel === undefined
-        ? {}
-        : { defaultReasoningLevel: entry.defaultReasoningLevel }),
-      ...(entry.contextWindow === undefined ? {} : { contextWindow: entry.contextWindow }),
-      ...(entry.disabledReason === undefined ? {} : { disabledReason: entry.disabledReason }),
-    })),
-  } satisfies ListModelsOutput;
+    return {
+        // 目录里一条都没标 current 时缺席（端口契约允许：会话的选择可能指向一个已被删掉的
+        // provider）。造一个空字符串会让模型把"没有当前模型"读成"当前模型叫空"。
+        ...(current === undefined ? {} : { current: formatModelCatalogId(current) }),
+        models: entries.map((entry) => ({
+            id: formatModelCatalogId(entry),
+            providerId: entry.providerId,
+            modelId: entry.modelId,
+            ...(entry.providerLabel === undefined ? {} : { providerLabel: entry.providerLabel }),
+            // 没有档位的模型给空数组而不是缺席：读侧据此知道"接 `$` 是错的"，而缺席读起来像
+            // "这一行没说"。
+            reasoningLevels: [...entry.reasoningLevels],
+            ...(entry.defaultReasoningLevel === undefined
+                ? {}
+                : { defaultReasoningLevel: entry.defaultReasoningLevel }),
+            ...(entry.contextWindow === undefined ? {} : { contextWindow: entry.contextWindow }),
+            ...(entry.disabledReason === undefined ? {} : { disabledReason: entry.disabledReason }),
+        })),
+    } satisfies ListModelsOutput;
 };
 
 /**
@@ -95,98 +95,99 @@ const listModelsHandler: ToolHandler = async (input, context) => {
  * 抄进 `subagent_model`。挤成一行正好，也让 24k 预算装得下一整份目录。
  */
 function formatListModelsModelContent(output: unknown): ModelMessageContent {
-  const parsed = ListModelsOutputSchema.safeParse(output);
-  if (!parsed.success) return "ListModels returned an invalid result.";
-  const { current, models } = parsed.data;
+    const parsed = ListModelsOutputSchema.safeParse(output);
+    if (!parsed.success) return "ListModels returned an invalid result.";
+    const { current, models } = parsed.data;
 
-  if (models.length === 0) {
-    // 「一个都没配」必须说成一句话：空容器容易被读成「工具没答上来」。
-    return [
-      '<models count="0">',
-      "No models are configured on this host. Omit `subagent_model`: the workflow's subagents run on the session model.",
-      "</models>",
-    ].join("\n");
-  }
-
-  const lines = models.map((model) => {
-    const parts = [model.id];
-    if (model.providerLabel !== undefined) parts.push(` — ${model.providerLabel}`);
-    if (model.reasoningLevels.length > 0) {
-      const levels = model.reasoningLevels.join(",");
-      const fallback =
-        model.defaultReasoningLevel === undefined
-          ? ""
-          : ` (default ${model.defaultReasoningLevel})`;
-      parts.push(`; levels: ${levels}${fallback}`);
+    if (models.length === 0) {
+        // 「一个都没配」必须说成一句话：空容器容易被读成「工具没答上来」。
+        return [
+            '<models count="0">',
+            "No models are configured on this host. Omit `subagent_model`: the workflow's subagents run on the session model.",
+            "</models>",
+        ].join("\n");
     }
-    // current 与 disabled 排在行尾且各用方括号：它们是模型据以**排除**一行的两个标记，
-    // 放在中段会被更长的档位表推出视线。
-    if (model.id === current) parts.push(" [current]");
-    if (model.disabledReason !== undefined) parts.push(` [disabled: ${model.disabledReason}]`);
-    return parts.join("");
-  });
 
-  return [`<models count="${models.length}">`, ...lines, "</models>"].join("\n");
+    const lines = models.map((model) => {
+        const parts = [model.id];
+        if (model.providerLabel !== undefined) parts.push(` — ${model.providerLabel}`);
+        if (model.reasoningLevels.length > 0) {
+            const levels = model.reasoningLevels.join(",");
+            const fallback =
+                model.defaultReasoningLevel === undefined
+                    ? ""
+                    : ` (default ${model.defaultReasoningLevel})`;
+            parts.push(`; levels: ${levels}${fallback}`);
+        }
+        // current 与 disabled 排在行尾且各用方括号：它们是模型据以**排除**一行的两个标记，
+        // 放在中段会被更长的档位表推出视线。
+        if (model.id === current) parts.push(" [current]");
+        if (model.disabledReason !== undefined) parts.push(` [disabled: ${model.disabledReason}]`);
+        return parts.join("");
+    });
+
+    return [`<models count="${models.length}">`, ...lines, "</models>"].join("\n");
 }
 
 export const listModelsToolEntry: ToolEntry = {
-  capability: "List the models this host has configured, for choosing a workflow's subagent model",
-  metadata: {
-    shouldDefer: true,
-    name: LIST_MODELS_TOOL_NAME,
-    description: LIST_MODELS_DESCRIPTION,
-    readOnly: true,
-    destructive: false,
-    concurrentSafe: true,
-    timeoutMs: LIST_MODELS_TIMEOUT_MS,
-    maxOutputBytes: LIST_MODELS_MODEL_BYTES,
-    sideEffectScope: "none",
-    riskLevel: "low",
-    needsApproval: false,
-  },
-  handler: listModelsHandler,
-  inputSchema: ListModelsInputJsonSchema,
-  outputSchema: ListModelsOutputJsonSchema,
-  runtimeInputSchema: ListModelsInputSchema,
-  runtimeOutputSchema: ListModelsOutputSchema,
-  formatModelContent: formatListModelsModelContent,
-  permission: {
-    permission: "listModels",
-    reason: "ListModels reads the host's configured model catalog",
-    riskLevel: "low",
-    sideEffectScope: "none",
-    needsApproval: false,
-    // 入参是空对象，所以模式只按工具名匹配（同 ListSavedWorkflows）。
-    patternSources: ["toolName"],
-    alwaysAllowPatternSources: ["toolName"],
-    denyPriority: "beforeAsk",
-    // 刻意**不**继承 CreateWorkflow 的 alwaysAsk：那道门的理由是「执行整块代码」，
-    // 读一张已配置模型的表不属于它。
-  },
-  resultBudget: {
-    maxInlineBytes: LIST_MODELS_MODEL_BYTES,
-    maxModelBytes: LIST_MODELS_MODEL_BYTES,
-    strategy: "truncate",
-    preview: {
-      maxBytes: LIST_MODELS_MODEL_BYTES,
-      direction: "head",
+    capability:
+        "List the models this host has configured, for choosing a workflow's subagent model",
+    metadata: {
+        shouldDefer: true,
+        name: LIST_MODELS_TOOL_NAME,
+        description: LIST_MODELS_DESCRIPTION,
+        readOnly: true,
+        destructive: false,
+        concurrentSafe: true,
+        timeoutMs: LIST_MODELS_TIMEOUT_MS,
+        maxOutputBytes: LIST_MODELS_MODEL_BYTES,
+        sideEffectScope: "none",
+        riskLevel: "low",
+        needsApproval: false,
     },
-  },
-  timeout: {
-    kind: "timed",
-    defaultMs: LIST_MODELS_TIMEOUT_MS,
-    maxMs: LIST_MODELS_TIMEOUT_MS,
-    allowCallOverride: false,
-  },
-  cancellation: {
-    supported: false,
-    cleanup: "none",
-    userVisibleMessage: "ListModels reads the in-memory model catalog and cannot be cancelled",
-  },
-  trace: {
-    required: true,
-    propagateToAdapters: false,
-    recordInput: "summary",
-    recordOutput: "summary",
-  },
+    handler: listModelsHandler,
+    inputSchema: ListModelsInputJsonSchema,
+    outputSchema: ListModelsOutputJsonSchema,
+    runtimeInputSchema: ListModelsInputSchema,
+    runtimeOutputSchema: ListModelsOutputSchema,
+    formatModelContent: formatListModelsModelContent,
+    permission: {
+        permission: "listModels",
+        reason: "ListModels reads the host's configured model catalog",
+        riskLevel: "low",
+        sideEffectScope: "none",
+        needsApproval: false,
+        // 入参是空对象，所以模式只按工具名匹配（同 ListSavedWorkflows）。
+        patternSources: ["toolName"],
+        alwaysAllowPatternSources: ["toolName"],
+        denyPriority: "beforeAsk",
+        // 刻意**不**继承 CreateWorkflow 的 alwaysAsk：那道门的理由是「执行整块代码」，
+        // 读一张已配置模型的表不属于它。
+    },
+    resultBudget: {
+        maxInlineBytes: LIST_MODELS_MODEL_BYTES,
+        maxModelBytes: LIST_MODELS_MODEL_BYTES,
+        strategy: "truncate",
+        preview: {
+            maxBytes: LIST_MODELS_MODEL_BYTES,
+            direction: "head",
+        },
+    },
+    timeout: {
+        kind: "timed",
+        defaultMs: LIST_MODELS_TIMEOUT_MS,
+        maxMs: LIST_MODELS_TIMEOUT_MS,
+        allowCallOverride: false,
+    },
+    cancellation: {
+        supported: false,
+        cleanup: "none",
+        userVisibleMessage: "ListModels reads the in-memory model catalog and cannot be cancelled",
+    },
+    trace: {
+        required: true,
+        propagateToAdapters: false,
+        recordInput: "summary",
+        recordOutput: "summary",
+    },
 };

@@ -8,15 +8,15 @@ import type { OfficialMcpToolErrorCode } from "@zcode/shared";
  * 因此这里不需要再判来源。
  */
 export interface McpUnavailableNotice {
-  code: OfficialMcpToolErrorCode;
-  serverName: string;
-  toolName: string;
-  /** 去重用：同一次调用只提示一次，换一次新的失败调用会重新提示。 */
-  rowId: number;
+    code: OfficialMcpToolErrorCode;
+    serverName: string;
+    toolName: string;
+    /** 去重用：同一次调用只提示一次，换一次新的失败调用会重新提示。 */
+    rowId: number;
 }
 
 function readMcpToolCallRow(row: ConversationRow): ToolCallRow | null {
-  return row.kind === "toolCall" ? row : null;
+    return row.kind === "toolCall" ? row : null;
 }
 
 /**
@@ -27,28 +27,28 @@ function readMcpToolCallRow(row: ConversationRow): ToolCallRow | null {
  * 这是可接受的取舍。
  */
 export function resolveMcpUnavailableNotice(
-  rows: readonly ConversationRow[] | undefined,
+    rows: readonly ConversationRow[] | undefined,
 ): McpUnavailableNotice | null {
-  if (!rows || rows.length === 0) return null;
-  const seenTools = new Set<string>();
-  for (let index = rows.length - 1; index >= 0; index -= 1) {
-    const row = rows[index];
-    if (!row) continue;
-    const toolCallRow = readMcpToolCallRow(row);
-    if (!toolCallRow) continue;
-    const display = toolCallRow.display;
-    if (display?.kind !== "mcp_tool") continue;
-    const toolKey = `${display.serverName}\u0000${display.toolName}`;
-    if (seenTools.has(toolKey)) continue;
-    seenTools.add(toolKey);
-    // 同一工具的最新成功事实覆盖旧失败；继续查找其它工具仍未被成功覆盖的失败。
-    if (!display.unavailable) continue;
-    return {
-      code: display.unavailable.code,
-      rowId: toolCallRow.rowId,
-      serverName: display.serverName,
-      toolName: display.toolName,
-    };
-  }
-  return null;
+    if (!rows || rows.length === 0) return null;
+    const seenTools = new Set<string>();
+    for (let index = rows.length - 1; index >= 0; index -= 1) {
+        const row = rows[index];
+        if (!row) continue;
+        const toolCallRow = readMcpToolCallRow(row);
+        if (!toolCallRow) continue;
+        const display = toolCallRow.display;
+        if (display?.kind !== "mcp_tool") continue;
+        const toolKey = `${display.serverName}\u0000${display.toolName}`;
+        if (seenTools.has(toolKey)) continue;
+        seenTools.add(toolKey);
+        // 同一工具的最新成功事实覆盖旧失败；继续查找其它工具仍未被成功覆盖的失败。
+        if (!display.unavailable) continue;
+        return {
+            code: display.unavailable.code,
+            rowId: toolCallRow.rowId,
+            serverName: display.serverName,
+            toolName: display.toolName,
+        };
+    }
+    return null;
 }

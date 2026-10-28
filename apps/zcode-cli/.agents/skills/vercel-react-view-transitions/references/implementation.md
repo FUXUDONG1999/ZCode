@@ -51,8 +51,8 @@ For hierarchical navigations identified in Step 1, tag the navigation direction 
 
 ```jsx
 startTransition(() => {
-  addTransitionType("nav-forward");
-  router.push("/detail/1");
+    addTransitionType("nav-forward");
+    router.push("/detail/1");
 });
 ```
 
@@ -60,19 +60,19 @@ Then wrap each **page component** (not layout) in a type-keyed `<ViewTransition>
 
 ```jsx
 <ViewTransition
-  enter={{
-    "nav-forward": "nav-forward",
-    "nav-back": "nav-back",
-    default: "none",
-  }}
-  exit={{
-    "nav-forward": "nav-forward",
-    "nav-back": "nav-back",
-    default: "none",
-  }}
-  default="none"
+    enter={{
+        "nav-forward": "nav-forward",
+        "nav-back": "nav-back",
+        default: "none",
+    }}
+    exit={{
+        "nav-forward": "nav-forward",
+        "nav-back": "nav-back",
+        default: "none",
+    }}
+    default="none"
 >
-  <div>...page content...</div>
+    <div>...page content...</div>
 </ViewTransition>
 ```
 
@@ -109,15 +109,15 @@ For every `<Suspense>` boundary identified in Step 1, wrap the fallback and cont
 
 ```jsx
 <Suspense
-  fallback={
-    <ViewTransition exit="slide-down">
-      <Skeleton />
-    </ViewTransition>
-  }
+    fallback={
+        <ViewTransition exit="slide-down">
+            <Skeleton />
+        </ViewTransition>
+    }
 >
-  <ViewTransition enter="slide-up" default="none">
-    <AsyncContent />
-  </ViewTransition>
+    <ViewTransition enter="slide-up" default="none">
+        <AsyncContent />
+    </ViewTransition>
 </Suspense>
 ```
 

@@ -15,8 +15,8 @@ hook updated input 以及 broker modified input。
 
 ```json
 {
-  "name": "Bash",
-  "input": "{\"command\":\"python3 -c \\\"print(1)\\\"\"}"
+    "name": "Bash",
+    "input": "{\"command\":\"python3 -c \\\"print(1)\\\"\"}"
 }
 ```
 
@@ -62,8 +62,8 @@ hook updated input 以及 broker modified input。
 - executor 在 `validateInput`、permission、hook、handler 之前，对 tool input 再做一次 tool-aware 归一化。
 - 这层先再次尝试处理“顶层字符串 JSON”残留，覆盖旧 transcript、hook 修改输入、permission broker 修改输入等非 adapter 来源。
 - 然后使用 `runtimeInputSchema.safeParse()` 做安全归一化：
-  - 若成功，使用解析后的标准化结果继续执行。
-  - 若失败，保留前一步输入，继续走现有 `inputSchema` 校验与可恢复错误返回。
+    - 若成功，使用解析后的标准化结果继续执行。
+    - 若失败，保留前一步输入，继续走现有 `inputSchema` 校验与可恢复错误返回。
 
 这里的“tool-aware”指：
 

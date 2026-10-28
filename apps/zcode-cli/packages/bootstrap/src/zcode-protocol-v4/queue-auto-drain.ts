@@ -5,15 +5,15 @@ import type { GoalStatus } from "@zcode/contracts";
  * target 持久化为 complete，再与显式 pass 共用这一条判断。
  */
 export function shouldAutoDrainV4QueueHead(input: {
-  autoDrain: boolean;
-  dispatchState: "queued" | "reserved" | "promoting";
-  sessionBusy: boolean;
-  targetStatus: GoalStatus | null;
+    autoDrain: boolean;
+    dispatchState: "queued" | "reserved" | "promoting";
+    sessionBusy: boolean;
+    targetStatus: GoalStatus | null;
 }): boolean {
-  return (
-    input.autoDrain &&
-    input.dispatchState === "queued" &&
-    !input.sessionBusy &&
-    (input.targetStatus === null || input.targetStatus === "complete")
-  );
+    return (
+        input.autoDrain &&
+        input.dispatchState === "queued" &&
+        !input.sessionBusy &&
+        (input.targetStatus === null || input.targetStatus === "complete")
+    );
 }

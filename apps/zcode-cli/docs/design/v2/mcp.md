@@ -28,31 +28,31 @@ Config file shape:
 
 ```json
 {
-  "features": {
-    "mcp": true
-  },
-  "mcp": {
-    "servers": {
-      "filesystem": {
-        "type": "stdio",
-        "command": "node",
-        "args": ["server.js"],
-        "cwd": ".",
-        "env": {
-          "EXAMPLE": "value"
-        },
-        "timeoutMs": 30000
-      },
-      "remote": {
-        "type": "http",
-        "url": "https://example.com/mcp",
-        "headers": {
-          "Authorization": "Bearer token"
-        },
-        "timeoutMs": 30000
-      }
+    "features": {
+        "mcp": true
+    },
+    "mcp": {
+        "servers": {
+            "filesystem": {
+                "type": "stdio",
+                "command": "node",
+                "args": ["server.js"],
+                "cwd": ".",
+                "env": {
+                    "EXAMPLE": "value"
+                },
+                "timeoutMs": 30000
+            },
+            "remote": {
+                "type": "http",
+                "url": "https://example.com/mcp",
+                "headers": {
+                    "Authorization": "Bearer token"
+                },
+                "timeoutMs": 30000
+            }
+        }
     }
-  }
 }
 ```
 
@@ -92,23 +92,23 @@ ZCode CLI/TUI/headless prompt 应自动读取 project-level config，使仓库�
 
 ```json
 {
-  "$schema": "https://zcode.dev/config.json",
-  "mcp": {
-    "servers": {
-      "repo-docs": {
-        "type": "stdio",
-        "command": "node",
-        "args": ["scripts/mcp-docs.js"],
-        "cwd": ".",
-        "timeoutMs": 30000
-      },
-      "issue-tracker": {
-        "type": "http",
-        "url": "https://example.com/mcp",
-        "enabled": false
-      }
+    "$schema": "https://zcode.dev/config.json",
+    "mcp": {
+        "servers": {
+            "repo-docs": {
+                "type": "stdio",
+                "command": "node",
+                "args": ["scripts/mcp-docs.js"],
+                "cwd": ".",
+                "timeoutMs": 30000
+            },
+            "issue-tracker": {
+                "type": "http",
+                "url": "https://example.com/mcp",
+                "enabled": false
+            }
+        }
     }
-  }
 }
 ```
 
@@ -179,29 +179,29 @@ This prevents a generic ZCode protocol client from accidentally enabling reposit
 ### Implementation Plan
 
 1. Config discovery
-   - Add project config discovery to the config adapter or a small project-config resolver.
-   - Reuse Node `path` APIs and worktree-root detection; no shell command is required for P0.
-   - Preserve `projectConfigPath` as an explicit override/test hook.
+    - Add project config discovery to the config adapter or a small project-config resolver.
+    - Reuse Node `path` APIs and worktree-root detection; no shell command is required for P0.
+    - Preserve `projectConfigPath` as an explicit override/test hook.
 
 2. Config provenance
-   - Extend internal config loading results with source metadata.
-   - Normalize project MCP server `cwd` relative to the project config base directory.
-   - Keep public `RuntimeConfig` shape stable unless source metadata must cross module boundaries.
+    - Extend internal config loading results with source metadata.
+    - Normalize project MCP server `cwd` relative to the project config base directory.
+    - Keep public `RuntimeConfig` shape stable unless source metadata must cross module boundaries.
 
 3. MCP trust gate
-   - Add an internal effective MCP server state that can represent `trusted`, `untrusted`, `disabled`, and `configured`.
-   - `/mcp list` should show configured-but-untrusted project servers.
-   - P0 permits explicit `/mcp connect <server>` as the user action; a later slice should add persistent trust decisions before connecting.
+    - Add an internal effective MCP server state that can represent `trusted`, `untrusted`, `disabled`, and `configured`.
+    - `/mcp list` should show configured-but-untrusted project servers.
+    - P0 permits explicit `/mcp connect <server>` as the user action; a later slice should add persistent trust decisions before connecting.
 
 4. Runtime wiring
-   - Pass only trusted/enabled servers into `connectConfiguredServers`.
-   - Keep untrusted project servers out of model tool schemas.
-   - Log skipped project MCP servers with trace/project/source metadata.
+    - Pass only trusted/enabled servers into `connectConfiguredServers`.
+    - Keep untrusted project servers out of model tool schemas.
+    - Log skipped project MCP servers with trace/project/source metadata.
 
 5. CLI/TUI/ZCode app-server surfaces
-   - TUI permission prompt for project MCP trust.
-   - Headless output should explain why project MCP servers were skipped.
-   - ZCode app-server keeps session-supplied MCP behavior unchanged.
+    - TUI permission prompt for project MCP trust.
+    - Headless output should explain why project MCP servers were skipped.
+    - ZCode app-server keeps session-supplied MCP behavior unchanged.
 
 ### Tests
 

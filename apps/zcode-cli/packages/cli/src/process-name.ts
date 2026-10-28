@@ -2,9 +2,9 @@ export const CLI_COMMAND_NAME = "zcode";
 export const CLI_PROCESS_NAME = "zcode-cli";
 
 interface ProcessTitleTarget {
-  title: string;
+    title: string;
 }
 
 export const setCliProcessTitle = (target: ProcessTitleTarget = process): void => {
-  target.title = CLI_PROCESS_NAME;
+    target.title = CLI_PROCESS_NAME;
 };

@@ -7,21 +7,21 @@ import { resolveOfficialPluginNameByHostMcpServerName } from "../app/official-pl
  * 只做归属补齐（builtin host MCP → 官方插件名），不做任何 I/O；CPU/内存采样由桌面 Host 完成。
  */
 export function listChildProcesses(
-  tracked: readonly McpTrackedProcess[],
+    tracked: readonly McpTrackedProcess[],
 ): ZCodeProcessChildProcessesResult {
-  return {
-    processes: tracked.map((process) => {
-      const pluginName =
-        process.pluginName ??
-        (process.mcpSource === "builtin"
-          ? resolveOfficialPluginNameByHostMcpServerName(process.serverName)
-          : undefined);
-      return {
-        pid: process.pid,
-        serverName: process.serverName,
-        mcpSource: process.mcpSource,
-        ...(pluginName ? { pluginName } : {}),
-      };
-    }),
-  };
+    return {
+        processes: tracked.map((process) => {
+            const pluginName =
+                process.pluginName ??
+                (process.mcpSource === "builtin"
+                    ? resolveOfficialPluginNameByHostMcpServerName(process.serverName)
+                    : undefined);
+            return {
+                pid: process.pid,
+                serverName: process.serverName,
+                mcpSource: process.mcpSource,
+                ...(pluginName ? { pluginName } : {}),
+            };
+        }),
+    };
 }

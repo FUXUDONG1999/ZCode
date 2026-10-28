@@ -4,22 +4,24 @@ import { WebRemoteControlDeviceHeader } from "@/web-remote-control/WebRemoteCont
 
 /** 顶部导航只展示 Shell 的选中状态，路由仍由 Shell 唯一持有。 */
 export function ProjectSidebarNavigation({
-  props,
-  onCreate,
+    props,
+    onCreate,
 }: {
-  // 个人定制：移除「自动化」「插件市场」侧边栏入口，只保留新建任务与远控设备头；路由与页面实现保留。
-  props: Pick<ProjectSidebarProps, "isWebRemoteControl" | "webRemoteControlWorkspaceSwitcher">;
-  onCreate(): void;
+    // 个人定制：移除「自动化」「插件市场」侧边栏入口，只保留新建任务与远控设备头；路由与页面实现保留。
+    props: Pick<ProjectSidebarProps, "isWebRemoteControl" | "webRemoteControlWorkspaceSwitcher">;
+    onCreate(): void;
 }) {
-  const deviceNavigation = props.webRemoteControlWorkspaceSwitcher?.deviceNavigation;
-  return (
-    <div
-      data-testid="sidebar-primary-navigation"
-      className={`flex flex-col gap-1 px-2 py-3 ${props.isWebRemoteControl && !deviceNavigation ? "max-md:pt-11" : ""}`}
-    >
-      {/* Relay V2 远控：当前电脑是项目与任务的上一级，放在导航首行；手机端占用原顶部留白。 */}
-      {deviceNavigation ? <WebRemoteControlDeviceHeader navigation={deviceNavigation} /> : null}
-      <NewTaskButtonGroup onCreateTask={onCreate} />
-    </div>
-  );
+    const deviceNavigation = props.webRemoteControlWorkspaceSwitcher?.deviceNavigation;
+    return (
+        <div
+            data-testid="sidebar-primary-navigation"
+            className={`flex flex-col gap-1 px-2 py-3 ${props.isWebRemoteControl && !deviceNavigation ? "max-md:pt-11" : ""}`}
+        >
+            {/* Relay V2 远控：当前电脑是项目与任务的上一级，放在导航首行；手机端占用原顶部留白。 */}
+            {deviceNavigation ? (
+                <WebRemoteControlDeviceHeader navigation={deviceNavigation} />
+            ) : null}
+            <NewTaskButtonGroup onCreateTask={onCreate} />
+        </div>
+    );
 }

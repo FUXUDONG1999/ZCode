@@ -10,27 +10,27 @@
 import os from "node:os";
 import { addAppResourceTotals } from "./processResourceAppTotals.js";
 import {
-  collectExternalAppResourceTotals,
-  resetExternalAppResourceSamples,
+    collectExternalAppResourceTotals,
+    resetExternalAppResourceSamples,
 } from "./processResourceExternalAppSamples.js";
 import type { ProcessResourceSampleSource } from "./processResourceSampleSources.js";
 import { roundMetric } from "./resourceMetricsStats.js";
 
 /** 整机 CPU 的累计时间快照；只有两次快照差分才是一段时间内的整机 CPU。 */
 interface SystemCpuTimesSnapshot {
-  busyMs: number;
-  totalMs: number;
+    busyMs: number;
+    totalMs: number;
 }
 
 function summarizeSystemCpuTimes(cpus: readonly os.CpuInfo[]): SystemCpuTimesSnapshot {
-  let busyMs = 0;
-  let idleMs = 0;
-  for (const cpu of cpus) {
-    const times = cpu.times;
-    busyMs += (times?.user ?? 0) + (times?.nice ?? 0) + (times?.sys ?? 0) + (times?.irq ?? 0);
-    idleMs += times?.idle ?? 0;
-  }
-  return { busyMs, totalMs: busyMs + idleMs };
+    let busyMs = 0;
+    let idleMs = 0;
+    for (const cpu of cpus) {
+        const times = cpu.times;
+        busyMs += (times?.user ?? 0) + (times?.nice ?? 0) + (times?.sys ?? 0) + (times?.irq ?? 0);
+        idleMs += times?.idle ?? 0;
+    }
+    return { busyMs, totalMs: busyMs + idleMs };
 }
 
 /**
@@ -38,51 +38,51 @@ function summarizeSystemCpuTimes(cpus: readonly os.CpuInfo[]): SystemCpuTimesSna
  * 返回 null 的情况：累计时间没有前进（容器里 `os.cpus()` 为空）、核数变化或时钟回拨导致差分为负。
  */
 function diffSystemCpuPercent(
-  previous: SystemCpuTimesSnapshot,
-  next: SystemCpuTimesSnapshot,
+    previous: SystemCpuTimesSnapshot,
+    next: SystemCpuTimesSnapshot,
 ): number | null {
-  const totalDeltaMs = next.totalMs - previous.totalMs;
-  const busyDeltaMs = next.busyMs - previous.busyMs;
-  if (!(totalDeltaMs > 0) || busyDeltaMs < 0) {
-    return null;
-  }
-  return roundMetric(Math.min(100, (busyDeltaMs / totalDeltaMs) * 100));
+    const totalDeltaMs = next.totalMs - previous.totalMs;
+    const busyDeltaMs = next.busyMs - previous.busyMs;
+    if (!(totalDeltaMs > 0) || busyDeltaMs < 0) {
+        return null;
+    }
+    return roundMetric(Math.min(100, (busyDeltaMs / totalDeltaMs) * 100));
 }
 
 let previousCpuTimes: SystemCpuTimesSnapshot | null = null;
 
 export const systemProcessResourceSampleSource: ProcessResourceSampleSource = {
-  id: "system",
-  sampleDevice(context) {
-    const snapshot = summarizeSystemCpuTimes(os.cpus());
-    const baseline = previousCpuTimes;
-    previousCpuTimes = snapshot;
+    id: "system",
+    sampleDevice(context) {
+        const snapshot = summarizeSystemCpuTimes(os.cpus());
+        const baseline = previousCpuTimes;
+        previousCpuTimes = snapshot;
 
-    // 第一个 tick 只有一个快照，差分无从谈起，因此不产生样本；
-    // 第一阶段没有任何精确合计时同理——设备事件宁可少一个样本，也不上报半真的合计。
-    if (!baseline || !context.appProcessTotals) {
-      return;
-    }
-    const systemCpuPercent = diffSystemCpuPercent(baseline, snapshot);
-    if (systemCpuPercent === null) {
-      return;
-    }
+        // 第一个 tick 只有一个快照，差分无从谈起，因此不产生样本；
+        // 第一阶段没有任何精确合计时同理——设备事件宁可少一个样本，也不上报半真的合计。
+        if (!baseline || !context.appProcessTotals) {
+            return;
+        }
+        const systemCpuPercent = diffSystemCpuPercent(baseline, snapshot);
+        if (systemCpuPercent === null) {
+            return;
+        }
 
-    const appTotals = addAppResourceTotals(
-      context.appProcessTotals,
-      collectExternalAppResourceTotals(context.now),
-    );
-    context.addDeviceSample({
-      systemCpuPercent,
-      systemFreeMemoryKb: Math.round(os.freemem() / 1024),
-      appCpuPercent: appTotals.cpuPercent,
-      appRssKbTotal: appTotals.rssKbTotal,
-      appProcessCount: appTotals.processCount,
-    });
-  },
-  reset() {
-    // 丢弃 CPU 基线与外部来源的最近样本，避免用上一次采样会话的事实做差分与合计。
-    previousCpuTimes = null;
-    resetExternalAppResourceSamples();
-  },
+        const appTotals = addAppResourceTotals(
+            context.appProcessTotals,
+            collectExternalAppResourceTotals(context.now),
+        );
+        context.addDeviceSample({
+            systemCpuPercent,
+            systemFreeMemoryKb: Math.round(os.freemem() / 1024),
+            appCpuPercent: appTotals.cpuPercent,
+            appRssKbTotal: appTotals.rssKbTotal,
+            appProcessCount: appTotals.processCount,
+        });
+    },
+    reset() {
+        // 丢弃 CPU 基线与外部来源的最近样本，避免用上一次采样会话的事实做差分与合计。
+        previousCpuTimes = null;
+        resetExternalAppResourceSamples();
+    },
 };

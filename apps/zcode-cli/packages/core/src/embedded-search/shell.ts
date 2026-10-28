@@ -5,11 +5,11 @@ import type { ExecutionShellSelection } from "@zcode/contracts";
 const ENABLE_EMBEDDED_SEARCH_BASH_PRELUDE = true;
 
 export function shouldInjectEmbeddedSearchBashPrelude(): boolean {
-  return ENABLE_EMBEDDED_SEARCH_BASH_PRELUDE;
+    return ENABLE_EMBEDDED_SEARCH_BASH_PRELUDE;
 }
 
 export function supportsEmbeddedSearchShellSelection(
-  selection: ExecutionShellSelection | undefined,
+    selection: ExecutionShellSelection | undefined,
 ): boolean {
-  return selection?.dialect === "posix" || selection?.dialect === "git-bash";
+    return selection?.dialect === "posix" || selection?.dialect === "git-bash";
 }

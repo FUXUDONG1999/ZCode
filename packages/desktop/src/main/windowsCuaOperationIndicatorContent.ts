@@ -12,30 +12,30 @@ export const INDICATOR_CARD_TOP_OFFSET = 12;
 export const INDICATOR_SHADOW_INSET = { top: 6, right: 8, bottom: 12, left: 8 } as const;
 
 export function indicatorCopy(locale: Locale): { text: string; width: number } {
-  return locale === "zh-CN"
-    ? { text: "MyAgent 正在操作电脑", width: 234 }
-    : { text: "MyAgent is controlling your computer", width: 308 };
+    return locale === "zh-CN"
+        ? { text: "MyAgent 正在操作电脑", width: 234 }
+        : { text: "MyAgent is controlling your computer", width: 308 };
 }
 
 export function indicatorWindowSize(locale: Locale): { width: number; height: number } {
-  const { width } = indicatorCopy(locale);
-  return {
-    width: width + INDICATOR_SHADOW_INSET.left + INDICATOR_SHADOW_INSET.right,
-    height: INDICATOR_SHADOW_INSET.top + INDICATOR_CARD_HEIGHT + INDICATOR_SHADOW_INSET.bottom,
-  };
+    const { width } = indicatorCopy(locale);
+    return {
+        width: width + INDICATOR_SHADOW_INSET.left + INDICATOR_SHADOW_INSET.right,
+        height: INDICATOR_SHADOW_INSET.top + INDICATOR_CARD_HEIGHT + INDICATOR_SHADOW_INSET.bottom,
+    };
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
 }
 
 export function indicatorHtml(locale: Locale): string {
-  const copy = indicatorCopy(locale);
-  return `<!doctype html>
+    const copy = indicatorCopy(locale);
+    return `<!doctype html>
 <html lang="${locale}" data-state="active">
 <head>
   <meta charset="utf-8">
@@ -78,5 +78,5 @@ export function indicatorHtml(locale: Locale): string {
 }
 
 export function indicatorDataUrl(locale: Locale): string {
-  return `data:text/html;base64,${Buffer.from(indicatorHtml(locale), "utf8").toString("base64")}`;
+    return `data:text/html;base64,${Buffer.from(indicatorHtml(locale), "utf8").toString("base64")}`;
 }

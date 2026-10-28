@@ -20,36 +20,36 @@ const TOKEN_LIMIT_TYPES = new Set(["TOKENS_LIMIT", "CREDIT_LIMIT"]);
 const TOOL_LIMIT_TYPES = new Set(["TIME_LIMIT"]);
 
 export function isSameLimitCategory(
-  limitType: string,
-  queryType: UsageQuotaLimit["type"],
+    limitType: string,
+    queryType: UsageQuotaLimit["type"],
 ): boolean {
-  if (limitType === queryType) {
-    return true;
-  }
-  // zai team plan 返回 CREDIT_LIMIT，消费方按 TOKENS_LIMIT 查询时也要命中。
-  if (TOKEN_LIMIT_TYPES.has(queryType)) {
-    return TOKEN_LIMIT_TYPES.has(limitType);
-  }
-  if (TOOL_LIMIT_TYPES.has(queryType)) {
-    return TOOL_LIMIT_TYPES.has(limitType);
-  }
-  return false;
+    if (limitType === queryType) {
+        return true;
+    }
+    // zai team plan 返回 CREDIT_LIMIT，消费方按 TOKENS_LIMIT 查询时也要命中。
+    if (TOKEN_LIMIT_TYPES.has(queryType)) {
+        return TOKEN_LIMIT_TYPES.has(limitType);
+    }
+    if (TOOL_LIMIT_TYPES.has(queryType)) {
+        return TOOL_LIMIT_TYPES.has(limitType);
+    }
+    return false;
 }
 
 export function findCodingPlanQuotaLimit(
-  limits: UsageQuotaLimit[] | undefined,
-  type: UsageQuotaLimit["type"],
-  unit: number,
-  number?: number,
+    limits: UsageQuotaLimit[] | undefined,
+    type: UsageQuotaLimit["type"],
+    unit: number,
+    number?: number,
 ): UsageQuotaLimit | null {
-  return (
-    limits?.find(
-      (limit) =>
-        isSameLimitCategory(limit.type, type) &&
-        limit.unit === unit &&
-        (number == null || limit.number === number),
-    ) ?? null
-  );
+    return (
+        limits?.find(
+            (limit) =>
+                isSameLimitCategory(limit.type, type) &&
+                limit.unit === unit &&
+                (number == null || limit.number === number),
+        ) ?? null
+    );
 }
 
 /**
@@ -59,40 +59,40 @@ export function findCodingPlanQuotaLimit(
  * findCodingPlanQuotaLimit 查询；这里收口成唯一取数入口，避免各展示位各写一遍 `?.` 链路。
  */
 export function resolveMcpQuotaLimit(
-  snapshot: UsageEntitlementSnapshot | null | undefined,
+    snapshot: UsageEntitlementSnapshot | null | undefined,
 ): UsageQuotaLimit | null {
-  return snapshot?.mcpQuota?.aggregate ?? null;
+    return snapshot?.mcpQuota?.aggregate ?? null;
 }
 
 export function normalizeQuotaPercentage(value: number | undefined): number {
-  if (value == null || !Number.isFinite(value)) {
-    return 0;
-  }
-  return Math.max(0, Math.min(100, value));
+    if (value == null || !Number.isFinite(value)) {
+        return 0;
+    }
+    return Math.max(0, Math.min(100, value));
 }
 
 export function getQuotaRemainingPercentage(limit: UsageQuotaLimit | null): number | null {
-  if (typeof limit?.percentage !== "number" || !Number.isFinite(limit.percentage)) {
-    return null;
-  }
+    if (typeof limit?.percentage !== "number" || !Number.isFinite(limit.percentage)) {
+        return null;
+    }
 
-  // quota 接口的 percentage 表示已使用占比，而 Usage Remaining 与
-  // 使用统计的额度卡都表达“还剩多少”。这里统一反转，避免两处显示口径不一致。
-  return Math.max(0, Math.min(100, 100 - limit.percentage));
+    // quota 接口的 percentage 表示已使用占比，而 Usage Remaining 与
+    // 使用统计的额度卡都表达“还剩多少”。这里统一反转，避免两处显示口径不一致。
+    return Math.max(0, Math.min(100, 100 - limit.percentage));
 }
 
 export function formatQuotaRemainingPercentage(
-  locale: string,
-  limit: UsageQuotaLimit | null,
+    locale: string,
+    limit: UsageQuotaLimit | null,
 ): string {
-  const remainingPercentage = getQuotaRemainingPercentage(limit);
-  if (remainingPercentage == null) {
-    return "--";
-  }
+    const remainingPercentage = getQuotaRemainingPercentage(limit);
+    if (remainingPercentage == null) {
+        return "--";
+    }
 
-  return `${new Intl.NumberFormat(locale, {
-    maximumFractionDigits: remainingPercentage >= 10 ? 0 : 1,
-  }).format(remainingPercentage)}%`;
+    return `${new Intl.NumberFormat(locale, {
+        maximumFractionDigits: remainingPercentage >= 10 ? 0 : 1,
+    }).format(remainingPercentage)}%`;
 }
 
 /**
@@ -103,65 +103,65 @@ export function formatQuotaRemainingPercentage(
  * 对齐：当日仅 HH:mm，非当日仅日期。
  */
 export function formatStartPlanBucketResetTime(
-  locale: string,
-  value: number | null | undefined,
+    locale: string,
+    value: number | null | undefined,
 ): string | undefined {
-  return formatQuotaResetTime({ locale, value, format: "adaptive" });
+    return formatQuotaResetTime({ locale, value, format: "adaptive" });
 }
 
 export function formatQuotaResetTime(params: {
-  locale: string;
-  value: number | null | undefined;
-  format: CodingPlanQuotaResetFormat;
-  compactToday?: boolean;
+    locale: string;
+    value: number | null | undefined;
+    format: CodingPlanQuotaResetFormat;
+    compactToday?: boolean;
 }): string | undefined {
-  if (!params.value) {
-    return undefined;
-  }
+    if (!params.value) {
+        return undefined;
+    }
 
-  const resetAt = new Date(params.value);
-  if (Number.isNaN(resetAt.getTime())) {
-    return undefined;
-  }
+    const resetAt = new Date(params.value);
+    if (Number.isNaN(resetAt.getTime())) {
+        return undefined;
+    }
 
-  const now = new Date();
-  const isToday =
-    resetAt.getFullYear() === now.getFullYear() &&
-    resetAt.getMonth() === now.getMonth() &&
-    resetAt.getDate() === now.getDate();
+    const now = new Date();
+    const isToday =
+        resetAt.getFullYear() === now.getFullYear() &&
+        resetAt.getMonth() === now.getMonth() &&
+        resetAt.getDate() === now.getDate();
 
-  if (params.format === "date") {
+    if (params.format === "date") {
+        return new Intl.DateTimeFormat(params.locale, {
+            month: "short",
+            day: "numeric",
+        }).format(resetAt);
+    }
+
+    // adaptive：当日只展示 HH:mm（时刻才可行动），非当日只展示日期
+    //（与 Coding Plan 五小时窗口 / 周·月重置的展示语义一致）。
+    if (params.format === "adaptive") {
+        if (isToday) {
+            return new Intl.DateTimeFormat(params.locale, {
+                hour: "2-digit",
+                minute: "2-digit",
+                hourCycle: "h23",
+            }).format(resetAt);
+        }
+        return new Intl.DateTimeFormat(params.locale, {
+            month: "short",
+            day: "numeric",
+        }).format(resetAt);
+    }
+
     return new Intl.DateTimeFormat(params.locale, {
-      month: "short",
-      day: "numeric",
-    }).format(resetAt);
-  }
-
-  // adaptive：当日只展示 HH:mm（时刻才可行动），非当日只展示日期
-  //（与 Coding Plan 五小时窗口 / 周·月重置的展示语义一致）。
-  if (params.format === "adaptive") {
-    if (isToday) {
-      return new Intl.DateTimeFormat(params.locale, {
+        ...(params.compactToday && isToday
+            ? {}
+            : {
+                  month: "short",
+                  day: "numeric",
+              }),
         hour: "2-digit",
         minute: "2-digit",
         hourCycle: "h23",
-      }).format(resetAt);
-    }
-    return new Intl.DateTimeFormat(params.locale, {
-      month: "short",
-      day: "numeric",
     }).format(resetAt);
-  }
-
-  return new Intl.DateTimeFormat(params.locale, {
-    ...(params.compactToday && isToday
-      ? {}
-      : {
-          month: "short",
-          day: "numeric",
-        }),
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(resetAt);
 }

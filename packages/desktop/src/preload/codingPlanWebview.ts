@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer } from "electron";
 import {
-  CodingPlanWebviewChannels,
-  isTrustedCodingPlanWebviewOrigin,
-  PlatformChannels,
+    CodingPlanWebviewChannels,
+    isTrustedCodingPlanWebviewOrigin,
+    PlatformChannels,
 } from "@zcode/shared";
 
 // Coding Plan 官网页 preload：
@@ -32,130 +32,136 @@ const LANG_CHANGE_EVENT = "zcode-coding-plan-lang-change";
 const REPORT_CONTEXT_VAR = "__zcodeReportContext__";
 
 function isTrustedCodingPlanBridgeLocation(): boolean {
-  try {
-    const url = new URL(window.location.href);
-    if (url.protocol !== "http:" && url.protocol !== "https:") return false;
-    if (
-      !isTrustedCodingPlanWebviewOrigin(url.origin, {
-        e2eStoreBridgeEnabled: process.env.VITE_ZCODE_E2E_STORE_BRIDGE === "1",
-      })
-    ) {
-      return false;
+    try {
+        const url = new URL(window.location.href);
+        if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+        if (
+            !isTrustedCodingPlanWebviewOrigin(url.origin, {
+                e2eStoreBridgeEnabled: process.env.VITE_ZCODE_E2E_STORE_BRIDGE === "1",
+            })
+        ) {
+            return false;
+        }
+        if (!url.pathname.includes("coding-plan")) return false;
+        if (url.searchParams.get("embedded") === "app") return true;
+        // PayPal 回跳页本身不带 embedded=app，但 returnTo 指回内嵌购买页；
+        // 该页支付成功后仍需 zcodeBridge.notifyPurchaseComplete 通知 App 刷新模型设置。
+        if (!url.pathname.endsWith("/coding-plan/payment/callback")) return false;
+        const returnTo = url.searchParams.get("returnTo");
+        if (!returnTo) return false;
+        const target = new URL(returnTo, url.origin);
+        return (
+            target.origin === url.origin &&
+            target.pathname.includes("coding-plan") &&
+            target.searchParams.get("embedded") === "app" &&
+            !target.pathname.endsWith("/coding-plan/payment/callback")
+        );
+    } catch {
+        return false;
     }
-    if (!url.pathname.includes("coding-plan")) return false;
-    if (url.searchParams.get("embedded") === "app") return true;
-    // PayPal 回跳页本身不带 embedded=app，但 returnTo 指回内嵌购买页；
-    // 该页支付成功后仍需 zcodeBridge.notifyPurchaseComplete 通知 App 刷新模型设置。
-    if (!url.pathname.endsWith("/coding-plan/payment/callback")) return false;
-    const returnTo = url.searchParams.get("returnTo");
-    if (!returnTo) return false;
-    const target = new URL(returnTo, url.origin);
-    return (
-      target.origin === url.origin &&
-      target.pathname.includes("coding-plan") &&
-      target.searchParams.get("embedded") === "app" &&
-      !target.pathname.endsWith("/coding-plan/payment/callback")
-    );
-  } catch {
-    return false;
-  }
 }
 
 interface NotifyPurchaseCompletePayload {
-  provider: "zai" | "bigmodel";
+    provider: "zai" | "bigmodel";
 }
 
 type CodingPlanReportContext = Record<string, string>;
 
 interface CodingPlanNativeBridge {
-  notifyPurchaseComplete(payload: NotifyPurchaseCompletePayload): void;
-  openExternal(url: string): void;
+    notifyPurchaseComplete(payload: NotifyPurchaseCompletePayload): void;
+    openExternal(url: string): void;
 }
 
 // Coding Plan guest 导航到 PayPal 时仍会复用同一个 preload 配置。
 // bridge 只允许暴露给可信官网购买页，避免第三方授权页继承 App 通信能力。
 if (isTrustedCodingPlanBridgeLocation()) {
-  contextBridge.exposeInMainWorld(NATIVE_BRIDGE_KEY, {
-    notifyPurchaseComplete(payload: NotifyPurchaseCompletePayload) {
-      try {
-        ipcRenderer.sendToHost(CodingPlanWebviewChannels.PurchaseComplete, {
-          provider: payload.provider,
-          timestamp: Date.now(),
-        } satisfies import("@zcode/shared").CodingPlanPurchaseCompletePayload);
-      } catch {
-        // host renderer 尚未 attach 或 webview 被销毁时 sendToHost 会抛；
-        // 官网页自身不依赖此调用成功，静默即可。
-      }
-    },
-    openExternal(url: string) {
-      try {
-        const parsed = new URL(url);
-        if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
-        ipcRenderer.send(PlatformChannels.OpenExternal, {
-          sourceUrl: window.location.href,
-          url: parsed.toString(),
-        });
-      } catch {
-        // 非法 URL 忽略，避免官网页通过 bridge 发送任意 IPC payload。
-      }
-    },
-  } satisfies CodingPlanNativeBridge);
-
-  contextBridge.executeInMainWorld({
-    func: (
-      publicBridgeKey: string,
-      nativeBridgeKey: string,
-      langVar: string,
-      langChangeEvent: string,
-      reportContextVar: string,
-    ) => {
-      const nativeBridge = (
-        window as unknown as Record<string, CodingPlanNativeBridge | undefined>
-      )[nativeBridgeKey];
-      if (!nativeBridge) return;
-      const bridge = {
+    contextBridge.exposeInMainWorld(NATIVE_BRIDGE_KEY, {
         notifyPurchaseComplete(payload: NotifyPurchaseCompletePayload) {
-          if (payload?.provider !== "zai" && payload?.provider !== "bigmodel") {
-            return;
-          }
-          nativeBridge.notifyPurchaseComplete(payload);
-        },
-        // 返回 App 当前 locale；App 尚未注入时为 null（website 据此判断是否嵌入环境）。
-        getLang() {
-          // 注意：executeInMainWorld 的 func 体不经过 TS 编译，不能用 as 断言等 TS 语法。
-          const value = (window as unknown as Record<string, unknown>)[langVar];
-          return value === "zh-CN" || value === "en-US" ? value : null;
-        },
-        getReportContext() {
-          const value = (window as unknown as Record<string, unknown>)[reportContextVar];
-          if (!value || typeof value !== "object" || Array.isArray(value)) {
-            return null;
-          }
-          return value as CodingPlanReportContext;
-        },
-        // 订阅 App locale 运行时变化，返回取消订阅函数。
-        // App locale 变化时用 executeJavaScript 派发 zcode-coding-plan-lang-change 事件。
-        onLangChange(callback: (locale: "zh-CN" | "en-US") => void) {
-          const handler = (event: Event) => {
-            const detail = (event as CustomEvent<{ locale?: unknown }>).detail;
-            if (detail && (detail.locale === "zh-CN" || detail.locale === "en-US")) {
-              callback(detail.locale);
+            try {
+                ipcRenderer.sendToHost(CodingPlanWebviewChannels.PurchaseComplete, {
+                    provider: payload.provider,
+                    timestamp: Date.now(),
+                } satisfies import("@zcode/shared").CodingPlanPurchaseCompletePayload);
+            } catch {
+                // host renderer 尚未 attach 或 webview 被销毁时 sendToHost 会抛；
+                // 官网页自身不依赖此调用成功，静默即可。
             }
-          };
-          window.addEventListener(langChangeEvent, handler);
-          return () => window.removeEventListener(langChangeEvent, handler);
         },
         openExternal(url: string) {
-          nativeBridge.openExternal(url);
+            try {
+                const parsed = new URL(url);
+                if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return;
+                ipcRenderer.send(PlatformChannels.OpenExternal, {
+                    sourceUrl: window.location.href,
+                    url: parsed.toString(),
+                });
+            } catch {
+                // 非法 URL 忽略，避免官网页通过 bridge 发送任意 IPC payload。
+            }
         },
-      };
-      Object.defineProperty(window, publicBridgeKey, {
-        value: bridge,
-        writable: false,
-        configurable: false,
-        enumerable: false,
-      });
-    },
-    args: [PUBLIC_BRIDGE_KEY, NATIVE_BRIDGE_KEY, LANG_VAR, LANG_CHANGE_EVENT, REPORT_CONTEXT_VAR],
-  });
+    } satisfies CodingPlanNativeBridge);
+
+    contextBridge.executeInMainWorld({
+        func: (
+            publicBridgeKey: string,
+            nativeBridgeKey: string,
+            langVar: string,
+            langChangeEvent: string,
+            reportContextVar: string,
+        ) => {
+            const nativeBridge = (
+                window as unknown as Record<string, CodingPlanNativeBridge | undefined>
+            )[nativeBridgeKey];
+            if (!nativeBridge) return;
+            const bridge = {
+                notifyPurchaseComplete(payload: NotifyPurchaseCompletePayload) {
+                    if (payload?.provider !== "zai" && payload?.provider !== "bigmodel") {
+                        return;
+                    }
+                    nativeBridge.notifyPurchaseComplete(payload);
+                },
+                // 返回 App 当前 locale；App 尚未注入时为 null（website 据此判断是否嵌入环境）。
+                getLang() {
+                    // 注意：executeInMainWorld 的 func 体不经过 TS 编译，不能用 as 断言等 TS 语法。
+                    const value = (window as unknown as Record<string, unknown>)[langVar];
+                    return value === "zh-CN" || value === "en-US" ? value : null;
+                },
+                getReportContext() {
+                    const value = (window as unknown as Record<string, unknown>)[reportContextVar];
+                    if (!value || typeof value !== "object" || Array.isArray(value)) {
+                        return null;
+                    }
+                    return value as CodingPlanReportContext;
+                },
+                // 订阅 App locale 运行时变化，返回取消订阅函数。
+                // App locale 变化时用 executeJavaScript 派发 zcode-coding-plan-lang-change 事件。
+                onLangChange(callback: (locale: "zh-CN" | "en-US") => void) {
+                    const handler = (event: Event) => {
+                        const detail = (event as CustomEvent<{ locale?: unknown }>).detail;
+                        if (detail && (detail.locale === "zh-CN" || detail.locale === "en-US")) {
+                            callback(detail.locale);
+                        }
+                    };
+                    window.addEventListener(langChangeEvent, handler);
+                    return () => window.removeEventListener(langChangeEvent, handler);
+                },
+                openExternal(url: string) {
+                    nativeBridge.openExternal(url);
+                },
+            };
+            Object.defineProperty(window, publicBridgeKey, {
+                value: bridge,
+                writable: false,
+                configurable: false,
+                enumerable: false,
+            });
+        },
+        args: [
+            PUBLIC_BRIDGE_KEY,
+            NATIVE_BRIDGE_KEY,
+            LANG_VAR,
+            LANG_CHANGE_EVENT,
+            REPORT_CONTEXT_VAR,
+        ],
+    });
 }

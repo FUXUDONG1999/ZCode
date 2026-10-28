@@ -1,15 +1,15 @@
 import type { TraceContext } from "../tracing/tracer.js";
 
 export interface ProviderEndpointRoutingDecision {
-  headers?: Readonly<Record<string, string>>;
-  routed: boolean;
-  url: string;
+    headers?: Readonly<Record<string, string>>;
+    routed: boolean;
+    url: string;
 }
 
 export interface ProviderEndpointRoutingResolveOptions {
-  apiKeyId?: string;
-  signal?: AbortSignal;
-  trace?: TraceContext;
+    apiKeyId?: string;
+    signal?: AbortSignal;
+    trace?: TraceContext;
 }
 
 /**
@@ -18,8 +18,8 @@ export interface ProviderEndpointRoutingResolveOptions {
  * 实现可以按需刷新远端配置，但不得修改或持久化 provider baseURL。
  */
 export interface ProviderEndpointRoutingPort {
-  resolve(
-    requestUrl: string,
-    options?: ProviderEndpointRoutingResolveOptions,
-  ): Promise<ProviderEndpointRoutingDecision>;
+    resolve(
+        requestUrl: string,
+        options?: ProviderEndpointRoutingResolveOptions,
+    ): Promise<ProviderEndpointRoutingDecision>;
 }

@@ -5,147 +5,147 @@
 name: build-desktop
 
 on:
-  push:
-    branches: [personal/myagent]
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-  workflow_dispatch:
+    push:
+        branches: [personal/myagent]
+        paths-ignore:
+            - "docs/**"
+            - "**/*.md"
+    workflow_dispatch:
 
 concurrency:
-  group: build-windows-${{ github.ref }}
-  cancel-in-progress: true
+    group: build-windows-${{ github.ref }}
+    cancel-in-progress: true
 
 permissions:
-  # 发布 GitHub Release 需要写权限；仅本仓库内容，不提权其他 scope。
-  contents: write
+    # 发布 GitHub Release 需要写权限；仅本仓库内容，不提权其他 scope。
+    contents: write
 
 jobs:
-  build-win-x64:
-    runs-on: windows-latest
-    timeout-minutes: 90
-    env:
-      ZCODE_ENV: production
-      # Electron 运行时 zip 与 electron-builder 二进制（NSIS/winCodeSign 等）默认落在
-      # 用户缓存目录，GitHub runner 每轮清空导致重复下载 100MB+，且美国机房访问镜像慢、
-      # 下载抖动还会触发 bundle.mjs 的整轮重试。统一指到 workspace 内固定路径并配合
-      # actions/cache 持久化，第二轮起完全免下载。
-      ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache
-      ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-builder-cache
-      # agent CLI 构建走 turbo 缓存（Windows E2E 分片 CI 已默认同模式），
-      # CLI 与插件源码未变时 prepare:agent-bundle 的编译接近瞬时。
-      TURBO_CACHE_DIR: ${{ github.workspace }}/.turbo-cache
-      ZCODE_DESKTOP_AGENT_BUILD_MODE: turbo
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Restore download and build caches
-        uses: actions/cache@v4
-        with:
-          # lockfile 变化（Electron/electron-builder/turbo 版本变更）时换新 key，
-          # restore-keys 允许回退复用旧缓存；各缓存内部按版本再分目录，陈旧条目无害。
-          path: |
-            .electron-cache
-            .electron-builder-cache
-            .turbo-cache
-          key: desktop-build-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            desktop-build-cache-${{ runner.os }}-
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.14.0
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Windows x64 package
-        run: pnpm --filter @zcode/desktop bundle -- --os win --arch x64
-
-      - name: Publish installer to GitHub Release
+    build-win-x64:
+        runs-on: windows-latest
+        timeout-minutes: 90
         env:
-          GH_TOKEN: ${{ github.token }}
-        # windows-latest 默认用 pwsh 执行 run 步骤，bash 的 for/do、续行与 glob 语法解析失败
-        # （ParserError: Missing opening '(' after keyword 'for'），显式指定 bash 修复；
-        # runner 自带 Git Bash，macOS 侧默认即 bash，行为不变。
-        shell: bash
-        run: |
-          TAG="build-${{ github.run_number }}"
-          # win/mac 两个 job 并行发布同一个 release，首次 create 可能撞车：
-          # view 已存在或 create 成功即继续；撞车方下一轮 view 会命中，重试兜网络抖动。
-          for i in 1 2 3 4 5; do
-            gh release view "$TAG" --repo "$GITHUB_REPOSITORY" && break
-            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
-              --title "MyAgent Build #${{ github.run_number }}" \
-              --notes "CI build from ${{ github.ref_name }} @ ${{ github.sha }}." \
-              --latest && break
-            sleep 10
-          done
-          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" \
-            packages/desktop/dist/*.exe packages/desktop/dist/*.exe.blockmap --clobber
+            ZCODE_ENV: production
+            # Electron 运行时 zip 与 electron-builder 二进制（NSIS/winCodeSign 等）默认落在
+            # 用户缓存目录，GitHub runner 每轮清空导致重复下载 100MB+，且美国机房访问镜像慢、
+            # 下载抖动还会触发 bundle.mjs 的整轮重试。统一指到 workspace 内固定路径并配合
+            # actions/cache 持久化，第二轮起完全免下载。
+            ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache
+            ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-builder-cache
+            # agent CLI 构建走 turbo 缓存（Windows E2E 分片 CI 已默认同模式），
+            # CLI 与插件源码未变时 prepare:agent-bundle 的编译接近瞬时。
+            TURBO_CACHE_DIR: ${{ github.workspace }}/.turbo-cache
+            ZCODE_DESKTOP_AGENT_BUILD_MODE: turbo
+        steps:
+            - uses: actions/checkout@v4
 
-  build-mac-arm64:
-    runs-on: macos-latest
-    timeout-minutes: 90
-    env:
-      ZCODE_ENV: production
-      # 与 Windows job 同一套下载缓存策略：Electron 运行时 zip、dmg-builder 等
-      # electron-builder 二进制每轮免下载；agent CLI 构建命中 turbo 缓存。
-      ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache
-      ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-builder-cache
-      TURBO_CACHE_DIR: ${{ github.workspace }}/.turbo-cache
-      ZCODE_DESKTOP_AGENT_BUILD_MODE: turbo
-    steps:
-      - uses: actions/checkout@v4
+            - name: Restore download and build caches
+              uses: actions/cache@v4
+              with:
+                  # lockfile 变化（Electron/electron-builder/turbo 版本变更）时换新 key，
+                  # restore-keys 允许回退复用旧缓存；各缓存内部按版本再分目录，陈旧条目无害。
+                  path: |
+                      .electron-cache
+                      .electron-builder-cache
+                      .turbo-cache
+                  key: desktop-build-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+                  restore-keys: |
+                      desktop-build-cache-${{ runner.os }}-
 
-      - name: Restore download and build caches
-        uses: actions/cache@v4
-        with:
-          path: |
-            .electron-cache
-            .electron-builder-cache
-            .turbo-cache
-          key: desktop-build-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            desktop-build-cache-${{ runner.os }}-
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.33.2
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.2
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24.14.0
+                  cache: pnpm
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24.14.0
-          cache: pnpm
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+            - name: Build Windows x64 package
+              run: pnpm --filter @zcode/desktop bundle -- --os win --arch x64
 
-      - name: Build mac arm64 package
-        run: pnpm --filter @zcode/desktop bundle -- --os mac --arch arm64
+            - name: Publish installer to GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              # windows-latest 默认用 pwsh 执行 run 步骤，bash 的 for/do、续行与 glob 语法解析失败
+              # （ParserError: Missing opening '(' after keyword 'for'），显式指定 bash 修复；
+              # runner 自带 Git Bash，macOS 侧默认即 bash，行为不变。
+              shell: bash
+              run: |
+                  TAG="build-${{ github.run_number }}"
+                  # win/mac 两个 job 并行发布同一个 release，首次 create 可能撞车：
+                  # view 已存在或 create 成功即继续；撞车方下一轮 view 会命中，重试兜网络抖动。
+                  for i in 1 2 3 4 5; do
+                    gh release view "$TAG" --repo "$GITHUB_REPOSITORY" && break
+                    gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+                      --title "MyAgent Build #${{ github.run_number }}" \
+                      --notes "CI build from ${{ github.ref_name }} @ ${{ github.sha }}." \
+                      --latest && break
+                    sleep 10
+                  done
+                  gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" \
+                    packages/desktop/dist/*.exe packages/desktop/dist/*.exe.blockmap --clobber
 
-      - name: Publish installer to GitHub Release
+    build-mac-arm64:
+        runs-on: macos-latest
+        timeout-minutes: 90
         env:
-          GH_TOKEN: ${{ github.token }}
-        # windows-latest 默认用 pwsh 执行 run 步骤，bash 的 for/do、续行与 glob 语法解析失败
-        # （ParserError: Missing opening '(' after keyword 'for'），显式指定 bash 修复；
-        # runner 自带 Git Bash，macOS 侧默认即 bash，行为不变。
-        shell: bash
-        run: |
-          TAG="build-${{ github.run_number }}"
-          # 与 Windows job 相同的撞车重试策略，两个 job 各自上传本平台产物。
-          for i in 1 2 3 4 5; do
-            gh release view "$TAG" --repo "$GITHUB_REPOSITORY" && break
-            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
-              --title "MyAgent Build #${{ github.run_number }}" \
-              --notes "CI build from ${{ github.ref_name }} @ ${{ github.sha }}." \
-              --latest && break
-            sleep 10
-          done
-          gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" \
-            packages/desktop/dist/*.dmg packages/desktop/dist/*.dmg.blockmap --clobber
+            ZCODE_ENV: production
+            # 与 Windows job 同一套下载缓存策略：Electron 运行时 zip、dmg-builder 等
+            # electron-builder 二进制每轮免下载；agent CLI 构建命中 turbo 缓存。
+            ELECTRON_CACHE: ${{ github.workspace }}/.electron-cache
+            ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/.electron-builder-cache
+            TURBO_CACHE_DIR: ${{ github.workspace }}/.turbo-cache
+            ZCODE_DESKTOP_AGENT_BUILD_MODE: turbo
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Restore download and build caches
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      .electron-cache
+                      .electron-builder-cache
+                      .turbo-cache
+                  key: desktop-build-cache-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+                  restore-keys: |
+                      desktop-build-cache-${{ runner.os }}-
+
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 10.33.2
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24.14.0
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build mac arm64 package
+              run: pnpm --filter @zcode/desktop bundle -- --os mac --arch arm64
+
+            - name: Publish installer to GitHub Release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              # windows-latest 默认用 pwsh 执行 run 步骤，bash 的 for/do、续行与 glob 语法解析失败
+              # （ParserError: Missing opening '(' after keyword 'for'），显式指定 bash 修复；
+              # runner 自带 Git Bash，macOS 侧默认即 bash，行为不变。
+              shell: bash
+              run: |
+                  TAG="build-${{ github.run_number }}"
+                  # 与 Windows job 相同的撞车重试策略，两个 job 各自上传本平台产物。
+                  for i in 1 2 3 4 5; do
+                    gh release view "$TAG" --repo "$GITHUB_REPOSITORY" && break
+                    gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+                      --title "MyAgent Build #${{ github.run_number }}" \
+                      --notes "CI build from ${{ github.ref_name }} @ ${{ github.sha }}." \
+                      --latest && break
+                    sleep 10
+                  done
+                  gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" \
+                    packages/desktop/dist/*.dmg packages/desktop/dist/*.dmg.blockmap --clobber

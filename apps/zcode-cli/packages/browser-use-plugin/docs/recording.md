@@ -6,16 +6,16 @@ another Chromium process. The API is asynchronous so a recording can continue ac
 
 ```js
 const job = await tab.recording.start({
-  viewport: { width: 1280, height: 720 },
-  fps: 25,
-  maxDurationMs: 20_000,
-  settleMs: 800,
-  showCursor: true,
-  actions: [
-    { type: "move", x: 300, y: 240, durationMs: 500 },
-    { type: "click", selector: "#start", delayAfterMs: 1000 },
-    { type: "scroll", deltaY: 600, durationMs: 800 },
-  ],
+    viewport: { width: 1280, height: 720 },
+    fps: 25,
+    maxDurationMs: 20_000,
+    settleMs: 800,
+    showCursor: true,
+    actions: [
+        { type: "move", x: 300, y: 240, durationMs: 500 },
+        { type: "click", selector: "#start", delayAfterMs: 1000 },
+        { type: "scroll", deltaY: 600, durationMs: 800 },
+    ],
 });
 job;
 ```
@@ -26,7 +26,7 @@ is running. On the final poll, pass a workspace-relative `.webm` path:
 
 ```js
 await tab.recording.status(recordingId, {
-  outputPath: "recordings/demo.webm",
+    outputPath: "recordings/demo.webm",
 });
 ```
 

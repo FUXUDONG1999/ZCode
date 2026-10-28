@@ -10,17 +10,17 @@ export type PluginUpdateStatus = "none" | "update-available" | "version-changed"
  * - unparseable + equal, or either missing -> "none"
  */
 export function comparePluginVersions(input: {
-  installed: string | undefined;
-  latest: string | undefined;
+    installed: string | undefined;
+    latest: string | undefined;
 }): PluginUpdateStatus {
-  const { installed, latest } = input;
-  if (!installed || !latest) return "none";
-  const installedValid = semver.valid(semver.coerce(installed) ?? installed);
-  const latestValid = semver.valid(semver.coerce(latest) ?? latest);
-  if (installedValid && latestValid) {
-    return semver.gt(latestValid, installedValid) ? "update-available" : "none";
-  }
-  return installed === latest ? "none" : "version-changed";
+    const { installed, latest } = input;
+    if (!installed || !latest) return "none";
+    const installedValid = semver.valid(semver.coerce(installed) ?? installed);
+    const latestValid = semver.valid(semver.coerce(latest) ?? latest);
+    if (installedValid && latestValid) {
+        return semver.gt(latestValid, installedValid) ? "update-available" : "none";
+    }
+    return installed === latest ? "none" : "version-changed";
 }
 
 /**
@@ -28,18 +28,18 @@ export function comparePluginVersions(input: {
  * source identity pin；两者都缺失时保持 none，避免把无法证明的新旧关系误报为更新。
  */
 export function comparePluginUpdate(input: {
-  installedVersion: string | undefined;
-  installedSha: string | undefined;
-  latestVersion: string | undefined;
-  latestSha: string | undefined;
+    installedVersion: string | undefined;
+    installedSha: string | undefined;
+    latestVersion: string | undefined;
+    latestSha: string | undefined;
 }): PluginUpdateStatus {
-  const { installedVersion, installedSha, latestVersion, latestSha } = input;
-  if (latestVersion) {
-    return comparePluginVersions({ installed: installedVersion, latest: latestVersion });
-  }
-  if (latestSha) {
-    if (!installedSha) return "version-changed";
-    return installedSha === latestSha ? "none" : "update-available";
-  }
-  return "none";
+    const { installedVersion, installedSha, latestVersion, latestSha } = input;
+    if (latestVersion) {
+        return comparePluginVersions({ installed: installedVersion, latest: latestVersion });
+    }
+    if (latestSha) {
+        if (!installedSha) return "version-changed";
+        return installedSha === latestSha ? "none" : "update-available";
+    }
+    return "none";
 }

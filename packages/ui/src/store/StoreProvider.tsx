@@ -4,12 +4,12 @@
  * 在应用根部挂载，连接 broadcastService 实现跨窗口状态同步。
  */
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useSyncExternalStore,
-  type ReactNode,
+    createContext,
+    useCallback,
+    useContext,
+    useRef,
+    useSyncExternalStore,
+    type ReactNode,
 } from "react";
 import { useStore } from "zustand";
 import type { IBroadcastService } from "@zcode/services";
@@ -19,23 +19,23 @@ import { createZCodeStore, type ZCodeStore, type ZCodeState } from "./index.js";
 export const StoreContext = createContext<ZCodeStore | null>(null);
 
 export function StoreProvider({
-  broadcastService,
-  initialIsRestoringOAuthSession = false,
-  children,
+    broadcastService,
+    initialIsRestoringOAuthSession = false,
+    children,
 }: {
-  broadcastService: IBroadcastService;
-  initialIsRestoringOAuthSession?: boolean;
-  children: ReactNode;
+    broadcastService: IBroadcastService;
+    initialIsRestoringOAuthSession?: boolean;
+    children: ReactNode;
 }) {
-  // 只在首次渲染时创建 store，避免 HMR 重复订阅
-  const storeRef = useRef<ZCodeStore | null>(null);
-  if (!storeRef.current) {
-    storeRef.current = createZCodeStore(broadcastService, {
-      initialIsRestoringOAuthSession,
-    });
-  }
+    // 只在首次渲染时创建 store，避免 HMR 重复订阅
+    const storeRef = useRef<ZCodeStore | null>(null);
+    if (!storeRef.current) {
+        storeRef.current = createZCodeStore(broadcastService, {
+            initialIsRestoringOAuthSession,
+        });
+    }
 
-  return <StoreContext.Provider value={storeRef.current}>{children}</StoreContext.Provider>;
+    return <StoreContext.Provider value={storeRef.current}>{children}</StoreContext.Provider>;
 }
 
 /**
@@ -46,11 +46,11 @@ export function StoreProvider({
  *   const setTheme = useZCodeStore(s => s.setTheme);
  */
 export function useZCodeStore<T>(selector: (state: ZCodeState) => T): T {
-  const store = useContext(StoreContext);
-  if (!store) {
-    throw new Error("useZCodeStore 必须在 StoreProvider 内使用");
-  }
-  return useStore(store, selector);
+    const store = useContext(StoreContext);
+    if (!store) {
+        throw new Error("useZCodeStore 必须在 StoreProvider 内使用");
+    }
+    return useStore(store, selector);
 }
 
 /**
@@ -64,14 +64,14 @@ export function useZCodeStore<T>(selector: (state: ZCodeState) => T): T {
  * 注意：selector 返回值与 defaultValue 都必须引用稳定，否则会造成无限重渲染。
  */
 export function useZCodeStoreWithDefault<T>(
-  selector: (state: ZCodeState) => T,
-  defaultValue: T,
+    selector: (state: ZCodeState) => T,
+    defaultValue: T,
 ): T {
-  const store = useContext(StoreContext);
-  const subscribe = useCallback(
-    (onStoreChange: () => void) => (store ? store.subscribe(onStoreChange) : () => {}),
-    [store],
-  );
-  const getSnapshot = () => (store ? selector(store.getState()) : defaultValue);
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+    const store = useContext(StoreContext);
+    const subscribe = useCallback(
+        (onStoreChange: () => void) => (store ? store.subscribe(onStoreChange) : () => {}),
+        [store],
+    );
+    const getSnapshot = () => (store ? selector(store.getState()) : defaultValue);
+    return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

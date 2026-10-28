@@ -12,9 +12,9 @@ import { formatShortcutBindingLabel } from "./label.js";
 
 /** 当前生效的快捷键表（默认 + 用户覆盖合并后的只读视图）。 */
 export function useEffectiveShortcutBindings(): EffectiveShortcutBindings {
-  const { settings } = useSettings();
-  const overrides = settings?.shortcutBindings;
-  return useMemo(() => resolveEffectiveShortcutBindings(overrides), [overrides]);
+    const { settings } = useSettings();
+    const overrides = settings?.shortcutBindings;
+    return useMemo(() => resolveEffectiveShortcutBindings(overrides), [overrides]);
 }
 
 /**
@@ -24,7 +24,7 @@ export function useEffectiveShortcutBindings(): EffectiveShortcutBindings {
  * 生效表按命令表全集构建，只有非法 commandId 才会缺键，同样按无键处理。
  */
 export function useShortcutCommandLabel(commandId: ShortcutCommandId): string {
-  const effective = useEffectiveShortcutBindings();
-  const first = effective[commandId]?.[0] ?? "";
-  return first === "" ? "" : formatShortcutBindingLabel(first);
+    const effective = useEffectiveShortcutBindings();
+    const first = effective[commandId]?.[0] ?? "";
+    return first === "" ? "" : formatShortcutBindingLabel(first);
 }

@@ -9,11 +9,11 @@ import { createServiceDescriptor } from "../descriptors.js";
  * 消费端（renderer）只通过 RPC 调用，不感知存储位置。
  */
 export interface ICredentialService {
-  load(key: string): Promise<string | null>;
-  save(key: string, value: string): Promise<void>;
-  delete(key: string): Promise<void>;
+    load(key: string): Promise<string | null>;
+    save(key: string, value: string): Promise<void>;
+    delete(key: string): Promise<void>;
 }
 
 export const ICredentialService = createServiceDescriptor<ICredentialService>(
-  ServiceChannels.Credential,
+    ServiceChannels.Credential,
 );

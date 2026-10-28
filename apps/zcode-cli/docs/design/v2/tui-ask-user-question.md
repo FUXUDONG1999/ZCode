@@ -90,22 +90,22 @@
 
 ```ts
 interface UserInteractionPrompt {
-  requestId: string;
-  sessionId: SessionId;
-  turnId?: TurnId;
-  traceId: TraceId;
-  toolCallId: ToolCallId;
-  toolName: "AskUserQuestion";
-  input: AskUserQuestionInput;
-  requestedAt: Date;
+    requestId: string;
+    sessionId: SessionId;
+    turnId?: TurnId;
+    traceId: TraceId;
+    toolCallId: ToolCallId;
+    toolName: "AskUserQuestion";
+    input: AskUserQuestionInput;
+    requestedAt: Date;
 }
 
 interface UserInteractionResult {
-  decision: "answer" | "reject" | "cancel";
-  answers?: Record<string, string>;
-  annotations?: Record<string, AskUserQuestionAnnotation>;
-  reason?: string;
-  resolvedAt?: Date;
+    decision: "answer" | "reject" | "cancel";
+    answers?: Record<string, string>;
+    annotations?: Record<string, AskUserQuestionAnnotation>;
+    reason?: string;
+    resolvedAt?: Date;
 }
 ```
 

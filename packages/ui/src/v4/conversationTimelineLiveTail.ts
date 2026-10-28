@@ -1,9 +1,9 @@
 import type { ConversationTurnRenderUnit } from "@/v4/conversationTurnRenderUnits.js";
 
 export interface ConversationTimelineLiveTailSplit {
-  virtualizedUnits: readonly ConversationTurnRenderUnit[];
-  liveUnit: ConversationTurnRenderUnit | null;
-  liveUnitIndex: number | null;
+    virtualizedUnits: readonly ConversationTurnRenderUnit[];
+    liveUnit: ConversationTurnRenderUnit | null;
+    liveUnitIndex: number | null;
 }
 
 /**
@@ -13,18 +13,18 @@ export interface ConversationTimelineLiveTailSplit {
  * 行仍归虚拟列表，避免扩大常驻 DOM。
  */
 export function splitConversationTimelineLiveTail(
-  units: readonly ConversationTurnRenderUnit[],
+    units: readonly ConversationTurnRenderUnit[],
 ): ConversationTimelineLiveTailSplit {
-  const liveUnitIndex = units.length - 1;
-  const liveUnit = units[liveUnitIndex];
-  if (!liveUnit?.isRunning) {
-    return { virtualizedUnits: units, liveUnit: null, liveUnitIndex: null };
-  }
-  return {
-    virtualizedUnits: units.slice(0, liveUnitIndex),
-    liveUnit,
-    liveUnitIndex,
-  };
+    const liveUnitIndex = units.length - 1;
+    const liveUnit = units[liveUnitIndex];
+    if (!liveUnit?.isRunning) {
+        return { virtualizedUnits: units, liveUnit: null, liveUnitIndex: null };
+    }
+    return {
+        virtualizedUnits: units.slice(0, liveUnitIndex),
+        liveUnit,
+        liveUnitIndex,
+    };
 }
 
 /**
@@ -33,42 +33,42 @@ export function splitConversationTimelineLiveTail(
  * 避免运行状态与回答来自两个数据源时先后不一致。
  */
 export interface ConversationLatestTurnSummary {
-  /** 最后一个回合的 turnId；同一轮运行中和结束后不变。 */
-  readonly turnKey: string | null;
-  readonly running: boolean;
-  /** 运行中最后一个 work segment 的时长，与流式消息「工作中 N 秒」同值。 */
-  readonly workDurationMs: number | undefined;
-  /** 已结束回合的最终回答；运行中或回答未完成时为 null。 */
-  readonly answer: { readonly rowId: number; readonly text: string } | null;
+    /** 最后一个回合的 turnId；同一轮运行中和结束后不变。 */
+    readonly turnKey: string | null;
+    readonly running: boolean;
+    /** 运行中最后一个 work segment 的时长，与流式消息「工作中 N 秒」同值。 */
+    readonly workDurationMs: number | undefined;
+    /** 已结束回合的最终回答；运行中或回答未完成时为 null。 */
+    readonly answer: { readonly rowId: number; readonly text: string } | null;
 }
 
 export function resolveConversationLatestTurnSummary(
-  units: readonly ConversationTurnRenderUnit[],
+    units: readonly ConversationTurnRenderUnit[],
 ): ConversationLatestTurnSummary {
-  const unit = units.at(-1);
-  if (!unit) return { turnKey: null, running: false, workDurationMs: undefined, answer: null };
-  const running = unit.isRunning;
-  const row = unit.latestAssistantTextRow;
-  return {
-    turnKey: unit.key,
-    running,
-    workDurationMs: running ? unit.workSegments?.at(-1)?.workStatus?.durationMs : undefined,
-    answer:
-      !running && row?.state === "complete" && row.text.trim()
-        ? { rowId: row.rowId, text: row.text }
-        : null,
-  };
+    const unit = units.at(-1);
+    if (!unit) return { turnKey: null, running: false, workDurationMs: undefined, answer: null };
+    const running = unit.isRunning;
+    const row = unit.latestAssistantTextRow;
+    return {
+        turnKey: unit.key,
+        running,
+        workDurationMs: running ? unit.workSegments?.at(-1)?.workStatus?.durationMs : undefined,
+        answer:
+            !running && row?.state === "complete" && row.text.trim()
+                ? { rowId: row.rowId, text: row.text }
+                : null,
+    };
 }
 
 export function isSameConversationLatestTurnSummary(
-  a: ConversationLatestTurnSummary,
-  b: ConversationLatestTurnSummary,
+    a: ConversationLatestTurnSummary,
+    b: ConversationLatestTurnSummary,
 ): boolean {
-  return (
-    a.turnKey === b.turnKey &&
-    a.running === b.running &&
-    a.workDurationMs === b.workDurationMs &&
-    a.answer?.rowId === b.answer?.rowId &&
-    a.answer?.text === b.answer?.text
-  );
+    return (
+        a.turnKey === b.turnKey &&
+        a.running === b.running &&
+        a.workDurationMs === b.workDurationMs &&
+        a.answer?.rowId === b.answer?.rowId &&
+        a.answer?.text === b.answer?.text
+    );
 }

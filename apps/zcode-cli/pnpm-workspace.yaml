@@ -1,17 +1,17 @@
 packages:
-  - "packages/*"
-  - "tools/*"
+    - "packages/*"
+    - "tools/*"
 
 supportedArchitectures:
-  os:
-    - current
-    - darwin
-    - linux
-    - win32
-  cpu:
-    - current
-    - x64
-    - arm64
-  libc:
-    - current
-    - glibc
+    os:
+        - current
+        - darwin
+        - linux
+        - win32
+    cpu:
+        - current
+        - x64
+        - arm64
+    libc:
+        - current
+        - glibc

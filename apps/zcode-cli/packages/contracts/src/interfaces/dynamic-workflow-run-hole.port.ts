@@ -21,27 +21,27 @@ import type { TraceContext } from "../tracing/tracer.js";
  * 快照的 `scriptPath`。
  */
 export interface DynamicWorkflowRunHole {
-  /** 留白的站点 id（`hole#21b40fca`，名字键）；`fillHole` 只认它。 */
-  siteId: string;
-  /** 这一处的序号（同一站点在循环里可以到达多次）。 */
-  ordinal: number;
-  /** 留白的字面名。 */
-  name: string;
-  /** 类型实参原文（`Verdict`），照脚本写法。 */
-  type: string;
-  state: "waiting" | "filled";
-  /** 到达时刻（epoch ms）；`waiting` 时在场。 */
-  since?: number;
-  /** 补全时刻（epoch ms）；`filled` 时在场。 */
-  filledAt?: number;
-  /** 补全它的会话（`fillHole` 请求的 `parentSessionId`）。 */
-  filledBy?: string;
-  /** 留白调用在 run 草稿里的行号（1 起）。 */
-  line?: number;
-  /** 留白之前的阶段名。 */
-  before?: string;
-  /** 留白之后的阶段名。 */
-  after?: string;
+    /** 留白的站点 id（`hole#21b40fca`，名字键）；`fillHole` 只认它。 */
+    siteId: string;
+    /** 这一处的序号（同一站点在循环里可以到达多次）。 */
+    ordinal: number;
+    /** 留白的字面名。 */
+    name: string;
+    /** 类型实参原文（`Verdict`），照脚本写法。 */
+    type: string;
+    state: "waiting" | "filled";
+    /** 到达时刻（epoch ms）；`waiting` 时在场。 */
+    since?: number;
+    /** 补全时刻（epoch ms）；`filled` 时在场。 */
+    filledAt?: number;
+    /** 补全它的会话（`fillHole` 请求的 `parentSessionId`）。 */
+    filledBy?: string;
+    /** 留白调用在 run 草稿里的行号（1 起）。 */
+    line?: number;
+    /** 留白之前的阶段名。 */
+    before?: string;
+    /** 留白之后的阶段名。 */
+    after?: string;
 }
 
 /**
@@ -50,15 +50,15 @@ export interface DynamicWorkflowRunHole {
  * 站点稳定性检查与草稿改写都在端口实现侧。
  */
 export interface DynamicWorkflowRunFillHoleRequest {
-  runId: string;
-  /** 留白的站点 id（`hole#21b40fca`，名字键）。 */
-  holeId: string;
-  body: string;
-  /** 补全的会话，落进 `hole-filled.filledBy`。 */
-  parentSessionId?: SessionId | string;
-  /** 发起这次补全的 FillWorkflowHole 工具调用。 */
-  toolCallId?: ToolCallId | string;
-  trace: TraceContext;
+    runId: string;
+    /** 留白的站点 id（`hole#21b40fca`，名字键）。 */
+    holeId: string;
+    body: string;
+    /** 补全的会话，落进 `hole-filled.filledBy`。 */
+    parentSessionId?: SessionId | string;
+    /** 发起这次补全的 FillWorkflowHole 工具调用。 */
+    toolCallId?: ToolCallId | string;
+    trace: TraceContext;
 }
 
 /**
@@ -66,25 +66,25 @@ export interface DynamicWorkflowRunFillHoleRequest {
  * ResumeWorkflowRun）/ 改 fill 文件再交 `path` / 什么都别改，这是宿主的故障。
  */
 export type DynamicWorkflowRunFillHoleRefusalReason =
-  /** journal 里没有这个 run。 */
-  | "run_not_found"
-  /** run 不在飞，或这个留白不是它正在等的（已补过、还没到、未知 id）；message 说明是哪一种。 */
-  | "hole_not_waiting"
-  /** 有效脚本编不过；`diagnostics` 在场。什么都没拼、没记、留白照旧在等。 */
-  | "compile_failed"
-  /** 编好的有效脚本给某个既有站点换了号：分析器的编号规则被打破，是宿主故障而非模型的错；留白照旧在等。 */
-  | "fill_ids_unstable";
+    /** journal 里没有这个 run。 */
+    | "run_not_found"
+    /** run 不在飞，或这个留白不是它正在等的（已补过、还没到、未知 id）；message 说明是哪一种。 */
+    | "hole_not_waiting"
+    /** 有效脚本编不过；`diagnostics` 在场。什么都没拼、没记、留白照旧在等。 */
+    | "compile_failed"
+    /** 编好的有效脚本给某个既有站点换了号：分析器的编号规则被打破，是宿主故障而非模型的错；留白照旧在等。 */
+    | "fill_ids_unstable";
 
 /**
  * 一条补全诊断。`inFill` 为真时 `line` / `column` 是**函数体内**的坐标（拼进去的那一段），否则是
  * 脚本坐标——工具层据此把它锚到 fill 文件或 run 的草稿。
  */
 export interface DynamicWorkflowRunFillHoleDiagnostic {
-  line: number;
-  column: number;
-  message: string;
-  code: number;
-  inFill: boolean;
+    line: number;
+    column: number;
+    message: string;
+    code: number;
+    inFill: boolean;
 }
 
 /**
@@ -93,10 +93,10 @@ export interface DynamicWorkflowRunFillHoleDiagnostic {
  * 由实现侧铸一份）；`phasesAdded` 是函数体带来的阶段名。
  */
 export type FillWorkflowHoleResult =
-  | { ok: true; phasesAdded: string[]; scriptPath?: string; scriptText: string }
-  | {
-      ok: false;
-      reason: DynamicWorkflowRunFillHoleRefusalReason;
-      message: string;
-      diagnostics?: DynamicWorkflowRunFillHoleDiagnostic[];
-    };
+    | { ok: true; phasesAdded: string[]; scriptPath?: string; scriptText: string }
+    | {
+          ok: false;
+          reason: DynamicWorkflowRunFillHoleRefusalReason;
+          message: string;
+          diagnostics?: DynamicWorkflowRunFillHoleDiagnostic[];
+      };

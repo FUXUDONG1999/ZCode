@@ -10,10 +10,10 @@ import type { StepRunStatus } from "@/components/workflow-graph/types.js";
  * 而非「在动」；活动色让给真正在动的东西（灯、行进虚线、转圈）。
  */
 export const STATUS_DOT: Record<StepRunStatus, string> = {
-  done: "bg-success",
-  failed: "bg-destructive ring-2 ring-destructive/30",
-  pending: "border-[1.5px] border-foreground-subtlest bg-transparent",
-  running: "animate-pulse bg-warning motion-reduce:animate-none",
+    done: "bg-success",
+    failed: "bg-destructive ring-2 ring-destructive/30",
+    pending: "border-[1.5px] border-foreground-subtlest bg-transparent",
+    running: "animate-pulse bg-warning motion-reduce:animate-none",
 };
 
 /**
@@ -22,8 +22,8 @@ export const STATUS_DOT: Record<StepRunStatus, string> = {
  * 或模型停在这里），`settled` 是后面已有更新的一稿。绝不用 destructive：这个特性里红色只属于出错的 run。
  */
 export const DRAFT_FEEDBACK_DOT = {
-  open: "border-[1.5px] border-warning bg-transparent",
-  settled: STATUS_DOT.pending,
+    open: "border-[1.5px] border-warning bg-transparent",
+    settled: STATUS_DOT.pending,
 } as const;
 
 /**
@@ -33,20 +33,20 @@ export const DRAFT_FEEDBACK_DOT = {
  * 状态，不是脚本故障；只有 `errored` 才是 destructive。
  */
 export const RUN_STATUS_DOT: Record<WorkflowRunState["status"], string> = {
-  pending: STATUS_DOT.pending,
-  running: STATUS_DOT.running,
-  completed: STATUS_DOT.done,
-  errored: STATUS_DOT.failed,
-  stopped: STATUS_DOT.pending,
+    pending: STATUS_DOT.pending,
+    running: STATUS_DOT.running,
+    completed: STATUS_DOT.done,
+    errored: STATUS_DOT.failed,
+    stopped: STATUS_DOT.pending,
 };
 
 /** 状态词的语义色。与状态点同一套判断，只是换成文字通道（状态永远有词，不只靠颜色）。 */
 export const RUN_STATUS_TEXT: Record<WorkflowRunState["status"], string> = {
-  pending: "text-foreground-subtle",
-  running: "text-warning",
-  completed: "text-success",
-  errored: "text-destructive",
-  stopped: "text-foreground-subtle",
+    pending: "text-foreground-subtle",
+    running: "text-warning",
+    completed: "text-success",
+    errored: "text-destructive",
+    stopped: "text-foreground-subtle",
 };
 
 /**
@@ -54,34 +54,34 @@ export const RUN_STATUS_TEXT: Record<WorkflowRunState["status"], string> = {
  * 协议层各自演进，所以这里按结构读一个可选键，而不是绑死某一个类型。
  */
 export const WORKFLOW_RUN_STOP_REASONS = [
-  "user",
-  "model",
-  "provider",
-  "interrupted",
-  // 被一次 AmendWorkflow 停下并替代：
-  // 灯仍是 stopped 的中性空环，差别在词与那条指向后继的链接。
-  "superseded",
+    "user",
+    "model",
+    "provider",
+    "interrupted",
+    // 被一次 AmendWorkflow 停下并替代：
+    // 灯仍是 stopped 的中性空环，差别在词与那条指向后继的链接。
+    "superseded",
 ] as const;
 export type WorkflowRunStopReason = (typeof WORKFLOW_RUN_STOP_REASONS)[number];
 
 export function readWorkflowRunStopReason(run: {
-  status?: string;
-  stopReason?: unknown;
+    status?: string;
+    stopReason?: unknown;
 }): WorkflowRunStopReason | undefined {
-  if (run.status !== "stopped") return undefined;
-  const reason = run.stopReason;
-  return typeof reason === "string" &&
-    (WORKFLOW_RUN_STOP_REASONS as readonly string[]).includes(reason)
-    ? (reason as WorkflowRunStopReason)
-    : undefined;
+    if (run.status !== "stopped") return undefined;
+    const reason = run.stopReason;
+    return typeof reason === "string" &&
+        (WORKFLOW_RUN_STOP_REASONS as readonly string[]).includes(reason)
+        ? (reason as WorkflowRunStopReason)
+        : undefined;
 }
 
 /** 原因词的 i18n key（`chat.toolCall.workflow.run.stopReason.*`）。 */
 export function workflowRunStopReasonMessageId(reason: WorkflowRunStopReason): string {
-  return `chat.toolCall.workflow.run.stopReason.${reason}`;
+    return `chat.toolCall.workflow.run.stopReason.${reason}`;
 }
 
 /** run 是否被一次修订停下并替代：卡与详情页据此换种类词、藏 Resume 位、画指向后继的链接。 */
 export function isWorkflowRunSuperseded(run: { status?: string; stopReason?: unknown }): boolean {
-  return readWorkflowRunStopReason(run) === "superseded";
+    return readWorkflowRunStopReason(run) === "superseded";
 }

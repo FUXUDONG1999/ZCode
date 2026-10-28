@@ -57,9 +57,9 @@ export const TID_SIDE_PANE_FULL_VIEW_HANDLE = "side-pane-full-view-floating-hand
 export const TID_SIDE_PANE_FULL_VIEW_BUBBLE = "side-pane-full-view-floating-bubble";
 export const TID_SIDE_PANE_FULL_VIEW_ANSWER_BUBBLE = "side-pane-full-view-answer-bubble";
 export const TID_SIDE_PANE_FULL_VIEW_ANSWER_BUBBLE_CLOSE =
-  "side-pane-full-view-answer-bubble-close";
+    "side-pane-full-view-answer-bubble-close";
 export const TID_SIDE_PANE_FULL_VIEW_MENU_OPEN_CONVERSATION =
-  "side-pane-full-view-menu-open-conversation";
+    "side-pane-full-view-menu-open-conversation";
 export const TID_SIDE_PANE_FULL_VIEW_MENU_MINIMIZE = "side-pane-full-view-menu-minimize";
 /** 终端面板关闭按钮 */
 export const TID_TERMINAL_CLOSE_BUTTON = "terminal-close-button";
@@ -123,13 +123,13 @@ export const TID_BROWSER_RESPONSIVE_RESIZE_TOP = "browser-responsive-resize-top"
 export const TID_BROWSER_RESPONSIVE_RESIZE_HEIGHT = "browser-responsive-resize-height";
 /** 浏览器自由尺寸左上角拖拽区 */
 export const TID_BROWSER_RESPONSIVE_RESIZE_CORNER_TOP_LEFT =
-  "browser-responsive-resize-corner-top-left";
+    "browser-responsive-resize-corner-top-left";
 /** 浏览器自由尺寸右上角拖拽区 */
 export const TID_BROWSER_RESPONSIVE_RESIZE_CORNER_TOP_RIGHT =
-  "browser-responsive-resize-corner-top-right";
+    "browser-responsive-resize-corner-top-right";
 /** 浏览器自由尺寸左下角拖拽区 */
 export const TID_BROWSER_RESPONSIVE_RESIZE_CORNER_BOTTOM_LEFT =
-  "browser-responsive-resize-corner-bottom-left";
+    "browser-responsive-resize-corner-bottom-left";
 /** 浏览器自由尺寸右下角拖拽区 */
 export const TID_BROWSER_RESPONSIVE_RESIZE_CORNER = "browser-responsive-resize-corner";
 /** 浏览器网页元素选择按钮 */
@@ -346,7 +346,7 @@ export const TID_CHAT_MESSAGE_EDIT_CANCEL = "chat-message-edit-cancel";
 export const TID_CHAT_MESSAGE_FORK_BUTTON = "chat-message-fork-button";
 /** 聊天变更摘要撤销/重新应用按钮（动态后缀为 messageId） */
 export const TID_CHAT_CHANGE_SUMMARY_TOGGLE_FILES_BUTTON =
-  "chat-change-summary-toggle-files-button";
+    "chat-change-summary-toggle-files-button";
 /** 聊天输入框前缀提示面板 */
 export const TID_PROMPT_SUGGESTION_PANEL = "prompt-suggestion-panel";
 /** 聊天输入框前缀提示分组（动态后缀为分组 id） */
@@ -409,7 +409,7 @@ export const TID_RESOURCE_MANAGER_STORAGE_CATEGORY_ROW = "resource-manager-stora
 export const TID_RESOURCE_MANAGER_STORAGE_CATEGORY_SIZE = "resource-manager-storage-category-size";
 /** 资源管理器「存储」tab：类别清理按钮（suffix=categoryId） */
 export const TID_RESOURCE_MANAGER_STORAGE_CATEGORY_CLEAN =
-  "resource-manager-storage-category-clean";
+    "resource-manager-storage-category-clean";
 /** 资源管理器「存储」tab：类别明细视图 */
 export const TID_RESOURCE_MANAGER_STORAGE_DETAIL = "resource-manager-storage-detail";
 /** 资源管理器「存储」tab：明细返回按钮 */
@@ -418,13 +418,13 @@ export const TID_RESOURCE_MANAGER_STORAGE_DETAIL_BACK = "resource-manager-storag
 export const TID_RESOURCE_MANAGER_STORAGE_DETAIL_ENTRY = "resource-manager-storage-detail-entry";
 /** 资源管理器「存储」tab：清理确认框 */
 export const TID_RESOURCE_MANAGER_STORAGE_CONFIRM_DIALOG =
-  "resource-manager-storage-confirm-dialog";
+    "resource-manager-storage-confirm-dialog";
 /** 资源管理器「存储」tab：清理确认框确认按钮 */
 export const TID_RESOURCE_MANAGER_STORAGE_CONFIRM_ACCEPT =
-  "resource-manager-storage-confirm-accept";
+    "resource-manager-storage-confirm-accept";
 /** 资源管理器「存储」tab：清理确认框取消按钮 */
 export const TID_RESOURCE_MANAGER_STORAGE_CONFIRM_CANCEL =
-  "resource-manager-storage-confirm-cancel";
+    "resource-manager-storage-confirm-cancel";
 /** Memory 设置模块中的总开关 */
 export const TID_SETTINGS_MEMORY_SWITCH = "settings-memory-switch";
 /** Memory 设置模块刷新按钮 */
@@ -460,7 +460,7 @@ export const TID_SETTINGS_MEMORY_FILE_EDITOR_ACTIONS = "settings-memory-file-edi
 export const TID_SETTINGS_MEMORY_PREVIEW = "settings-memory-preview";
 /** 常规设置中的 AskUserQuestion 自动继续开关 */
 export const TID_SETTINGS_ASK_USER_QUESTION_AUTO_RESOLUTION_SWITCH =
-  "settings-ask-user-question-auto-resolution-switch";
+    "settings-ask-user-question-auto-resolution-switch";
 /** 设置页通用分区的界面语言下拉触发器 */
 export const TID_SETTINGS_LOCALE_SELECT_TRIGGER = "settings-locale-select-trigger";
 /** 设置页通用分区的界面语言下拉项（动态后缀为 locale preference） */
@@ -495,9 +495,9 @@ export const TID_MODEL_PROVIDER_NAV_ITEM = "model-provider-nav-item";
 export const TID_MODEL_PROVIDER_CONNECTION_MODE_TRIGGER = "model-provider-connection-mode-trigger";
 /** 设置页已有 Start Plan 的数量快捷入口。 */
 export const TID_MODEL_PROVIDER_START_PLAN_COUNT_SHORTCUT =
-  "model-provider-start-plan-count-shortcut";
+    "model-provider-start-plan-count-shortcut";
 export const TID_MODEL_PROVIDER_START_PLAN_SWITCH_PREFIX =
-  "model-provider-start-plan-switch-prefix";
+    "model-provider-start-plan-switch-prefix";
 /** 模型供应商连接方式下拉项（动态后缀为连接方式 key） */
 export const TID_MODEL_PROVIDER_CONNECTION_MODE_ITEM = "model-provider-connection-mode-item";
 /** 模型供应商详情 API Key 输入框 */
@@ -630,7 +630,7 @@ export const TID_V4_EDIT_REWIND_WORKSPACE = "v4-edit-rewind-workspace";
 export const TID_V4_EDIT_WORKSPACE_CONFLICT_DIALOG = "v4-edit-workspace-conflict-dialog";
 /** v4 edit 文件冲突后降级为仅裁剪对话 */
 export const TID_V4_EDIT_WORKSPACE_CONFLICT_CONVERSATION_ONLY =
-  "v4-edit-workspace-conflict-conversation-only";
+    "v4-edit-workspace-conflict-conversation-only";
 /** v4 queue 面板容器 */
 export const TID_V4_QUEUE = "v4-queue";
 /** v4 暂停队列原因/恢复提示条 */
@@ -773,7 +773,7 @@ export const TID_CONFIRM_DIALOG_CONFIRM = "confirm-dialog-confirm";
 
 /** 为动态元素生成带后缀的 testid，如 file-tree-item-/home/user */
 export function testId(base: string, suffix: string): string {
-  return `${base}-${suffix}`;
+    return `${base}-${suffix}`;
 }
 
 /**
@@ -781,8 +781,8 @@ export function testId(base: string, suffix: string): string {
  * files-<index>）。右键菜单里 create-task 与 files-* 带 `context-` 前缀，和更多菜单区分。
  */
 export function virtualProjectActionTestId(actionId: string, context = false): string {
-  const scoped = context && (actionId.startsWith("files-") || actionId === "create-task");
-  return `${TID_VIRTUAL_PROJECT_ACTION_PREFIX}-${scoped ? "context-" : ""}${actionId}`;
+    const scoped = context && (actionId.startsWith("files-") || actionId === "create-task");
+    return `${TID_VIRTUAL_PROJECT_ACTION_PREFIX}-${scoped ? "context-" : ""}${actionId}`;
 }
 
 /** 左侧栏头像上方的可手动领取 Start Plan banner。 */

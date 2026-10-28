@@ -1,8 +1,8 @@
 import type { ZCodeTaskMeta } from "@zcode/shared";
 import type {
-  PendingInteractionSummary,
-  SessionSummary,
-  SessionWorkflowActivity,
+    PendingInteractionSummary,
+    SessionSummary,
+    SessionWorkflowActivity,
 } from "@zcode/shared/zcode-protocol-v4";
 
 // UI-only sidecar：不进入 shared task meta/schema，也不写回 tasks-index。
@@ -10,37 +10,37 @@ import type {
 export const TASK_LIST_ROW_ACTIVITY_FIELD = "__zcodeSessionActivity" as const;
 
 export interface TaskListRowActivity {
-  phase: SessionSummary["phase"];
-  lastActivityAt: number;
-  hasBackgroundWork: boolean;
-  pendingInteractions?: PendingInteractionSummary;
-  /** 侧栏工作流运行行的数据；无 run 时缺席。 */
-  workflowActivity?: SessionWorkflowActivity;
+    phase: SessionSummary["phase"];
+    lastActivityAt: number;
+    hasBackgroundWork: boolean;
+    pendingInteractions?: PendingInteractionSummary;
+    /** 侧栏工作流运行行的数据；无 run 时缺席。 */
+    workflowActivity?: SessionWorkflowActivity;
 }
 
 export type TaskListMetaWithActivity = ZCodeTaskMeta & {
-  [TASK_LIST_ROW_ACTIVITY_FIELD]: TaskListRowActivity;
+    [TASK_LIST_ROW_ACTIVITY_FIELD]: TaskListRowActivity;
 };
 
 export function attachTaskListRowActivity<T extends ZCodeTaskMeta>(
-  task: T,
-  activity: TaskListRowActivity,
+    task: T,
+    activity: TaskListRowActivity,
 ): T & TaskListMetaWithActivity {
-  return {
-    ...task,
-    [TASK_LIST_ROW_ACTIVITY_FIELD]: activity,
-  };
+    return {
+        ...task,
+        [TASK_LIST_ROW_ACTIVITY_FIELD]: activity,
+    };
 }
 
 export function getTaskListRowActivity(task: ZCodeTaskMeta): TaskListRowActivity | null {
-  const activity = (task as Partial<TaskListMetaWithActivity>)[TASK_LIST_ROW_ACTIVITY_FIELD];
-  return activity ?? null;
+    const activity = (task as Partial<TaskListMetaWithActivity>)[TASK_LIST_ROW_ACTIVITY_FIELD];
+    return activity ?? null;
 }
 
 /** 只采信 sessions-index 的实时 phase；tasks-index 残留 status=running 不能置顶历史任务。 */
 export function isTaskListRowRunning(task: ZCodeTaskMeta): boolean {
-  const phase = getTaskListRowActivity(task)?.phase;
-  return phase === "prewarming" || phase === "running";
+    const phase = getTaskListRowActivity(task)?.phase;
+    return phase === "prewarming" || phase === "running";
 }
 
 /**
@@ -52,47 +52,47 @@ export function isTaskListRowRunning(task: ZCodeTaskMeta): boolean {
  * 转圈图标仍只认 phase（isTaskListRowRunning），这里只决定排序层。
  */
 export function isTaskListRowActive(task: ZCodeTaskMeta): boolean {
-  return isTaskListRowRunning(task) || getTaskListRowActivity(task)?.hasBackgroundWork === true;
+    return isTaskListRowRunning(task) || getTaskListRowActivity(task)?.hasBackgroundWork === true;
 }
 
 export function getTaskListAttention(
-  task: ZCodeTaskMeta,
+    task: ZCodeTaskMeta,
 ): { kind: "permission" | "userInput"; count: number } | null {
-  const summary = getTaskListRowActivity(task)?.pendingInteractions;
-  if (!summary) {
-    return null;
-  }
-  const count = summary.permissionCount + summary.userInputCount;
-  if (count === 0) {
-    return null;
-  }
-  return {
-    kind: summary.userInputCount > 0 ? "userInput" : "permission",
-    count,
-  };
+    const summary = getTaskListRowActivity(task)?.pendingInteractions;
+    if (!summary) {
+        return null;
+    }
+    const count = summary.permissionCount + summary.userInputCount;
+    if (count === 0) {
+        return null;
+    }
+    return {
+        kind: summary.userInputCount > 0 ? "userInput" : "permission",
+        count,
+    };
 }
 
 export function mergeTaskListMembershipFields(
-  activityTask: ZCodeTaskMeta,
-  membershipTask: ZCodeTaskMeta,
+    activityTask: ZCodeTaskMeta,
+    membershipTask: ZCodeTaskMeta,
 ): ZCodeTaskMeta {
-  const activity = getTaskListRowActivity(activityTask);
-  if (!activity) {
-    return membershipTask;
-  }
-  const membershipOwnsUnreadAt = Object.prototype.hasOwnProperty.call(membershipTask, "unreadAt");
-  // rename/pin/archive/unread 的 tasks-index 响应会携带自己的 updatedAt/status，
-  // 但侧栏 activity 与 Updated 排序只属于 sessions-index。mutation 只能覆盖 membership/meta
-  // 字段，不能把整行替换后让任务无真实活动却跳序或丢掉实时 phase。
-  return attachTaskListRowActivity(
-    {
-      ...activityTask,
-      ...membershipTask,
-      createdAt: activityTask.createdAt,
-      updatedAt: activity.lastActivityAt,
-      status: activityTask.status,
-      unreadAt: membershipOwnsUnreadAt ? membershipTask.unreadAt : activityTask.unreadAt,
-    },
-    activity,
-  );
+    const activity = getTaskListRowActivity(activityTask);
+    if (!activity) {
+        return membershipTask;
+    }
+    const membershipOwnsUnreadAt = Object.prototype.hasOwnProperty.call(membershipTask, "unreadAt");
+    // rename/pin/archive/unread 的 tasks-index 响应会携带自己的 updatedAt/status，
+    // 但侧栏 activity 与 Updated 排序只属于 sessions-index。mutation 只能覆盖 membership/meta
+    // 字段，不能把整行替换后让任务无真实活动却跳序或丢掉实时 phase。
+    return attachTaskListRowActivity(
+        {
+            ...activityTask,
+            ...membershipTask,
+            createdAt: activityTask.createdAt,
+            updatedAt: activity.lastActivityAt,
+            status: activityTask.status,
+            unreadAt: membershipOwnsUnreadAt ? membershipTask.unreadAt : activityTask.unreadAt,
+        },
+        activity,
+    );
 }

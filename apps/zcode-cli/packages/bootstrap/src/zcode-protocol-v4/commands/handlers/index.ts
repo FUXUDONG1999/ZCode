@@ -14,17 +14,17 @@ import { assistantFeedbackHandlers } from "./assistant-feedback.js";
 import { highspeedMetricsHandlers } from "./highspeed-metrics.js";
 
 export const NATIVE_HANDLERS = {
-  ...sessionFlowHandlers,
-  ...queueHandlers,
-  ...sessionMgmtHandlers,
-  ...selectionSideSessionHandlers,
-  ...goalCompactHandlers,
-  ...modelConfigHandlers,
-  ...interactionBackgroundHandlers,
-  ...forkEditRetryHandlers,
-  ...fileRewindHandlers,
-  ...assistantFeedbackHandlers,
-  ...highspeedMetricsHandlers,
+    ...sessionFlowHandlers,
+    ...queueHandlers,
+    ...sessionMgmtHandlers,
+    ...selectionSideSessionHandlers,
+    ...goalCompactHandlers,
+    ...modelConfigHandlers,
+    ...interactionBackgroundHandlers,
+    ...forkEditRetryHandlers,
+    ...fileRewindHandlers,
+    ...assistantFeedbackHandlers,
+    ...highspeedMetricsHandlers,
 } as const;
 
 export type NativeCommandType = keyof typeof NATIVE_HANDLERS;

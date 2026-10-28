@@ -1,40 +1,46 @@
 import path from "node:path";
 
 type TemplateInput = {
-  compileSdk: number;
-  minSdk: number;
-  name: string;
-  pkg: string;
+    compileSdk: number;
+    minSdk: number;
+    name: string;
+    pkg: string;
 };
 
 type TemplateFile = {
-  body: (input: TemplateInput) => string;
-  path: string;
+    body: (input: TemplateInput) => string;
+    path: string;
 };
 
 export function templateFiles(root: string, pkg: string, sdk?: string): TemplateFile[] {
-  const pkgDir = pkg.replaceAll(".", "/");
-  return [
-    { path: path.join(root, "settings.gradle.kts"), body: settings },
-    { path: path.join(root, "build.gradle.kts"), body: rootBuild },
-    { path: path.join(root, "gradle.properties"), body: gradleProperties },
-    ...(sdk
-      ? [{ path: path.join(root, "local.properties"), body: () => localProperties(sdk) }]
-      : []),
-    { path: path.join(root, "gradle", "libs.versions.toml"), body: versions },
-    { path: path.join(root, "app", "build.gradle.kts"), body: appBuild },
-    { path: path.join(root, "app", "src", "main", "AndroidManifest.xml"), body: manifest },
-    { path: path.join(root, "app", "src", "main", "res", "values", "strings.xml"), body: strings },
-    { path: path.join(root, "app", "src", "main", "res", "values", "styles.xml"), body: styles },
-    {
-      path: path.join(root, "app", "src", "main", "java", pkgDir, "MainActivity.kt"),
-      body: activity,
-    },
-  ];
+    const pkgDir = pkg.replaceAll(".", "/");
+    return [
+        { path: path.join(root, "settings.gradle.kts"), body: settings },
+        { path: path.join(root, "build.gradle.kts"), body: rootBuild },
+        { path: path.join(root, "gradle.properties"), body: gradleProperties },
+        ...(sdk
+            ? [{ path: path.join(root, "local.properties"), body: () => localProperties(sdk) }]
+            : []),
+        { path: path.join(root, "gradle", "libs.versions.toml"), body: versions },
+        { path: path.join(root, "app", "build.gradle.kts"), body: appBuild },
+        { path: path.join(root, "app", "src", "main", "AndroidManifest.xml"), body: manifest },
+        {
+            path: path.join(root, "app", "src", "main", "res", "values", "strings.xml"),
+            body: strings,
+        },
+        {
+            path: path.join(root, "app", "src", "main", "res", "values", "styles.xml"),
+            body: styles,
+        },
+        {
+            path: path.join(root, "app", "src", "main", "java", pkgDir, "MainActivity.kt"),
+            body: activity,
+        },
+    ];
 }
 
 function settings(input: TemplateInput) {
-  return `pluginManagement {
+    return `pluginManagement {
     repositories {
         google()
         mavenCentral()
@@ -56,7 +62,7 @@ include(":app")
 }
 
 function rootBuild() {
-  return `plugins {
+    return `plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.compose) apply false
@@ -65,19 +71,19 @@ function rootBuild() {
 }
 
 function gradleProperties() {
-  return `android.useAndroidX=true
+    return `android.useAndroidX=true
 android.nonTransitiveRClass=true
 org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
 `;
 }
 
 function localProperties(sdk: string) {
-  return `sdk.dir=${sdk.replaceAll("\\", "\\\\")}
+    return `sdk.dir=${sdk.replaceAll("\\", "\\\\")}
 `;
 }
 
 function versions() {
-  return `[versions]
+    return `[versions]
 agp = "8.7.3"
 kotlin = "2.0.21"
 coreKtx = "1.15.0"
@@ -100,7 +106,7 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 }
 
 function appBuild(input: TemplateInput) {
-  return `plugins {
+    return `plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -131,7 +137,7 @@ dependencies {
 }
 
 function manifest() {
-  return `<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    return `<manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
@@ -151,21 +157,21 @@ function manifest() {
 }
 
 function strings(input: TemplateInput) {
-  return `<resources>
+    return `<resources>
     <string name="app_name">${input.name}</string>
 </resources>
 `;
 }
 
 function styles() {
-  return `<resources>
+    return `<resources>
     <style name="AppTheme" parent="android:style/Theme.Material.Light.NoActionBar" />
 </resources>
 `;
 }
 
 function activity(input: TemplateInput) {
-  return `package ${input.pkg}
+    return `package ${input.pkg}
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

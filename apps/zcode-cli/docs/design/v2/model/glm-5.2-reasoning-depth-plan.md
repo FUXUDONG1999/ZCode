@@ -42,38 +42,42 @@ Add to `tests/model-default-policy.test.ts` (top-level, after the existing `cons
 
 ```ts
 import {
-  ONE_MILLION_CONTEXT_WINDOW,
-  applyModelCapabilityDefaults,
-  createGlm52Reasoning,
-  createGlm52AnthropicReasoning,
+    ONE_MILLION_CONTEXT_WINDOW,
+    applyModelCapabilityDefaults,
+    createGlm52Reasoning,
+    createGlm52AnthropicReasoning,
 } from "../src/model/default-policy.js";
 
 const glm52OpenAiReasoning = {
-  defaultLevel: "max",
-  enabled: true,
-  levels: ["max", "high", "nothink"],
-  providerOptionsByLevel: {
-    max: {
-      openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "max" } } },
+    defaultLevel: "max",
+    enabled: true,
+    levels: ["max", "high", "nothink"],
+    providerOptionsByLevel: {
+        max: {
+            openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "max" } } },
+        },
+        high: {
+            openaiCompatible: {
+                extra_body: { chat_template_kwargs: { reasoning_effort: "high" } },
+            },
+        },
+        nothink: {
+            openaiCompatible: { extra_body: { chat_template_kwargs: { enable_thinking: false } } },
+        },
     },
-    high: {
-      openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "high" } } },
-    },
-    nothink: {
-      openaiCompatible: { extra_body: { chat_template_kwargs: { enable_thinking: false } } },
-    },
-  },
 };
 
 const glm52AnthropicReasoning = {
-  defaultLevel: "max",
-  enabled: true,
-  levels: ["max", "high", "nothink"],
-  providerOptionsByLevel: {
-    max: { anthropic: { effort: "max", thinking: { budgetTokens: 32_000, type: "enabled" } } },
-    high: { anthropic: { effort: "high", thinking: { budgetTokens: 16_000, type: "enabled" } } },
-    nothink: { anthropic: { thinking: { type: "disabled" } } },
-  },
+    defaultLevel: "max",
+    enabled: true,
+    levels: ["max", "high", "nothink"],
+    providerOptionsByLevel: {
+        max: { anthropic: { effort: "max", thinking: { budgetTokens: 32_000, type: "enabled" } } },
+        high: {
+            anthropic: { effort: "high", thinking: { budgetTokens: 16_000, type: "enabled" } },
+        },
+        nothink: { anthropic: { thinking: { type: "disabled" } } },
+    },
 };
 ```
 
@@ -81,8 +85,8 @@ Then add this test inside `describe("model default policy", ...)`:
 
 ```ts
 it("builds GLM-5.2 reasoning factories for both transports", () => {
-  expect(createGlm52Reasoning()).toEqual(glm52OpenAiReasoning);
-  expect(createGlm52AnthropicReasoning()).toEqual(glm52AnthropicReasoning);
+    expect(createGlm52Reasoning()).toEqual(glm52OpenAiReasoning);
+    expect(createGlm52AnthropicReasoning()).toEqual(glm52AnthropicReasoning);
 });
 ```
 
@@ -100,78 +104,80 @@ export const GLM_5_2_MAX_LEVEL = "max";
 export const GLM_5_2_HIGH_LEVEL = "high";
 export const GLM_5_2_NOTHINK_LEVEL = "nothink";
 export const GLM_5_2_REASONING_LEVELS = [
-  GLM_5_2_MAX_LEVEL,
-  GLM_5_2_HIGH_LEVEL,
-  GLM_5_2_NOTHINK_LEVEL,
+    GLM_5_2_MAX_LEVEL,
+    GLM_5_2_HIGH_LEVEL,
+    GLM_5_2_NOTHINK_LEVEL,
 ];
 export const GLM_5_2_REASONING_DEFAULT_LEVEL = GLM_5_2_MAX_LEVEL;
 
 const GLM_5_2_ANTHROPIC_BUDGET_TOKENS_BY_LEVEL: Record<string, number> = {
-  [GLM_5_2_MAX_LEVEL]: 32_000,
-  [GLM_5_2_HIGH_LEVEL]: 16_000,
+    [GLM_5_2_MAX_LEVEL]: 32_000,
+    [GLM_5_2_HIGH_LEVEL]: 16_000,
 };
 
 export function createGlm52Reasoning(): NonNullable<ModelCapability["reasoning"]> {
-  return {
-    defaultLevel: GLM_5_2_REASONING_DEFAULT_LEVEL,
-    enabled: true,
-    levels: [...GLM_5_2_REASONING_LEVELS],
-    providerOptionsByLevel: createGlm52ReasoningProviderOptions(),
-  };
+    return {
+        defaultLevel: GLM_5_2_REASONING_DEFAULT_LEVEL,
+        enabled: true,
+        levels: [...GLM_5_2_REASONING_LEVELS],
+        providerOptionsByLevel: createGlm52ReasoningProviderOptions(),
+    };
 }
 
 export function createGlm52AnthropicReasoning(): NonNullable<ModelCapability["reasoning"]> {
-  return {
-    defaultLevel: GLM_5_2_REASONING_DEFAULT_LEVEL,
-    enabled: true,
-    levels: [...GLM_5_2_REASONING_LEVELS],
-    providerOptionsByLevel: createGlm52AnthropicReasoningProviderOptions(),
-  };
+    return {
+        defaultLevel: GLM_5_2_REASONING_DEFAULT_LEVEL,
+        enabled: true,
+        levels: [...GLM_5_2_REASONING_LEVELS],
+        providerOptionsByLevel: createGlm52AnthropicReasoningProviderOptions(),
+    };
 }
 
 export function createGlm52ReasoningProviderOptions(): Record<string, Record<string, unknown>> {
-  return {
-    [GLM_5_2_MAX_LEVEL]: {
-      openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "max" } } },
-    },
-    [GLM_5_2_HIGH_LEVEL]: {
-      openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "high" } } },
-    },
-    [GLM_5_2_NOTHINK_LEVEL]: {
-      openaiCompatible: { extra_body: { chat_template_kwargs: { enable_thinking: false } } },
-    },
-  };
+    return {
+        [GLM_5_2_MAX_LEVEL]: {
+            openaiCompatible: { extra_body: { chat_template_kwargs: { reasoning_effort: "max" } } },
+        },
+        [GLM_5_2_HIGH_LEVEL]: {
+            openaiCompatible: {
+                extra_body: { chat_template_kwargs: { reasoning_effort: "high" } },
+            },
+        },
+        [GLM_5_2_NOTHINK_LEVEL]: {
+            openaiCompatible: { extra_body: { chat_template_kwargs: { enable_thinking: false } } },
+        },
+    };
 }
 
 export function createGlm52AnthropicReasoningProviderOptions(): Record<
-  string,
-  Record<string, unknown>
+    string,
+    Record<string, unknown>
 > {
-  return {
-    [GLM_5_2_MAX_LEVEL]: {
-      anthropic: {
-        effort: GLM_5_2_MAX_LEVEL,
-        thinking: {
-          budgetTokens: GLM_5_2_ANTHROPIC_BUDGET_TOKENS_BY_LEVEL[GLM_5_2_MAX_LEVEL],
-          type: "enabled",
+    return {
+        [GLM_5_2_MAX_LEVEL]: {
+            anthropic: {
+                effort: GLM_5_2_MAX_LEVEL,
+                thinking: {
+                    budgetTokens: GLM_5_2_ANTHROPIC_BUDGET_TOKENS_BY_LEVEL[GLM_5_2_MAX_LEVEL],
+                    type: "enabled",
+                },
+            },
         },
-      },
-    },
-    [GLM_5_2_HIGH_LEVEL]: {
-      anthropic: {
-        effort: GLM_5_2_HIGH_LEVEL,
-        thinking: {
-          budgetTokens: GLM_5_2_ANTHROPIC_BUDGET_TOKENS_BY_LEVEL[GLM_5_2_HIGH_LEVEL],
-          type: "enabled",
+        [GLM_5_2_HIGH_LEVEL]: {
+            anthropic: {
+                effort: GLM_5_2_HIGH_LEVEL,
+                thinking: {
+                    budgetTokens: GLM_5_2_ANTHROPIC_BUDGET_TOKENS_BY_LEVEL[GLM_5_2_HIGH_LEVEL],
+                    type: "enabled",
+                },
+            },
         },
-      },
-    },
-    [GLM_5_2_NOTHINK_LEVEL]: {
-      anthropic: {
-        thinking: { type: "disabled" },
-      },
-    },
-  };
+        [GLM_5_2_NOTHINK_LEVEL]: {
+            anthropic: {
+                thinking: { type: "disabled" },
+            },
+        },
+    };
 }
 ```
 
@@ -205,31 +211,31 @@ Add inside `describe("model default policy", ...)`:
 
 ```ts
 const glmThinkingToggleReasoning = {
-  defaultLevel: "enabled",
-  enabled: true,
-  levels: ["enabled", "disabled"],
-  providerOptionsByLevel: {
-    enabled: { openaiCompatible: { extra_body: { thinking: { type: "enabled" } } } },
-    disabled: { openaiCompatible: { extra_body: { thinking: { type: "disabled" } } } },
-  },
+    defaultLevel: "enabled",
+    enabled: true,
+    levels: ["enabled", "disabled"],
+    providerOptionsByLevel: {
+        enabled: { openaiCompatible: { extra_body: { thinking: { type: "enabled" } } } },
+        disabled: { openaiCompatible: { extra_body: { thinking: { type: "disabled" } } } },
+    },
 };
 
 it("synthesizes three reasoning depths for GLM-5.2 model ids", () => {
-  const service = new ModelCatalogService({ overrides: {} });
-  service.initialize();
-  expect(service.getCapability("zai", "glm-5.2")?.reasoning).toEqual(glm52OpenAiReasoning);
-  expect(service.getCapability("zai", "glm-5.2-pro")?.reasoning).toEqual(glm52OpenAiReasoning);
-  expect(service.getCapability("zai", "GLM-5.2")?.reasoning).toEqual(glm52OpenAiReasoning);
-  expect(service.getCapability("default-zai", "zai/glm-5.2")?.reasoning).toEqual(
-    glm52OpenAiReasoning,
-  );
+    const service = new ModelCatalogService({ overrides: {} });
+    service.initialize();
+    expect(service.getCapability("zai", "glm-5.2")?.reasoning).toEqual(glm52OpenAiReasoning);
+    expect(service.getCapability("zai", "glm-5.2-pro")?.reasoning).toEqual(glm52OpenAiReasoning);
+    expect(service.getCapability("zai", "GLM-5.2")?.reasoning).toEqual(glm52OpenAiReasoning);
+    expect(service.getCapability("default-zai", "zai/glm-5.2")?.reasoning).toEqual(
+        glm52OpenAiReasoning,
+    );
 });
 
 it("keeps non-5.2 GLM models on the thinking toggle policy", () => {
-  const service = new ModelCatalogService({ overrides: {} });
-  service.initialize();
-  expect(service.getCapability("zai", "glm-4.6")?.reasoning).toEqual(glmThinkingToggleReasoning);
-  expect(service.getCapability("zai", "glm-5.1")?.reasoning).toEqual(glmThinkingToggleReasoning);
+    const service = new ModelCatalogService({ overrides: {} });
+    service.initialize();
+    expect(service.getCapability("zai", "glm-4.6")?.reasoning).toEqual(glmThinkingToggleReasoning);
+    expect(service.getCapability("zai", "glm-5.1")?.reasoning).toEqual(glmThinkingToggleReasoning);
 });
 ```
 
@@ -266,7 +272,7 @@ Expected: FAIL — GLM-5.2 currently resolves to `glmThinkingToggleReasoning`, n
 
 ```ts
 function isGlm52ModelId(modelId: string): boolean {
-  return modelIdCandidates(modelId).some((candidate) => candidate.startsWith("glm-5.2"));
+    return modelIdCandidates(modelId).some((candidate) => candidate.startsWith("glm-5.2"));
 }
 ```
 
@@ -298,52 +304,58 @@ Add this test inside the top-level `describe` in `tests/config.test.ts` (it uses
 
 ```ts
 it("defaults configured Anthropic GLM-5.2 to reasoning depth with native thinking", async () => {
-  const dir = await mkdtemp(join(tmpdir(), "zcode-config-"));
-  const path = join(dir, "config.json");
-  try {
-    await writeFile(
-      path,
-      JSON.stringify({
-        $schema: "https://zcode.ai/schema/config-v2.json",
-        provider: {
-          "provider-auth-zai": {
-            kind: "anthropic",
-            name: "Z.AI",
-            options: {
-              baseURL: "https://open.bigmodel.cn/api/anthropic",
-              apiKey: "secret",
-            },
-            models: {
-              "glm-5.2": { name: "GLM-5.2" },
-            },
-          },
-        },
-        model: { main: "provider-auth-zai/glm-5.2" },
-      }),
-    );
+    const dir = await mkdtemp(join(tmpdir(), "zcode-config-"));
+    const path = join(dir, "config.json");
+    try {
+        await writeFile(
+            path,
+            JSON.stringify({
+                $schema: "https://zcode.ai/schema/config-v2.json",
+                provider: {
+                    "provider-auth-zai": {
+                        kind: "anthropic",
+                        name: "Z.AI",
+                        options: {
+                            baseURL: "https://open.bigmodel.cn/api/anthropic",
+                            apiKey: "secret",
+                        },
+                        models: {
+                            "glm-5.2": { name: "GLM-5.2" },
+                        },
+                    },
+                },
+                model: { main: "provider-auth-zai/glm-5.2" },
+            }),
+        );
 
-    const result = loadFileConfig(path);
+        const result = loadFileConfig(path);
 
-    expect(result.loaded).toBe(true);
-    expect(result.config.modelCatalog?.overrides?.["provider-auth-zai/glm-5.2"]?.reasoning).toEqual(
-      {
-        defaultLevel: "max",
-        enabled: true,
-        levels: ["max", "high", "nothink"],
-        providerOptionsByLevel: {
-          max: {
-            anthropic: { effort: "max", thinking: { budgetTokens: 32_000, type: "enabled" } },
-          },
-          high: {
-            anthropic: { effort: "high", thinking: { budgetTokens: 16_000, type: "enabled" } },
-          },
-          nothink: { anthropic: { thinking: { type: "disabled" } } },
-        },
-      },
-    );
-  } finally {
-    await rm(dir, { force: true, recursive: true });
-  }
+        expect(result.loaded).toBe(true);
+        expect(
+            result.config.modelCatalog?.overrides?.["provider-auth-zai/glm-5.2"]?.reasoning,
+        ).toEqual({
+            defaultLevel: "max",
+            enabled: true,
+            levels: ["max", "high", "nothink"],
+            providerOptionsByLevel: {
+                max: {
+                    anthropic: {
+                        effort: "max",
+                        thinking: { budgetTokens: 32_000, type: "enabled" },
+                    },
+                },
+                high: {
+                    anthropic: {
+                        effort: "high",
+                        thinking: { budgetTokens: 16_000, type: "enabled" },
+                    },
+                },
+                nothink: { anthropic: { thinking: { type: "disabled" } } },
+            },
+        });
+    } finally {
+        await rm(dir, { force: true, recursive: true });
+    }
 });
 ```
 
@@ -360,12 +372,12 @@ Expected: FAIL — without the new branch, the Anthropic GLM-5.2 falls through t
 
 ```ts
 import {
-  DEEPSEEK_V4_MODEL_PREFIX,
-  createDeepSeekV4AnthropicReasoning,
-  createAnthropicThinkingToggleReasoning,
-  createGlm52AnthropicReasoning,
-  createOpenAiCompatibleThinkingToggleReasoning,
-  resolveModelCapabilityDefaults,
+    DEEPSEEK_V4_MODEL_PREFIX,
+    createDeepSeekV4AnthropicReasoning,
+    createAnthropicThinkingToggleReasoning,
+    createGlm52AnthropicReasoning,
+    createOpenAiCompatibleThinkingToggleReasoning,
+    resolveModelCapabilityDefaults,
 } from "../model/default-policy.js";
 ```
 
@@ -373,15 +385,15 @@ import {
 
 ```ts
 if (kind === "anthropic") {
-  if (isDeepSeekV4ConfiguredModelId(modelId)) return createDeepSeekV4AnthropicReasoning();
-  if (isGlm52ConfiguredModelId(modelId)) return createGlm52AnthropicReasoning();
-  if (isThinkingToggleConfiguredModelId(modelId)) return createAnthropicThinkingToggleReasoning();
-  // Bugfix: model-id defaults can be transport-specific. Reusing an
-  // openaiCompatible default for an Anthropic-compatible configured model
-  // makes the UI show thinking enabled while the final request has no
-  // Anthropic thinking field.
-  if (usesAnthropicProviderOptions(defaults.reasoning)) return defaults.reasoning;
-  return createAnthropicThinkingToggleReasoning();
+    if (isDeepSeekV4ConfiguredModelId(modelId)) return createDeepSeekV4AnthropicReasoning();
+    if (isGlm52ConfiguredModelId(modelId)) return createGlm52AnthropicReasoning();
+    if (isThinkingToggleConfiguredModelId(modelId)) return createAnthropicThinkingToggleReasoning();
+    // Bugfix: model-id defaults can be transport-specific. Reusing an
+    // openaiCompatible default for an Anthropic-compatible configured model
+    // makes the UI show thinking enabled while the final request has no
+    // Anthropic thinking field.
+    if (usesAnthropicProviderOptions(defaults.reasoning)) return defaults.reasoning;
+    return createAnthropicThinkingToggleReasoning();
 }
 ```
 
@@ -389,7 +401,7 @@ if (kind === "anthropic") {
 
 ```ts
 function isGlm52ConfiguredModelId(modelId: string): boolean {
-  return modelId.toLowerCase().startsWith("glm-5.2");
+    return modelId.toLowerCase().startsWith("glm-5.2");
 }
 ```
 

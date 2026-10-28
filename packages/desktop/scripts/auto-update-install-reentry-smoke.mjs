@@ -7,8 +7,8 @@ import { _electron } from "playwright-core";
 
 // 真实 macOS 退出时序回归：只替换原生安装器，不接触用户应用、更新缓存或 ShipIt。
 if (process.platform !== "darwin") {
-  console.log("auto-update install reentry smoke: macOS only (skipped)");
-  process.exit(0);
+    console.log("auto-update install reentry smoke: macOS only (skipped)");
+    process.exit(0);
 }
 
 const desktopDir = resolve(import.meta.dirname, "..");
@@ -23,10 +23,10 @@ await mkdir(resolve(artifactDir, "user-data"));
 const entryPath = resolve(artifactDir, "main.cjs");
 
 await build({
-  stdin: {
-    resolveDir: desktopDir,
-    sourcefile: "auto-update-install-reentry-fixture.mjs",
-    contents: `
+    stdin: {
+        resolveDir: desktopDir,
+        sourcefile: "auto-update-install-reentry-fixture.mjs",
+        contents: `
       import { app, BrowserWindow, ipcMain } from "electron";
       import pkg from "electron-updater";
       import { PlatformChannels } from "@zcode/shared";
@@ -122,29 +122,29 @@ await build({
       });
       })().catch((error) => { console.error(error); app.exit(1); });
     `,
-  },
-  outfile: entryPath,
-  bundle: true,
-  platform: "node",
-  format: "cjs",
-  external: ["electron", "electron-updater", "semver"],
-  alias: { "@zcode/shared": resolve(repoRoot, "packages/shared/src/index.ts") },
-  plugins: [
-    {
-      name: "isolated-smoke-logger",
-      setup(buildApi) {
-        buildApi.onResolve({ filter: /^\.\/logger\.js$/ }, (args) => {
-          if (args.importer.endsWith("/src/main/autoUpdater.ts")) {
-            return { path: "logger", namespace: "smoke" };
-          }
-        });
-        buildApi.onLoad({ filter: /.*/, namespace: "smoke" }, () => ({
-          contents:
-            "export const logger = { info: console.log, warn: console.warn, error: console.error };",
-        }));
-      },
     },
-  ],
+    outfile: entryPath,
+    bundle: true,
+    platform: "node",
+    format: "cjs",
+    external: ["electron", "electron-updater", "semver"],
+    alias: { "@zcode/shared": resolve(repoRoot, "packages/shared/src/index.ts") },
+    plugins: [
+        {
+            name: "isolated-smoke-logger",
+            setup(buildApi) {
+                buildApi.onResolve({ filter: /^\.\/logger\.js$/ }, (args) => {
+                    if (args.importer.endsWith("/src/main/autoUpdater.ts")) {
+                        return { path: "logger", namespace: "smoke" };
+                    }
+                });
+                buildApi.onLoad({ filter: /.*/, namespace: "smoke" }, () => ({
+                    contents:
+                        "export const logger = { info: console.log, warn: console.warn, error: console.error };",
+                }));
+            },
+        },
+    ],
 });
 
 const env = { ...process.env };
@@ -152,66 +152,68 @@ delete env.ELECTRON_RUN_AS_NODE;
 let electronApp;
 let output = "";
 try {
-  electronApp = await _electron.launch({
-    executablePath: require("electron"),
-    args: [entryPath],
-    env,
-  });
-  const child = electronApp.process();
-  for (const stream of [child.stdout, child.stderr]) {
-    stream?.on("data", (chunk) => {
-      output += chunk.toString();
+    electronApp = await _electron.launch({
+        executablePath: require("electron"),
+        args: [entryPath],
+        env,
     });
-  }
-  const exited = new Promise((resolveExit, rejectExit) => {
-    child.once("exit", (code, signal) => resolveExit({ code, signal }));
-    child.once("error", rejectExit);
-  });
-  const page = await electronApp.firstWindow();
-  await page.locator("#install").click();
-  if (preparingDownloadFailure) {
-    await page.evaluate(() =>
-      require("electron").ipcRenderer.invoke("smoke-background-download-failure"),
-    );
+    const child = electronApp.process();
+    for (const stream of [child.stdout, child.stderr]) {
+        stream?.on("data", (chunk) => {
+            output += chunk.toString();
+        });
+    }
+    const exited = new Promise((resolveExit, rejectExit) => {
+        child.once("exit", (code, signal) => resolveExit({ code, signal }));
+        child.once("error", rejectExit);
+    });
+    const page = await electronApp.firstWindow();
     await page.locator("#install").click();
-    await page.evaluate(() => require("electron").ipcRenderer.invoke("smoke-finish-preparation"));
-  }
-  const timeout = AbortSignal.timeout(15_000);
-  const result = await Promise.race([
-    exited,
-    new Promise((_, reject) =>
-      timeout.addEventListener(
-        "abort",
-        () => reject(new Error("Electron did not exit after install")),
-        { once: true },
-      ),
-    ),
-  ]);
-  assert.equal(result.code, 0, output);
-  const reportLine = output.split("\n").find((line) => line.startsWith("UPDATE_INSTALL_RESULT="));
-  assert.ok(reportLine, output);
-  const report = JSON.parse(reportLine.slice("UPDATE_INSTALL_RESULT=".length));
-  assert.deepEqual(report, {
-    installCalls: 1,
-    prepareCalls: 1,
-    nativeInstallCalls: nativeInstallError ? 0 : 1,
-    relaunchCalls: nativeInstallError ? 1 : 0,
-    prevented: false,
-    order: [
-      "prepare",
-      ...(preparingDownloadFailure ? ["background-target-locked"] : []),
-      "install-entry",
-      ...(nativeInstallError
-        ? ["native-error", "relaunch", "recovery-exit"]
-        : ["native-staged", "native-install", "before-quit"]),
-    ],
-  });
-  await writeFile(
-    resolve(artifactDir, "result.json"),
-    JSON.stringify({ ...result, ...report }, null, 2),
-  );
-  console.log("auto-update install reentry smoke: PASS", artifactDir);
+    if (preparingDownloadFailure) {
+        await page.evaluate(() =>
+            require("electron").ipcRenderer.invoke("smoke-background-download-failure"),
+        );
+        await page.locator("#install").click();
+        await page.evaluate(() =>
+            require("electron").ipcRenderer.invoke("smoke-finish-preparation"),
+        );
+    }
+    const timeout = AbortSignal.timeout(15_000);
+    const result = await Promise.race([
+        exited,
+        new Promise((_, reject) =>
+            timeout.addEventListener(
+                "abort",
+                () => reject(new Error("Electron did not exit after install")),
+                { once: true },
+            ),
+        ),
+    ]);
+    assert.equal(result.code, 0, output);
+    const reportLine = output.split("\n").find((line) => line.startsWith("UPDATE_INSTALL_RESULT="));
+    assert.ok(reportLine, output);
+    const report = JSON.parse(reportLine.slice("UPDATE_INSTALL_RESULT=".length));
+    assert.deepEqual(report, {
+        installCalls: 1,
+        prepareCalls: 1,
+        nativeInstallCalls: nativeInstallError ? 0 : 1,
+        relaunchCalls: nativeInstallError ? 1 : 0,
+        prevented: false,
+        order: [
+            "prepare",
+            ...(preparingDownloadFailure ? ["background-target-locked"] : []),
+            "install-entry",
+            ...(nativeInstallError
+                ? ["native-error", "relaunch", "recovery-exit"]
+                : ["native-staged", "native-install", "before-quit"]),
+        ],
+    });
+    await writeFile(
+        resolve(artifactDir, "result.json"),
+        JSON.stringify({ ...result, ...report }, null, 2),
+    );
+    console.log("auto-update install reentry smoke: PASS", artifactDir);
 } finally {
-  await writeFile(resolve(artifactDir, "electron.log"), output);
-  await electronApp?.close().catch(() => {});
+    await writeFile(resolve(artifactDir, "electron.log"), output);
+    await electronApp?.close().catch(() => {});
 }

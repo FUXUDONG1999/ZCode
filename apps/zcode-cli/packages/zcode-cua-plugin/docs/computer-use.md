@@ -27,13 +27,13 @@ bootstrap and the actions must be in the **same** cell:
 
 ```js
 const root =
-  process.env.ZCODE_CUA_PLUGIN_ROOT ??
-  process.env.ZCODE_PLUGIN_ROOT ??
-  process.env.CLAUDE_PLUGIN_ROOT;
+    process.env.ZCODE_CUA_PLUGIN_ROOT ??
+    process.env.ZCODE_PLUGIN_ROOT ??
+    process.env.CLAUDE_PLUGIN_ROOT;
 const { join } = await import("node:path");
 const { pathToFileURL } = await import("node:url");
 const { setupComputerUseRuntime } = await import(
-  pathToFileURL(join(root, "scripts", "computer-use-client.mjs")).href
+    pathToFileURL(join(root, "scripts", "computer-use-client.mjs")).href
 );
 await setupComputerUseRuntime({ globals: globalThis });
 
@@ -55,10 +55,10 @@ type SelectionType = "text" | "cursor_before" | "cursor_after";
 type Strategy = "auto" | "a11y" | "event";
 
 type ClickOptions = {
-  mouseButton?: MouseButton;
-  clickCount?: number;
-  modifiers?: string; // "cmd+shift"; macOS cmd, Linux/Windows ctrl
-  strategy?: Strategy;
+    mouseButton?: MouseButton;
+    clickCount?: number;
+    modifiers?: string; // "cmd+shift"; macOS cmd, Linux/Windows ctrl
+    strategy?: Strategy;
 };
 type SelectTextOptions = { prefix?: string; suffix?: string; selectionType?: SelectionType };
 type PasteOptions = { format?: "text" | "md" | "html" };
@@ -67,33 +67,33 @@ type ScrollOptions = { strategy?: Strategy };
 type DragOptions = { modifiers?: string; strategy?: Strategy };
 
 type AXElement = {
-  index: number;
-  kind: string;
-  title: string | null;
-  value: string | null;
-  actions: string[];
+    index: number;
+    kind: string;
+    title: string | null;
+    value: string | null;
+    actions: string[];
 };
 
 interface Target {
-  getAXState(options?: StateOptions): Promise<string>;
-  getScreenshot(options?: ObservationOptions): Promise<Uint8Array>;
-  getAXStateAndScreenshot(options?: StateOptions): Promise<StateAndScreenshot>;
-  elements(): Promise<AXElement[]>;
+    getAXState(options?: StateOptions): Promise<string>;
+    getScreenshot(options?: ObservationOptions): Promise<Uint8Array>;
+    getAXStateAndScreenshot(options?: StateOptions): Promise<StateAndScreenshot>;
+    elements(): Promise<AXElement[]>;
 
-  paste(text: string, options?: PasteOptions): Promise<void>;
-  click(target: number | Vec2, options?: ClickOptions): Promise<void>;
-  drag(from: number | Vec2, to: number | Vec2, options?: DragOptions): Promise<void>;
-  pressKey(key: string, options?: PressKeyOptions): Promise<void>;
-  scroll(
-    target: number | Vec2,
-    direction: Direction,
-    pages?: number,
-    options?: ScrollOptions,
-  ): Promise<void>;
-  selectText(elementIndex: number, text: string, options?: SelectTextOptions): Promise<void>;
-  setValue(elementIndex: number, value: string): Promise<void>;
-  typeText(text: string): Promise<void>;
-  performSecondaryAction(elementIndex: number, action: string): Promise<void>;
+    paste(text: string, options?: PasteOptions): Promise<void>;
+    click(target: number | Vec2, options?: ClickOptions): Promise<void>;
+    drag(from: number | Vec2, to: number | Vec2, options?: DragOptions): Promise<void>;
+    pressKey(key: string, options?: PressKeyOptions): Promise<void>;
+    scroll(
+        target: number | Vec2,
+        direction: Direction,
+        pages?: number,
+        options?: ScrollOptions,
+    ): Promise<void>;
+    selectText(elementIndex: number, text: string, options?: SelectTextOptions): Promise<void>;
+    setValue(elementIndex: number, value: string): Promise<void>;
+    typeText(text: string): Promise<void>;
+    performSecondaryAction(elementIndex: number, action: string): Promise<void>;
 }
 
 interface App extends Target {}
@@ -101,37 +101,37 @@ interface App extends Target {}
 type AppRef = { name?: string; bundle_id?: string; pid?: number; window_id?: number };
 
 type AppInfo = {
-  pid: number;
-  name: string | null;
-  bundle_id: string | null;
-  active: boolean;
+    pid: number;
+    name: string | null;
+    bundle_id: string | null;
+    active: boolean;
 };
 type State = { apps: AppInfo[] };
 
 type AccessStatus = {
-  ready: boolean;
-  accessibility: "granted" | "denied" | "unknown";
-  screenRecording: "granted" | "denied" | "unknown";
-  message?: string;
+    ready: boolean;
+    accessibility: "granted" | "denied" | "unknown";
+    screenRecording: "granted" | "denied" | "unknown";
+    message?: string;
 };
 
 // Every registered tool is a method here, on every platform. See "Tool results"
 // for what a call resolves to.
 type Computer = { readonly target: "mac" | "windows" | "linux" } & Record<
-  string,
-  (args?: object) => Promise<unknown>
+    string,
+    (args?: object) => Promise<unknown>
 >;
 
 declare const agent: {
-  computerUse: {
-    getState(options?: ObservationOptions): Promise<State>;
-    getApp(target: string | AppRef): Promise<App>;
-    listApps(options?: ObservationOptions): Promise<AppInfo[]>;
-    computer: Computer;
+    computerUse: {
+        getState(options?: ObservationOptions): Promise<State>;
+        getApp(target: string | AppRef): Promise<App>;
+        listApps(options?: ObservationOptions): Promise<AppInfo[]>;
+        computer: Computer;
 
-    requestAccess(capabilities?: string[]): Promise<AccessStatus>;
-    stop(reason?: string): Promise<void>;
-  };
+        requestAccess(capabilities?: string[]): Promise<AccessStatus>;
+        stop(reason?: string): Promise<void>;
+    };
 };
 ```
 
@@ -149,13 +149,13 @@ and do not flatten a nested value into the top level:
 ```js
 // right
 await agent.computerUse.computer.get_app_state({
-  app_ref: { bundle_id: "com.apple.Notes" },
-  include_screenshot: true,
+    app_ref: { bundle_id: "com.apple.Notes" },
+    include_screenshot: true,
 });
 // wrong: `app_ref` is missing, so the union for it reports "received undefined"
 await agent.computerUse.computer.get_app_state({
-  bundle_id: "com.apple.Notes",
-  include_screenshot: true,
+    bundle_id: "com.apple.Notes",
+    include_screenshot: true,
 });
 ```
 
@@ -233,13 +233,13 @@ So branch on the shape instead of assuming one:
 
 ```js
 const wins = await agent.computerUse.computer.list_windows({
-  app_ref: { name: "Notes" },
+    app_ref: { name: "Notes" },
 });
 nodeRepl.write(`windows: ${JSON.stringify(wins)}`); // parsed payload
 
 const shot = await agent.computerUse.computer.get_app_state({
-  app_ref: { name: "Notes" },
-  include_screenshot: true,
+    app_ref: { name: "Notes" },
+    include_screenshot: true,
 });
 const image = shot.content.find((block) => block.type === "image"); // envelope
 ```
@@ -387,15 +387,15 @@ when they do not. The fields you act on:
 
 ```js
 try {
-  await app.performSecondaryAction(7, "Show Menu");
+    await app.performSecondaryAction(7, "Show Menu");
 } catch (e) {
-  if (e.code === "ACTION_UNAVAILABLE") {
-    await app.getAXState({ disableDiffing: true }); // the tree lists each element's actions
-  } else if (e.code === "CONTROLLER_BUSY") {
-    nodeRepl.write(`another ZCode Computer Use session owns control: ${e.details.owner}`);
-  } else if (e.actionSent) {
-    await app.getAXState(); // may already have landed; look first
-  } else throw e;
+    if (e.code === "ACTION_UNAVAILABLE") {
+        await app.getAXState({ disableDiffing: true }); // the tree lists each element's actions
+    } else if (e.code === "CONTROLLER_BUSY") {
+        nodeRepl.write(`another ZCode Computer Use session owns control: ${e.details.owner}`);
+    } else if (e.actionSent) {
+        await app.getAXState(); // may already have landed; look first
+    } else throw e;
 }
 ```
 

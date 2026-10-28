@@ -25,26 +25,26 @@ import { stringField } from "./state.js";
  * 同一段回答出现两次。`transcriptText` 对无 parts 的消息回落到 `content`，因此不需要合成 parts。
  */
 export function applyTurnCompleteFallbackResponse(
-  payload: Record<string, unknown>,
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
+    payload: Record<string, unknown>,
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
 ): void {
-  const response = stringField(payload, "response");
-  if (!response || response.trim().length === 0) return;
-  setMessages((current) =>
-    projectedTranscriptHasResponse(current, response)
-      ? current
-      : [...current, { content: response, role: "agent", streamProjected: true }],
-  );
+    const response = stringField(payload, "response");
+    if (!response || response.trim().length === 0) return;
+    setMessages((current) =>
+        projectedTranscriptHasResponse(current, response)
+            ? current
+            : [...current, { content: response, role: "agent", streamProjected: true }],
+    );
 }
 
 export function applyTurnCompleteEvent(
-  payload: Record<string, unknown>,
-  setUsage: React.Dispatch<React.SetStateAction<ModelUsageSummary | undefined>>,
-  setCacheStats: React.Dispatch<React.SetStateAction<CacheStats | undefined>>,
+    payload: Record<string, unknown>,
+    setUsage: React.Dispatch<React.SetStateAction<ModelUsageSummary | undefined>>,
+    setCacheStats: React.Dispatch<React.SetStateAction<CacheStats | undefined>>,
 ): void {
-  const turnUsage = usageFromPayload(payload);
-  if (turnUsage) setUsage(turnUsage);
+    const turnUsage = usageFromPayload(payload);
+    if (turnUsage) setUsage(turnUsage);
 
-  const cacheStats = cacheStatsFromPayload(payload);
-  if (cacheStats) setCacheStats(cacheStats);
+    const cacheStats = cacheStatsFromPayload(payload);
+    if (cacheStats) setCacheStats(cacheStats);
 }

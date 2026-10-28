@@ -1,7 +1,7 @@
 interface SuccessfulPluginEnabledChangeOptions {
-  submit: () => Promise<boolean>;
-  isCurrent: () => boolean;
-  onSuccess: () => void | Promise<void>;
+    submit: () => Promise<boolean>;
+    isCurrent: () => boolean;
+    onSuccess: () => void | Promise<void>;
 }
 
 /**
@@ -11,15 +11,15 @@ interface SuccessfulPluginEnabledChangeOptions {
  * 用户仍会看到一个可以继续授权的过期弹窗，造成“插件未启用但已授权”的分裂状态。
  */
 export async function runAfterSuccessfulPluginEnabledChange({
-  submit,
-  isCurrent,
-  onSuccess,
+    submit,
+    isCurrent,
+    onSuccess,
 }: SuccessfulPluginEnabledChangeOptions): Promise<boolean> {
-  const succeeded = await submit();
-  if (!succeeded || !isCurrent()) {
-    return false;
-  }
+    const succeeded = await submit();
+    if (!succeeded || !isCurrent()) {
+        return false;
+    }
 
-  await onSuccess();
-  return true;
+    await onSuccess();
+    return true;
 }

@@ -22,12 +22,12 @@ import { FACADE_FILE_NAME } from "./dts.js";
 
 /** 注册表一行：facade 容器上的一个成员，映射到 Boundary A 的一个 op。 */
 interface WorldReadRow {
-  /** 声明该成员的 facade 容器名（`declare const files: {...}` 的 `files`）。 */
-  readonly container: string;
-  /** 容器上的成员名（`files.glob` 的 `glob`）。 */
-  readonly member: string;
-  /** Boundary A 的 op 名。与成员名**不必**相同：`git.log` → `"git-log"`。 */
-  readonly op: string;
+    /** 声明该成员的 facade 容器名（`declare const files: {...}` 的 `files`）。 */
+    readonly container: string;
+    /** 容器上的成员名（`files.glob` 的 `glob`）。 */
+    readonly member: string;
+    /** Boundary A 的 op 名。与成员名**不必**相同：`git.log` → `"git-log"`。 */
+    readonly op: string;
 }
 
 /**
@@ -37,17 +37,17 @@ interface WorldReadRow {
  * 所以两者从不相遇（见本模块顶部）。
  */
 export const WORLD_READ_REGISTRY = [
-  { container: "files", member: "glob", op: "glob" },
-  { container: "files", member: "read", op: "read" },
-  { container: "files", member: "grep", op: "grep" },
-  { container: "git", member: "changedFiles", op: "git-changed-files" },
-  { container: "git", member: "diff", op: "git-diff" },
-  { container: "git", member: "status", op: "git-status" },
-  { container: "git", member: "log", op: "git-log" },
-  // world.run：journal 化命令执行。同一张表、同一套
-  // 机制——「读」与「效应」的差别在授权面（编译期字面量 cmd + 确认窗）与 journal 的
-  // 节点种类（world-run），不在站点身份。
-  { container: "world", member: "run", op: "run" },
+    { container: "files", member: "glob", op: "glob" },
+    { container: "files", member: "read", op: "read" },
+    { container: "files", member: "grep", op: "grep" },
+    { container: "git", member: "changedFiles", op: "git-changed-files" },
+    { container: "git", member: "diff", op: "git-diff" },
+    { container: "git", member: "status", op: "git-status" },
+    { container: "git", member: "log", op: "git-log" },
+    // world.run：journal 化命令执行。同一张表、同一套
+    // 机制——「读」与「效应」的差别在授权面（编译期字面量 cmd + 确认窗）与 journal 的
+    // 节点种类（world-run），不在站点身份。
+    { container: "world", member: "run", op: "run" },
 ] as const satisfies readonly WorldReadRow[];
 
 /**
@@ -68,28 +68,28 @@ export type WorldReadOp = (typeof WORLD_READ_REGISTRY)[number]["op"];
  * ⚠ 术语：这里的 artifact 是**用户面产物**，不是引擎内部的顶层返回值。
  */
 export interface ArtifactRow {
-  /** 声明该成员的 facade 容器名（恒为 `artifact`）。 */
-  readonly container: "artifact";
-  /** 容器上的成员名。 */
-  readonly member: string;
-  /** Boundary A 的 op 名（与成员名相同——产物成员没有 `git.log` 那样的撞名史）。 */
-  readonly op: string;
-  /**
-   * 成员族。`content` 是效应（async、经 driver、可拒绝），`preset` 是声明（同步 void、
-   * 不经 driver）。族别决定 lowering 改写成 `publishArtifact` 还是 `declareArtifact`，
-   * 也决定超限走节点拒绝还是 failRun，所以它必须和 op 住在同一行里，而不是在三处各判一次。
-   */
-  readonly family: "content" | "preset";
+    /** 声明该成员的 facade 容器名（恒为 `artifact`）。 */
+    readonly container: "artifact";
+    /** 容器上的成员名。 */
+    readonly member: string;
+    /** Boundary A 的 op 名（与成员名相同——产物成员没有 `git.log` 那样的撞名史）。 */
+    readonly op: string;
+    /**
+     * 成员族。`content` 是效应（async、经 driver、可拒绝），`preset` 是声明（同步 void、
+     * 不经 driver）。族别决定 lowering 改写成 `publishArtifact` 还是 `declareArtifact`，
+     * 也决定超限走节点拒绝还是 failRun，所以它必须和 op 住在同一行里，而不是在三处各判一次。
+     */
+    readonly family: "content" | "preset";
 }
 
 /** 产物注册表。加一个产物种类 = 加一行。 */
 export const ARTIFACT_REGISTRY = [
-  { container: "artifact", member: "file", op: "file", family: "content" },
-  { container: "artifact", member: "markdown", op: "markdown", family: "content" },
-  { container: "artifact", member: "chart", op: "chart", family: "preset" },
-  { container: "artifact", member: "table", op: "table", family: "preset" },
-  { container: "artifact", member: "metrics", op: "metrics", family: "preset" },
-  { container: "artifact", member: "board", op: "board", family: "preset" },
+    { container: "artifact", member: "file", op: "file", family: "content" },
+    { container: "artifact", member: "markdown", op: "markdown", family: "content" },
+    { container: "artifact", member: "chart", op: "chart", family: "preset" },
+    { container: "artifact", member: "table", op: "table", family: "preset" },
+    { container: "artifact", member: "metrics", op: "metrics", family: "preset" },
+    { container: "artifact", member: "board", op: "board", family: "preset" },
 ] as const satisfies readonly ArtifactRow[];
 
 /** 全部产物 op（六个成员）。由注册表推导，故加一行即扩张词汇表。 */
@@ -97,14 +97,14 @@ export type ArtifactOp = (typeof ARTIFACT_REGISTRY)[number]["op"];
 
 /** 内容成员的 op（效应：async、经 driver、返回 `ArtifactRef`）。 */
 export type ArtifactContentOp = Extract<
-  (typeof ARTIFACT_REGISTRY)[number],
-  { family: "content" }
+    (typeof ARTIFACT_REGISTRY)[number],
+    { family: "content" }
 >["op"];
 
 /** 预置成员的 op（声明：同步 void、不经 driver）。 */
 export type ArtifactPresetOp = Extract<
-  (typeof ARTIFACT_REGISTRY)[number],
-  { family: "preset" }
+    (typeof ARTIFACT_REGISTRY)[number],
+    { family: "preset" }
 >["op"];
 
 /**
@@ -115,32 +115,32 @@ export type ArtifactPresetOp = Extract<
  * 失去分派依据。
  */
 function artifactRow(
-  container: string | undefined,
-  member: string,
+    container: string | undefined,
+    member: string,
 ): (typeof ARTIFACT_REGISTRY)[number] | undefined {
-  if (container === undefined) return undefined;
-  return ARTIFACT_REGISTRY.find((row) => row.container === container && row.member === member);
+    if (container === undefined) return undefined;
+    return ARTIFACT_REGISTRY.find((row) => row.container === container && row.member === member);
 }
 
 /** 某 facade symbol 解析到的产物行（按声明容器判定），非产物成员则 undefined。 */
 export function artifactRowOfSymbol(
-  symbol: ts.Symbol | undefined,
+    symbol: ts.Symbol | undefined,
 ): (typeof ARTIFACT_REGISTRY)[number] | undefined {
-  const member = facadeMemberOf(symbol);
-  if (member === undefined) return undefined;
-  return artifactRow(member.container, member.member);
+    const member = facadeMemberOf(symbol);
+    if (member === undefined) return undefined;
+    return artifactRow(member.container, member.member);
 }
 
 /** 某产物 op 属于哪一族。op 由注册表推导，故这里必然命中。 */
 export function artifactFamilyOf(op: ArtifactOp): "content" | "preset" {
-  const row = ARTIFACT_REGISTRY.find((candidate) => candidate.op === op);
-  if (row === undefined) throw new Error(`unknown artifact op: ${op}`);
-  return row.family;
+    const row = ARTIFACT_REGISTRY.find((candidate) => candidate.op === op);
+    if (row === undefined) throw new Error(`unknown artifact op: ${op}`);
+    return row.family;
 }
 
 /** 该 op 是否为预置成员（声明族）。引擎与分析器都据它分派两条完全不同的路径。 */
 export function isArtifactPresetOp(op: string): op is ArtifactPresetOp {
-  return ARTIFACT_REGISTRY.some((row) => row.op === op && row.family === "preset");
+    return ARTIFACT_REGISTRY.some((row) => row.op === op && row.family === "preset");
 }
 
 /**
@@ -172,11 +172,11 @@ type SiteProducingFunction = (typeof SITE_PRODUCING_FUNCTIONS)[number];
  * 非 facade symbol、facade 容器成员、以及 `log` 之类不产生站点的顶层函数都返回 undefined。
  */
 export function siteProducingFunctionOfSymbol(
-  symbol: ts.Symbol | undefined,
+    symbol: ts.Symbol | undefined,
 ): SiteProducingFunction | undefined {
-  const member = facadeMemberOf(symbol);
-  if (member === undefined || member.container !== undefined) return undefined;
-  return SITE_PRODUCING_FUNCTIONS.find((name) => name === member.member);
+    const member = facadeMemberOf(symbol);
+    if (member === undefined || member.container !== undefined) return undefined;
+    return SITE_PRODUCING_FUNCTIONS.find((name) => name === member.member);
 }
 
 /**
@@ -200,9 +200,9 @@ type MarkerFunction = (typeof MARKER_FUNCTIONS)[number];
  * 非标记则 undefined。与 {@link siteProducingFunctionOfSymbol} 同形、刻意不同表。
  */
 export function markerFunctionOfSymbol(symbol: ts.Symbol | undefined): MarkerFunction | undefined {
-  const member = facadeMemberOf(symbol);
-  if (member === undefined || member.container !== undefined) return undefined;
-  return MARKER_FUNCTIONS.find((name) => name === member.member);
+    const member = facadeMemberOf(symbol);
+    if (member === undefined || member.container !== undefined) return undefined;
+    return MARKER_FUNCTIONS.find((name) => name === member.member);
 }
 
 /**
@@ -222,9 +222,9 @@ type ValueFunction = (typeof VALUE_FUNCTIONS)[number];
 
 /** 某 facade symbol 解析到的纯值顶层函数（按声明判定：容器必须缺席），否则 undefined。 */
 export function valueFunctionOfSymbol(symbol: ts.Symbol | undefined): ValueFunction | undefined {
-  const member = facadeMemberOf(symbol);
-  if (member === undefined || member.container !== undefined) return undefined;
-  return VALUE_FUNCTIONS.find((name) => name === member.member);
+    const member = facadeMemberOf(symbol);
+    if (member === undefined || member.container !== undefined) return undefined;
+    return VALUE_FUNCTIONS.find((name) => name === member.member);
 }
 
 /**
@@ -237,9 +237,9 @@ export function valueFunctionOfSymbol(symbol: ts.Symbol | undefined): ValueFunct
  * 集合不带容器，重名会让由它反查出的那个名字变得二义（facade-misuse 的诊断文案会引它）。
  */
 export const SITE_MEMBER_NAMES: ReadonlySet<string> = new Set<string>([
-  ASK_MEMBER.member,
-  ...WORLD_READ_REGISTRY.map((row) => row.member),
-  ...ARTIFACT_REGISTRY.map((row) => row.member),
+    ASK_MEMBER.member,
+    ...WORLD_READ_REGISTRY.map((row) => row.member),
+    ...ARTIFACT_REGISTRY.map((row) => row.member),
 ]);
 
 /**
@@ -247,12 +247,12 @@ export const SITE_MEMBER_NAMES: ReadonlySet<string> = new Set<string>([
  * 一律挂在 facade 容器对象上。
  */
 export function worldReadOp(
-  container: string | undefined,
-  member: string,
+    container: string | undefined,
+    member: string,
 ): WorldReadOp | undefined {
-  if (container === undefined) return undefined;
-  return WORLD_READ_REGISTRY.find((row) => row.container === container && row.member === member)
-    ?.op;
+    if (container === undefined) return undefined;
+    return WORLD_READ_REGISTRY.find((row) => row.container === container && row.member === member)
+        ?.op;
 }
 
 /**
@@ -263,10 +263,10 @@ export function worldReadOp(
  * 而一次没有站点的发布就是一行没有键的 journal 记录——那正是 facade-siting 规则要防的。
  */
 export function isSiteProducing(container: string | undefined, member: string): boolean {
-  if (container === undefined) return SITE_PRODUCING_FUNCTIONS.some((name) => name === member);
-  if (container === ASK_MEMBER.container && member === ASK_MEMBER.member) return true;
-  if (artifactRow(container, member) !== undefined) return true;
-  return worldReadOp(container, member) !== undefined;
+    if (container === undefined) return SITE_PRODUCING_FUNCTIONS.some((name) => name === member);
+    if (container === ASK_MEMBER.container && member === ASK_MEMBER.member) return true;
+    if (artifactRow(container, member) !== undefined) return true;
+    return worldReadOp(container, member) !== undefined;
 }
 
 /**
@@ -279,16 +279,21 @@ export function isSiteProducing(container: string | undefined, member: string): 
  * 取其名字。只认落在 facade `.d.ts` 里的声明——脚本自定义的同名成员一律 undefined。
  */
 export function facadeContainerOf(declaration: ts.Node | undefined): string | undefined {
-  if (declaration === undefined) return undefined;
-  if (declaration.getSourceFile().fileName !== FACADE_FILE_NAME) return undefined;
-  for (let node: ts.Node | undefined = declaration.parent; node !== undefined; node = node.parent) {
-    if (ts.isVariableDeclaration(node)) {
-      return ts.isIdentifier(node.name) ? node.name.text : undefined;
+    if (declaration === undefined) return undefined;
+    if (declaration.getSourceFile().fileName !== FACADE_FILE_NAME) return undefined;
+    for (
+        let node: ts.Node | undefined = declaration.parent;
+        node !== undefined;
+        node = node.parent
+    ) {
+        if (ts.isVariableDeclaration(node)) {
+            return ts.isIdentifier(node.name) ? node.name.text : undefined;
+        }
+        if (ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node))
+            return node.name.text;
+        if (ts.isSourceFile(node)) return undefined;
     }
-    if (ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) return node.name.text;
-    if (ts.isSourceFile(node)) return undefined;
-  }
-  return undefined;
+    return undefined;
 }
 
 /**
@@ -296,18 +301,18 @@ export function facadeContainerOf(declaration: ts.Node | undefined): string | un
  * 容器由该声明向上解析（顶层 facade 函数无容器）。非 facade symbol → undefined。
  */
 export function facadeMemberOf(
-  symbol: ts.Symbol | undefined,
+    symbol: ts.Symbol | undefined,
 ): { container: string | undefined; member: string } | undefined {
-  const declaration = symbol?.declarations?.find(
-    (decl) => decl.getSourceFile().fileName === FACADE_FILE_NAME,
-  );
-  if (declaration === undefined || symbol === undefined) return undefined;
-  return { container: facadeContainerOf(declaration), member: symbol.name };
+    const declaration = symbol?.declarations?.find(
+        (decl) => decl.getSourceFile().fileName === FACADE_FILE_NAME,
+    );
+    if (declaration === undefined || symbol === undefined) return undefined;
+    return { container: facadeContainerOf(declaration), member: symbol.name };
 }
 
 /** 某 facade symbol 解析到的 world-read op（按声明容器判定），非 world-read 则 undefined。 */
 export function worldReadOpOfSymbol(symbol: ts.Symbol | undefined): WorldReadOp | undefined {
-  const member = facadeMemberOf(symbol);
-  if (member === undefined) return undefined;
-  return worldReadOp(member.container, member.member);
+    const member = facadeMemberOf(symbol);
+    if (member === undefined) return undefined;
+    return worldReadOp(member.container, member.member);
 }

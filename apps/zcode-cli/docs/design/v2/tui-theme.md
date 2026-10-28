@@ -54,8 +54,8 @@ terminal-palette themes, and a theme picker are later extensions.
 type TuiThemePreference = "auto" | "dark" | "light";
 
 ui: {
-  locale: UiLocale;
-  theme: TuiThemePreference;
+    locale: UiLocale;
+    theme: TuiThemePreference;
 }
 ```
 
@@ -72,9 +72,9 @@ only persistent user-facing surface:
 
 ```json
 {
-  "ui": {
-    "theme": "auto"
-  }
+    "ui": {
+        "theme": "auto"
+    }
 }
 ```
 
@@ -105,70 +105,70 @@ The built-in themes expose a complete semantic token object:
 
 ```ts
 type TuiThemeTokens = {
-  mode: "dark" | "light";
+    mode: "dark" | "light";
 
-  primary: string;
-  secondary: string;
-  accent: string;
+    primary: string;
+    secondary: string;
+    accent: string;
 
-  error: string;
-  warning: string;
-  success: string;
-  info: string;
+    error: string;
+    warning: string;
+    success: string;
+    info: string;
 
-  text: string;
-  textMuted: string;
-  selectedListItemText: string;
+    text: string;
+    textMuted: string;
+    selectedListItemText: string;
 
-  background: string;
-  backgroundPanel: string;
-  backgroundElement: string;
-  backgroundMenu: string;
-  backgroundMessageUser: string;
+    background: string;
+    backgroundPanel: string;
+    backgroundElement: string;
+    backgroundMenu: string;
+    backgroundMessageUser: string;
 
-  border: string;
-  borderActive: string;
-  borderSubtle: string;
+    border: string;
+    borderActive: string;
+    borderSubtle: string;
 
-  diffAdded: string;
-  diffRemoved: string;
-  diffContext: string;
-  diffHunkHeader: string;
-  diffHighlightAdded: string;
-  diffHighlightRemoved: string;
-  diffAddedBg: string;
-  diffRemovedBg: string;
-  diffContextBg: string;
-  diffLineNumber: string;
-  diffAddedLineNumberBg: string;
-  diffRemovedLineNumberBg: string;
+    diffAdded: string;
+    diffRemoved: string;
+    diffContext: string;
+    diffHunkHeader: string;
+    diffHighlightAdded: string;
+    diffHighlightRemoved: string;
+    diffAddedBg: string;
+    diffRemovedBg: string;
+    diffContextBg: string;
+    diffLineNumber: string;
+    diffAddedLineNumberBg: string;
+    diffRemovedLineNumberBg: string;
 
-  markdownText: string;
-  markdownHeading: string;
-  markdownLink: string;
-  markdownLinkText: string;
-  markdownCode: string;
-  markdownBlockQuote: string;
-  markdownEmph: string;
-  markdownStrong: string;
-  markdownHorizontalRule: string;
-  markdownListItem: string;
-  markdownListEnumeration: string;
-  markdownImage: string;
-  markdownImageText: string;
-  markdownCodeBlock: string;
+    markdownText: string;
+    markdownHeading: string;
+    markdownLink: string;
+    markdownLinkText: string;
+    markdownCode: string;
+    markdownBlockQuote: string;
+    markdownEmph: string;
+    markdownStrong: string;
+    markdownHorizontalRule: string;
+    markdownListItem: string;
+    markdownListEnumeration: string;
+    markdownImage: string;
+    markdownImageText: string;
+    markdownCodeBlock: string;
 
-  syntaxComment: string;
-  syntaxKeyword: string;
-  syntaxFunction: string;
-  syntaxVariable: string;
-  syntaxString: string;
-  syntaxNumber: string;
-  syntaxType: string;
-  syntaxOperator: string;
-  syntaxPunctuation: string;
+    syntaxComment: string;
+    syntaxKeyword: string;
+    syntaxFunction: string;
+    syntaxVariable: string;
+    syntaxString: string;
+    syntaxNumber: string;
+    syntaxType: string;
+    syntaxOperator: string;
+    syntaxPunctuation: string;
 
-  thinkingOpacity: number;
+    thinkingOpacity: number;
 };
 ```
 

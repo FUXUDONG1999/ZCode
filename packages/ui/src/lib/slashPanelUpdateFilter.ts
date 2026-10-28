@@ -7,5 +7,5 @@ import { HISTORY_NAVIGATION_UPDATE_TAG } from "./editorUpdateTags.js";
  * 并吞掉后续的历史翻阅按键。其余更新（用户输入、其他程序化更新）均返回 true。
  */
 export function shouldSlashPanelProcessUpdate(tags: ReadonlySet<string>): boolean {
-  return !tags.has(HISTORY_NAVIGATION_UPDATE_TAG);
+    return !tags.has(HISTORY_NAVIGATION_UPDATE_TAG);
 }

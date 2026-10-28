@@ -23,7 +23,7 @@ If one `getChat(id)` out of 100 is extremely slow, the authors of the other 99 c
 
 ```tsx
 const chatAuthors = await Promise.all(
-  chatIds.map((id) => getChat(id).then((chat) => getUser(chat.author))),
+    chatIds.map((id) => getChat(id).then((chat) => getUser(chat.author))),
 );
 ```
 

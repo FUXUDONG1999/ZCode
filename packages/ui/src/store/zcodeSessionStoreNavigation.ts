@@ -6,23 +6,25 @@
  */
 import { Emitter } from "@zcode/rpc";
 import {
-  createTaskNavigationHistory,
-  goBack as navGoBack,
-  goForward as navGoForward,
-  pushAutomationsNavEntry,
-  pushPluginStoreNavEntry,
-  removeTaskFromHistory,
-  type AutomationsNavigationTab,
-  type WorkspaceNavEntry,
-  type TaskNavEntry,
+    createTaskNavigationHistory,
+    goBack as navGoBack,
+    goForward as navGoForward,
+    pushAutomationsNavEntry,
+    pushPluginStoreNavEntry,
+    removeTaskFromHistory,
+    type AutomationsNavigationTab,
+    type WorkspaceNavEntry,
+    type TaskNavEntry,
 } from "@/lib/taskNavigationHistory.js";
 import type { ZCodeSessionStoreState } from "./zcodeSessionStoreTypes.js";
 
 type SetFn = (
-  partial:
-    | ZCodeSessionStoreState
-    | Partial<ZCodeSessionStoreState>
-    | ((state: ZCodeSessionStoreState) => ZCodeSessionStoreState | Partial<ZCodeSessionStoreState>),
+    partial:
+        | ZCodeSessionStoreState
+        | Partial<ZCodeSessionStoreState>
+        | ((
+              state: ZCodeSessionStoreState,
+          ) => ZCodeSessionStoreState | Partial<ZCodeSessionStoreState>),
 ) => void;
 type GetFn = () => ZCodeSessionStoreState;
 
@@ -30,7 +32,7 @@ type GetFn = () => ZCodeSessionStoreState;
 const taskNavigationCommitted = new Emitter<TaskNavEntry>();
 export const onTaskNavigationCommitted = taskNavigationCommitted.event;
 export function notifyTaskNavigationCommitted(target: Omit<TaskNavEntry, "kind">): void {
-  taskNavigationCommitted.fire({ kind: "task", ...target });
+    taskNavigationCommitted.fire({ kind: "task", ...target });
 }
 
 /**
@@ -38,62 +40,62 @@ export function notifyTaskNavigationCommitted(target: Omit<TaskNavEntry, "kind">
  * `...createNavigationSlice(set, get)`
  */
 export function createNavigationSlice(set: SetFn, get: GetFn) {
-  return {
-    taskNavHistory: createTaskNavigationHistory(),
+    return {
+        taskNavHistory: createTaskNavigationHistory(),
 
-    taskNavPushAutomations: (
-      workspacePath: string,
-      workspaceIdentity?: string,
-      automationId?: string,
-      automationTab?: AutomationsNavigationTab,
-    ) => {
-      set((state) => ({
-        taskNavHistory: pushAutomationsNavEntry(
-          state.taskNavHistory,
-          workspacePath,
-          workspaceIdentity,
-          automationId,
-          automationTab,
-        ),
-      }));
-    },
+        taskNavPushAutomations: (
+            workspacePath: string,
+            workspaceIdentity?: string,
+            automationId?: string,
+            automationTab?: AutomationsNavigationTab,
+        ) => {
+            set((state) => ({
+                taskNavHistory: pushAutomationsNavEntry(
+                    state.taskNavHistory,
+                    workspacePath,
+                    workspaceIdentity,
+                    automationId,
+                    automationTab,
+                ),
+            }));
+        },
 
-    taskNavPushPluginStore: (workspacePath: string, workspaceIdentity?: string) => {
-      set((state) => ({
-        taskNavHistory: pushPluginStoreNavEntry(
-          state.taskNavHistory,
-          workspacePath,
-          workspaceIdentity,
-        ),
-      }));
-    },
+        taskNavPushPluginStore: (workspacePath: string, workspaceIdentity?: string) => {
+            set((state) => ({
+                taskNavHistory: pushPluginStoreNavEntry(
+                    state.taskNavHistory,
+                    workspacePath,
+                    workspaceIdentity,
+                ),
+            }));
+        },
 
-    taskNavGoBack: (): WorkspaceNavEntry | null => {
-      const state = get();
-      const result = navGoBack(state.taskNavHistory);
-      if (!result) {
-        return null;
-      }
+        taskNavGoBack: (): WorkspaceNavEntry | null => {
+            const state = get();
+            const result = navGoBack(state.taskNavHistory);
+            if (!result) {
+                return null;
+            }
 
-      set({ taskNavHistory: result.history });
-      return result.entry;
-    },
+            set({ taskNavHistory: result.history });
+            return result.entry;
+        },
 
-    taskNavGoForward: (): WorkspaceNavEntry | null => {
-      const state = get();
-      const result = navGoForward(state.taskNavHistory);
-      if (!result) {
-        return null;
-      }
+        taskNavGoForward: (): WorkspaceNavEntry | null => {
+            const state = get();
+            const result = navGoForward(state.taskNavHistory);
+            if (!result) {
+                return null;
+            }
 
-      set({ taskNavHistory: result.history });
-      return result.entry;
-    },
+            set({ taskNavHistory: result.history });
+            return result.entry;
+        },
 
-    removeTaskFromNavHistory: (taskId: string) => {
-      set((state) => ({
-        taskNavHistory: removeTaskFromHistory(state.taskNavHistory, taskId),
-      }));
-    },
-  };
+        removeTaskFromNavHistory: (taskId: string) => {
+            set((state) => ({
+                taskNavHistory: removeTaskFromHistory(state.taskNavHistory, taskId),
+            }));
+        },
+    };
 }

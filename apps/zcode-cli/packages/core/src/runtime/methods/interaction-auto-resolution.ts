@@ -1,7 +1,7 @@
 import {
-  SessionEventType,
-  type UserInputAutoResolutionUpdatedPayload,
-  type TraceContext,
+    SessionEventType,
+    type UserInputAutoResolutionUpdatedPayload,
+    type TraceContext,
 } from "../deps.js";
 import type { AgentRuntimeInternal } from "../internal.js";
 
@@ -10,20 +10,20 @@ import type { AgentRuntimeInternal } from "../internal.js";
  * 让 desktop continuous 与 web remote replayable 都恢复同一组绝对时间。
  */
 export async function recordUserInputAutoResolutionUpdate(
-  this: AgentRuntimeInternal,
-  input: UserInputAutoResolutionUpdatedPayload & { traceContext?: TraceContext },
+    this: AgentRuntimeInternal,
+    input: UserInputAutoResolutionUpdatedPayload & { traceContext?: TraceContext },
 ): Promise<void> {
-  const traceContext = input.traceContext ?? this.rootTraceContext;
-  await this.appendEvent(
-    this.createEvent(
-      SessionEventType.UserInputAutoResolutionUpdated,
-      {
-        interactionId: input.interactionId,
-        toolCallId: input.toolCallId,
-        autoResolution: input.autoResolution,
-      } satisfies UserInputAutoResolutionUpdatedPayload,
-      traceContext,
-    ),
-    traceContext,
-  );
+    const traceContext = input.traceContext ?? this.rootTraceContext;
+    await this.appendEvent(
+        this.createEvent(
+            SessionEventType.UserInputAutoResolutionUpdated,
+            {
+                interactionId: input.interactionId,
+                toolCallId: input.toolCallId,
+                autoResolution: input.autoResolution,
+            } satisfies UserInputAutoResolutionUpdatedPayload,
+            traceContext,
+        ),
+        traceContext,
+    );
 }

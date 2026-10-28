@@ -9,23 +9,23 @@ import { getOffPeakExecution } from "../off-peak/runtime.js";
  * 计数必须在 Promise 启动的同一同步片增加，并只在 finally 释放。
  */
 export function trackResidencyBlockingWork<T>(
-  this: AgentRuntimeInternal,
-  work: Promise<T>,
+    this: AgentRuntimeInternal,
+    work: Promise<T>,
 ): Promise<T> {
-  this.residencyBlockingWorkCount += 1;
-  return work.finally(() => {
-    this.residencyBlockingWorkCount = Math.max(0, this.residencyBlockingWorkCount - 1);
-  });
+    this.residencyBlockingWorkCount += 1;
+    return work.finally(() => {
+        this.residencyBlockingWorkCount = Math.max(0, this.residencyBlockingWorkCount - 1);
+    });
 }
 
 /** Session 常驻池只消费这一项，新增 sidecar 时不再修改 bootstrap 的猜测列表。 */
 export function hasResidencyBlockingWork(this: AgentRuntimeInternal): boolean {
-  return (
-    getOffPeakExecution(this)?.lifecycle.terminal === false ||
-    this.hasActiveOrQueuedTurnWork() ||
-    this.hasRunningBackgroundTasks() ||
-    this.residencyBlockingWorkCount > 0 ||
-    (this.memoryExtractionScheduler?.hasPendingWork() ?? false) ||
-    (this.memoryRecallPrefetch !== undefined && !this.memoryRecallPrefetch.settled)
-  );
+    return (
+        getOffPeakExecution(this)?.lifecycle.terminal === false ||
+        this.hasActiveOrQueuedTurnWork() ||
+        this.hasRunningBackgroundTasks() ||
+        this.residencyBlockingWorkCount > 0 ||
+        (this.memoryExtractionScheduler?.hasPendingWork() ?? false) ||
+        (this.memoryRecallPrefetch !== undefined && !this.memoryRecallPrefetch.settled)
+    );
 }

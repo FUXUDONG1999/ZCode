@@ -23,12 +23,12 @@ Initialize at the start of every `mcp__node_repl__js` call that uses the browser
 // 修复原因：Skill base directory 指向 skills/control-browser，不能据此拼接插件运行时资产。
 const browserPluginRoot = process.env.ZCODE_PLUGIN_ROOT ?? process.env.CLAUDE_PLUGIN_ROOT;
 if (!browserPluginRoot) {
-  throw new Error("Browser plugin root is unavailable in the node_repl host");
+    throw new Error("Browser plugin root is unavailable in the node_repl host");
 }
 const { join } = await import("node:path");
 const { pathToFileURL } = await import("node:url");
 const browserClientUrl = pathToFileURL(
-  join(browserPluginRoot, "scripts", "browser-client.mjs"),
+    join(browserPluginRoot, "scripts", "browser-client.mjs"),
 ).href;
 const { setupBrowserRuntime } = await import(browserClientUrl);
 await setupBrowserRuntime({ globals: globalThis });
@@ -97,13 +97,13 @@ Do not slice, truncate, or summarize it. Only if the tool output itself reports 
    stacking a new tab on every navigation. Only when the task genuinely needs a parallel independent tab, create one
    explicitly and use this navigation sequence:
 
-   ```js
-   const tab = await browser.tabs.new();
-   await tab.goto("https://...");
-   await tab.playwright.waitForLoadState({ state: "domcontentloaded" });
-   ```
+    ```js
+    const tab = await browser.tabs.new();
+    await tab.goto("https://...");
+    await tab.playwright.waitForLoadState({ state: "domcontentloaded" });
+    ```
 
-   After every successful `tab.goto(url)`, explicitly call `await tab.playwright.waitForLoadState({ state: "domcontentloaded" })` before the first title, URL, or DOM observation. This explicit confirmation is required in the model-visible trajectory even when the backend navigation has already settled. Do not replace it with `networkidle` or a fixed sleep. Do not navigate to the same URL again; use `tab.reload()` only when a refresh is truly needed. A direct URL must come from the user, visible page facts, or an authoritative lookup — never guess path variants or resource IDs. Routine URL/load-state waits remain capped at 3000ms.
+    After every successful `tab.goto(url)`, explicitly call `await tab.playwright.waitForLoadState({ state: "domcontentloaded" })` before the first title, URL, or DOM observation. This explicit confirmation is required in the model-visible trajectory even when the backend navigation has already settled. Do not replace it with `networkidle` or a fixed sleep. Do not navigate to the same URL again; use `tab.reload()` only when a refresh is truly needed. A direct URL must come from the user, visible page facts, or an authoritative lookup — never guess path variants or resource IDs. Routine URL/load-state waits remain capped at 3000ms.
 
 5. **`await tab.playwright.domSnapshot()` is your primary way to read and understand the page.** It returns the compact AI/ARIA tree, including computed roles, accessible names, states, open shadow DOM, and iframe bodies when available. Reuse the latest relevant snapshot until it becomes stale. If that snapshot already contains the target, act from its facts directly; do not write `evaluate()` code to rediscover related elements, enumerate inputs, dump HTML, or probe guessed selectors.
 6. Build a stable Playwright locator only from snapshot facts. Never guess a label, accessible name, placeholder, selector, or URL pattern, and never use a guessed locator as an exploratory probe. Confirm `count()` when uniqueness is not obvious; if it is 0, re-snapshot immediately instead of action-waiting, and if it is greater than 1, tighten scope instead of using a positional shortcut. Then act through `getByRole/getByText/getByLabel/getByPlaceholder/getByTestId/locator` and terminal methods such as `click/fill/press/selectOption/check`.
@@ -112,15 +112,15 @@ Do not slice, truncate, or summarize it. Only if the tool output itself reports 
 7. After an action, collect the **cheapest observation that answers your next question** — use a targeted locator state check when possible and a fresh `domSnapshot()` when new locator ground truth is needed. Use at most one state-changing action per observation cycle. An unchanged source-tab URL does not prove the click failed. Judge an action by whether its expected effect appeared, not by whether `browser.tabs.list()` is non-empty. An existing source tab or unrelated controlled tab is not an action effect. The expected effect may be a source-page state change or a tab whose verified URL/title matches the intended result.
    When an action may open a popup/new tab and the source tab does not show the expected effect, read `browser.tabs.list()` and `browser.user.openTabs()` unconditionally in the same observation cell. Prefer one combined observation:
 
-   ```js
-   const [controlledTabs, userTabs] = await Promise.all([
-     browser.tabs.list(),
-     browser.user.openTabs(),
-   ]);
-   ({ controlledTabs, userTabs });
-   ```
+    ```js
+    const [controlledTabs, userTabs] = await Promise.all([
+        browser.tabs.list(),
+        browser.user.openTabs(),
+    ]);
+    ({ controlledTabs, userTabs });
+    ```
 
-   Return `{ controlledTabs, userTabs }` as that cell's final result so the model makes one decision from both lists. Do not return the controlled list first or decide whether to query user tabs from its contents. Match both lists by verified id/url/title, then in the next cell activate the matching controlled tab or claim a matching user tab. Only after the source page and the combined tab observation all fail to show the expected effect may you take a fresh snapshot and choose a new locator. **Do not request a DOM snapshot and a screenshot both by default.**
+    Return `{ controlledTabs, userTabs }` as that cell's final result so the model makes one decision from both lists. Do not return the controlled list first or decide whether to query user tabs from its contents. Match both lists by verified id/url/title, then in the next cell activate the matching controlled tab or claim a matching user tab. Only after the source page and the combined tab observation all fail to show the expected effect may you take a fresh snapshot and choose a new locator. **Do not request a DOM snapshot and a screenshot both by default.**
 
 8. Browser tabs persist for the lifetime of the current ZCode process unless you explicitly call `tab.close()` or
    the user closes them. Use `browser.tabs.finalize({ keep })` only to mark listed pages as `deliverable` or

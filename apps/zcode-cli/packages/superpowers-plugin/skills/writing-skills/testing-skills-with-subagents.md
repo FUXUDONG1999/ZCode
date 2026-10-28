@@ -263,18 +263,18 @@ it crystal clear that Option A was the only acceptable answer?
 **Three possible responses:**
 
 1. **"The skill WAS clear, I chose to ignore it"**
-   - Not documentation problem
-   - Need stronger foundational principle
-   - Add "Violating letter is violating spirit"
+    - Not documentation problem
+    - Need stronger foundational principle
+    - Add "Violating letter is violating spirit"
 
 2. **"The skill should have said X"**
-   - Documentation problem
-   - Add their suggestion verbatim
+    - Documentation problem
+    - Add their suggestion verbatim
 
 3. **"I didn't see section Y"**
-   - Organization problem
-   - Make key points more prominent
-   - Add foundational principle early
+    - Organization problem
+    - Make key points more prominent
+    - Add foundational principle early
 
 ## When Skill is Bulletproof
 

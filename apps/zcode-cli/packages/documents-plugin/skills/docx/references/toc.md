@@ -64,13 +64,13 @@ new Paragraph({ children: [new PageBreak()] }),
 ```js
 // ✅ Correct — Heading style, TOC can index
 new Paragraph({
-  heading: HeadingLevel.HEADING_1,
-  children: [new TextRun({ text: "第一章 引言", bold: true, size: 32, color: c(P.primary) })],
+    heading: HeadingLevel.HEADING_1,
+    children: [new TextRun({ text: "第一章 引言", bold: true, size: 32, color: c(P.primary) })],
 });
 
 // ❌ Wrong — manual bold + large font, TOC cannot detect
 new Paragraph({
-  children: [new TextRun({ text: "第一章 引言", bold: true, size: 32, color: c(P.primary) })],
+    children: [new TextRun({ text: "第一章 引言", bold: true, size: 32, color: c(P.primary) })],
 });
 ```
 
@@ -133,43 +133,43 @@ When a document has a TOC, the TOC MUST be in its own section so that body page 
 
 ```js
 sections: [
-  {
-    /* Section 1: Cover — no page number, no footer */
-    properties: {
-      page: { size: pgSize, margin: pgMargin },
-      // ⚠️ Do NOT set page.pageNumbers here — docx-js emits empty <pgNumType/> which confuses WPS
+    {
+        /* Section 1: Cover — no page number, no footer */
+        properties: {
+            page: { size: pgSize, margin: pgMargin },
+            // ⚠️ Do NOT set page.pageNumbers here — docx-js emits empty <pgNumType/> which confuses WPS
+        },
     },
-  },
-  {
-    /* Section 2: Front matter (abstract, TOC) — Roman numerals */
-    properties: {
-      type: SectionType.NEXT_PAGE,
-      page: {
-        size: pgSize,
-        margin: pgMargin,
-        pageNumbers: { start: 1, formatType: NumberFormat.UPPER_ROMAN }, // I, II, III...
-      },
+    {
+        /* Section 2: Front matter (abstract, TOC) — Roman numerals */
+        properties: {
+            type: SectionType.NEXT_PAGE,
+            page: {
+                size: pgSize,
+                margin: pgMargin,
+                pageNumbers: { start: 1, formatType: NumberFormat.UPPER_ROMAN }, // I, II, III...
+            },
+        },
+        footers: { default: pageNumFooter() }, // see footer rules below
+        children: [
+            /* abstract + TOC title + TableOfContents + PageBreak */
+        ],
     },
-    footers: { default: pageNumFooter() }, // see footer rules below
-    children: [
-      /* abstract + TOC title + TableOfContents + PageBreak */
-    ],
-  },
-  {
-    /* Section 3: Body — Arabic numerals starting from 1 */
-    properties: {
-      type: SectionType.NEXT_PAGE,
-      page: {
-        size: pgSize,
-        margin: pgMargin,
-        pageNumbers: { start: 1, formatType: NumberFormat.DECIMAL }, // 1, 2, 3...
-      },
+    {
+        /* Section 3: Body — Arabic numerals starting from 1 */
+        properties: {
+            type: SectionType.NEXT_PAGE,
+            page: {
+                size: pgSize,
+                margin: pgMargin,
+                pageNumbers: { start: 1, formatType: NumberFormat.DECIMAL }, // 1, 2, 3...
+            },
+        },
+        footers: { default: pageNumFooter() },
+        children: [
+            /* body content */
+        ],
     },
-    footers: { default: pageNumFooter() },
-    children: [
-      /* body content */
-    ],
-  },
 ];
 ```
 
@@ -206,8 +206,8 @@ After generating the docx, unzip and patch each footer XML:
 ```js
 // Post-process footer XML:
 footerXml = footerXml.replace(
-  /(<w:instrText[^>]*>)\s*PAGE\s*(<\/w:instrText>)/g,
-  "$1 PAGE \\* ROMAN \\** MERGEFORMAT $2", // or "arabic" for body section
+    /(<w:instrText[^>]*>)\s*PAGE\s*(<\/w:instrText>)/g,
+    "$1 PAGE \\* ROMAN \\** MERGEFORMAT $2", // or "arabic" for body section
 );
 ```
 

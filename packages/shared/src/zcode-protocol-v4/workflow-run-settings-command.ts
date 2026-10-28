@@ -13,17 +13,17 @@ import { WORKFLOW_RUNS_LIMITS } from "./workflow-runs.js";
  * resumeWorkflowRun 同类（workflowRuns 面免 revision）。
  */
 export const amendWorkflowRunSettingsPayloadSchema = z.object({
-  /** ≡ runId，与取消、恢复同一个身份等式。 */
-  workId: z.string(),
-  /** 规范串 `providerId/modelId[$level]`；`null` = 子代理回到会话模型。 */
-  subagentModel: z
-    .string()
-    .min(1)
-    .max(WORKFLOW_RUNS_LIMITS.maxSubagentModelLength)
-    .nullable()
-    .optional(),
-  /** 同时运行的子代理上限；`null` = 解除本 run 自己的界（回到默认并发）。没有上限：高于默认也行。 */
-  maxConcurrency: z.number().int().min(1).nullable().optional(),
+    /** ≡ runId，与取消、恢复同一个身份等式。 */
+    workId: z.string(),
+    /** 规范串 `providerId/modelId[$level]`；`null` = 子代理回到会话模型。 */
+    subagentModel: z
+        .string()
+        .min(1)
+        .max(WORKFLOW_RUNS_LIMITS.maxSubagentModelLength)
+        .nullable()
+        .optional(),
+    /** 同时运行的子代理上限；`null` = 解除本 run 自己的界（回到默认并发）。没有上限：高于默认也行。 */
+    maxConcurrency: z.number().int().min(1).nullable().optional(),
 });
 export type AmendWorkflowRunSettingsPayload = z.infer<typeof amendWorkflowRunSettingsPayloadSchema>;
 
@@ -32,10 +32,10 @@ export type AmendWorkflowRunSettingsPayload = z.infer<typeof amendWorkflowRunSet
  * 联接设置轮的 run 卡与详情页）；`supersededRunId` 只在旧 run 仍在飞、被这次调整停下时在场。
  */
 export const amendWorkflowRunSettingsResultSchema = z.object({
-  type: z.literal("amendWorkflowRunSettings"),
-  runId: z.string().min(1),
-  toolCallId: z.string().min(1),
-  supersededRunId: z.string().min(1).optional(),
+    type: z.literal("amendWorkflowRunSettings"),
+    runId: z.string().min(1),
+    toolCallId: z.string().min(1),
+    supersededRunId: z.string().min(1).optional(),
 });
 
 /**
@@ -44,19 +44,19 @@ export const amendWorkflowRunSettingsResultSchema = z.object({
  * 是命令自己的检查，missing_boundaries 是端口预检，start_failed 是端口缺席或抛错。
  */
 export const workflowRunSettingsRejectionReasonSchema = z.enum([
-  "not_found",
-  "not_configurable",
-  "unchanged",
-  "script_missing",
-  "model_unavailable",
-  "compile_failed",
-  "missing_boundaries",
-  "start_failed",
+    "not_found",
+    "not_configurable",
+    "unchanged",
+    "script_missing",
+    "model_unavailable",
+    "compile_failed",
+    "missing_boundaries",
+    "start_failed",
 ]);
 export type WorkflowRunSettingsRejectionReason = z.infer<
-  typeof workflowRunSettingsRejectionReasonSchema
+    typeof workflowRunSettingsRejectionReasonSchema
 >;
 
 /** 完整 fault code = 前缀 + reason；与 workflowRunResumeRejected 同族。 */
 export const WORKFLOW_RUN_SETTINGS_REJECTED_FAULT_PREFIX =
-  "fault.command.workflowRunSettingsRejected." as const;
+    "fault.command.workflowRunSettingsRejected." as const;

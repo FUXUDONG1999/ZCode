@@ -1,13 +1,13 @@
 import {
-  findMarkdownCodeRanges,
-  overlapsAssistantTextRanges,
-  type AssistantTextRange,
+    findMarkdownCodeRanges,
+    overlapsAssistantTextRanges,
+    type AssistantTextRange,
 } from "@/lib/assistantDirectiveParser.js";
 import { extractZCodeFileCitationDirectives } from "@/lib/zcodeFileCitation.js";
 
 function resolveCitationFileName(path: string): string {
-  const normalizedPath = path.trim().replaceAll("\\", "/");
-  return normalizedPath.split("/").at(-1) ?? normalizedPath;
+    const normalizedPath = path.trim().replaceAll("\\", "/");
+    return normalizedPath.split("/").at(-1) ?? normalizedPath;
 }
 
 /**
@@ -18,17 +18,17 @@ const markdownImagePattern = /!(\[[^\]]*\]\((?:<[^>\n]*>|[^)\s]*)(?:[^)\n]*)\))/
 
 /** 会让访客浏览器向第三方发起请求的图片地址：绝对 http(s) 与协议相对 `//host`。 */
 function isRemoteImageDestination(destination: string): boolean {
-  const trimmed = destination.trim().replace(/^<|>$/gu, "");
-  return /^(?:https?:)?\/\//iu.test(trimmed);
+    const trimmed = destination.trim().replace(/^<|>$/gu, "");
+    return /^(?:https?:)?\/\//iu.test(trimmed);
 }
 
 function readImageDestination(imageSyntax: string): string {
-  // imageSyntax 形如 `[alt](dest "title")`，取第一个 `(` 之后到首个空白/结尾之间的部分。
-  const open = imageSyntax.indexOf("(");
-  const inner = imageSyntax.slice(open + 1, -1);
-  if (inner.startsWith("<")) return inner.slice(0, inner.indexOf(">") + 1);
-  const whitespace = inner.search(/\s/u);
-  return whitespace < 0 ? inner : inner.slice(0, whitespace);
+    // imageSyntax 形如 `[alt](dest "title")`，取第一个 `(` 之后到首个空白/结尾之间的部分。
+    const open = imageSyntax.indexOf("(");
+    const inner = imageSyntax.slice(open + 1, -1);
+    if (inner.startsWith("<")) return inner.slice(0, inner.indexOf(">") + 1);
+    const whitespace = inner.search(/\s/u);
+    return whitespace < 0 ? inner : inner.slice(0, whitespace);
 }
 
 /**
@@ -44,20 +44,23 @@ function readImageDestination(imageSyntax: string): string {
  * 只处理 http(s) 与协议相对地址：data: 不走网络，相对路径落在自身 origin。
  */
 function degradeRemoteImages(
-  markdown: string,
-  protectedRanges: readonly AssistantTextRange[],
+    markdown: string,
+    protectedRanges: readonly AssistantTextRange[],
 ): string {
-  const matches = [...markdown.matchAll(markdownImagePattern)].filter(
-    (match) =>
-      !overlapsAssistantTextRanges(match.index, match.index + match[0].length, protectedRanges) &&
-      isRemoteImageDestination(readImageDestination(match[1]!)),
-  );
-  let result = markdown;
-  // 从后往前替换，避免前面的改写让后面的 index 失效。
-  for (const match of matches.reverse()) {
-    result = `${result.slice(0, match.index)}${match[1]!}${result.slice(match.index + match[0].length)}`;
-  }
-  return result;
+    const matches = [...markdown.matchAll(markdownImagePattern)].filter(
+        (match) =>
+            !overlapsAssistantTextRanges(
+                match.index,
+                match.index + match[0].length,
+                protectedRanges,
+            ) && isRemoteImageDestination(readImageDestination(match[1]!)),
+    );
+    let result = markdown;
+    // 从后往前替换，避免前面的改写让后面的 index 失效。
+    for (const match of matches.reverse()) {
+        result = `${result.slice(0, match.index)}${match[1]!}${result.slice(match.index + match[0].length)}`;
+    }
+    return result;
 }
 
 /**
@@ -68,24 +71,25 @@ function degradeRemoteImages(
  * 同时剥离远程图片的自动加载，见 degradeRemoteImages。
  */
 export function normalizeConversationShareMarkdown(
-  markdown: string,
-  artifactNames: ReadonlyMap<string, string> = new Map(),
+    markdown: string,
+    artifactNames: ReadonlyMap<string, string> = new Map(),
 ): string {
-  const protectedRanges = findMarkdownCodeRanges(markdown);
-  const directives = extractZCodeFileCitationDirectives(markdown).filter(
-    (directive) => !overlapsAssistantTextRanges(directive.start, directive.end, protectedRanges),
-  );
-
-  let result = markdown;
-  for (const directive of [...directives].reverse()) {
-    const fileName = directive.path ? resolveCitationFileName(directive.path) : "";
-    const candidates = [...artifactNames.values()].filter(
-      (displayName) => displayName.trim().toLowerCase() === fileName.toLowerCase(),
+    const protectedRanges = findMarkdownCodeRanges(markdown);
+    const directives = extractZCodeFileCitationDirectives(markdown).filter(
+        (directive) =>
+            !overlapsAssistantTextRanges(directive.start, directive.end, protectedRanges),
     );
-    const replacement = candidates.length === 1 ? candidates[0]!.trim() : "";
-    result = `${result.slice(0, directive.start)}${replacement}${result.slice(directive.end)}`;
-  }
-  // citation 剥离只会缩短正文且不产生新的图片语法，但代码围栏范围可能左移，
-  // 因此对改写后的正文重新求一次保护区间，再做图片降级。
-  return degradeRemoteImages(result, findMarkdownCodeRanges(result));
+
+    let result = markdown;
+    for (const directive of [...directives].reverse()) {
+        const fileName = directive.path ? resolveCitationFileName(directive.path) : "";
+        const candidates = [...artifactNames.values()].filter(
+            (displayName) => displayName.trim().toLowerCase() === fileName.toLowerCase(),
+        );
+        const replacement = candidates.length === 1 ? candidates[0]!.trim() : "";
+        result = `${result.slice(0, directive.start)}${replacement}${result.slice(directive.end)}`;
+    }
+    // citation 剥离只会缩短正文且不产生新的图片语法，但代码围栏范围可能左移，
+    // 因此对改写后的正文重新求一次保护区间，再做图片降级。
+    return degradeRemoteImages(result, findMarkdownCodeRanges(result));
 }

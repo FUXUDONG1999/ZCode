@@ -14,35 +14,35 @@
 //   3. **git 的固定 argv**。构造在 workflow-git-world-read.ts（纯），spawn 在这里。
 
 import {
-  isAbsolute as isAbsolutePath,
-  relative as relativePath,
-  resolve as resolvePath,
-  sep,
+    isAbsolute as isAbsolutePath,
+    relative as relativePath,
+    resolve as resolvePath,
+    sep,
 } from "node:path";
 import type { ExecutionPort, FileSystemPort } from "@zcode/contracts";
 import { WORLD_READ_CAPS, WorkflowError, type WorldReadOp } from "@zcode/dynamic-workflow";
 import {
-  GIT_SHOW_PREFIX_ARGV,
-  GIT_STATUS_ARGV,
-  gitChangedFilesPlan,
-  gitDiffArgv,
-  gitLogArgv,
-  parseGitLog,
-  parseGitPathList,
-  parseGitShowPrefix,
-  parseGitStatusPorcelainV2,
-  type GitCommitResult,
-  type GitStatusResult,
+    GIT_SHOW_PREFIX_ARGV,
+    GIT_STATUS_ARGV,
+    gitChangedFilesPlan,
+    gitDiffArgv,
+    gitLogArgv,
+    parseGitLog,
+    parseGitPathList,
+    parseGitShowPrefix,
+    parseGitStatusPorcelainV2,
+    type GitCommitResult,
+    type GitStatusResult,
 } from "./workflow-git-world-read.js";
 
 /** 世界读取需要的端口与基准目录（driver deps 的一个子集）。 */
 export interface WorldReadDeps {
-  /** files.glob / files.read / files.grep 落到的文件系统端口。 */
-  readonly fileSystemPort: FileSystemPort;
-  /** git.* 落到的子进程执行端口（cwd = 工作区根）。 */
-  readonly executionPort: ExecutionPort;
-  /** 路径解析与相对化的基准目录（workspace 根）。 */
-  readonly cwd: string;
+    /** files.glob / files.read / files.grep 落到的文件系统端口。 */
+    readonly fileSystemPort: FileSystemPort;
+    /** git.* 落到的子进程执行端口（cwd = 工作区根）。 */
+    readonly executionPort: ExecutionPort;
+    /** 路径解析与相对化的基准目录（workspace 根）。 */
+    readonly cwd: string;
 }
 
 /**
@@ -57,42 +57,45 @@ export interface WorldReadDeps {
  * running 的节点。
  */
 export async function executeWorldRead(
-  deps: WorldReadDeps,
-  op: WorldReadOp,
-  args: unknown[],
+    deps: WorldReadDeps,
+    op: WorldReadOp,
+    args: unknown[],
 ): Promise<unknown> {
-  switch (op) {
-    case "glob":
-      return await worldGlob(deps, worldReadStringArgs(op, args, ["pattern"])[0]!);
-    case "read":
-      return await worldRead(deps, worldReadStringArgs(op, args, ["path"])[0]!);
-    case "grep": {
-      const [pattern, glob] = worldReadOptionalStringArgs(op, args, ["pattern"], ["glob"]);
-      return await worldGrep(deps, pattern!, glob);
+    switch (op) {
+        case "glob":
+            return await worldGlob(deps, worldReadStringArgs(op, args, ["pattern"])[0]!);
+        case "read":
+            return await worldRead(deps, worldReadStringArgs(op, args, ["path"])[0]!);
+        case "grep": {
+            const [pattern, glob] = worldReadOptionalStringArgs(op, args, ["pattern"], ["glob"]);
+            return await worldGrep(deps, pattern!, glob);
+        }
+        case "git-changed-files": {
+            const [base] = worldReadOptionalStringArgs(op, args, [], ["base"]);
+            return await gitChangedFiles(deps, base);
+        }
+        case "git-diff": {
+            const [base, path] = worldReadOptionalStringArgs(op, args, [], ["base", "path"]);
+            return await gitDiff(deps, base, path);
+        }
+        case "git-status": {
+            // 无参 op：`names` 为空即"恰好 0 个实参"，多传一个仍然大声失败。
+            worldReadStringArgs(op, args, []);
+            return await gitStatus(deps);
+        }
+        case "git-log":
+            return await gitLog(deps, worldReadOptionalCount(op, args, "count"));
+        case "run":
+            return await worldRun(deps, args);
+        default: {
+            // op 词汇表由 world-read 注册表推导：新增一行而这里没接上，就会落到这里大声失败。
+            const unknownOp: never = op;
+            throw new WorkflowError(
+                "DriverError",
+                `Unsupported world-read op "${String(unknownOp)}".`,
+            );
+        }
     }
-    case "git-changed-files": {
-      const [base] = worldReadOptionalStringArgs(op, args, [], ["base"]);
-      return await gitChangedFiles(deps, base);
-    }
-    case "git-diff": {
-      const [base, path] = worldReadOptionalStringArgs(op, args, [], ["base", "path"]);
-      return await gitDiff(deps, base, path);
-    }
-    case "git-status": {
-      // 无参 op：`names` 为空即"恰好 0 个实参"，多传一个仍然大声失败。
-      worldReadStringArgs(op, args, []);
-      return await gitStatus(deps);
-    }
-    case "git-log":
-      return await gitLog(deps, worldReadOptionalCount(op, args, "count"));
-    case "run":
-      return await worldRun(deps, args);
-    default: {
-      // op 词汇表由 world-read 注册表推导：新增一行而这里没接上，就会落到这里大声失败。
-      const unknownOp: never = op;
-      throw new WorkflowError("DriverError", `Unsupported world-read op "${String(unknownOp)}".`);
-    }
-  }
 }
 
 /**
@@ -110,16 +113,16 @@ export async function executeWorldRead(
  *   提交不该扇出在不同的次序上。拒绝语义保证到这里手上必是全量匹配，重排是完备的。
  */
 async function worldGlob(deps: WorldReadDeps, pattern: string): Promise<string[]> {
-  const cap = WORLD_READ_CAPS.globMaxFiles;
-  const result = await deps.fileSystemPort.searchFiles({
-    path: deps.cwd,
-    pattern,
-    maxResults: cap + 1,
-  });
-  if (result.files.length > cap || result.truncated) {
-    throw capExceeded(`files.glob: over ${cap} files match (the cap). Narrow the pattern.`);
-  }
-  return result.files.map((path) => toWorkspaceRelative(deps.cwd, path)).sort();
+    const cap = WORLD_READ_CAPS.globMaxFiles;
+    const result = await deps.fileSystemPort.searchFiles({
+        path: deps.cwd,
+        pattern,
+        maxResults: cap + 1,
+    });
+    if (result.files.length > cap || result.truncated) {
+        throw capExceeded(`files.glob: over ${cap} files match (the cap). Narrow the pattern.`);
+    }
+    return result.files.map((path) => toWorkspaceRelative(deps.cwd, path)).sort();
 }
 
 /**
@@ -132,9 +135,9 @@ async function worldGlob(deps: WorldReadDeps, pattern: string): Promise<string[]
  * 显然组合不该是个陷阱。
  */
 async function worldRead(deps: WorldReadDeps, arg: string): Promise<string> {
-  const path = assertWithinWorkspace("read", deps.cwd, arg);
-  const result = await deps.fileSystemPort.readTextFile({ path });
-  return result.content;
+    const path = assertWithinWorkspace("read", deps.cwd, arg);
+    const result = await deps.fileSystemPort.readTextFile({ path });
+    return result.content;
 }
 
 /**
@@ -147,43 +150,43 @@ async function worldRead(deps: WorldReadDeps, arg: string): Promise<string> {
  * `truncated` 是同一判断的第二条线（端口若因别的原因截断，我们手上就不是完整结果了）。
  */
 async function worldGrep(
-  deps: WorldReadDeps,
-  pattern: string,
-  glob: string | undefined,
+    deps: WorldReadDeps,
+    pattern: string,
+    glob: string | undefined,
 ): Promise<GrepMatch[]> {
-  const cap = WORLD_READ_CAPS.grepMaxMatches;
-  const result = await deps.fileSystemPort.searchText({
-    path: deps.cwd,
-    pattern,
-    ...(glob === undefined ? {} : { glob }),
-    outputMode: "content",
-    showLineNumbers: true,
-    headLimit: cap + 1,
-  });
-  if (result.entries.length > cap || result.truncated) {
-    throw capExceeded(
-      `files.grep: over ${cap} matches (the cap). Narrow the pattern or add a glob.`,
-    );
-  }
-  const matches: GrepMatch[] = [];
-  for (const entry of result.entries) {
-    // content 模式下每条命中都带行号与行文本；缺其一的条目不是一条内容命中（例如端口在
-    // 别的 outputMode 下产出的计数项），跳过而不是填 0 / "" 造一条假命中。
-    if (entry.lineNumber === undefined || entry.text === undefined) continue;
-    matches.push({
-      path: toWorkspaceRelative(deps.cwd, entry.path),
-      line: entry.lineNumber,
-      text: entry.text,
+    const cap = WORLD_READ_CAPS.grepMaxMatches;
+    const result = await deps.fileSystemPort.searchText({
+        path: deps.cwd,
+        pattern,
+        ...(glob === undefined ? {} : { glob }),
+        outputMode: "content",
+        showLineNumbers: true,
+        headLimit: cap + 1,
     });
-  }
-  const serializedBytes = Buffer.byteLength(JSON.stringify(matches), "utf8");
-  if (serializedBytes > WORLD_READ_CAPS.grepMaxSerializedBytes) {
-    throw capExceeded(
-      `files.grep: result is ${serializedBytes} bytes, over the ` +
-        `${WORLD_READ_CAPS.grepMaxSerializedBytes}-byte cap. Narrow the pattern or add a glob.`,
-    );
-  }
-  return matches;
+    if (result.entries.length > cap || result.truncated) {
+        throw capExceeded(
+            `files.grep: over ${cap} matches (the cap). Narrow the pattern or add a glob.`,
+        );
+    }
+    const matches: GrepMatch[] = [];
+    for (const entry of result.entries) {
+        // content 模式下每条命中都带行号与行文本；缺其一的条目不是一条内容命中（例如端口在
+        // 别的 outputMode 下产出的计数项），跳过而不是填 0 / "" 造一条假命中。
+        if (entry.lineNumber === undefined || entry.text === undefined) continue;
+        matches.push({
+            path: toWorkspaceRelative(deps.cwd, entry.path),
+            line: entry.lineNumber,
+            text: entry.text,
+        });
+    }
+    const serializedBytes = Buffer.byteLength(JSON.stringify(matches), "utf8");
+    if (serializedBytes > WORLD_READ_CAPS.grepMaxSerializedBytes) {
+        throw capExceeded(
+            `files.grep: result is ${serializedBytes} bytes, over the ` +
+                `${WORLD_READ_CAPS.grepMaxSerializedBytes}-byte cap. Narrow the pattern or add a glob.`,
+        );
+    }
+    return matches;
 }
 
 // ——————————————————————————————— 内部：git.* world-read ———————————————————————————————
@@ -196,30 +199,31 @@ async function worldGrep(
  * 其余 op 用一个够大的缺省值。
  */
 async function runGit(
-  deps: WorldReadDeps,
-  op: WorldReadOp,
-  argv: readonly string[],
-  maxInlineBytes: number,
+    deps: WorldReadDeps,
+    op: WorldReadOp,
+    argv: readonly string[],
+    maxInlineBytes: number,
 ): Promise<{ text: string; bytes: number; truncated: boolean }> {
-  const result = await deps.executionPort.run({
-    command: { mode: "argv", file: "git", args: [...argv] },
-    cwd: deps.cwd,
-    outputLimit: { maxInlineBytes },
-  });
-  if (result.status !== "completed" || (result.exitCode ?? 0) !== 0) {
-    // git 缺失、非仓库、坏 ref 都走这里。归一成**可 catch 的** DriverError 而不是 run 级
-    // 失败，使脚本可以通过 try/catch 改用 files.glob。
-    const detail = firstLine(result.stderr.text) || firstLine(result.stdout.text) || result.status;
-    throw new WorkflowError(
-      "DriverError",
-      `git ${argv.join(" ")} failed (${result.status}, exit=${result.exitCode ?? "n/a"}): ${detail}`,
-    );
-  }
-  return {
-    text: result.stdout.text,
-    bytes: result.stdout.bytes,
-    truncated: result.stdout.truncated,
-  };
+    const result = await deps.executionPort.run({
+        command: { mode: "argv", file: "git", args: [...argv] },
+        cwd: deps.cwd,
+        outputLimit: { maxInlineBytes },
+    });
+    if (result.status !== "completed" || (result.exitCode ?? 0) !== 0) {
+        // git 缺失、非仓库、坏 ref 都走这里。归一成**可 catch 的** DriverError 而不是 run 级
+        // 失败，使脚本可以通过 try/catch 改用 files.glob。
+        const detail =
+            firstLine(result.stderr.text) || firstLine(result.stdout.text) || result.status;
+        throw new WorkflowError(
+            "DriverError",
+            `git ${argv.join(" ")} failed (${result.status}, exit=${result.exitCode ?? "n/a"}): ${detail}`,
+        );
+    }
+    return {
+        text: result.stdout.text,
+        bytes: result.stdout.bytes,
+        truncated: result.stdout.truncated,
+    };
 }
 
 /**
@@ -230,58 +234,58 @@ async function runGit(
  * 只发生一次并落 journal，不在任何热路径上。换来的是这一侧完全无状态。
  */
 async function gitWorkspacePrefix(deps: WorldReadDeps, op: WorldReadOp): Promise<string> {
-  const out = await runGit(deps, op, GIT_SHOW_PREFIX_ARGV, GIT_TEXT_OUTPUT_BYTES);
-  return parseGitShowPrefix(out.text);
+    const out = await runGit(deps, op, GIT_SHOW_PREFIX_ARGV, GIT_TEXT_OUTPUT_BYTES);
+    return parseGitShowPrefix(out.text);
 }
 
 async function gitChangedFiles(deps: WorldReadDeps, base: string | undefined): Promise<string[]> {
-  // 先构造 argv：base 不合法时应当在**跑任何 git 之前**就拒绝。
-  const plans = gitChangedFilesPlan(base);
-  const prefix = await gitWorkspacePrefix(deps, "git-changed-files");
-  const paths: string[] = [];
-  for (const plan of plans) {
-    const out = await runGit(deps, "git-changed-files", plan.argv, GIT_TEXT_OUTPUT_BYTES);
-    paths.push(...parseGitPathList(out.text, prefix));
-  }
-  // 并集去重并排序：两条命令可以报出同一个路径，且 journal 存的是这个值，所以它必须只
-  // 依赖内容、不依赖两条命令谁先返回。
-  return [...new Set(paths)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    // 先构造 argv：base 不合法时应当在**跑任何 git 之前**就拒绝。
+    const plans = gitChangedFilesPlan(base);
+    const prefix = await gitWorkspacePrefix(deps, "git-changed-files");
+    const paths: string[] = [];
+    for (const plan of plans) {
+        const out = await runGit(deps, "git-changed-files", plan.argv, GIT_TEXT_OUTPUT_BYTES);
+        paths.push(...parseGitPathList(out.text, prefix));
+    }
+    // 并集去重并排序：两条命令可以报出同一个路径，且 journal 存的是这个值，所以它必须只
+    // 依赖内容、不依赖两条命令谁先返回。
+    return [...new Set(paths)].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
 
 async function gitDiff(
-  deps: WorldReadDeps,
-  base: string | undefined,
-  path: string | undefined,
+    deps: WorldReadDeps,
+    base: string | undefined,
+    path: string | undefined,
 ): Promise<string> {
-  const cap = WORLD_READ_CAPS.gitDiffMaxBytes;
-  // cap + 1：同 grep 的理由——"正好 cap 字节"与"被截断"必须可区分。
-  const out = await runGit(deps, "git-diff", gitDiffArgv(base, path), cap + 1);
-  if (out.bytes > cap || out.truncated) {
-    throw capExceeded(
-      `git.diff: output is ${out.bytes} bytes, over the ${cap}-byte cap. Pass a path to narrow.`,
-    );
-  }
-  return out.text;
+    const cap = WORLD_READ_CAPS.gitDiffMaxBytes;
+    // cap + 1：同 grep 的理由——"正好 cap 字节"与"被截断"必须可区分。
+    const out = await runGit(deps, "git-diff", gitDiffArgv(base, path), cap + 1);
+    if (out.bytes > cap || out.truncated) {
+        throw capExceeded(
+            `git.diff: output is ${out.bytes} bytes, over the ${cap}-byte cap. Pass a path to narrow.`,
+        );
+    }
+    return out.text;
 }
 
 async function gitStatus(deps: WorldReadDeps): Promise<GitStatusResult> {
-  const prefix = await gitWorkspacePrefix(deps, "git-status");
-  const out = await runGit(deps, "git-status", GIT_STATUS_ARGV, GIT_TEXT_OUTPUT_BYTES);
-  return parseGitStatusPorcelainV2(out.text, prefix);
+    const prefix = await gitWorkspacePrefix(deps, "git-status");
+    const out = await runGit(deps, "git-status", GIT_STATUS_ARGV, GIT_TEXT_OUTPUT_BYTES);
+    return parseGitStatusPorcelainV2(out.text, prefix);
 }
 
 async function gitLog(deps: WorldReadDeps, count: number): Promise<GitCommitResult[]> {
-  const out = await runGit(deps, "git-log", gitLogArgv(count), GIT_TEXT_OUTPUT_BYTES);
-  return parseGitLog(out.text);
+    const out = await runGit(deps, "git-log", gitLogArgv(count), GIT_TEXT_OUTPUT_BYTES);
+    return parseGitLog(out.text);
 }
 
 // ——————————————————————————————— 内部：world.run ———————————————————————————————
 
 /** `world.run` 的返回值。权威声明是 FACADE_DTS 里的 `declare interface WorldRunResult`。 */
 interface WorldRunResult {
-  exitCode: number;
-  stdout: string;
-  stderr: string;
+    exitCode: number;
+    stdout: string;
+    stderr: string;
 }
 
 /**
@@ -304,56 +308,56 @@ interface WorldRunResult {
  * 超限拒绝不截断——message 给出可操作的下一步，与 grep/diff 同一 house policy。
  */
 async function worldRun(deps: WorldReadDeps, args: unknown[]): Promise<WorldRunResult> {
-  const { argv, cmd, timeoutMs } = worldRunArgs(args);
+    const { argv, cmd, timeoutMs } = worldRunArgs(args);
 
-  const stdoutCap = WORLD_READ_CAPS.runStdoutMaxBytes;
-  const stderrCap = WORLD_READ_CAPS.runStderrMaxBytes;
-  const result = await deps.executionPort.run({
-    command: { mode: "argv", file: cmd, args: argv },
-    cwd: deps.cwd,
-    timeoutMs,
-    outputLimit: { maxInlineBytes: Math.max(stdoutCap, stderrCap) + 1 },
-  });
+    const stdoutCap = WORLD_READ_CAPS.runStdoutMaxBytes;
+    const stderrCap = WORLD_READ_CAPS.runStderrMaxBytes;
+    const result = await deps.executionPort.run({
+        command: { mode: "argv", file: cmd, args: argv },
+        cwd: deps.cwd,
+        timeoutMs,
+        outputLimit: { maxInlineBytes: Math.max(stdoutCap, stderrCap) + 1 },
+    });
 
-  if (result.status === "timed_out") {
-    throw new WorkflowError(
-      "DriverError",
-      `world.run '${cmd}' timed out after ${timeoutMs}ms. Raise opts.timeoutMs or narrow the work.`,
-    );
-  }
-  // completed（exit 0）与 failed-无-error（非零退出）都是**跑完了的观察**，交出值；
-  // 其余（spawn_error / cancelled / 带 error 的 failed，如 output_limit）是观察本身没成立。
-  const ranToExit =
-    result.status === "completed" ||
-    (result.status === "failed" &&
-      result.error === undefined &&
-      typeof result.exitCode === "number");
-  if (!ranToExit) {
-    const detail = result.error?.message ?? (firstLine(result.stderr.text) || result.status);
-    throw new WorkflowError(
-      "DriverError",
-      `world.run '${cmd}' did not run to completion (${result.status}): ${detail}`,
-    );
-  }
+    if (result.status === "timed_out") {
+        throw new WorkflowError(
+            "DriverError",
+            `world.run '${cmd}' timed out after ${timeoutMs}ms. Raise opts.timeoutMs or narrow the work.`,
+        );
+    }
+    // completed（exit 0）与 failed-无-error（非零退出）都是**跑完了的观察**，交出值；
+    // 其余（spawn_error / cancelled / 带 error 的 failed，如 output_limit）是观察本身没成立。
+    const ranToExit =
+        result.status === "completed" ||
+        (result.status === "failed" &&
+            result.error === undefined &&
+            typeof result.exitCode === "number");
+    if (!ranToExit) {
+        const detail = result.error?.message ?? (firstLine(result.stderr.text) || result.status);
+        throw new WorkflowError(
+            "DriverError",
+            `world.run '${cmd}' did not run to completion (${result.status}): ${detail}`,
+        );
+    }
 
-  if (result.stdout.bytes > stdoutCap || result.stdout.truncated) {
-    throw capExceeded(
-      `world.run '${cmd}': stdout is ${result.stdout.bytes} bytes, over the ${stdoutCap}-byte cap. ` +
-        `Quiet the output (e.g. --quiet), or write a file and files.read a summary.`,
-    );
-  }
-  if (result.stderr.bytes > stderrCap || result.stderr.truncated) {
-    throw capExceeded(
-      `world.run '${cmd}': stderr is ${result.stderr.bytes} bytes, over the ${stderrCap}-byte cap. ` +
-        `Reduce the diagnostics, or write a file and files.read a summary.`,
-    );
-  }
+    if (result.stdout.bytes > stdoutCap || result.stdout.truncated) {
+        throw capExceeded(
+            `world.run '${cmd}': stdout is ${result.stdout.bytes} bytes, over the ${stdoutCap}-byte cap. ` +
+                `Quiet the output (e.g. --quiet), or write a file and files.read a summary.`,
+        );
+    }
+    if (result.stderr.bytes > stderrCap || result.stderr.truncated) {
+        throw capExceeded(
+            `world.run '${cmd}': stderr is ${result.stderr.bytes} bytes, over the ${stderrCap}-byte cap. ` +
+                `Reduce the diagnostics, or write a file and files.read a summary.`,
+        );
+    }
 
-  return {
-    exitCode: result.exitCode ?? 0,
-    stdout: result.stdout.text,
-    stderr: result.stderr.text,
-  };
+    return {
+        exitCode: result.exitCode ?? 0,
+        stdout: result.stdout.text,
+        stderr: result.stderr.text,
+    };
 }
 
 /**
@@ -362,57 +366,57 @@ async function worldRun(deps: WorldReadDeps, args: unknown[]): Promise<WorldRunR
  * 超出了 string 序列助手的表达面，所以单列。
  */
 function worldRunArgs(args: unknown[]): { cmd: string; argv: string[]; timeoutMs: number } {
-  if (args.length < 1 || args.length > 3) {
-    throw new WorkflowError(
-      "DriverError",
-      `world.run takes 1 to 3 arguments (cmd, args?, opts?), got ${args.length}.`,
-    );
-  }
-  const cmd = requireStringArg("run", args[0], "cmd", 0);
-
-  const rawArgv = args[1];
-  let argv: string[] = [];
-  if (rawArgv !== undefined) {
-    if (!Array.isArray(rawArgv)) {
-      throw new WorkflowError(
-        "DriverError",
-        `world.run: argument 2 (args) must be an array of strings, got ${describeArg(rawArgv)}.`,
-      );
-    }
-    argv = rawArgv.map((item, index) => {
-      if (typeof item !== "string") {
+    if (args.length < 1 || args.length > 3) {
         throw new WorkflowError(
-          "DriverError",
-          `world.run: args[${index}] must be a string, got ${describeArg(item)}. Stringify values.`,
+            "DriverError",
+            `world.run takes 1 to 3 arguments (cmd, args?, opts?), got ${args.length}.`,
         );
-      }
-      return item;
-    });
-  }
-
-  const rawOpts = args[2];
-  let timeoutMs: number = WORLD_READ_CAPS.runDefaultTimeoutMs;
-  if (rawOpts !== undefined) {
-    if (typeof rawOpts !== "object" || rawOpts === null || Array.isArray(rawOpts)) {
-      throw new WorkflowError(
-        "DriverError",
-        `world.run: arg 3 (opts) must be an options object or omitted, got ${describeArg(rawOpts)}.`,
-      );
     }
-    const rawTimeout = (rawOpts as { timeoutMs?: unknown }).timeoutMs;
-    if (rawTimeout !== undefined) {
-      if (typeof rawTimeout !== "number" || !Number.isInteger(rawTimeout) || rawTimeout < 1) {
-        throw new WorkflowError(
-          "DriverError",
-          `world.run: opts.timeoutMs must be an integer >= 1, got ${describeArg(rawTimeout)}.`,
-        );
-      }
-      // 刻意无上限钳制：为真正长跑的测试设计；cancel 是最后的控制。
-      timeoutMs = rawTimeout;
-    }
-  }
+    const cmd = requireStringArg("run", args[0], "cmd", 0);
 
-  return { argv, cmd, timeoutMs };
+    const rawArgv = args[1];
+    let argv: string[] = [];
+    if (rawArgv !== undefined) {
+        if (!Array.isArray(rawArgv)) {
+            throw new WorkflowError(
+                "DriverError",
+                `world.run: argument 2 (args) must be an array of strings, got ${describeArg(rawArgv)}.`,
+            );
+        }
+        argv = rawArgv.map((item, index) => {
+            if (typeof item !== "string") {
+                throw new WorkflowError(
+                    "DriverError",
+                    `world.run: args[${index}] must be a string, got ${describeArg(item)}. Stringify values.`,
+                );
+            }
+            return item;
+        });
+    }
+
+    const rawOpts = args[2];
+    let timeoutMs: number = WORLD_READ_CAPS.runDefaultTimeoutMs;
+    if (rawOpts !== undefined) {
+        if (typeof rawOpts !== "object" || rawOpts === null || Array.isArray(rawOpts)) {
+            throw new WorkflowError(
+                "DriverError",
+                `world.run: arg 3 (opts) must be an options object or omitted, got ${describeArg(rawOpts)}.`,
+            );
+        }
+        const rawTimeout = (rawOpts as { timeoutMs?: unknown }).timeoutMs;
+        if (rawTimeout !== undefined) {
+            if (typeof rawTimeout !== "number" || !Number.isInteger(rawTimeout) || rawTimeout < 1) {
+                throw new WorkflowError(
+                    "DriverError",
+                    `world.run: opts.timeoutMs must be an integer >= 1, got ${describeArg(rawTimeout)}.`,
+                );
+            }
+            // 刻意无上限钳制：为真正长跑的测试设计；cancel 是最后的控制。
+            timeoutMs = rawTimeout;
+        }
+    }
+
+    return { argv, cmd, timeoutMs };
 }
 
 // ——————————————————————————————— 纯辅助 ———————————————————————————————
@@ -431,13 +435,13 @@ function worldRunArgs(args: unknown[]): { cmd: string; argv: string[]; timeoutMs
  * 缺省的变体 {@link worldReadOptionalStringArgs}；接缝在这两个函数里，不在调用点。
  */
 function worldReadStringArgs(op: WorldReadOp, args: unknown[], names: readonly string[]): string[] {
-  if (args.length !== names.length) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op} takes ${names.length} arguments (${names.join(", ")}), got ${args.length}.`,
-    );
-  }
-  return names.map((name, index) => requireStringArg(op, args[index], name, index));
+    if (args.length !== names.length) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op} takes ${names.length} arguments (${names.join(", ")}), got ${args.length}.`,
+        );
+    }
+    return names.map((name, index) => requireStringArg(op, args[index], name, index));
 }
 
 /**
@@ -458,36 +462,36 @@ function worldReadStringArgs(op: WorldReadOp, args: unknown[], names: readonly s
  * 本函数只把两种到达形态都归一成同一个调用形状，不去改写 args。
  */
 function worldReadOptionalStringArgs(
-  op: WorldReadOp,
-  args: unknown[],
-  required: readonly string[],
-  optional: readonly string[],
+    op: WorldReadOp,
+    args: unknown[],
+    required: readonly string[],
+    optional: readonly string[],
 ): (string | undefined)[] {
-  const max = required.length + optional.length;
-  if (args.length < required.length || args.length > max) {
-    const range = required.length === max ? `${max}` : `${required.length}~${max}`;
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op} takes ${range} arguments ` +
-        `(${[...required, ...optional.map((n) => `${n}?`)].join(", ")}), got ${args.length}.`,
-    );
-  }
-  const out: (string | undefined)[] = [];
-  required.forEach((name, index) => out.push(requireStringArg(op, args[index], name, index)));
-  optional.forEach((name, offset) => {
-    const index = required.length + offset;
-    if (index >= args.length) {
-      out.push(undefined);
-      return;
+    const max = required.length + optional.length;
+    if (args.length < required.length || args.length > max) {
+        const range = required.length === max ? `${max}` : `${required.length}~${max}`;
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op} takes ${range} arguments ` +
+                `(${[...required, ...optional.map((n) => `${n}?`)].join(", ")}), got ${args.length}.`,
+        );
     }
-    const value = args[index];
-    if (value === undefined) {
-      out.push(undefined);
-      return;
-    }
-    out.push(requireStringArg(op, value, name, index));
-  });
-  return out;
+    const out: (string | undefined)[] = [];
+    required.forEach((name, index) => out.push(requireStringArg(op, args[index], name, index)));
+    optional.forEach((name, offset) => {
+        const index = required.length + offset;
+        if (index >= args.length) {
+            out.push(undefined);
+            return;
+        }
+        const value = args[index];
+        if (value === undefined) {
+            out.push(undefined);
+            return;
+        }
+        out.push(requireStringArg(op, value, name, index));
+    });
+    return out;
 }
 
 /**
@@ -498,39 +502,39 @@ function worldReadOptionalStringArgs(
  * 一个查不明白的"历史怎么这么短"。一条指名上限的错误让脚本能直接改对。
  */
 function worldReadOptionalCount(op: WorldReadOp, args: unknown[], name: string): number {
-  const max = WORLD_READ_CAPS.gitLogMaxCount;
-  if (args.length > 1) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op} takes at most 1 argument (${name}?), got ${args.length}.`,
-    );
-  }
-  const raw = args[0];
-  if (raw === undefined) return WORLD_READ_CAPS.gitLogDefaultCount;
-  if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 1) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: argument '${name}' must be an integer >= 1, got ${describeArg(raw)}.`,
-    );
-  }
-  if (raw > max) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: argument '${name}'=${raw} is over the cap of ${max}; pass at most ${max}.`,
-    );
-  }
-  return raw;
+    const max = WORLD_READ_CAPS.gitLogMaxCount;
+    if (args.length > 1) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op} takes at most 1 argument (${name}?), got ${args.length}.`,
+        );
+    }
+    const raw = args[0];
+    if (raw === undefined) return WORLD_READ_CAPS.gitLogDefaultCount;
+    if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 1) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: argument '${name}' must be an integer >= 1, got ${describeArg(raw)}.`,
+        );
+    }
+    if (raw > max) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: argument '${name}'=${raw} is over the cap of ${max}; pass at most ${max}.`,
+        );
+    }
+    return raw;
 }
 
 /** 取一个必须是 string 的位置实参，否则结构化拒绝（绝不 `String(...)` 强转）。 */
 function requireStringArg(op: WorldReadOp, value: unknown, name: string, index: number): string {
-  if (typeof value !== "string") {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: arg ${index + 1} (${name}) must be a string, got ${describeArg(value)}.`,
-    );
-  }
-  return value;
+    if (typeof value !== "string") {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: arg ${index + 1} (${name}) must be a string, got ${describeArg(value)}.`,
+        );
+    }
+    return value;
 }
 
 /**
@@ -538,7 +542,7 @@ function requireStringArg(op: WorldReadOp, value: unknown, name: string, index: 
  * 上限是脚本可以据以重写自己的契约，一条只说"超了"的错误把这一点浪费掉。
  */
 function capExceeded(message: string): WorkflowError {
-  return new WorkflowError("WorldReadCapExceeded", message);
+    return new WorkflowError("WorldReadCapExceeded", message);
 }
 
 /**
@@ -559,22 +563,22 @@ function capExceeded(message: string): WorkflowError {
  * 路径给出不同答案，而其中一处是安全边界。
  */
 export function resolveWithinWorkspace(cwd: string, arg: string): string | undefined {
-  const resolved = resolvePath(cwd, arg);
-  const rel = relativePath(cwd, resolved);
-  const escapes = rel === ".." || rel.startsWith(`..${sep}`) || rel.startsWith("../");
-  return escapes || isAbsolutePath(rel) ? undefined : resolved;
+    const resolved = resolvePath(cwd, arg);
+    const rel = relativePath(cwd, resolved);
+    const escapes = rel === ".." || rel.startsWith(`..${sep}`) || rel.startsWith("../");
+    return escapes || isAbsolutePath(rel) ? undefined : resolved;
 }
 
 /** {@link resolveWithinWorkspace} 的世界读取包装：越界即结构化 `DriverError`（脚本可 `catch`）。 */
 function assertWithinWorkspace(op: string, cwd: string, arg: string): string {
-  const resolved = resolveWithinWorkspace(cwd, arg);
-  if (resolved === undefined) {
-    throw new WorkflowError(
-      "DriverError",
-      `world-read ${op}: path '${arg}' is outside the workspace; pass a path inside it.`,
-    );
-  }
-  return resolved;
+    const resolved = resolveWithinWorkspace(cwd, arg);
+    if (resolved === undefined) {
+        throw new WorkflowError(
+            "DriverError",
+            `world-read ${op}: path '${arg}' is outside the workspace; pass a path inside it.`,
+        );
+    }
+    return resolved;
 }
 
 /**
@@ -586,13 +590,13 @@ function assertWithinWorkspace(op: string, cwd: string, arg: string): string {
  * 值——工作区相对、正斜杠——而"同一种值"必须只有一处定义，否则两处迟早会在 windows 上分叉。
  */
 export function toWorkspaceRelative(cwd: string, path: string): string {
-  const rel = resolvePath(cwd, path) === path ? relativePath(cwd, path) : path;
-  return rel.replace(/\\/g, "/");
+    const rel = resolvePath(cwd, path) === path ? relativePath(cwd, path) : path;
+    return rel.replace(/\\/g, "/");
 }
 
 /** stderr / stdout 的首行（错误消息用，不回显整段输出）。 */
 function firstLine(text: string): string {
-  return text.split("\n", 1)[0]?.trim() ?? "";
+    return text.split("\n", 1)[0]?.trim() ?? "";
 }
 
 /**
@@ -604,14 +608,14 @@ const GIT_TEXT_OUTPUT_BYTES = 4 * 1024 * 1024;
 
 /** `files.grep` 的一条命中。权威声明是 FACADE_DTS 里的 `declare interface GrepMatch`。 */
 interface GrepMatch {
-  path: string;
-  line: number;
-  text: string;
+    path: string;
+    line: number;
+    text: string;
 }
 
 /** 实参形状的简短描述（只用于错误消息，不回显完整内容）。 */
 function describeArg(value: unknown): string {
-  if (value === undefined) return "undefined";
-  if (value === null) return "null";
-  return Array.isArray(value) ? "array" : typeof value;
+    if (value === undefined) return "undefined";
+    if (value === null) return "null";
+    return Array.isArray(value) ? "array" : typeof value;
 }

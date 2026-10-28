@@ -9,8 +9,8 @@ export type { DocKind };
 
 /** 插件包 package.json 的 "office" 字段：面板标题与该插件打开的格式。 */
 export interface OfficePluginConfig {
-  title: { en: string; "zh-CN": string };
-  kinds: readonly DocKind[];
+    title: { en: string; "zh-CN": string };
+    kinds: readonly DocKind[];
 }
 
 /**
@@ -18,14 +18,14 @@ export interface OfficePluginConfig {
  * 缺任一项即视为残缺插件。
  */
 export const OFFICE_RUNTIME_OUTPUTS = [
-  "dist/server.mjs",
-  "dist/ui/assets.json",
-  "dist/ui/panel.html",
+    "dist/server.mjs",
+    "dist/ui/assets.json",
+    "dist/ui/panel.html",
 ] as const;
 
 export interface OfficeRuntimeContract {
-  /** 插件声明的面板配置；插件名取自其 .zcode-plugin/plugin.json，决定 MCP 服务与 ui:// 资源地址。 */
-  config: OfficePluginConfig;
-  /** 构建保证产出的文件，相对插件根目录。 */
-  outputs: typeof OFFICE_RUNTIME_OUTPUTS;
+    /** 插件声明的面板配置；插件名取自其 .zcode-plugin/plugin.json，决定 MCP 服务与 ui:// 资源地址。 */
+    config: OfficePluginConfig;
+    /** 构建保证产出的文件，相对插件根目录。 */
+    outputs: typeof OFFICE_RUNTIME_OUTPUTS;
 }

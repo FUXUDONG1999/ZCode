@@ -1,236 +1,236 @@
 export type QuickPickCommandIcon =
-  | "book"
-  | "browser"
-  | "community"
-  | "diff"
-  | "feedback"
-  | "folder"
-  | "login"
-  | "logout"
-  | "message"
-  | "mcp"
-  | "settings"
-  | "sidebarClose"
-  | "sidebarOpen"
-  | "skills"
-  | "themeDark"
-  | "themeLight"
-  | "terminal";
+    | "book"
+    | "browser"
+    | "community"
+    | "diff"
+    | "feedback"
+    | "folder"
+    | "login"
+    | "logout"
+    | "message"
+    | "mcp"
+    | "settings"
+    | "sidebarClose"
+    | "sidebarOpen"
+    | "skills"
+    | "themeDark"
+    | "themeLight"
+    | "terminal";
 
 export type QuickPickCommandSectionId =
-  | "suggested"
-  | "chat"
-  | "navigation"
-  | "panels"
-  | "configure"
-  | "app";
+    | "suggested"
+    | "chat"
+    | "navigation"
+    | "panels"
+    | "configure"
+    | "app";
 
 export const QUICK_PICK_SECTION_ORDER: QuickPickCommandSectionId[] = [
-  "suggested",
-  "chat",
-  "navigation",
-  "panels",
-  "configure",
-  "app",
+    "suggested",
+    "chat",
+    "navigation",
+    "panels",
+    "configure",
+    "app",
 ];
 
 export interface QuickPickCommand {
-  id: string;
-  sectionId: QuickPickCommandSectionId;
-  titleId: string;
-  icon: QuickPickCommandIcon;
-  shortcut?: string;
-  keywords: string[];
-  disabled?: boolean;
-  run: () => void | Promise<void>;
+    id: string;
+    sectionId: QuickPickCommandSectionId;
+    titleId: string;
+    icon: QuickPickCommandIcon;
+    shortcut?: string;
+    keywords: string[];
+    disabled?: boolean;
+    run: () => void | Promise<void>;
 }
 
 interface QuickPickCommandHandlers {
-  createTask: () => void;
-  openWorkspace: () => void;
-  openSettings: () => void;
-  openSkillsSettings: () => void;
-  openMcpSettings: () => void;
-  switchTheme: () => void;
-  openFeedback: () => void | Promise<void>;
-  openCommunity: () => void | Promise<void>;
-  openProductDocs: () => void | Promise<void>;
-  login?: () => void | Promise<void>;
-  logout?: () => void | Promise<void>;
-  toggleSidebar: () => void;
-  toggleTerminal: () => void;
+    createTask: () => void;
+    openWorkspace: () => void;
+    openSettings: () => void;
+    openSkillsSettings: () => void;
+    openMcpSettings: () => void;
+    switchTheme: () => void;
+    openFeedback: () => void | Promise<void>;
+    openCommunity: () => void | Promise<void>;
+    openProductDocs: () => void | Promise<void>;
+    login?: () => void | Promise<void>;
+    logout?: () => void | Promise<void>;
+    toggleSidebar: () => void;
+    toggleTerminal: () => void;
 }
 
 interface CreateQuickPickCommandsOptions {
-  allowOpenWorkspace: boolean;
-  canOpenCommunity: boolean;
-  isSidebarVisible: boolean;
-  isLoggedIn: boolean;
-  supportsTerminal?: boolean;
-  themeTarget: "dark" | "light";
-  shortcuts: {
-    newTask: string;
-    openWorkspace: string;
-    toggleSidebar: string;
-    toggleTerminal: string;
-  };
-  handlers: QuickPickCommandHandlers;
+    allowOpenWorkspace: boolean;
+    canOpenCommunity: boolean;
+    isSidebarVisible: boolean;
+    isLoggedIn: boolean;
+    supportsTerminal?: boolean;
+    themeTarget: "dark" | "light";
+    shortcuts: {
+        newTask: string;
+        openWorkspace: string;
+        toggleSidebar: string;
+        toggleTerminal: string;
+    };
+    handlers: QuickPickCommandHandlers;
 }
 
 export function createQuickPickCommands({
-  allowOpenWorkspace,
-  canOpenCommunity,
-  isSidebarVisible,
-  isLoggedIn,
-  supportsTerminal = true,
-  themeTarget,
-  shortcuts,
-  handlers,
+    allowOpenWorkspace,
+    canOpenCommunity,
+    isSidebarVisible,
+    isLoggedIn,
+    supportsTerminal = true,
+    themeTarget,
+    shortcuts,
+    handlers,
 }: CreateQuickPickCommandsOptions): QuickPickCommand[] {
-  const commands: QuickPickCommand[] = [
-    {
-      id: "new-task",
-      sectionId: "suggested",
-      titleId: "quickPick.command.newTask",
-      icon: "message",
-      shortcut: shortcuts.newTask,
-      keywords: ["new", "task", "任务", "新任务", "新建任务"],
-      run: handlers.createTask,
-    },
-    {
-      id: "open-workspace",
-      sectionId: "suggested",
-      titleId: "quickPick.command.openWorkspace",
-      icon: "folder",
-      shortcut: shortcuts.openWorkspace,
-      keywords: ["open", "workspace", "folder", "project", "打开", "文件夹", "项目"],
-      disabled: !allowOpenWorkspace,
-      run: handlers.openWorkspace,
-    },
-    {
-      id: "suggested-settings",
-      sectionId: "suggested",
-      titleId: "quickPick.command.settings",
-      icon: "settings",
-      keywords: ["settings", "preferences", "配置", "设置"],
-      run: handlers.openSettings,
-    },
-    {
-      id: "toggle-sidebar",
-      sectionId: "panels",
-      titleId: "quickPick.command.toggleSidebar",
-      icon: isSidebarVisible ? "sidebarClose" : "sidebarOpen",
-      shortcut: shortcuts.toggleSidebar,
-      keywords: ["sidebar", "left sidebar", "toggle sidebar", "侧栏", "侧边栏", "切换侧栏"],
-      run: handlers.toggleSidebar,
-    },
-    {
-      id: "toggle-terminal",
-      sectionId: "panels",
-      titleId: "quickPick.command.toggleTerminal",
-      icon: "terminal",
-      shortcut: shortcuts.toggleTerminal,
-      keywords: ["terminal", "shell", "console", "终端"],
-      run: handlers.toggleTerminal,
-    },
-    // 个人定制：toggle-preview / add-terminal-tab / add-browser-tab / add-review-tab
-    // 都会打开左侧标签式侧面板，随面板一起移除；底部终端保留 toggle-terminal。
-    {
-      id: "settings",
-      sectionId: "configure",
-      titleId: "quickPick.command.settings",
-      icon: "settings",
-      keywords: ["settings", "preferences", "配置", "设置"],
-      run: handlers.openSettings,
-    },
-    {
-      id: "switch-theme",
-      sectionId: "configure",
-      titleId:
-        themeTarget === "dark"
-          ? "quickPick.command.switchThemeToDark"
-          : "quickPick.command.switchThemeToLight",
-      icon: themeTarget === "dark" ? "themeDark" : "themeLight",
-      keywords: ["theme", "dark", "light", "主题", "深色", "浅色"],
-      run: handlers.switchTheme,
-    },
-    {
-      id: "skills-settings",
-      sectionId: "configure",
-      titleId: "quickPick.command.skills",
-      icon: "skills",
-      keywords: ["skills", "skill", "配置", "技能"],
-      run: handlers.openSkillsSettings,
-    },
-    {
-      id: "mcp-settings",
-      sectionId: "configure",
-      titleId: "quickPick.command.mcpServers",
-      icon: "mcp",
-      keywords: ["mcp", "server", "servers", "MCP", "服务器"],
-      run: handlers.openMcpSettings,
-    },
-  ];
+    const commands: QuickPickCommand[] = [
+        {
+            id: "new-task",
+            sectionId: "suggested",
+            titleId: "quickPick.command.newTask",
+            icon: "message",
+            shortcut: shortcuts.newTask,
+            keywords: ["new", "task", "任务", "新任务", "新建任务"],
+            run: handlers.createTask,
+        },
+        {
+            id: "open-workspace",
+            sectionId: "suggested",
+            titleId: "quickPick.command.openWorkspace",
+            icon: "folder",
+            shortcut: shortcuts.openWorkspace,
+            keywords: ["open", "workspace", "folder", "project", "打开", "文件夹", "项目"],
+            disabled: !allowOpenWorkspace,
+            run: handlers.openWorkspace,
+        },
+        {
+            id: "suggested-settings",
+            sectionId: "suggested",
+            titleId: "quickPick.command.settings",
+            icon: "settings",
+            keywords: ["settings", "preferences", "配置", "设置"],
+            run: handlers.openSettings,
+        },
+        {
+            id: "toggle-sidebar",
+            sectionId: "panels",
+            titleId: "quickPick.command.toggleSidebar",
+            icon: isSidebarVisible ? "sidebarClose" : "sidebarOpen",
+            shortcut: shortcuts.toggleSidebar,
+            keywords: ["sidebar", "left sidebar", "toggle sidebar", "侧栏", "侧边栏", "切换侧栏"],
+            run: handlers.toggleSidebar,
+        },
+        {
+            id: "toggle-terminal",
+            sectionId: "panels",
+            titleId: "quickPick.command.toggleTerminal",
+            icon: "terminal",
+            shortcut: shortcuts.toggleTerminal,
+            keywords: ["terminal", "shell", "console", "终端"],
+            run: handlers.toggleTerminal,
+        },
+        // 个人定制：toggle-preview / add-terminal-tab / add-browser-tab / add-review-tab
+        // 都会打开左侧标签式侧面板，随面板一起移除；底部终端保留 toggle-terminal。
+        {
+            id: "settings",
+            sectionId: "configure",
+            titleId: "quickPick.command.settings",
+            icon: "settings",
+            keywords: ["settings", "preferences", "配置", "设置"],
+            run: handlers.openSettings,
+        },
+        {
+            id: "switch-theme",
+            sectionId: "configure",
+            titleId:
+                themeTarget === "dark"
+                    ? "quickPick.command.switchThemeToDark"
+                    : "quickPick.command.switchThemeToLight",
+            icon: themeTarget === "dark" ? "themeDark" : "themeLight",
+            keywords: ["theme", "dark", "light", "主题", "深色", "浅色"],
+            run: handlers.switchTheme,
+        },
+        {
+            id: "skills-settings",
+            sectionId: "configure",
+            titleId: "quickPick.command.skills",
+            icon: "skills",
+            keywords: ["skills", "skill", "配置", "技能"],
+            run: handlers.openSkillsSettings,
+        },
+        {
+            id: "mcp-settings",
+            sectionId: "configure",
+            titleId: "quickPick.command.mcpServers",
+            icon: "mcp",
+            keywords: ["mcp", "server", "servers", "MCP", "服务器"],
+            run: handlers.openMcpSettings,
+        },
+    ];
 
-  commands.push({
-    id: "feedback",
-    sectionId: "app",
-    titleId: "quickPick.command.feedback",
-    icon: "feedback",
-    keywords: [
-      "feedback",
-      "issue",
-      "support",
-      "tickets",
-      "问题上报",
-      "问题反馈",
-      "反馈",
-      "我的反馈",
-      "工单",
-    ],
-    run: handlers.openFeedback,
-  });
-
-  if (canOpenCommunity) {
     commands.push({
-      id: "community",
-      sectionId: "app",
-      titleId: "quickPick.command.community",
-      icon: "community",
-      keywords: ["community", "users", "chat", "用户社群", "社群"],
-      run: handlers.openCommunity,
+        id: "feedback",
+        sectionId: "app",
+        titleId: "quickPick.command.feedback",
+        icon: "feedback",
+        keywords: [
+            "feedback",
+            "issue",
+            "support",
+            "tickets",
+            "问题上报",
+            "问题反馈",
+            "反馈",
+            "我的反馈",
+            "工单",
+        ],
+        run: handlers.openFeedback,
     });
-  }
 
-  commands.push({
-    id: "product-docs",
-    sectionId: "app",
-    titleId: "quickPick.command.productDocs",
-    icon: "book",
-    keywords: ["docs", "documentation", "product docs", "文档", "产品文档"],
-    run: handlers.openProductDocs,
-  });
+    if (canOpenCommunity) {
+        commands.push({
+            id: "community",
+            sectionId: "app",
+            titleId: "quickPick.command.community",
+            icon: "community",
+            keywords: ["community", "users", "chat", "用户社群", "社群"],
+            run: handlers.openCommunity,
+        });
+    }
 
-  if (isLoggedIn && handlers.logout) {
     commands.push({
-      id: "logout",
-      sectionId: "app",
-      titleId: "quickPick.command.logout",
-      icon: "logout",
-      keywords: ["disconnect", "logout", "sign out", "断开连接", "登出"],
-      run: handlers.logout,
+        id: "product-docs",
+        sectionId: "app",
+        titleId: "quickPick.command.productDocs",
+        icon: "book",
+        keywords: ["docs", "documentation", "product docs", "文档", "产品文档"],
+        run: handlers.openProductDocs,
     });
-  } else if (!isLoggedIn && handlers.login) {
-    commands.push({
-      id: "login",
-      sectionId: "app",
-      titleId: "quickPick.command.login",
-      icon: "login",
-      // 命令面板的账号动作对用户表达为“连接/断开连接”，搜索词也要同步。
-      keywords: ["connect", "login", "sign in", "连接", "登录"],
-      run: handlers.login,
-    });
-  }
 
-  return commands.filter((command) => supportsTerminal || command.id !== "toggle-terminal");
+    if (isLoggedIn && handlers.logout) {
+        commands.push({
+            id: "logout",
+            sectionId: "app",
+            titleId: "quickPick.command.logout",
+            icon: "logout",
+            keywords: ["disconnect", "logout", "sign out", "断开连接", "登出"],
+            run: handlers.logout,
+        });
+    } else if (!isLoggedIn && handlers.login) {
+        commands.push({
+            id: "login",
+            sectionId: "app",
+            titleId: "quickPick.command.login",
+            icon: "login",
+            // 命令面板的账号动作对用户表达为“连接/断开连接”，搜索词也要同步。
+            keywords: ["connect", "login", "sign in", "连接", "登录"],
+            run: handlers.login,
+        });
+    }
+
+    return commands.filter((command) => supportsTerminal || command.id !== "toggle-terminal");
 }

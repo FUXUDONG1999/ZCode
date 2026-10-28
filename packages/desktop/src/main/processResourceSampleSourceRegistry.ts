@@ -15,10 +15,10 @@ import { selfHeapProcessResourceSampleSource } from "./processResourceSelfHeapSo
 import { systemProcessResourceSampleSource } from "./processResourceSystemSource.js";
 
 export const PROCESS_RESOURCE_SAMPLE_SOURCES: readonly ProcessResourceSampleSource[] = [
-  chromiumProcessResourceSampleSource,
-  systemProcessResourceSampleSource,
-  selfHeapProcessResourceSampleSource,
-  rendererHeapProcessResourceSampleSource,
-  cliProcessResourceSampleSource,
-  mcpProcessResourceSampleSource,
+    chromiumProcessResourceSampleSource,
+    systemProcessResourceSampleSource,
+    selfHeapProcessResourceSampleSource,
+    rendererHeapProcessResourceSampleSource,
+    cliProcessResourceSampleSource,
+    mcpProcessResourceSampleSource,
 ];

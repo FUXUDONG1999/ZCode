@@ -1,8 +1,8 @@
 import type { IDisposable } from "@zcode/rpc";
 import {
-  createMemoryDiagnosticsRegistry,
-  type MemoryDiagnosticsProvider,
-  type MemoryDiagnosticsRegistry,
+    createMemoryDiagnosticsRegistry,
+    type MemoryDiagnosticsProvider,
+    type MemoryDiagnosticsRegistry,
 } from "@zcode/shared";
 
 /**
@@ -12,15 +12,15 @@ import {
  * 写本地日志。不放在 service 接口上是为了不把诊断方法暴露到 RPC channel。
  */
 export const memoryDiagnosticsRegistry: MemoryDiagnosticsRegistry =
-  createMemoryDiagnosticsRegistry();
+    createMemoryDiagnosticsRegistry();
 
 export function registerMemoryDiagnosticsProvider(
-  name: string,
-  provider: MemoryDiagnosticsProvider,
+    name: string,
+    provider: MemoryDiagnosticsProvider,
 ): IDisposable {
-  return memoryDiagnosticsRegistry.register(name, provider);
+    return memoryDiagnosticsRegistry.register(name, provider);
 }
 
 export function collectServiceMemoryDiagnostics(): Record<string, number> {
-  return memoryDiagnosticsRegistry.collect();
+    return memoryDiagnosticsRegistry.collect();
 }

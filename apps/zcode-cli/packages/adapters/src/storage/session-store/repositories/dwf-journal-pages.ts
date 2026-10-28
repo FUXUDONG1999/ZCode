@@ -20,17 +20,17 @@ import { decodeEvent } from "./dwf-journal-codecs.js";
 
 /** 分页袋：cursor 严格大于、两道界同时生效。 */
 export interface DwfEventPageQuery {
-  afterSequence?: number;
-  limit: number;
-  maxBytes: number;
+    afterSequence?: number;
+    limit: number;
+    maxBytes: number;
 }
 
 /** 进页的一行（载荷原文，解码归调用方）。 */
 export interface DwfEventPageRow {
-  payload_json: string;
-  sequence: number;
-  time_created: number;
-  type: string;
+    payload_json: string;
+    sequence: number;
+    time_created: number;
+    type: string;
 }
 
 /**
@@ -38,25 +38,25 @@ export interface DwfEventPageRow {
  * `sql` 以 ` and ` 开头；参数按出现顺序绑定。
  */
 export interface DwfEventPageFilter {
-  params: readonly (string | number)[];
-  sql: string;
+    params: readonly (string | number)[];
+    sql: string;
 }
 
 const NO_FILTER: DwfEventPageFilter = { params: [], sql: "" };
 
 export function pageEventRows(
-  db: DatabaseSync,
-  runId: string,
-  query: DwfEventPageQuery,
-  filter: DwfEventPageFilter = NO_FILTER,
+    db: DatabaseSync,
+    runId: string,
+    query: DwfEventPageQuery,
+    filter: DwfEventPageFilter = NO_FILTER,
 ): { rows: DwfEventPageRow[]; hasMore: boolean } {
-  // limit ≤ 0 是空页：翻页面永远有界，没有「-1 = 全量」这种写法。
-  if (query.limit <= 0) return { rows: [], hasMore: false };
-  const after = query.afterSequence;
-  const cursor = after === undefined ? "" : " and sequence > ?";
-  const found = db
-    .prepare(
-      `
+    // limit ≤ 0 是空页：翻页面永远有界，没有「-1 = 全量」这种写法。
+    if (query.limit <= 0) return { rows: [], hasMore: false };
+    const after = query.afterSequence;
+    const cursor = after === undefined ? "" : " and sequence > ?";
+    const found = db
+        .prepare(
+            `
       with sized as (
         select sequence, octet_length(payload_json) as bytes
         from dwf_event
@@ -77,21 +77,23 @@ export function pageEventRows(
       join dwf_event e on e.run_id = ? and e.sequence = r.sequence
       order by r.sequence
       `,
-    )
-    .all(
-      runId,
-      ...filter.params,
-      ...(after === undefined ? [] : [after]),
-      // 多取一行：它不进页，它的存在就是 hasMore。
-      query.limit + 1,
-      query.limit,
-      Math.max(0, query.maxBytes),
-      runId,
-    ) as unknown as Array<Omit<DwfEventPageRow, "payload_json"> & { payload_json: string | null }>;
-  // `through` 单调不减，所以进页的行恰是一段前缀：第一行没有载荷之处就是页尾。
-  const end = found.findIndex((row) => row.payload_json === null);
-  const inPage = end === -1 ? found : found.slice(0, end);
-  return { rows: inPage as DwfEventPageRow[], hasMore: end !== -1 };
+        )
+        .all(
+            runId,
+            ...filter.params,
+            ...(after === undefined ? [] : [after]),
+            // 多取一行：它不进页，它的存在就是 hasMore。
+            query.limit + 1,
+            query.limit,
+            Math.max(0, query.maxBytes),
+            runId,
+        ) as unknown as Array<
+        Omit<DwfEventPageRow, "payload_json"> & { payload_json: string | null }
+    >;
+    // `through` 单调不减，所以进页的行恰是一段前缀：第一行没有载荷之处就是页尾。
+    const end = found.findIndex((row) => row.payload_json === null);
+    const inPage = end === -1 ? found : found.slice(0, end);
+    return { rows: inPage as DwfEventPageRow[], hasMore: end !== -1 };
 }
 
 /**
@@ -100,10 +102,10 @@ export function pageEventRows(
  * 一页给人看，内存 journal 没有理由为它陪跑。
  */
 export function listEventPage(
-  db: DatabaseSync,
-  runId: string,
-  query: DwfEventPageQuery,
+    db: DatabaseSync,
+    runId: string,
+    query: DwfEventPageQuery,
 ): { events: StoredEvent[]; hasMore: boolean } {
-  const { rows, hasMore } = pageEventRows(db, runId, query);
-  return { events: rows.map(decodeEvent), hasMore };
+    const { rows, hasMore } = pageEventRows(db, runId, query);
+    return { events: rows.map(decodeEvent), hasMore };
 }

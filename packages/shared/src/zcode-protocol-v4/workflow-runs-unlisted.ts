@@ -31,10 +31,10 @@ import type { WorkflowRunState, WorkflowRunUnlistedPhase } from "./workflow-runs
 
 /** 往一格上加的增量。`actors` 可以是负数（子代理回表），其余只会是正数。 */
 export interface WorkflowRunUnlistedDelta {
-  actors?: number;
-  actorsSettled?: number;
-  actorsFailed?: number;
-  settled?: number;
+    actors?: number;
+    actorsSettled?: number;
+    actorsFailed?: number;
+    settled?: number;
 }
 
 /**
@@ -47,48 +47,48 @@ export interface WorkflowRunUnlistedDelta {
  * 返回 `undefined` 恒等于「一格都没有」（键缺席），所以减到全零的最后一格会把整张表收掉。
  */
 export function addToUnlistedBucket(
-  buckets: readonly WorkflowRunUnlistedPhase[] | undefined,
-  phaseName: string | undefined,
-  delta: WorkflowRunUnlistedDelta,
-  maxPhases: number,
+    buckets: readonly WorkflowRunUnlistedPhase[] | undefined,
+    phaseName: string | undefined,
+    delta: WorkflowRunUnlistedDelta,
+    maxPhases: number,
 ): WorkflowRunUnlistedPhase[] | undefined {
-  const current = buckets ?? [];
-  const index = current.findIndex((bucket) => bucket.phaseName === phaseName);
-  if (index < 0 && current.length >= maxPhases + 1) {
-    return buckets === undefined ? undefined : [...buckets];
-  }
-  const base = index < 0 ? undefined : current[index]!;
-  // 夹零：`actors` 的减法有两处够不着的前提（归属在格子表满时被丢过、事实上的出生阶段与
-  // 派发重发的那个对不上），夹一下只会少算一格，不夹会在协议线上发出一个负数。
-  const actors = atLeastZero((base?.actors ?? 0) + (delta.actors ?? 0));
-  // 夹到 `actorsFailed ≤ actorsSettled ≤ actors`（文件头的那条法律）：这一格认不出是谁回的表，
-  // 所以「已结束」的数目只能跟着「不在表上」的数目一起落。
-  const actorsSettled = Math.min(
-    atLeastZero((base?.actorsSettled ?? 0) + (delta.actorsSettled ?? 0)),
-    actors,
-  );
-  const actorsFailed = Math.min(
-    atLeastZero((base?.actorsFailed ?? 0) + (delta.actorsFailed ?? 0)),
-    actorsSettled,
-  );
-  const settled = atLeastZero((base?.settled ?? 0) + (delta.settled ?? 0));
-  if (actors === 0 && actorsSettled === 0 && actorsFailed === 0 && settled === 0) {
-    if (index < 0) return buckets === undefined ? undefined : [...buckets];
-    const remaining = current.filter((_, position) => position !== index);
-    return remaining.length > 0 ? remaining : undefined;
-  }
-  // 键序 = schema 声明序：这份对象会原样被增量搬上线，两边的字节必须对得上。
-  const merged: WorkflowRunUnlistedPhase = {
-    ...(phaseName === undefined ? {} : { phaseName }),
-    actors,
-    ...(actorsSettled > 0 ? { actorsSettled } : {}),
-    ...(actorsFailed > 0 ? { actorsFailed } : {}),
-    settled,
-  };
-  if (index < 0) return [...current, merged];
-  const next = [...current];
-  next[index] = merged;
-  return next;
+    const current = buckets ?? [];
+    const index = current.findIndex((bucket) => bucket.phaseName === phaseName);
+    if (index < 0 && current.length >= maxPhases + 1) {
+        return buckets === undefined ? undefined : [...buckets];
+    }
+    const base = index < 0 ? undefined : current[index]!;
+    // 夹零：`actors` 的减法有两处够不着的前提（归属在格子表满时被丢过、事实上的出生阶段与
+    // 派发重发的那个对不上），夹一下只会少算一格，不夹会在协议线上发出一个负数。
+    const actors = atLeastZero((base?.actors ?? 0) + (delta.actors ?? 0));
+    // 夹到 `actorsFailed ≤ actorsSettled ≤ actors`（文件头的那条法律）：这一格认不出是谁回的表，
+    // 所以「已结束」的数目只能跟着「不在表上」的数目一起落。
+    const actorsSettled = Math.min(
+        atLeastZero((base?.actorsSettled ?? 0) + (delta.actorsSettled ?? 0)),
+        actors,
+    );
+    const actorsFailed = Math.min(
+        atLeastZero((base?.actorsFailed ?? 0) + (delta.actorsFailed ?? 0)),
+        actorsSettled,
+    );
+    const settled = atLeastZero((base?.settled ?? 0) + (delta.settled ?? 0));
+    if (actors === 0 && actorsSettled === 0 && actorsFailed === 0 && settled === 0) {
+        if (index < 0) return buckets === undefined ? undefined : [...buckets];
+        const remaining = current.filter((_, position) => position !== index);
+        return remaining.length > 0 ? remaining : undefined;
+    }
+    // 键序 = schema 声明序：这份对象会原样被增量搬上线，两边的字节必须对得上。
+    const merged: WorkflowRunUnlistedPhase = {
+        ...(phaseName === undefined ? {} : { phaseName }),
+        actors,
+        ...(actorsSettled > 0 ? { actorsSettled } : {}),
+        ...(actorsFailed > 0 ? { actorsFailed } : {}),
+        settled,
+    };
+    if (index < 0) return [...current, merged];
+    const next = [...current];
+    next[index] = merged;
+    return next;
 }
 
 /**
@@ -98,18 +98,18 @@ export function addToUnlistedBucket(
  * 归约要得到逐字节相同的 run 对象，顶层的结构比对才会返回 null。
  */
 export function withUnlistedBuckets(
-  run: WorkflowRunState,
-  buckets: readonly WorkflowRunUnlistedPhase[] | undefined,
+    run: WorkflowRunState,
+    buckets: readonly WorkflowRunUnlistedPhase[] | undefined,
 ): WorkflowRunState {
-  if (buckets === run.unlistedByPhase) return run;
-  if (buckets === undefined || buckets.length === 0) {
-    if (run.unlistedByPhase === undefined) return run;
-    const { unlistedByPhase: _emptied, ...withoutKey } = run;
-    return withoutKey;
-  }
-  return { ...run, unlistedByPhase: [...buckets] };
+    if (buckets === run.unlistedByPhase) return run;
+    if (buckets === undefined || buckets.length === 0) {
+        if (run.unlistedByPhase === undefined) return run;
+        const { unlistedByPhase: _emptied, ...withoutKey } = run;
+        return withoutKey;
+    }
+    return { ...run, unlistedByPhase: [...buckets] };
 }
 
 function atLeastZero(value: number): number {
-  return value > 0 ? value : 0;
+    return value > 0 ? value : 0;
 }

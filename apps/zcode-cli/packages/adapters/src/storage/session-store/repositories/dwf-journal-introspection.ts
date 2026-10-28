@@ -13,56 +13,56 @@ import type { NodeRecord, NodeRecordStatus, RunStatus, StoredEvent } from "@zcod
 import type { DwfArtifactItem, DwfArtifactItemsQuery } from "./dwf-journal-artifacts.js";
 import type { DwfEventPageQuery } from "./dwf-journal-pages.js";
 import {
-  decodeEvent,
-  decodeNode,
-  decodeRunDetailRow,
-  decodeRunListItem,
-  decodeRunSessionListItem,
-  type DwfEventRow,
-  type DwfNodeRow,
-  type DwfWorldNodeRow,
-  type DwfRunDetailRow,
-  type DwfRunListItem,
-  type DwfRunMetadataRow,
-  type DwfRunRow,
-  type DwfRunSessionListItem,
-  type DwfRunSessionRow,
-  encodeRunStatusPredicate,
+    decodeEvent,
+    decodeNode,
+    decodeRunDetailRow,
+    decodeRunListItem,
+    decodeRunSessionListItem,
+    type DwfEventRow,
+    type DwfNodeRow,
+    type DwfWorldNodeRow,
+    type DwfRunDetailRow,
+    type DwfRunListItem,
+    type DwfRunMetadataRow,
+    type DwfRunRow,
+    type DwfRunSessionListItem,
+    type DwfRunSessionRow,
+    encodeRunStatusPredicate,
 } from "./dwf-journal-codecs.js";
 
 /** {@link DwfRunIntrospectionQueries.listRuns} 的查询袋。 */
 export interface DwfListRunsQuery {
-  /**
-   * 项目键。字面等值匹配 `dwf_run.cwd`（写入侧原样落，读侧原样查）。
-   *
-   * **可选**：缺省即不加 cwd 谓词，跨所有项目枚举。全局工作流的运行历史横跨它被发起过的每个
-   * 项目（`workflows/runs` 的 `scope: "global"` 变体）；项目档变体仍传 cwd，行为逐字不变。
-   */
-  cwd?: string;
-  /**
-   * 返回行数上限，**必填**。钳制策略属于调用方（工具面钳到 [1, 50]）；存储层不替它猜一个
-   * 默认值——一条无界的枚举查询是这里唯一不该有的形状。
-   *
-   * 但**别在这里加自己的天花板**（如 `Math.min(50, limit)`）。调用方合法地传「钳制上限 + 1」：
-   * run service 多取一条来判定 `truncated`（多取的那条不进页）。一个 50 的硬顶会把探测行悄悄
-   * 吃掉，于是 `truncated` 在**恰好** limit = 50 时永久缺席——正是用户最需要知道"还有更多"的
-   * 那个页大小，而且没有任何测试会在别的 limit 上发现它。
-   */
-  limit: number;
-  /** 可选状态子集。缺省即不过滤；空数组即「不匹配任何状态」（回空页）。 */
-  statuses?: readonly RunStatus[];
-  /**
-   * 可选的 run 名字（`dwf_run.name` 字面等值）。GUI 中枢按「工作流名 = run 名」归属运行历史，过滤下推到 SQL 而不是取一页再筛——否则一个高频
-   * 工作流会把别的工作流挤出页外，卡片上的「上次运行」就是错的。
-   */
-  name?: string;
+    /**
+     * 项目键。字面等值匹配 `dwf_run.cwd`（写入侧原样落，读侧原样查）。
+     *
+     * **可选**：缺省即不加 cwd 谓词，跨所有项目枚举。全局工作流的运行历史横跨它被发起过的每个
+     * 项目（`workflows/runs` 的 `scope: "global"` 变体）；项目档变体仍传 cwd，行为逐字不变。
+     */
+    cwd?: string;
+    /**
+     * 返回行数上限，**必填**。钳制策略属于调用方（工具面钳到 [1, 50]）；存储层不替它猜一个
+     * 默认值——一条无界的枚举查询是这里唯一不该有的形状。
+     *
+     * 但**别在这里加自己的天花板**（如 `Math.min(50, limit)`）。调用方合法地传「钳制上限 + 1」：
+     * run service 多取一条来判定 `truncated`（多取的那条不进页）。一个 50 的硬顶会把探测行悄悄
+     * 吃掉，于是 `truncated` 在**恰好** limit = 50 时永久缺席——正是用户最需要知道"还有更多"的
+     * 那个页大小，而且没有任何测试会在别的 limit 上发现它。
+     */
+    limit: number;
+    /** 可选状态子集。缺省即不过滤；空数组即「不匹配任何状态」（回空页）。 */
+    statuses?: readonly RunStatus[];
+    /**
+     * 可选的 run 名字（`dwf_run.name` 字面等值）。GUI 中枢按「工作流名 = run 名」归属运行历史，过滤下推到 SQL 而不是取一页再筛——否则一个高频
+     * 工作流会把别的工作流挤出页外，卡片上的「上次运行」就是错的。
+     */
+    name?: string;
 }
 
 /** dwf_node 的三态计数（`NodeRecordStatus` 的全部取值，三个键恒在场）。 */
 export interface DwfNodeStatusCounts {
-  completed: number;
-  failed: number;
-  running: number;
+    completed: number;
+    failed: number;
+    running: number;
 }
 
 /**
@@ -73,8 +73,8 @@ export interface DwfNodeStatusCounts {
  * （事件日志里一切「多久以前」的唯一时钟），因此差值不会跨时钟。
  */
 export interface DwfRunLifeSpan {
-  startedAt: number;
-  lastActivityAt: number;
+    startedAt: number;
+    lastActivityAt: number;
 }
 
 /**
@@ -89,36 +89,36 @@ export interface DwfRunLifeSpan {
  * 降级成「本会话没有这个能力」。
  */
 export interface DwfRunIntrospectionQueries {
-  countNodesByStatus(runId: string): DwfNodeStatusCounts;
-  getRunRow(runId: string): DwfRunDetailRow | undefined;
-  listArtifactItems(
-    runId: string,
-    artifactId: string,
-    query: DwfArtifactItemsQuery,
-  ): { items: DwfArtifactItem[]; hasMore: boolean };
-  /** 事件日志的一页：条数与字节两道界（dwf-journal-pages.ts），`hasMore` 由存储层判定。 */
-  listEventPage(
-    runId: string,
-    query: DwfEventPageQuery,
-  ): { events: StoredEvent[]; hasMore: boolean };
-  listArtifactRows(runId: string): NodeRecord[];
-  /** 每个预置产物的标签 report 条数（`group by artifact_id`，不读行）。 */
-  countTaggedReports(runId: string): ReadonlyMap<string, number>;
-  listRecentLogEvents(runId: string, limit: number): StoredEvent[];
-  listRuns(query: DwfListRunsQuery): DwfRunListItem[];
-  /**
-   * 本 run 每一世的活动区间，按时序（完成卡的「时间」格，见
-   * `docs/dynamic-workflow/transcript-and-notifications.md`「How long it took」）。一条 run 可以
-   * 有多世（每次 resume 一世），而每一世的墙钟只有事件日志知道。
-   */
-  listRunLifeSpans(runId: string): DwfRunLifeSpan[];
-  /**
-   * 本 run 的 world-read / world-run 行，按落库先后（`order by id`），带 journal 时间戳
-   * （docs/dynamic-workflow/transcript-and-notifications.md 的 `workflowRunWorkspace` 行）。**不取
-   * `result_json`**：这条读面是清单（op / args / 状态 / 时间），正文另有按 (siteId, ordinal)
-   * 的读面——一页 256 个节点把每个 256 KB 的 stdout 一起解出来，等于把整条 journal 读进内存。
-   */
-  listWorldNodes(runId: string): DwfWorldNodeRow[];
+    countNodesByStatus(runId: string): DwfNodeStatusCounts;
+    getRunRow(runId: string): DwfRunDetailRow | undefined;
+    listArtifactItems(
+        runId: string,
+        artifactId: string,
+        query: DwfArtifactItemsQuery,
+    ): { items: DwfArtifactItem[]; hasMore: boolean };
+    /** 事件日志的一页：条数与字节两道界（dwf-journal-pages.ts），`hasMore` 由存储层判定。 */
+    listEventPage(
+        runId: string,
+        query: DwfEventPageQuery,
+    ): { events: StoredEvent[]; hasMore: boolean };
+    listArtifactRows(runId: string): NodeRecord[];
+    /** 每个预置产物的标签 report 条数（`group by artifact_id`，不读行）。 */
+    countTaggedReports(runId: string): ReadonlyMap<string, number>;
+    listRecentLogEvents(runId: string, limit: number): StoredEvent[];
+    listRuns(query: DwfListRunsQuery): DwfRunListItem[];
+    /**
+     * 本 run 每一世的活动区间，按时序（完成卡的「时间」格，见
+     * `docs/dynamic-workflow/transcript-and-notifications.md`「How long it took」）。一条 run 可以
+     * 有多世（每次 resume 一世），而每一世的墙钟只有事件日志知道。
+     */
+    listRunLifeSpans(runId: string): DwfRunLifeSpan[];
+    /**
+     * 本 run 的 world-read / world-run 行，按落库先后（`order by id`），带 journal 时间戳
+     * （docs/dynamic-workflow/transcript-and-notifications.md 的 `workflowRunWorkspace` 行）。**不取
+     * `result_json`**：这条读面是清单（op / args / 状态 / 时间），正文另有按 (siteId, ordinal)
+     * 的读面——一页 256 个节点把每个 256 KB 的 stdout 一起解出来，等于把整条 journal 读进内存。
+     */
+    listWorldNodes(runId: string): DwfWorldNodeRow[];
 }
 
 /**
@@ -133,27 +133,27 @@ export interface DwfRunIntrospectionQueries {
  * 可以很大。
  */
 export function listRuns(db: DatabaseSync, query: DwfListRunsQuery): DwfRunListItem[] {
-  // 空状态集合的语义是「不匹配任何状态」而不是「不过滤」：把它当成后者，等于让一个显式
-  // 传下来的过滤器静默失效。同理 limit ≤ 0 是空页（listEvents 的 `limit -1` 全量惯用法
-  // 在这条查询上不适用——枚举面永远是有界的）。
-  //
-  // 地板在这里，天花板**不在**：调用方合法地传「工具面上限 + 1」当截断探测行，加一个
-  // `Math.min(50, …)` 会让 truncated 在恰好 limit = 50 时永久缺席。见 {@link DwfListRunsQuery.limit}。
-  if (query.statuses !== undefined && query.statuses.length === 0) return [];
-  if (query.limit <= 0) return [];
+    // 空状态集合的语义是「不匹配任何状态」而不是「不过滤」：把它当成后者，等于让一个显式
+    // 传下来的过滤器静默失效。同理 limit ≤ 0 是空页（listEvents 的 `limit -1` 全量惯用法
+    // 在这条查询上不适用——枚举面永远是有界的）。
+    //
+    // 地板在这里，天花板**不在**：调用方合法地传「工具面上限 + 1」当截断探测行，加一个
+    // `Math.min(50, …)` 会让 truncated 在恰好 limit = 50 时永久缺席。见 {@link DwfListRunsQuery.limit}。
+    if (query.statuses !== undefined && query.statuses.length === 0) return [];
+    if (query.limit <= 0) return [];
 
-  // cwd 缺省即不加谓词：全局工作流的历史跨所有它跑过的项目（全局变体不按 cwd 过滤）。
-  // 给了 cwd 就字面等值匹配，走 dwf_run_cwd_idx，行为逐字不变。
-  const cwdFilter = query.cwd === undefined ? "" : " and cwd = ?";
-  // 逻辑状态 → 物理谓词（stopped / errored 共享物理 failed，靠 failure_json 的 code 在 SQL
-  // 里分清；见 dwf-journal-codecs.ts 的 encodeRunStatusPredicate）。
-  const statusPredicate =
-    query.statuses === undefined ? undefined : encodeRunStatusPredicate(query.statuses);
-  const statusFilter = statusPredicate === undefined ? "" : ` and ${statusPredicate.sql}`;
-  const nameFilter = query.name === undefined ? "" : " and name = ?";
-  const rows = db
-    .prepare(
-      `
+    // cwd 缺省即不加谓词：全局工作流的历史跨所有它跑过的项目（全局变体不按 cwd 过滤）。
+    // 给了 cwd 就字面等值匹配，走 dwf_run_cwd_idx，行为逐字不变。
+    const cwdFilter = query.cwd === undefined ? "" : " and cwd = ?";
+    // 逻辑状态 → 物理谓词（stopped / errored 共享物理 failed，靠 failure_json 的 code 在 SQL
+    // 里分清；见 dwf-journal-codecs.ts 的 encodeRunStatusPredicate）。
+    const statusPredicate =
+        query.statuses === undefined ? undefined : encodeRunStatusPredicate(query.statuses);
+    const statusFilter = statusPredicate === undefined ? "" : ` and ${statusPredicate.sql}`;
+    const nameFilter = query.name === undefined ? "" : " and name = ?";
+    const rows = db
+        .prepare(
+            `
       select
         id, parent_session_id, cwd, name, script_text, script_hash, tool_call_id,
         args_json, resumed_from, caps_max_concurrency,
@@ -163,14 +163,14 @@ export function listRuns(db: DatabaseSync, query: DwfListRunsQuery): DwfRunListI
       order by time_updated desc
       limit ?
       `,
-    )
-    .all(
-      ...(query.cwd === undefined ? [] : [query.cwd]),
-      ...(statusPredicate?.params ?? []),
-      ...(query.name === undefined ? [] : [query.name]),
-      query.limit,
-    ) as unknown as DwfRunMetadataRow[];
-  return rows.map(decodeRunListItem);
+        )
+        .all(
+            ...(query.cwd === undefined ? [] : [query.cwd]),
+            ...(statusPredicate?.params ?? []),
+            ...(query.name === undefined ? [] : [query.name]),
+            query.limit,
+        ) as unknown as DwfRunMetadataRow[];
+    return rows.map(decodeRunListItem);
 }
 
 /**
@@ -179,8 +179,10 @@ export function listRuns(db: DatabaseSync, query: DwfListRunsQuery): DwfRunListI
  * 假的起始时间。
  */
 export function getRunRow(db: DatabaseSync, runId: string): DwfRunDetailRow | undefined {
-  const row = db.prepare("select * from dwf_run where id = ?").get(runId) as DwfRunRow | undefined;
-  return row ? decodeRunDetailRow(row) : undefined;
+    const row = db.prepare("select * from dwf_run where id = ?").get(runId) as
+        | DwfRunRow
+        | undefined;
+    return row ? decodeRunDetailRow(row) : undefined;
 }
 
 /**
@@ -191,12 +193,12 @@ export function getRunRow(db: DatabaseSync, runId: string): DwfRunDetailRow | un
  * 变成 NaN。词汇表就是 `NodeRecordStatus` 的三值——`queued` 只存在于事件相位、不落库。
  */
 export function countNodesByStatus(db: DatabaseSync, runId: string): DwfNodeStatusCounts {
-  const rows = db
-    .prepare("select status, count(*) as total from dwf_node where run_id = ? group by status")
-    .all(runId) as unknown as { status: NodeRecordStatus; total: number }[];
-  const counts: DwfNodeStatusCounts = { running: 0, completed: 0, failed: 0 };
-  for (const row of rows) counts[row.status] = Number(row.total);
-  return counts;
+    const rows = db
+        .prepare("select status, count(*) as total from dwf_node where run_id = ? group by status")
+        .all(runId) as unknown as { status: NodeRecordStatus; total: number }[];
+    const counts: DwfNodeStatusCounts = { running: 0, completed: 0, failed: 0 };
+    for (const row of rows) counts[row.status] = Number(row.total);
+    return counts;
 }
 
 /**
@@ -207,13 +209,13 @@ export function countNodesByStatus(db: DatabaseSync, runId: string): DwfNodeStat
  * 下推——`type` 列就是为此存的冗余（payload_json 里也有一份）。
  */
 export function listRecentLogEvents(db: DatabaseSync, runId: string, limit: number): StoredEvent[] {
-  if (limit <= 0) return [];
-  const rows = db
-    .prepare(
-      "select * from dwf_event where run_id = ? and type = 'log' order by sequence desc limit ?",
-    )
-    .all(runId, limit) as unknown as DwfEventRow[];
-  return rows.reverse().map(decodeEvent);
+    if (limit <= 0) return [];
+    const rows = db
+        .prepare(
+            "select * from dwf_event where run_id = ? and type = 'log' order by sequence desc limit ?",
+        )
+        .all(runId, limit) as unknown as DwfEventRow[];
+    return rows.reverse().map(decodeEvent);
 }
 
 /**
@@ -232,9 +234,9 @@ export function listRecentLogEvents(db: DatabaseSync, runId: string, limit: numb
  * 这是个跨存储边界的读面，而一个 null 会静默变成 NaN 毫秒。
  */
 export function listRunLifeSpans(db: DatabaseSync, runId: string): DwfRunLifeSpan[] {
-  const rows = db
-    .prepare(
-      `
+    const rows = db
+        .prepare(
+            `
       with lives as (
         select sequence, time_created,
                lead(sequence) over (order by sequence) as next_sequence
@@ -255,15 +257,15 @@ export function listRunLifeSpans(db: DatabaseSync, runId: string): DwfRunLifeSpa
       from lives l
       order by l.sequence
       `,
-    )
-    .all(runId, runId) as unknown as { started_at: number; last_activity_at: number | null }[];
-  return rows.map((row) => ({
-    startedAt: Number(row.started_at),
-    lastActivityAt:
-      typeof row.last_activity_at === "number"
-        ? Number(row.last_activity_at)
-        : Number(row.started_at),
-  }));
+        )
+        .all(runId, runId) as unknown as { started_at: number; last_activity_at: number | null }[];
+    return rows.map((row) => ({
+        startedAt: Number(row.started_at),
+        lastActivityAt:
+            typeof row.last_activity_at === "number"
+                ? Number(row.last_activity_at)
+                : Number(row.started_at),
+    }));
 }
 
 /**
@@ -281,13 +283,13 @@ export function listRunLifeSpans(db: DatabaseSync, runId: string): DwfRunLifeSpa
  * 被打断的 run 都被静默算成不可恢复。时间戳随行返回（`RunRecord` 刻意不带时间）。
  */
 export function listRunsByParentSession(
-  db: DatabaseSync,
-  parentSessionId: string,
-  limit: number,
+    db: DatabaseSync,
+    parentSessionId: string,
+    limit: number,
 ): DwfRunSessionListItem[] {
-  const rows = db
-    .prepare(
-      `
+    const rows = db
+        .prepare(
+            `
       select
         id, parent_session_id, cwd, name, script_text, script_hash, tool_call_id,
         args_json, resumed_from, caps_max_concurrency,
@@ -297,15 +299,15 @@ export function listRunsByParentSession(
       order by time_updated desc, id desc
       limit ?
       `,
-    )
-    .all(parentSessionId, Math.max(0, limit)) as unknown as DwfRunSessionRow[];
-  return rows.map(decodeRunSessionListItem);
+        )
+        .all(parentSessionId, Math.max(0, limit)) as unknown as DwfRunSessionRow[];
+    return rows.map(decodeRunSessionListItem);
 }
 
 export function listWorldNodes(db: DatabaseSync, runId: string): DwfWorldNodeRow[] {
-  const rows = db
-    .prepare(
-      `
+    const rows = db
+        .prepare(
+            `
       select
         run_id, site_id, ordinal, kind, actor_site_id, actor_ordinal, actor_seq, input_hash,
         status, error_json, stats_json, message_boundary, artifact_id, input_json,
@@ -323,25 +325,25 @@ export function listWorldNodes(db: DatabaseSync, runId: string): DwfWorldNodeRow
       where run_id = ? and kind in ('world-read', 'world-run')
       order by id
       `,
-    )
-    .all(runId) as unknown as (Omit<DwfNodeRow, "id" | "result_json"> & {
-    result_bytes: number | null;
-    result_count: number | null;
-    exit_code: number | null;
-    stdout_bytes: number | null;
-    stderr_bytes: number | null;
-  })[];
-  return rows.map((row) => {
-    const record = decodeNode({ ...row, id: 0, result_json: null });
-    return {
-      ...record,
-      timeCreated: row.time_created,
-      timeUpdated: row.time_updated,
-      ...(row.result_bytes === null ? {} : { resultBytes: row.result_bytes }),
-      ...(row.result_count === null ? {} : { resultCount: row.result_count }),
-      ...(typeof row.exit_code === "number" ? { exitCode: row.exit_code } : {}),
-      ...(row.stdout_bytes === null ? {} : { stdoutBytes: row.stdout_bytes }),
-      ...(row.stderr_bytes === null ? {} : { stderrBytes: row.stderr_bytes }),
-    };
-  });
+        )
+        .all(runId) as unknown as (Omit<DwfNodeRow, "id" | "result_json"> & {
+        result_bytes: number | null;
+        result_count: number | null;
+        exit_code: number | null;
+        stdout_bytes: number | null;
+        stderr_bytes: number | null;
+    })[];
+    return rows.map((row) => {
+        const record = decodeNode({ ...row, id: 0, result_json: null });
+        return {
+            ...record,
+            timeCreated: row.time_created,
+            timeUpdated: row.time_updated,
+            ...(row.result_bytes === null ? {} : { resultBytes: row.result_bytes }),
+            ...(row.result_count === null ? {} : { resultCount: row.result_count }),
+            ...(typeof row.exit_code === "number" ? { exitCode: row.exit_code } : {}),
+            ...(row.stdout_bytes === null ? {} : { stdoutBytes: row.stdout_bytes }),
+            ...(row.stderr_bytes === null ? {} : { stderrBytes: row.stderr_bytes }),
+        };
+    });
 }

@@ -31,16 +31,16 @@ export type StructuralRegionKind = "choice" | "call" | "try" | "attempt" | "catc
 export type TraceRegionKind = RegionKind | StructuralRegionKind;
 
 const STRUCTURAL_REGION_KINDS: ReadonlySet<string> = new Set<StructuralRegionKind>([
-  "choice",
-  "call",
-  "try",
-  "attempt",
-  "catch",
-  "finally",
+    "choice",
+    "call",
+    "try",
+    "attempt",
+    "catch",
+    "finally",
 ]);
 
 export function isStructuralRegionKind(kind: TraceRegionKind): kind is StructuralRegionKind {
-  return STRUCTURAL_REGION_KINDS.has(kind);
+    return STRUCTURAL_REGION_KINDS.has(kind);
 }
 
 /** The reserved fallback phase: the root block's initial current phase, and where every

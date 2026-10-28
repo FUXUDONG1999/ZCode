@@ -7,9 +7,9 @@ import type { DragEventHandler } from "react";
  * 也不改变 desktop continuous / web-remote-replayable 的传输边界。
  */
 export interface ConversationDropTargetController {
-  active: boolean;
-  kind: "attachment" | "workspace" | null;
-  onDragOver: DragEventHandler<HTMLElement>;
-  onDragLeave: DragEventHandler<HTMLElement>;
-  onDrop: DragEventHandler<HTMLElement>;
+    active: boolean;
+    kind: "attachment" | "workspace" | null;
+    onDragOver: DragEventHandler<HTMLElement>;
+    onDragLeave: DragEventHandler<HTMLElement>;
+    onDrop: DragEventHandler<HTMLElement>;
 }

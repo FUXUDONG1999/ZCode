@@ -9,39 +9,39 @@
  * 首尾 x 相同的路径（脊线里没有，但守一下）改沿 y 铺。`id` 由调用方给，同一张 SVG 里要唯一。
  */
 export interface MarchLightProps {
-  /** 要点亮的路径；弧给的是截短 6px、停在箭头根部的那条。 */
-  d: string;
-  /** 路径起点（控制流来的那一头）。 */
-  from: { x: number; y: number };
-  /** 路径终点（正在运行的灯那一头）。 */
-  to: { x: number; y: number };
-  id: string;
+    /** 要点亮的路径；弧给的是截短 6px、停在箭头根部的那条。 */
+    d: string;
+    /** 路径起点（控制流来的那一头）。 */
+    from: { x: number; y: number };
+    /** 路径终点（正在运行的灯那一头）。 */
+    to: { x: number; y: number };
+    id: string;
 }
 
 export function MarchLight({ d, from, id, to }: MarchLightProps) {
-  const alongY = from.x === to.x;
-  return (
-    <>
-      <defs>
-        <linearGradient
-          gradientUnits="userSpaceOnUse"
-          id={id}
-          x1={alongY ? 0 : from.x}
-          x2={alongY ? 0 : to.x}
-          y1={alongY ? from.y : 0}
-          y2={alongY ? to.y : 0}
-        >
-          <stop offset={0} stopColor="var(--color-warning)" stopOpacity={0} />
-          <stop offset={0.8} stopColor="var(--color-warning)" />
-        </linearGradient>
-      </defs>
-      <path
-        className="wf-lit"
-        d={d}
-        data-testid="workflow-march-light"
-        fill="none"
-        stroke={`url(#${id})`}
-      />
-    </>
-  );
+    const alongY = from.x === to.x;
+    return (
+        <>
+            <defs>
+                <linearGradient
+                    gradientUnits="userSpaceOnUse"
+                    id={id}
+                    x1={alongY ? 0 : from.x}
+                    x2={alongY ? 0 : to.x}
+                    y1={alongY ? from.y : 0}
+                    y2={alongY ? to.y : 0}
+                >
+                    <stop offset={0} stopColor="var(--color-warning)" stopOpacity={0} />
+                    <stop offset={0.8} stopColor="var(--color-warning)" />
+                </linearGradient>
+            </defs>
+            <path
+                className="wf-lit"
+                d={d}
+                data-testid="workflow-march-light"
+                fill="none"
+                stroke={`url(#${id})`}
+            />
+        </>
+    );
 }

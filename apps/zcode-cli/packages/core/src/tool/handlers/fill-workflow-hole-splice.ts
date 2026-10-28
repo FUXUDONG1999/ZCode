@@ -15,14 +15,14 @@ import { collectSites, createWorkflowProgram, spliceHoleBody } from "@zcode/dyna
  * `undefined`——调用方据此开一个没有预览的窗，绝不抛。
  */
 export function spliceHoleBodyPreview(
-  scriptText: string,
-  holeSiteId: string,
-  body: string,
+    scriptText: string,
+    holeSiteId: string,
+    body: string,
 ): string | undefined {
-  try {
-    const table = collectSites(createWorkflowProgram(scriptText));
-    return spliceHoleBody(scriptText, table, holeSiteId, body)?.text;
-  } catch {
-    return undefined;
-  }
+    try {
+        const table = collectSites(createWorkflowProgram(scriptText));
+        return spliceHoleBody(scriptText, table, holeSiteId, body)?.text;
+    } catch {
+        return undefined;
+    }
 }

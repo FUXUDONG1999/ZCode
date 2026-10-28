@@ -25,13 +25,13 @@ Put the bootstrap and the actions in the **same** cell, bootstrap first:
 
 ```js
 const root =
-  process.env.ZCODE_CUA_PLUGIN_ROOT ??
-  process.env.ZCODE_PLUGIN_ROOT ??
-  process.env.CLAUDE_PLUGIN_ROOT;
+    process.env.ZCODE_CUA_PLUGIN_ROOT ??
+    process.env.ZCODE_PLUGIN_ROOT ??
+    process.env.CLAUDE_PLUGIN_ROOT;
 const { join } = await import("node:path");
 const { pathToFileURL } = await import("node:url");
 const { setupComputerUseRuntime } = await import(
-  pathToFileURL(join(root, "scripts", "computer-use-client.mjs")).href
+    pathToFileURL(join(root, "scripts", "computer-use-client.mjs")).href
 );
 await setupComputerUseRuntime({ globals: globalThis });
 ```
@@ -77,32 +77,38 @@ type SelectionType = "text" | "cursor_before" | "cursor_after";
 type Strategy = "auto" | "a11y" | "event";
 
 type ClickOptions = {
-  mouseButton?: MouseButton;
-  clickCount?: number;
-  modifiers?: string;
-  strategy?: Strategy;
+    mouseButton?: MouseButton;
+    clickCount?: number;
+    modifiers?: string;
+    strategy?: Strategy;
 };
 type SelectTextOptions = { prefix?: string; suffix?: string; selectionType?: SelectionType };
 type PasteOptions = { format?: "text" | "md" | "html" };
 type PressKeyOptions = { holdSeconds?: number; strategy?: Strategy };
 
 interface Target {
-  getAXState(options?: StateOptions): Promise<string>;
-  getScreenshot(options?: ObservationOptions): Promise<Uint8Array>;
-  getAXStateAndScreenshot(options?: StateOptions): Promise<StateAndScreenshot>;
-  elements(): Promise<
-    { index: number; kind: string; title: string | null; value: string | null; actions: string[] }[]
-  >;
+    getAXState(options?: StateOptions): Promise<string>;
+    getScreenshot(options?: ObservationOptions): Promise<Uint8Array>;
+    getAXStateAndScreenshot(options?: StateOptions): Promise<StateAndScreenshot>;
+    elements(): Promise<
+        {
+            index: number;
+            kind: string;
+            title: string | null;
+            value: string | null;
+            actions: string[];
+        }[]
+    >;
 
-  paste(text: string, options?: PasteOptions): Promise<void>;
-  click(target: number | Vec2, options?: ClickOptions): Promise<void>;
-  drag(from: number | Vec2, to: number | Vec2, options?: { modifiers?: string }): Promise<void>;
-  pressKey(key: string, options?: PressKeyOptions): Promise<void>;
-  scroll(target: number | Vec2, direction: Direction, pages?: number): Promise<void>;
-  selectText(elementIndex: number, text: string, options?: SelectTextOptions): Promise<void>;
-  setValue(elementIndex: number, value: string): Promise<void>;
-  typeText(text: string): Promise<void>;
-  performSecondaryAction(elementIndex: number, action: string): Promise<void>;
+    paste(text: string, options?: PasteOptions): Promise<void>;
+    click(target: number | Vec2, options?: ClickOptions): Promise<void>;
+    drag(from: number | Vec2, to: number | Vec2, options?: { modifiers?: string }): Promise<void>;
+    pressKey(key: string, options?: PressKeyOptions): Promise<void>;
+    scroll(target: number | Vec2, direction: Direction, pages?: number): Promise<void>;
+    selectText(elementIndex: number, text: string, options?: SelectTextOptions): Promise<void>;
+    setValue(elementIndex: number, value: string): Promise<void>;
+    typeText(text: string): Promise<void>;
+    performSecondaryAction(elementIndex: number, action: string): Promise<void>;
 }
 
 interface App extends Target {}
@@ -112,15 +118,15 @@ type AppInfo = { pid: number; name: string | null; bundle_id: string | null; act
 type State = { apps: AppInfo[] };
 
 declare const agent: {
-  computerUse: {
-    getState(options?: ObservationOptions): Promise<State>;
-    getApp(target: string | AppRef): Promise<App>;
-    listApps(options?: ObservationOptions): Promise<AppInfo[]>;
-    computer: Record<string, (args: object) => Promise<unknown>>;
+    computerUse: {
+        getState(options?: ObservationOptions): Promise<State>;
+        getApp(target: string | AppRef): Promise<App>;
+        listApps(options?: ObservationOptions): Promise<AppInfo[]>;
+        computer: Record<string, (args: object) => Promise<unknown>>;
 
-    requestAccess(capabilities?: string[]): Promise<Record<string, unknown>>;
-    stop(reason?: string): Promise<void>;
-  };
+        requestAccess(capabilities?: string[]): Promise<Record<string, unknown>>;
+        stop(reason?: string): Promise<void>;
+    };
 };
 ```
 

@@ -10,44 +10,44 @@ import type { IPlatformService, RemoteTarget } from "@zcode/shared";
 const PlatformContext = createContext<IPlatformService | null>(null);
 
 export function PlatformProvider({
-  platform,
-  children,
+    platform,
+    children,
 }: {
-  platform: IPlatformService;
-  children: ReactNode;
+    platform: IPlatformService;
+    children: ReactNode;
 }) {
-  return <PlatformContext.Provider value={platform}>{children}</PlatformContext.Provider>;
+    return <PlatformContext.Provider value={platform}>{children}</PlatformContext.Provider>;
 }
 
 export function usePlatform(): IPlatformService {
-  const ctx = useOptionalPlatform();
-  if (!ctx) {
-    throw new Error("usePlatform 必须在 PlatformProvider 内使用");
-  }
-  return ctx;
+    const ctx = useOptionalPlatform();
+    if (!ctx) {
+        throw new Error("usePlatform 必须在 PlatformProvider 内使用");
+    }
+    return ctx;
 }
 
 export function useOptionalPlatform(): IPlatformService | null {
-  const ctx = useContext(PlatformContext);
-  return ctx;
+    const ctx = useContext(PlatformContext);
+    return ctx;
 }
 
 /** 选择目录的便捷 hook */
 export function useSelectDirectory() {
-  const platform = usePlatform();
-  return useCallback(() => platform.selectDirectory(), [platform]);
+    const platform = usePlatform();
+    return useCallback(() => platform.selectDirectory(), [platform]);
 }
 
 /** 连接远程的便捷 hook */
 export function useConnectRemote() {
-  const platform = usePlatform();
-  return useCallback(
-    async (options: RemoteTarget, requestId?: string) => {
-      const result = await platform.connectRemote(options, requestId);
-      if (!result.success) {
-        throw new Error(result.error || "Connection failed");
-      }
-    },
-    [platform],
-  );
+    const platform = usePlatform();
+    return useCallback(
+        async (options: RemoteTarget, requestId?: string) => {
+            const result = await platform.connectRemote(options, requestId);
+            if (!result.success) {
+                throw new Error(result.error || "Connection failed");
+            }
+        },
+        [platform],
+    );
 }

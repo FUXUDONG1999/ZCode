@@ -4,8 +4,8 @@
  * 以及 serverName 归属的 fail-closed 校验（任何已配置的 MCP server 都能渲染 MCP App）。
  */
 export const mcpUiModule = {
-  id: "mcp-ui",
-  requires: ["zcode-cli", "shared", "mcp-apps-protocol"],
-  provides: ["mcp-ui-handlers"],
-  publicEntrypoints: ["index.ts", "contract.ts"],
+    id: "mcp-ui",
+    requires: ["zcode-cli", "shared", "mcp-apps-protocol"],
+    provides: ["mcp-ui-handlers"],
+    publicEntrypoints: ["index.ts", "contract.ts"],
 } as const;

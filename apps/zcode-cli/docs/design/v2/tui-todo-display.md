@@ -37,9 +37,9 @@ projection.
 - The title shows completed and total counts, for example `todo 1/3`.
 - Each item is one line, preserving session todo order.
 - Status markers are ASCII for cross-platform terminal safety:
-  - `[ ]` pending
-  - `[>]` in progress
-  - `[x]` completed
+    - `[ ]` pending
+    - `[>]` in progress
+    - `[x]` completed
 - In-progress rows may be colored cyan and completed rows may be dimmed when
   color is enabled.
 - Long todo text is truncated to the panel width; large lists show a final

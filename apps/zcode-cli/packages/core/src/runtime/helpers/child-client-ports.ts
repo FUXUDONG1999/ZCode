@@ -20,8 +20,8 @@ import { createSubagentInteractionBroker } from "./subagent-interaction-broker.j
 
 /** 一个 runtime 面向协议客户端的端口集合。 */
 export interface ClientFacingPorts {
-  permissionBroker?: PermissionBrokerPort;
-  providerRuntimeHeadersPort?: ProviderRuntimeHeadersPort;
+    permissionBroker?: PermissionBrokerPort;
+    providerRuntimeHeadersPort?: ProviderRuntimeHeadersPort;
 }
 
 /**
@@ -40,22 +40,27 @@ export type ChildClientPortsContext = Omit<SubagentInteractionOriginContext, "pa
  *   子代理归属不被外层抹掉。
  */
 export function deriveChildClientPorts(
-  parent: ClientFacingPorts,
-  context: ChildClientPortsContext & { parentSessionId: SessionId },
+    parent: ClientFacingPorts,
+    context: ChildClientPortsContext & { parentSessionId: SessionId },
 ): ClientFacingPorts {
-  return {
-    ...(parent.permissionBroker === undefined
-      ? {}
-      : { permissionBroker: createSubagentInteractionBroker(parent.permissionBroker, context) }),
-    ...(parent.providerRuntimeHeadersPort === undefined
-      ? {}
-      : {
-          providerRuntimeHeadersPort: rerouteProviderRuntimeHeadersPort(
-            parent.providerRuntimeHeadersPort,
-            context.parentSessionId,
-          ),
-        }),
-  };
+    return {
+        ...(parent.permissionBroker === undefined
+            ? {}
+            : {
+                  permissionBroker: createSubagentInteractionBroker(
+                      parent.permissionBroker,
+                      context,
+                  ),
+              }),
+        ...(parent.providerRuntimeHeadersPort === undefined
+            ? {}
+            : {
+                  providerRuntimeHeadersPort: rerouteProviderRuntimeHeadersPort(
+                      parent.providerRuntimeHeadersPort,
+                      context.parentSessionId,
+                  ),
+              }),
+    };
 }
 
 /**
@@ -64,15 +69,15 @@ export function deriveChildClientPorts(
  * 识别请求模型与父会话当前模型是否一致，不一致时只同步本次 header，不把父会话切到子模型。
  */
 function rerouteProviderRuntimeHeadersPort(
-  parentPort: ProviderRuntimeHeadersPort,
-  parentSessionId: SessionId,
+    parentPort: ProviderRuntimeHeadersPort,
+    parentSessionId: SessionId,
 ): ProviderRuntimeHeadersPort {
-  return {
-    shouldRefreshBeforeModelRequest(input) {
-      return parentPort.shouldRefreshBeforeModelRequest?.(input) ?? true;
-    },
-    refreshBeforeModelRequest(input) {
-      return parentPort.refreshBeforeModelRequest({ ...input, sessionId: parentSessionId });
-    },
-  };
+    return {
+        shouldRefreshBeforeModelRequest(input) {
+            return parentPort.shouldRefreshBeforeModelRequest?.(input) ?? true;
+        },
+        refreshBeforeModelRequest(input) {
+            return parentPort.refreshBeforeModelRequest({ ...input, sessionId: parentSessionId });
+        },
+    };
 }

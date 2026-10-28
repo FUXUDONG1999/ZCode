@@ -29,74 +29,74 @@ import { FACADE_FILE_NAME } from "../facade/dts.js";
 export type CallbackMultiplicity = "each" | "once";
 
 export interface CallbackSemantics {
-  multiplicity: CallbackMultiplicity;
-  /** Running the call provably runs the callback body (at least once). */
-  entered: boolean;
-  /** Argument indices that may hold callbacks, in order. */
-  callbacks: readonly number[];
-  /** Display / region label: the method or global function name. */
-  label: string;
-  /**
-   * `once` only: the callback runs AFTER the receiver settles (a promise continuation, a
-   * timer), not during the call. The ordering walk places the body at the call site and
-   * opens it with a may-barrier over the receiver, so the receiver's steps precede the
-   * callback's without the continuation being mistaken for a synchronous call.
-   */
-  deferred?: true;
-  /** `each` only: the expression the callback is applied to element-wise. */
-  iterated?: ts.Expression;
-  /** `each` only: callback parameter indices that receive an ELEMENT. */
-  elementParams?: readonly number[];
-  /** `each` only: callback parameter indices that receive the WHOLE collection. */
-  wholeParams?: readonly number[];
-  /** `each` only: the callback parameter index that receives the accumulator (`reduce`). */
-  accumulatorParam?: number;
+    multiplicity: CallbackMultiplicity;
+    /** Running the call provably runs the callback body (at least once). */
+    entered: boolean;
+    /** Argument indices that may hold callbacks, in order. */
+    callbacks: readonly number[];
+    /** Display / region label: the method or global function name. */
+    label: string;
+    /**
+     * `once` only: the callback runs AFTER the receiver settles (a promise continuation, a
+     * timer), not during the call. The ordering walk places the body at the call site and
+     * opens it with a may-barrier over the receiver, so the receiver's steps precede the
+     * callback's without the continuation being mistaken for a synchronous call.
+     */
+    deferred?: true;
+    /** `each` only: the expression the callback is applied to element-wise. */
+    iterated?: ts.Expression;
+    /** `each` only: callback parameter indices that receive an ELEMENT. */
+    elementParams?: readonly number[];
+    /** `each` only: callback parameter indices that receive the WHOLE collection. */
+    wholeParams?: readonly number[];
+    /** `each` only: the callback parameter index that receives the accumulator (`reduce`). */
+    accumulatorParam?: number;
 }
 
 /** What an unknown callee is assumed to do with function-valued arguments. */
 export const DEFAULT_CALLBACK_SEMANTICS: Pick<CallbackSemantics, "multiplicity" | "entered"> = {
-  entered: false,
-  multiplicity: "once",
+    entered: false,
+    multiplicity: "once",
 };
 
 /** Array methods that invoke their callback per element. Name-based on any receiver that is
  * not a script-declared method (a user class's own `.map` is a user function: callee path).
  * Value: element / whole-collection / accumulator parameter indices of the callback. */
 const EACH_METHODS: ReadonlyMap<
-  string,
-  { element: readonly number[]; whole: readonly number[]; accumulator?: number }
+    string,
+    { element: readonly number[]; whole: readonly number[]; accumulator?: number }
 > = new Map([
-  ["map", { element: [0], whole: [2] }],
-  ["flatMap", { element: [0], whole: [2] }],
-  ["forEach", { element: [0], whole: [2] }],
-  ["filter", { element: [0], whole: [2] }],
-  ["some", { element: [0], whole: [2] }],
-  ["every", { element: [0], whole: [2] }],
-  ["find", { element: [0], whole: [2] }],
-  ["findIndex", { element: [0], whole: [2] }],
-  ["findLast", { element: [0], whole: [2] }],
-  ["findLastIndex", { element: [0], whole: [2] }],
-  ["reduce", { accumulator: 0, element: [1], whole: [3] }],
-  ["reduceRight", { accumulator: 0, element: [1], whole: [3] }],
-  ["sort", { element: [0, 1], whole: [] }],
+    ["map", { element: [0], whole: [2] }],
+    ["flatMap", { element: [0], whole: [2] }],
+    ["forEach", { element: [0], whole: [2] }],
+    ["filter", { element: [0], whole: [2] }],
+    ["some", { element: [0], whole: [2] }],
+    ["every", { element: [0], whole: [2] }],
+    ["find", { element: [0], whole: [2] }],
+    ["findIndex", { element: [0], whole: [2] }],
+    ["findLast", { element: [0], whole: [2] }],
+    ["findLastIndex", { element: [0], whole: [2] }],
+    ["reduce", { accumulator: 0, element: [1], whole: [3] }],
+    ["reduceRight", { accumulator: 0, element: [1], whole: [3] }],
+    ["sort", { element: [0, 1], whole: [] }],
 ]);
 
 /** Promise continuation methods: run at most once, after the receiver settles. */
 const ONCE_METHODS: ReadonlyMap<
-  string,
-  { callbacks: readonly number[]; entered: boolean; deferred: true }
+    string,
+    { callbacks: readonly number[]; entered: boolean; deferred: true }
 > = new Map([
-  ["then", { callbacks: [0, 1], deferred: true, entered: false }],
-  ["catch", { callbacks: [0], deferred: true, entered: false }],
-  ["finally", { callbacks: [0], deferred: true, entered: true }],
+    ["then", { callbacks: [0, 1], deferred: true, entered: false }],
+    ["catch", { callbacks: [0], deferred: true, entered: false }],
+    ["finally", { callbacks: [0], deferred: true, entered: true }],
 ]);
 
 /** Global scheduling functions: run their callback once, later. */
 const ONCE_GLOBALS: ReadonlySet<string> = new Set([
-  "setTimeout",
-  "setInterval",
-  "setImmediate",
-  "queueMicrotask",
+    "setTimeout",
+    "setInterval",
+    "setImmediate",
+    "queueMicrotask",
 ]);
 
 /**
@@ -114,100 +114,100 @@ const FUTURE_FUNCTION = "future";
  * script-local function, applied through the callee path.
  */
 export function callbackSemanticsOf(
-  node: ts.CallExpression | ts.NewExpression,
-  checker: ts.TypeChecker,
-  program: ts.Program,
+    node: ts.CallExpression | ts.NewExpression,
+    checker: ts.TypeChecker,
+    program: ts.Program,
 ): CallbackSemantics | undefined {
-  const args = node.arguments ?? [];
-  if (ts.isNewExpression(node)) {
-    if (isGlobalLibValue(node.expression, "Promise", checker, program) && args.length > 0) {
-      return { callbacks: [0], entered: true, label: "Promise", multiplicity: "once" };
+    const args = node.arguments ?? [];
+    if (ts.isNewExpression(node)) {
+        if (isGlobalLibValue(node.expression, "Promise", checker, program) && args.length > 0) {
+            return { callbacks: [0], entered: true, label: "Promise", multiplicity: "once" };
+        }
+        return undefined;
+    }
+    const callee = node.expression;
+    if (ts.isPropertyAccessExpression(callee)) {
+        if (isScriptDeclared(callee.name, checker, program)) return undefined;
+        const method = callee.name.text;
+        if (method === "from" && isGlobalLibValue(callee.expression, "Array", checker, program)) {
+            const iterated = args[0];
+            if (iterated === undefined || args.length < 2) return undefined;
+            return {
+                callbacks: [1],
+                elementParams: [0],
+                entered: false,
+                iterated,
+                label: "from",
+                multiplicity: "each",
+                wholeParams: [],
+            };
+        }
+        const each = EACH_METHODS.get(method);
+        if (each !== undefined) {
+            return {
+                callbacks: [0],
+                elementParams: each.element,
+                entered: false,
+                iterated: callee.expression,
+                label: method,
+                multiplicity: "each",
+                wholeParams: each.whole,
+                ...(each.accumulator === undefined ? {} : { accumulatorParam: each.accumulator }),
+            };
+        }
+        const once = ONCE_METHODS.get(method);
+        if (once !== undefined) return { ...once, label: method, multiplicity: "once" };
+        return undefined;
+    }
+    if (
+        ts.isIdentifier(callee) &&
+        ONCE_GLOBALS.has(callee.text) &&
+        isGlobalLibValue(callee, callee.text, checker, program)
+    ) {
+        return {
+            callbacks: [0],
+            deferred: true,
+            entered: false,
+            label: callee.text,
+            multiplicity: "once",
+        };
+    }
+    if (
+        ts.isIdentifier(callee) &&
+        callee.text === FUTURE_FUNCTION &&
+        isFacadeFunction(callee, checker)
+    ) {
+        return { callbacks: [0], entered: true, label: FUTURE_FUNCTION, multiplicity: "once" };
     }
     return undefined;
-  }
-  const callee = node.expression;
-  if (ts.isPropertyAccessExpression(callee)) {
-    if (isScriptDeclared(callee.name, checker, program)) return undefined;
-    const method = callee.name.text;
-    if (method === "from" && isGlobalLibValue(callee.expression, "Array", checker, program)) {
-      const iterated = args[0];
-      if (iterated === undefined || args.length < 2) return undefined;
-      return {
-        callbacks: [1],
-        elementParams: [0],
-        entered: false,
-        iterated,
-        label: "from",
-        multiplicity: "each",
-        wholeParams: [],
-      };
-    }
-    const each = EACH_METHODS.get(method);
-    if (each !== undefined) {
-      return {
-        callbacks: [0],
-        elementParams: each.element,
-        entered: false,
-        iterated: callee.expression,
-        label: method,
-        multiplicity: "each",
-        wholeParams: each.whole,
-        ...(each.accumulator === undefined ? {} : { accumulatorParam: each.accumulator }),
-      };
-    }
-    const once = ONCE_METHODS.get(method);
-    if (once !== undefined) return { ...once, label: method, multiplicity: "once" };
-    return undefined;
-  }
-  if (
-    ts.isIdentifier(callee) &&
-    ONCE_GLOBALS.has(callee.text) &&
-    isGlobalLibValue(callee, callee.text, checker, program)
-  ) {
-    return {
-      callbacks: [0],
-      deferred: true,
-      entered: false,
-      label: callee.text,
-      multiplicity: "once",
-    };
-  }
-  if (
-    ts.isIdentifier(callee) &&
-    callee.text === FUTURE_FUNCTION &&
-    isFacadeFunction(callee, checker)
-  ) {
-    return { callbacks: [0], entered: true, label: FUTURE_FUNCTION, multiplicity: "once" };
-  }
-  return undefined;
 }
 
 /** True iff `expr` resolves to a function declared in the facade `.d.ts` (not a user shadow). */
 function isFacadeFunction(expr: ts.Expression, checker: ts.TypeChecker): boolean {
-  let symbol = checker.getSymbolAtLocation(expr);
-  if (symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) !== 0)
-    symbol = checker.getAliasedSymbol(symbol);
-  return (
-    symbol?.declarations?.some(
-      (declaration) => declaration.getSourceFile().fileName === FACADE_FILE_NAME,
-    ) ?? false
-  );
+    let symbol = checker.getSymbolAtLocation(expr);
+    if (symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) !== 0)
+        symbol = checker.getAliasedSymbol(symbol);
+    return (
+        symbol?.declarations?.some(
+            (declaration) => declaration.getSourceFile().fileName === FACADE_FILE_NAME,
+        ) ?? false
+    );
 }
 
 /** True iff `expr` resolves to the ES-lib global `name` (not a user shadow). */
 export function isGlobalLibValue(
-  expr: ts.Expression,
-  name: string,
-  checker: ts.TypeChecker,
-  program: ts.Program,
+    expr: ts.Expression,
+    name: string,
+    checker: ts.TypeChecker,
+    program: ts.Program,
 ): boolean {
-  let symbol = checker.getSymbolAtLocation(expr);
-  if (symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) !== 0)
-    symbol = checker.getAliasedSymbol(symbol);
-  if (symbol?.name !== name) return false;
-  return (
-    symbol.declarations?.some((declaration) => isLibDeclaration(declaration, program)) ?? false
-  );
+    let symbol = checker.getSymbolAtLocation(expr);
+    if (symbol !== undefined && (symbol.flags & ts.SymbolFlags.Alias) !== 0)
+        symbol = checker.getAliasedSymbol(symbol);
+    if (symbol?.name !== name) return false;
+    return (
+        symbol.declarations?.some((declaration) => isLibDeclaration(declaration, program)) ?? false
+    );
 }
 
 /**
@@ -219,31 +219,31 @@ export function isGlobalLibValue(
  * member (an `any` receiver) keeps the value-based answer.
  */
 export function isForeignMember(
-  name: ts.MemberName,
-  checker: ts.TypeChecker,
-  scriptFile: ts.SourceFile,
+    name: ts.MemberName,
+    checker: ts.TypeChecker,
+    scriptFile: ts.SourceFile,
 ): boolean {
-  const declarations = checker.getSymbolAtLocation(name)?.declarations;
-  if (declarations === undefined || declarations.length === 0) return false;
-  return declarations.every((declaration) => declaration.getSourceFile() !== scriptFile);
+    const declarations = checker.getSymbolAtLocation(name)?.declarations;
+    if (declarations === undefined || declarations.length === 0) return false;
+    return declarations.every((declaration) => declaration.getSourceFile() !== scriptFile);
 }
 
 /** True iff the member's symbol has a declaration in the authored script (a user method). */
 function isScriptDeclared(
-  name: ts.MemberName,
-  checker: ts.TypeChecker,
-  program: ts.Program,
+    name: ts.MemberName,
+    checker: ts.TypeChecker,
+    program: ts.Program,
 ): boolean {
-  const symbol = checker.getSymbolAtLocation(name);
-  return (
-    symbol?.declarations?.some((declaration) => {
-      const file = declaration.getSourceFile();
-      return !isLibDeclaration(declaration, program) && !file.isDeclarationFile;
-    }) ?? false
-  );
+    const symbol = checker.getSymbolAtLocation(name);
+    return (
+        symbol?.declarations?.some((declaration) => {
+            const file = declaration.getSourceFile();
+            return !isLibDeclaration(declaration, program) && !file.isDeclarationFile;
+        }) ?? false
+    );
 }
 
 function isLibDeclaration(declaration: ts.Declaration, program: ts.Program): boolean {
-  const file = declaration.getSourceFile();
-  return program.isSourceFileDefaultLibrary(file) || /^lib\..+\.d\.ts$/.test(file.fileName);
+    const file = declaration.getSourceFile();
+    return program.isSourceFileDefaultLibrary(file) || /^lib\..+\.d\.ts$/.test(file.fileName);
 }

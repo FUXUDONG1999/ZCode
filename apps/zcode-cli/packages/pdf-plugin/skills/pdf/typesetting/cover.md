@@ -14,9 +14,9 @@ for covers. The Creative route still composes its cover inside the same HTML doc
 1. **Cover is OPTIONAL.** Do NOT force a cover on documents that don't need one. When in doubt, skip.
 2. **Unified ReportLab cover engine.** Report route uses templates **01–05**; Academic route uses **06–08** (dark, scholarly) and **09** (institutional, white + black frame). All are produced by `cover_render.py` and merged as page 1 via pypdf.
 3. **Single PDF output.** Never deliver a separate cover PDF.
-   - **Report**: cover PDF (`cover_render.py`) + body PDF (ReportLab) → merged via pypdf.
-   - **Academic**: cover PDF (`cover_render.py`) + body PDF (Tectonic) → merged via pypdf.
-   - **Creative**: cover is part of the same HTML document → single PDF inherently.
+    - **Report**: cover PDF (`cover_render.py`) + body PDF (ReportLab) → merged via pypdf.
+    - **Academic**: cover PDF (`cover_render.py`) + body PDF (Tectonic) → merged via pypdf.
+    - **Creative**: cover is part of the same HTML document → single PDF inherently.
 4. **Page isolation.** The cover must NEVER share a page with TOC or body content. The pypdf merge makes this inherent for Report/Academic.
 
 ---

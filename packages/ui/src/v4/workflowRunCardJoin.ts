@@ -1,8 +1,8 @@
 import { workflowRunStepCounts, type WorkflowRunState } from "@zcode/shared/zcode-protocol-v4";
 import type { ConversationRow } from "@zcode/shared/zcode-protocol-v4";
 import {
-  ZCODE_WORKFLOWS_FOR_RUN_MAX_CANDIDATES,
-  type ZCodeWorkflowsForRunCandidate,
+    ZCODE_WORKFLOWS_FOR_RUN_MAX_CANDIDATES,
+    type ZCodeWorkflowsForRunCandidate,
 } from "@zcode/shared";
 import type { WorkflowCausalityGraphData } from "@/components/workflow-graph/types.js";
 import type { WorkflowRunCardSummary } from "@/ToolCallBlocks/shared.js";
@@ -21,28 +21,28 @@ import { isFillWorkflowHoleToolCall } from "@/lib/workflowToolNames.js";
  * 值得穷举的规则，而穷举一个 Map 不需要渲染任何东西。
  */
 export function buildWorkflowRunByToolCallId(
-  runs: readonly WorkflowRunState[] | undefined,
+    runs: readonly WorkflowRunState[] | undefined,
 ): ReadonlyMap<string, WorkflowRunCardSummary> {
-  const byToolCallId = new Map<string, WorkflowRunCardSummary>();
-  for (const run of runs ?? []) {
-    // 没有 toolCallId 的 run 没有可点的卡片，不进表。
-    if (!run.toolCallId) continue;
-    const { settled, total } = workflowRunStepCounts(run);
-    byToolCallId.set(run.toolCallId, {
-      runId: run.runId,
-      status: run.status,
-      ...(run.stopReason === undefined ? {} : { stopReason: run.stopReason }),
-      nodesSettled: settled,
-      // 已排程（observed）而不是全程总数：动态工作流的节点数由脚本在运行时决定。
-      nodesTotal: total,
-      agents: run.actors.length,
-      // 活投影整条带上：卡片内联的时间线要灯、药丸与墨迹。
-      run,
-      // 可恢复性是状态位（CLI 在 run-settled 载荷上按 resume 门裁定，reducer 搬运），UI 不推导。
-      ...(run.resumable === true ? { resumable: true as const } : {}),
-    });
-  }
-  return byToolCallId;
+    const byToolCallId = new Map<string, WorkflowRunCardSummary>();
+    for (const run of runs ?? []) {
+        // 没有 toolCallId 的 run 没有可点的卡片，不进表。
+        if (!run.toolCallId) continue;
+        const { settled, total } = workflowRunStepCounts(run);
+        byToolCallId.set(run.toolCallId, {
+            runId: run.runId,
+            status: run.status,
+            ...(run.stopReason === undefined ? {} : { stopReason: run.stopReason }),
+            nodesSettled: settled,
+            // 已排程（observed）而不是全程总数：动态工作流的节点数由脚本在运行时决定。
+            nodesTotal: total,
+            agents: run.actors.length,
+            // 活投影整条带上：卡片内联的时间线要灯、药丸与墨迹。
+            run,
+            // 可恢复性是状态位（CLI 在 run-settled 载荷上按 resume 门裁定，reducer 搬运），UI 不推导。
+            ...(run.resumable === true ? { resumable: true as const } : {}),
+        });
+    }
+    return byToolCallId;
 }
 
 /**
@@ -54,26 +54,26 @@ export function buildWorkflowRunByToolCallId(
  * 侧栏 run tab 的身份也是 runId 键，从 resume 行或原始 create 行打开命中同一个 tab。
  */
 export function buildWorkflowRunByRunId(
-  runs: readonly WorkflowRunState[] | undefined,
+    runs: readonly WorkflowRunState[] | undefined,
 ): ReadonlyMap<string, WorkflowRunCardSummary> {
-  const byRunId = new Map<string, WorkflowRunCardSummary>();
-  for (const run of runs ?? []) {
-    const { settled, total } = workflowRunStepCounts(run);
-    byRunId.set(run.runId, {
-      runId: run.runId,
-      status: run.status,
-      ...(run.stopReason === undefined ? {} : { stopReason: run.stopReason }),
-      nodesSettled: settled,
-      nodesTotal: total,
-      agents: run.actors.length,
-      run,
-      ...(run.resumable === true ? { resumable: true as const } : {}),
-      // 打开请求的关联键：WorkflowRunSidePane 拿它找 CreateWorkflow 发起行（图与脚本
-      // 都在那条行上）。resume 行自己的 id 不能用——它的 display 里没有图。
-      ...(run.toolCallId ? { toolCallId: run.toolCallId } : {}),
-    });
-  }
-  return byRunId;
+    const byRunId = new Map<string, WorkflowRunCardSummary>();
+    for (const run of runs ?? []) {
+        const { settled, total } = workflowRunStepCounts(run);
+        byRunId.set(run.runId, {
+            runId: run.runId,
+            status: run.status,
+            ...(run.stopReason === undefined ? {} : { stopReason: run.stopReason }),
+            nodesSettled: settled,
+            nodesTotal: total,
+            agents: run.actors.length,
+            run,
+            ...(run.resumable === true ? { resumable: true as const } : {}),
+            // 打开请求的关联键：WorkflowRunSidePane 拿它找 CreateWorkflow 发起行（图与脚本
+            // 都在那条行上）。resume 行自己的 id 不能用——它的 display 里没有图。
+            ...(run.toolCallId ? { toolCallId: run.toolCallId } : {}),
+        });
+    }
+    return byRunId;
 }
 
 /**
@@ -87,10 +87,10 @@ export function buildWorkflowRunByRunId(
  * 合并，请求里若带错 id 会把原本正常的 tab 也写坏。
  */
 export function resolveWorkflowRunOpenToolCallId(
-  rowToolCallId: string,
-  workflowRun: WorkflowRunCardSummary | undefined,
+    rowToolCallId: string,
+    workflowRun: WorkflowRunCardSummary | undefined,
 ): string {
-  return workflowRun?.toolCallId ?? rowToolCallId;
+    return workflowRun?.toolCallId ?? rowToolCallId;
 }
 
 /**
@@ -102,13 +102,16 @@ export function resolveWorkflowRunOpenToolCallId(
  * pendingQuestions 零条时整个键缺席（workflow-runs schema 的既有惯例），坍缩成空 Set。
  */
 export function buildWorkflowRunPendingQuestionsByRunId(
-  runs: readonly WorkflowRunState[] | undefined,
+    runs: readonly WorkflowRunState[] | undefined,
 ): ReadonlyMap<string, ReadonlySet<string>> {
-  const byRunId = new Map<string, ReadonlySet<string>>();
-  for (const run of runs ?? []) {
-    byRunId.set(run.runId, new Set((run.pendingQuestions ?? []).map((question) => question.qid)));
-  }
-  return byRunId;
+    const byRunId = new Map<string, ReadonlySet<string>>();
+    for (const run of runs ?? []) {
+        byRunId.set(
+            run.runId,
+            new Set((run.pendingQuestions ?? []).map((question) => question.qid)),
+        );
+    }
+    return byRunId;
 }
 
 /**
@@ -121,26 +124,26 @@ export function buildWorkflowRunPendingQuestionsByRunId(
  * 空图（脚本里一次 ask / files.* 都没有）不值得一条空轨道，按「无图」处理；与工具卡同一条判定。
  */
 function workflowGraphOfRow(
-  row: ConversationRow,
+    row: ConversationRow,
 ): { toolCallId: string; graph: WorkflowCausalityGraphData } | undefined {
-  if (row.kind === "toolCall") {
-    const display = row.display;
-    if (display?.kind !== "create_workflow") return undefined;
-    const graph = display.causalityGraph;
-    return graph !== undefined && graph.steps.length > 0
-      ? { toolCallId: row.toolCallId, graph }
-      : undefined;
-  }
-  if (row.kind === "turnHeader" || row.kind === "userInput") {
-    const launch = row.workflowLaunch;
-    const display = launch?.display;
-    if (launch === undefined || display?.kind !== "create_workflow") return undefined;
-    const graph = display.causalityGraph;
-    return graph !== undefined && graph.steps.length > 0
-      ? { toolCallId: launch.toolCallId, graph }
-      : undefined;
-  }
-  return undefined;
+    if (row.kind === "toolCall") {
+        const display = row.display;
+        if (display?.kind !== "create_workflow") return undefined;
+        const graph = display.causalityGraph;
+        return graph !== undefined && graph.steps.length > 0
+            ? { toolCallId: row.toolCallId, graph }
+            : undefined;
+    }
+    if (row.kind === "turnHeader" || row.kind === "userInput") {
+        const launch = row.workflowLaunch;
+        const display = launch?.display;
+        if (launch === undefined || display?.kind !== "create_workflow") return undefined;
+        const graph = display.causalityGraph;
+        return graph !== undefined && graph.steps.length > 0
+            ? { toolCallId: launch.toolCallId, graph }
+            : undefined;
+    }
+    return undefined;
 }
 
 /**
@@ -150,17 +153,17 @@ function workflowGraphOfRow(
  * 不是错误：此时没有图可给，卡片退成单行表头、侧板念一句「图不可用」。
  */
 export function buildWorkflowGraphByToolCallId(
-  rows: readonly ConversationRow[] | undefined,
+    rows: readonly ConversationRow[] | undefined,
 ): ReadonlyMap<string, WorkflowCausalityGraphData> {
-  const byToolCallId = new Map<string, WorkflowCausalityGraphData>();
-  for (const row of rows ?? []) {
-    const found = workflowGraphOfRow(row);
-    // 启动轮的 turnHeader 与 userInput 各带一份同样的元数据：首见即定。
-    if (found !== undefined && !byToolCallId.has(found.toolCallId)) {
-      byToolCallId.set(found.toolCallId, found.graph);
+    const byToolCallId = new Map<string, WorkflowCausalityGraphData>();
+    for (const row of rows ?? []) {
+        const found = workflowGraphOfRow(row);
+        // 启动轮的 turnHeader 与 userInput 各带一份同样的元数据：首见即定。
+        if (found !== undefined && !byToolCallId.has(found.toolCallId)) {
+            byToolCallId.set(found.toolCallId, found.graph);
+        }
     }
-  }
-  return byToolCallId;
+    return byToolCallId;
 }
 
 /**
@@ -172,55 +175,55 @@ export function buildWorkflowGraphByToolCallId(
  * 行的入参里没有名字——transcript 只存模型自己的入参）；类型不上界面。
  */
 export interface WorkflowFillGraph {
-  graph: WorkflowCausalityGraphData;
-  holeLabels: ReadonlyMap<string, { name: string }>;
+    graph: WorkflowCausalityGraphData;
+    holeLabels: ReadonlyMap<string, { name: string }>;
 }
 
 function readFillRow(
-  row: ConversationRow,
+    row: ConversationRow,
 ): { runId: string; holeId: string; name?: string; graph: WorkflowCausalityGraphData } | undefined {
-  if (row.kind !== "toolCall" || row.status !== "success") return undefined;
-  if (!isFillWorkflowHoleToolCall(row)) return undefined;
-  const display = row.display;
-  if (display?.kind !== "create_workflow" || display.ok !== true) return undefined;
-  const graph = display.causalityGraph;
-  if (graph === undefined || graph.steps.length === 0) return undefined;
-  const target = readWorkflowHoleTarget(row.input, display.fill);
-  if (target?.runId === undefined || target.holeId === undefined) return undefined;
-  return {
-    runId: target.runId,
-    holeId: target.holeId,
-    ...(target.name === undefined ? {} : { name: target.name }),
-    graph,
-  };
+    if (row.kind !== "toolCall" || row.status !== "success") return undefined;
+    if (!isFillWorkflowHoleToolCall(row)) return undefined;
+    const display = row.display;
+    if (display?.kind !== "create_workflow" || display.ok !== true) return undefined;
+    const graph = display.causalityGraph;
+    if (graph === undefined || graph.steps.length === 0) return undefined;
+    const target = readWorkflowHoleTarget(row.input, display.fill);
+    if (target?.runId === undefined || target.holeId === undefined) return undefined;
+    return {
+        runId: target.runId,
+        holeId: target.holeId,
+        ...(target.name === undefined ? {} : { name: target.name }),
+        graph,
+    };
 }
 
 export function buildWorkflowFillGraphByRunId(
-  rows: readonly ConversationRow[] | undefined,
+    rows: readonly ConversationRow[] | undefined,
 ): ReadonlyMap<string, WorkflowFillGraph> {
-  const byRunId = new Map<string, WorkflowFillGraph>();
-  for (const row of rows ?? []) {
-    const fill = readFillRow(row);
-    if (fill === undefined) continue;
-    // 名字跨补全累积：第二次补全的图上仍有第一次的头，它的名字只在第一行的入参里。
-    const labels = new Map(byRunId.get(fill.runId)?.holeLabels ?? []);
-    if (fill.name !== undefined) labels.set(fill.holeId, { name: fill.name });
-    byRunId.set(fill.runId, { graph: fill.graph, holeLabels: labels });
-  }
-  return byRunId;
+    const byRunId = new Map<string, WorkflowFillGraph>();
+    for (const row of rows ?? []) {
+        const fill = readFillRow(row);
+        if (fill === undefined) continue;
+        // 名字跨补全累积：第二次补全的图上仍有第一次的头，它的名字只在第一行的入参里。
+        const labels = new Map(byRunId.get(fill.runId)?.holeLabels ?? []);
+        if (fill.name !== undefined) labels.set(fill.holeId, { name: fill.name });
+        byRunId.set(fill.runId, { graph: fill.graph, holeLabels: labels });
+    }
+    return byRunId;
 }
 
 /** 卡与侧板取图的唯一入口：补全过就是补全行的图，否则按发起 toolCallId（含「配置」的借图规则）。 */
 export function resolveWorkflowRunGraphForRun(
-  graphs: ReadonlyMap<string, WorkflowCausalityGraphData>,
-  fills: ReadonlyMap<string, WorkflowFillGraph> | undefined,
-  toolCallId: string | undefined,
-  runId: string | undefined,
-  runs: readonly WorkflowRunState[] | undefined,
+    graphs: ReadonlyMap<string, WorkflowCausalityGraphData>,
+    fills: ReadonlyMap<string, WorkflowFillGraph> | undefined,
+    toolCallId: string | undefined,
+    runId: string | undefined,
+    runs: readonly WorkflowRunState[] | undefined,
 ): WorkflowCausalityGraphData | undefined {
-  const fill = runId === undefined ? undefined : fills?.get(runId);
-  if (fill !== undefined) return fill.graph;
-  return toolCallId === undefined ? undefined : resolveWorkflowRunGraph(graphs, toolCallId, runs);
+    const fill = runId === undefined ? undefined : fills?.get(runId);
+    if (fill !== undefined) return fill.graph;
+    return toolCallId === undefined ? undefined : resolveWorkflowRunGraph(graphs, toolCallId, runs);
 }
 
 /** 「配置」修订出来的 run 的发起 toolCallId 前缀（agent 铸 `settings-<uuid>`，docs/dynamic-workflow/launch.md）。 */
@@ -233,28 +236,28 @@ export const WORKFLOW_SETTINGS_TOOL_CALL_PREFIX = "settings-";
  * 其他 run 一概不借——改过的脚本画的是另一张图。前驱自己也可能是一次「配置」，所以沿链上溯，带环保护。
  */
 export function resolveWorkflowRunGraph(
-  graphs: ReadonlyMap<string, WorkflowCausalityGraphData>,
-  toolCallId: string,
-  runs: readonly WorkflowRunState[] | undefined,
+    graphs: ReadonlyMap<string, WorkflowCausalityGraphData>,
+    toolCallId: string,
+    runs: readonly WorkflowRunState[] | undefined,
 ): WorkflowCausalityGraphData | undefined {
-  const visited = new Set<string>();
-  let current: string | undefined = toolCallId;
-  while (current !== undefined && !visited.has(current)) {
-    visited.add(current);
-    const graph = graphs.get(current);
-    if (graph !== undefined) return graph;
-    if (!current.startsWith(WORKFLOW_SETTINGS_TOOL_CALL_PREFIX)) return undefined;
-    const settingsToolCallId: string = current;
-    const run: WorkflowRunState | undefined = runs?.find(
-      (candidate) => candidate.toolCallId === settingsToolCallId,
-    );
-    const predecessorId: string | undefined = run?.resumedFrom;
-    current =
-      predecessorId === undefined
-        ? undefined
-        : runs?.find((candidate) => candidate.runId === predecessorId)?.toolCallId;
-  }
-  return undefined;
+    const visited = new Set<string>();
+    let current: string | undefined = toolCallId;
+    while (current !== undefined && !visited.has(current)) {
+        visited.add(current);
+        const graph = graphs.get(current);
+        if (graph !== undefined) return graph;
+        if (!current.startsWith(WORKFLOW_SETTINGS_TOOL_CALL_PREFIX)) return undefined;
+        const settingsToolCallId: string = current;
+        const run: WorkflowRunState | undefined = runs?.find(
+            (candidate) => candidate.toolCallId === settingsToolCallId,
+        );
+        const predecessorId: string | undefined = run?.resumedFrom;
+        current =
+            predecessorId === undefined
+                ? undefined
+                : runs?.find((candidate) => candidate.runId === predecessorId)?.toolCallId;
+    }
+    return undefined;
 }
 
 /**
@@ -271,35 +274,36 @@ export function resolveWorkflowRunGraph(
 export type WorkflowSaveCandidate = ZCodeWorkflowsForRunCandidate;
 
 function readWorkflowSaveCandidate(
-  row: ConversationRow,
+    row: ConversationRow,
 ): { runId: string; candidate: WorkflowSaveCandidate } | undefined {
-  if (row.kind !== "toolCall" || row.toolName !== "SaveWorkflow" || row.status !== "success") {
-    return undefined;
-  }
-  const input = row.input;
-  if (typeof input !== "object" || input === null) return undefined;
-  const record = input as Record<string, unknown>;
-  const runId = typeof record.run_id === "string" ? record.run_id.trim() : "";
-  const name = typeof record.name === "string" ? record.name.trim() : "";
-  if (runId.length === 0 || name.length === 0) return undefined;
-  const scope = record.scope === "global" || record.scope === "project" ? record.scope : undefined;
-  return { runId, candidate: { name, ...(scope === undefined ? {} : { scope }) } };
+    if (row.kind !== "toolCall" || row.toolName !== "SaveWorkflow" || row.status !== "success") {
+        return undefined;
+    }
+    const input = row.input;
+    if (typeof input !== "object" || input === null) return undefined;
+    const record = input as Record<string, unknown>;
+    const runId = typeof record.run_id === "string" ? record.run_id.trim() : "";
+    const name = typeof record.name === "string" ? record.name.trim() : "";
+    if (runId.length === 0 || name.length === 0) return undefined;
+    const scope =
+        record.scope === "global" || record.scope === "project" ? record.scope : undefined;
+    return { runId, candidate: { name, ...(scope === undefined ? {} : { scope }) } };
 }
 
 export function buildWorkflowSaveCandidatesByRunId(
-  rows: readonly ConversationRow[] | undefined,
+    rows: readonly ConversationRow[] | undefined,
 ): ReadonlyMap<string, readonly WorkflowSaveCandidate[]> {
-  const byRunId = new Map<string, WorkflowSaveCandidate[]>();
-  for (const row of rows ?? []) {
-    const found = readWorkflowSaveCandidate(row);
-    if (found === undefined) continue;
-    const list = byRunId.get(found.runId) ?? [];
-    // 同名重存（改了元数据再存一次）只留一个候选：解析一遍与解析三遍答案相同。
-    if (list.some((entry) => entry.name === found.candidate.name)) continue;
-    // 协议的候选上界在这里就守住：超出部分留最早的那几个（先存下的那份更可能还在）。
-    if (list.length >= ZCODE_WORKFLOWS_FOR_RUN_MAX_CANDIDATES) continue;
-    list.push(found.candidate);
-    byRunId.set(found.runId, list);
-  }
-  return byRunId;
+    const byRunId = new Map<string, WorkflowSaveCandidate[]>();
+    for (const row of rows ?? []) {
+        const found = readWorkflowSaveCandidate(row);
+        if (found === undefined) continue;
+        const list = byRunId.get(found.runId) ?? [];
+        // 同名重存（改了元数据再存一次）只留一个候选：解析一遍与解析三遍答案相同。
+        if (list.some((entry) => entry.name === found.candidate.name)) continue;
+        // 协议的候选上界在这里就守住：超出部分留最早的那几个（先存下的那份更可能还在）。
+        if (list.length >= ZCODE_WORKFLOWS_FOR_RUN_MAX_CANDIDATES) continue;
+        list.push(found.candidate);
+        byRunId.set(found.runId, list);
+    }
+    return byRunId;
 }

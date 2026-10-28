@@ -54,8 +54,8 @@ export * from "./workspace-hook-review.js";
 export * from "./cuaPermission.js";
 
 export {
-  executionOutputPreviewSchema,
-  type ExecutionOutputPreview,
+    executionOutputPreviewSchema,
+    type ExecutionOutputPreview,
 } from "../execution-output-preview.js";
 
 export { bashOutputDisplaySchema } from "../bash-output-display.js";

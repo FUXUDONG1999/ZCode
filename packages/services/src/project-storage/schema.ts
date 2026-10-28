@@ -21,67 +21,70 @@ CREATE TABLE IF NOT EXISTS remote_project_entries (
 `;
 
 export const TASK_PROJECT_COLUMNS: Readonly<Record<string, string>> = {
-  host_id: "TEXT",
-  root_path: "TEXT",
-  project_id: "TEXT",
-  execution_directories: "TEXT",
-  sort_order: "INTEGER",
-  cli_title: "TEXT",
-  handoff_pending: "INTEGER NOT NULL DEFAULT 0",
-  cli_title_source: "TEXT",
-  cli_created_at: "INTEGER",
-  cli_updated_at: "INTEGER",
-  cli_last_outcome: "TEXT",
-  cli_deleted: "INTEGER",
+    host_id: "TEXT",
+    root_path: "TEXT",
+    project_id: "TEXT",
+    execution_directories: "TEXT",
+    sort_order: "INTEGER",
+    cli_title: "TEXT",
+    handoff_pending: "INTEGER NOT NULL DEFAULT 0",
+    cli_title_source: "TEXT",
+    cli_created_at: "INTEGER",
+    cli_updated_at: "INTEGER",
+    cli_last_outcome: "TEXT",
+    cli_deleted: "INTEGER",
 };
 
 export const PROJECT_MIGRATION_TABLES = [
-  "tasks",
-  "task_groups",
-  "task_group_members",
-  "task_group_view_node_orders",
-  "task_group_workspace_bootstraps",
-  "automations",
-  "off_peak_tasks",
-  "hosts",
-  "projects",
-  "project_roots",
-  "remote_project_entries",
+    "tasks",
+    "task_groups",
+    "task_group_members",
+    "task_group_view_node_orders",
+    "task_group_workspace_bootstraps",
+    "automations",
+    "off_peak_tasks",
+    "hosts",
+    "projects",
+    "project_roots",
+    "remote_project_entries",
 ] as const;
 
 export function tableExists(db: DatabaseSync, table: string): boolean {
-  return Boolean(
-    db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table),
-  );
+    return Boolean(
+        db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table),
+    );
 }
 
 function ensureColumns(
-  db: DatabaseSync,
-  table: string,
-  columns: Readonly<Record<string, string>>,
+    db: DatabaseSync,
+    table: string,
+    columns: Readonly<Record<string, string>>,
 ): void {
-  if (!tableExists(db, table)) return;
-  const existing = new Set(
-    (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map((row) => row.name),
-  );
-  for (const [column, definition] of Object.entries(columns)) {
-    if (!existing.has(column)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
-  }
+    if (!tableExists(db, table)) return;
+    const existing = new Set(
+        (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map(
+            (row) => row.name,
+        ),
+    );
+    for (const [column, definition] of Object.entries(columns)) {
+        if (!existing.has(column))
+            db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+    }
 }
 
 export function addProjectSchema(db: DatabaseSync): void {
-  db.exec(PROJECT_SCHEMA_SQL);
-  ensureColumns(db, "hosts", { membership_id: "TEXT" });
-  ensureColumns(db, "tasks", TASK_PROJECT_COLUMNS);
-  for (const table of ["automations", "off_peak_tasks"]) {
-    ensureColumns(db, table, {
-      project_id: "TEXT",
-      host_id: "TEXT",
-      additional_directories: "TEXT",
-    });
-  }
-  if (tableExists(db, "tasks"))
-    db.exec(
-      "CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id,archived,cli_updated_at DESC) WHERE deleted=0",
-    );
+    db.exec(PROJECT_SCHEMA_SQL);
+    ensureColumns(db, "hosts", { membership_id: "TEXT" });
+    ensureColumns(db, "tasks", TASK_PROJECT_COLUMNS);
+    for (const table of ["automations", "off_peak_tasks"]) {
+        ensureColumns(db, table, {
+            project_id: "TEXT",
+            host_id: "TEXT",
+            additional_directories: "TEXT",
+        });
+    }
+    if (tableExists(db, "tasks"))
+        db.exec(
+            "CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id,archived,cli_updated_at DESC) WHERE deleted=0",
+        );
 }

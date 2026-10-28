@@ -29,10 +29,10 @@ const FACADE_SITE_DEPTH = 4;
  * so they are not conversion boundaries.
  */
 const VALUE_ASSIGNMENT_OPS = new Set<ts.SyntaxKind>([
-  ts.SyntaxKind.EqualsToken,
-  ts.SyntaxKind.BarBarEqualsToken,
-  ts.SyntaxKind.AmpersandAmpersandEqualsToken,
-  ts.SyntaxKind.QuestionQuestionEqualsToken,
+    ts.SyntaxKind.EqualsToken,
+    ts.SyntaxKind.BarBarEqualsToken,
+    ts.SyntaxKind.AmpersandAmpersandEqualsToken,
+    ts.SyntaxKind.QuestionQuestionEqualsToken,
 ]);
 
 /**
@@ -76,177 +76,186 @@ const VALUE_ASSIGNMENT_OPS = new Set<ts.SyntaxKind>([
  * reject a facade callable.
  */
 export function collectFacadeMisuse(
-  workflow: WorkflowProgram,
-  table: SiteTable,
+    workflow: WorkflowProgram,
+    table: SiteTable,
 ): CompileDiagnostic[] {
-  const { program, scriptFile, toScriptLoc } = workflow;
-  const checker = program.getTypeChecker();
-  const body = findWorkflowBody(scriptFile);
-  const diagnostics: CompileDiagnostic[] = [];
+    const { program, scriptFile, toScriptLoc } = workflow;
+    const checker = program.getTypeChecker();
+    const body = findWorkflowBody(scriptFile);
+    const diagnostics: CompileDiagnostic[] = [];
 
-  const flag = (at: ts.Node, name: string): void => {
-    const loc = toScriptLoc(at.getStart(scriptFile));
-    diagnostics.push({
-      code: FACADE_SITING_CODE,
-      column: loc.column,
-      line: loc.line,
-      message:
-        `facade function '${name}' may only be called directly; ` +
-        `taking a reference to it defeats site identity (journal and replay key off call sites)`,
+    const flag = (at: ts.Node, name: string): void => {
+        const loc = toScriptLoc(at.getStart(scriptFile));
+        diagnostics.push({
+            code: FACADE_SITING_CODE,
+            column: loc.column,
+            line: loc.line,
+            message:
+                `facade function '${name}' may only be called directly; ` +
+                `taking a reference to it defeats site identity (journal and replay key off call sites)`,
+        });
+    };
+
+    // Resolve the source property a destructuring form pulls off its containing object
+    // (`{ ask } = planner` -> `ask` on Agent) and flag it when facade-callable. Flags at
+    // `nameNode`; a renamed form's property name is also seen by the identifier scan below,
+    // so both may flag the same spot — the trailing dedupe collapses that.
+    const flagExtractedMember = (nameNode: ts.Node, containerType: ts.Type): void => {
+        if (!ts.isIdentifier(nameNode) && !ts.isStringLiteralLike(nameNode)) return;
+        const property = checker.getPropertyOfType(containerType, nameNode.text);
+        if (isFacadeCallable(property)) flag(nameNode, nameNode.text);
+    };
+
+    // Pass 1: reference scan.
+    const scanRefs = (node: ts.Node): void => {
+        if (ts.isPropertyAccessExpression(node)) {
+            const symbol = resolveSymbol(node.name, checker);
+            if (isFacadeCallable(symbol) && !isDirectCallee(node)) flag(node.name, symbol!.name);
+        } else if (ts.isIdentifier(node) && !isPropertyAccessName(node)) {
+            const symbol = resolveSymbol(node, checker);
+            if (isFacadeCallable(symbol) && !isDirectCallee(node)) flag(node, symbol!.name);
+        } else if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)) {
+            // Destructuring EXTRACTION off an object binding pattern (`const { ask } = planner`,
+            // renamed, nested, or parameter): the container is the binding pattern's type, and a
+            // renamed element carries the source property name, a shorthand its own bound name.
+            flagExtractedMember(
+                node.propertyName ?? node.name,
+                checker.getTypeAtLocation(node.parent),
+            );
+        } else if (
+            ts.isShorthandPropertyAssignment(node) &&
+            ts.isBinaryExpression(node.parent.parent)
+        ) {
+            // Destructuring ASSIGNMENT `({ ask } = planner)`: the object literal is the assignment
+            // target (its LHS), and the source property lives on the right-hand side's type.
+            const assign = node.parent.parent;
+            if (
+                assign.left === node.parent &&
+                assign.operatorToken.kind === ts.SyntaxKind.EqualsToken
+            ) {
+                flagExtractedMember(node.name, checker.getTypeAtLocation(assign.right));
+            }
+        }
+        ts.forEachChild(node, scanRefs);
+    };
+
+    // Pass 2: defense in depth — a direct facade call the collector did not site.
+    // `report` sites belong in here for the same reason `agent` sites do: `report` is
+    // site-producing (registry), so a sited direct call must not be flagged, while a
+    // report call the collector somehow missed must be.
+    const sited = new Set<ts.CallExpression>([
+        ...table.asks.map((site) => site.call),
+        ...table.actors.map((site) => site.call),
+        ...table.worldReads.map((site) => site.call),
+        ...table.reports.map((site) => site.call),
+        // 产物站点与 report 同席：它们产生站点（registry），
+        // 所以已 site 的直接调用不得被误报，而收集漏掉的那一次必须被报出来。
+        ...table.artifacts.map((site) => site.call),
+        ...table.joins.map((site) => site.call),
+        // 留白同席：`hole` 产生站点（registry），已 site 的直接调用不得误报。
+        ...table.holes.map((site) => site.call),
+    ]);
+    const scanCalls = (node: ts.Node): void => {
+        if (ts.isCallExpression(node) && !sited.has(node)) {
+            // Resolve through the CALL's signature, not the callee's symbol: a computed
+            // member access (`files["read"]`) has no callee symbol, but the resolved
+            // signature still points at the facade method declaration. The (container, member)
+            // pair — not the bare member name — decides whether the callee is site-producing:
+            // `git.log` is, the top-level `log()` is not, and they share a name. Keying on the
+            // name alone would flag every unsited `log("progress")` call as misuse.
+            const callee = facadeCallee(node, checker);
+            if (callee !== undefined && isSiteProducing(callee.container, callee.member)) {
+                flag(node.expression, callee.member);
+            }
+        }
+        ts.forEachChild(node, scanCalls);
+    };
+
+    // Pass 3: retyping boundary. A value that really is an `Agent`/`files` (its type
+    // carries a site-producing facade member) converted to a type that carries none
+    // launders the site. Anchored at the escaping value expression; the reported name is
+    // the member the disguised type exposes locally (what the author calls through), so
+    // the message reads as "'.ask' can no longer be a facade call here".
+    const flagRetype = (at: ts.Node, name: string): void => {
+        const loc = toScriptLoc(at.getStart(scriptFile));
+        diagnostics.push({
+            code: FACADE_SITING_CODE,
+            column: loc.column,
+            line: loc.line,
+            message:
+                `facade function '${name}' may only be called directly; retyping a facade value to a ` +
+                `structurally-compatible non-facade type escapes site identity ` +
+                `(the disguised '.${name}(...)' resolves to the local type and runs unsited)`,
+        });
+    };
+
+    const checkConversion = (valueExpr: ts.Expression, destType: ts.Type | undefined): void => {
+        if (destType === undefined) return;
+        const laundered = facadeSiteMember(checker.getTypeAtLocation(valueExpr), checker);
+        if (laundered === undefined) return;
+        if (facadeSiteMember(destType, checker) !== undefined) return;
+        const viaDest = [...SITE_MEMBER_NAMES].find(
+            (name) => destType.getProperty(name) !== undefined,
+        );
+        flagRetype(valueExpr, viaDest ?? laundered);
+    };
+
+    const scanRetyping = (node: ts.Node): void => {
+        if (ts.isAsExpression(node) || ts.isSatisfiesExpression(node)) {
+            checkConversion(node.expression, checker.getTypeFromTypeNode(node.type));
+        } else if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
+            for (const arg of node.arguments ?? [])
+                checkConversion(arg, checker.getContextualType(arg));
+        } else if (ts.isReturnStatement(node) && node.expression !== undefined) {
+            checkConversion(node.expression, checker.getContextualType(node.expression));
+        } else if (ts.isArrowFunction(node) && !ts.isBlock(node.body)) {
+            checkConversion(node.body, checker.getContextualType(node.body));
+        } else if (
+            ts.isVariableDeclaration(node) &&
+            node.type !== undefined &&
+            node.initializer !== undefined
+        ) {
+            checkConversion(node.initializer, checker.getTypeFromTypeNode(node.type));
+        } else if (
+            ts.isBinaryExpression(node) &&
+            VALUE_ASSIGNMENT_OPS.has(node.operatorToken.kind) &&
+            (ts.isIdentifier(node.left) ||
+                ts.isPropertyAccessExpression(node.left) ||
+                ts.isElementAccessExpression(node.left))
+        ) {
+            // Assignment into an already-typed slot (`d = planner` on `let d: Askable`,
+            // `slot.a = planner`, `arr[0] = planner`). Destructuring-pattern targets are
+            // ArrayLiteral/ObjectLiteral LHS — pass 1 handles extraction there, so they are
+            // excluded above. An evolving-any binding is narrowed to the real type at its use
+            // (the call stays sited), so it is not a laundering boundary; an explicit `: any`
+            // annotation is (the call runs unsited), so only the implicit case is skipped.
+            const destType = checker.getTypeAtLocation(node.left);
+            if (!isEvolvingAny(node.left, destType, checker)) checkConversion(node.right, destType);
+        }
+        ts.forEachChild(node, scanRetyping);
+    };
+
+    for (const statement of body.statements) scanRefs(statement);
+    for (const statement of body.statements) scanCalls(statement);
+    for (const statement of body.statements) scanRetyping(statement);
+
+    // Dedupe: the passes can, in principle, name the same escape at the same spot.
+    const seen = new Set<string>();
+    return diagnostics.filter((diagnostic) => {
+        const key = `${diagnostic.line}:${diagnostic.column}:${diagnostic.message}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
     });
-  };
-
-  // Resolve the source property a destructuring form pulls off its containing object
-  // (`{ ask } = planner` -> `ask` on Agent) and flag it when facade-callable. Flags at
-  // `nameNode`; a renamed form's property name is also seen by the identifier scan below,
-  // so both may flag the same spot — the trailing dedupe collapses that.
-  const flagExtractedMember = (nameNode: ts.Node, containerType: ts.Type): void => {
-    if (!ts.isIdentifier(nameNode) && !ts.isStringLiteralLike(nameNode)) return;
-    const property = checker.getPropertyOfType(containerType, nameNode.text);
-    if (isFacadeCallable(property)) flag(nameNode, nameNode.text);
-  };
-
-  // Pass 1: reference scan.
-  const scanRefs = (node: ts.Node): void => {
-    if (ts.isPropertyAccessExpression(node)) {
-      const symbol = resolveSymbol(node.name, checker);
-      if (isFacadeCallable(symbol) && !isDirectCallee(node)) flag(node.name, symbol!.name);
-    } else if (ts.isIdentifier(node) && !isPropertyAccessName(node)) {
-      const symbol = resolveSymbol(node, checker);
-      if (isFacadeCallable(symbol) && !isDirectCallee(node)) flag(node, symbol!.name);
-    } else if (ts.isBindingElement(node) && ts.isObjectBindingPattern(node.parent)) {
-      // Destructuring EXTRACTION off an object binding pattern (`const { ask } = planner`,
-      // renamed, nested, or parameter): the container is the binding pattern's type, and a
-      // renamed element carries the source property name, a shorthand its own bound name.
-      flagExtractedMember(node.propertyName ?? node.name, checker.getTypeAtLocation(node.parent));
-    } else if (
-      ts.isShorthandPropertyAssignment(node) &&
-      ts.isBinaryExpression(node.parent.parent)
-    ) {
-      // Destructuring ASSIGNMENT `({ ask } = planner)`: the object literal is the assignment
-      // target (its LHS), and the source property lives on the right-hand side's type.
-      const assign = node.parent.parent;
-      if (assign.left === node.parent && assign.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-        flagExtractedMember(node.name, checker.getTypeAtLocation(assign.right));
-      }
-    }
-    ts.forEachChild(node, scanRefs);
-  };
-
-  // Pass 2: defense in depth — a direct facade call the collector did not site.
-  // `report` sites belong in here for the same reason `agent` sites do: `report` is
-  // site-producing (registry), so a sited direct call must not be flagged, while a
-  // report call the collector somehow missed must be.
-  const sited = new Set<ts.CallExpression>([
-    ...table.asks.map((site) => site.call),
-    ...table.actors.map((site) => site.call),
-    ...table.worldReads.map((site) => site.call),
-    ...table.reports.map((site) => site.call),
-    // 产物站点与 report 同席：它们产生站点（registry），
-    // 所以已 site 的直接调用不得被误报，而收集漏掉的那一次必须被报出来。
-    ...table.artifacts.map((site) => site.call),
-    ...table.joins.map((site) => site.call),
-    // 留白同席：`hole` 产生站点（registry），已 site 的直接调用不得误报。
-    ...table.holes.map((site) => site.call),
-  ]);
-  const scanCalls = (node: ts.Node): void => {
-    if (ts.isCallExpression(node) && !sited.has(node)) {
-      // Resolve through the CALL's signature, not the callee's symbol: a computed
-      // member access (`files["read"]`) has no callee symbol, but the resolved
-      // signature still points at the facade method declaration. The (container, member)
-      // pair — not the bare member name — decides whether the callee is site-producing:
-      // `git.log` is, the top-level `log()` is not, and they share a name. Keying on the
-      // name alone would flag every unsited `log("progress")` call as misuse.
-      const callee = facadeCallee(node, checker);
-      if (callee !== undefined && isSiteProducing(callee.container, callee.member)) {
-        flag(node.expression, callee.member);
-      }
-    }
-    ts.forEachChild(node, scanCalls);
-  };
-
-  // Pass 3: retyping boundary. A value that really is an `Agent`/`files` (its type
-  // carries a site-producing facade member) converted to a type that carries none
-  // launders the site. Anchored at the escaping value expression; the reported name is
-  // the member the disguised type exposes locally (what the author calls through), so
-  // the message reads as "'.ask' can no longer be a facade call here".
-  const flagRetype = (at: ts.Node, name: string): void => {
-    const loc = toScriptLoc(at.getStart(scriptFile));
-    diagnostics.push({
-      code: FACADE_SITING_CODE,
-      column: loc.column,
-      line: loc.line,
-      message:
-        `facade function '${name}' may only be called directly; retyping a facade value to a ` +
-        `structurally-compatible non-facade type escapes site identity ` +
-        `(the disguised '.${name}(...)' resolves to the local type and runs unsited)`,
-    });
-  };
-
-  const checkConversion = (valueExpr: ts.Expression, destType: ts.Type | undefined): void => {
-    if (destType === undefined) return;
-    const laundered = facadeSiteMember(checker.getTypeAtLocation(valueExpr), checker);
-    if (laundered === undefined) return;
-    if (facadeSiteMember(destType, checker) !== undefined) return;
-    const viaDest = [...SITE_MEMBER_NAMES].find((name) => destType.getProperty(name) !== undefined);
-    flagRetype(valueExpr, viaDest ?? laundered);
-  };
-
-  const scanRetyping = (node: ts.Node): void => {
-    if (ts.isAsExpression(node) || ts.isSatisfiesExpression(node)) {
-      checkConversion(node.expression, checker.getTypeFromTypeNode(node.type));
-    } else if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
-      for (const arg of node.arguments ?? []) checkConversion(arg, checker.getContextualType(arg));
-    } else if (ts.isReturnStatement(node) && node.expression !== undefined) {
-      checkConversion(node.expression, checker.getContextualType(node.expression));
-    } else if (ts.isArrowFunction(node) && !ts.isBlock(node.body)) {
-      checkConversion(node.body, checker.getContextualType(node.body));
-    } else if (
-      ts.isVariableDeclaration(node) &&
-      node.type !== undefined &&
-      node.initializer !== undefined
-    ) {
-      checkConversion(node.initializer, checker.getTypeFromTypeNode(node.type));
-    } else if (
-      ts.isBinaryExpression(node) &&
-      VALUE_ASSIGNMENT_OPS.has(node.operatorToken.kind) &&
-      (ts.isIdentifier(node.left) ||
-        ts.isPropertyAccessExpression(node.left) ||
-        ts.isElementAccessExpression(node.left))
-    ) {
-      // Assignment into an already-typed slot (`d = planner` on `let d: Askable`,
-      // `slot.a = planner`, `arr[0] = planner`). Destructuring-pattern targets are
-      // ArrayLiteral/ObjectLiteral LHS — pass 1 handles extraction there, so they are
-      // excluded above. An evolving-any binding is narrowed to the real type at its use
-      // (the call stays sited), so it is not a laundering boundary; an explicit `: any`
-      // annotation is (the call runs unsited), so only the implicit case is skipped.
-      const destType = checker.getTypeAtLocation(node.left);
-      if (!isEvolvingAny(node.left, destType, checker)) checkConversion(node.right, destType);
-    }
-    ts.forEachChild(node, scanRetyping);
-  };
-
-  for (const statement of body.statements) scanRefs(statement);
-  for (const statement of body.statements) scanCalls(statement);
-  for (const statement of body.statements) scanRetyping(statement);
-
-  // Dedupe: the passes can, in principle, name the same escape at the same spot.
-  const seen = new Set<string>();
-  return diagnostics.filter((diagnostic) => {
-    const key = `${diagnostic.line}:${diagnostic.column}:${diagnostic.message}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
 }
 
 /** True iff the symbol is a facade-declared function or method (a callable). */
 function isFacadeCallable(symbol: ts.Symbol | undefined): boolean {
-  return (
-    isFacadeDeclared(symbol) &&
-    symbol !== undefined &&
-    (symbol.flags & (ts.SymbolFlags.Function | ts.SymbolFlags.Method)) !== 0
-  );
+    return (
+        isFacadeDeclared(symbol) &&
+        symbol !== undefined &&
+        (symbol.flags & (ts.SymbolFlags.Function | ts.SymbolFlags.Method)) !== 0
+    );
 }
 
 /**
@@ -274,40 +283,40 @@ function isFacadeCallable(symbol: ts.Symbol | undefined): boolean {
  * keep that invariant; breaking it would mean threading the container through here too.
  */
 function facadeSiteMember(
-  type: ts.Type,
-  checker: ts.TypeChecker,
-  seen: Set<ts.Type> = new Set(),
-  depth = 0,
+    type: ts.Type,
+    checker: ts.TypeChecker,
+    seen: Set<ts.Type> = new Set(),
+    depth = 0,
 ): string | undefined {
-  if (depth > FACADE_SITE_DEPTH || seen.has(type)) return undefined;
-  seen.add(type);
-  for (const name of SITE_MEMBER_NAMES) {
-    if (isFacadeDeclared(type.getProperty(name))) return name;
-  }
-  if (type.isUnionOrIntersection()) {
-    for (const constituent of type.types) {
-      const found = facadeSiteMember(constituent, checker, seen, depth + 1);
-      if (found !== undefined) return found;
+    if (depth > FACADE_SITE_DEPTH || seen.has(type)) return undefined;
+    seen.add(type);
+    for (const name of SITE_MEMBER_NAMES) {
+        if (isFacadeDeclared(type.getProperty(name))) return name;
     }
-  }
-  for (const arg of typeArguments(type, checker)) {
-    const found = facadeSiteMember(arg, checker, seen, depth + 1);
-    if (found !== undefined) return found;
-  }
-  for (const property of type.getProperties()) {
-    if (property.valueDeclaration === undefined) continue;
-    const propType = checker.getTypeOfSymbolAtLocation(property, property.valueDeclaration);
-    const found = facadeSiteMember(propType, checker, seen, depth + 1);
-    if (found !== undefined) return found;
-  }
-  return undefined;
+    if (type.isUnionOrIntersection()) {
+        for (const constituent of type.types) {
+            const found = facadeSiteMember(constituent, checker, seen, depth + 1);
+            if (found !== undefined) return found;
+        }
+    }
+    for (const arg of typeArguments(type, checker)) {
+        const found = facadeSiteMember(arg, checker, seen, depth + 1);
+        if (found !== undefined) return found;
+    }
+    for (const property of type.getProperties()) {
+        if (property.valueDeclaration === undefined) continue;
+        const propType = checker.getTypeOfSymbolAtLocation(property, property.valueDeclaration);
+        const found = facadeSiteMember(propType, checker, seen, depth + 1);
+        if (found !== undefined) return found;
+    }
+    return undefined;
 }
 
 /** Instantiated type arguments of an object reference (`Agent[]`, `Node<Agent>`); [] otherwise. */
 function typeArguments(type: ts.Type, checker: ts.TypeChecker): readonly ts.Type[] {
-  if ((type.flags & ts.TypeFlags.Object) === 0) return [];
-  if (((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) === 0) return [];
-  return checker.getTypeArguments(type as ts.TypeReference);
+    if ((type.flags & ts.TypeFlags.Object) === 0) return [];
+    if (((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference) === 0) return [];
+    return checker.getTypeArguments(type as ts.TypeReference);
 }
 
 /**
@@ -317,13 +326,13 @@ function typeArguments(type: ts.Type, checker: ts.TypeChecker): readonly ts.Type
  * annotation is a different case (the call runs unsited) and is NOT skipped.
  */
 function isEvolvingAny(left: ts.Expression, leftType: ts.Type, checker: ts.TypeChecker): boolean {
-  if ((leftType.flags & ts.TypeFlags.Any) === 0 || !ts.isIdentifier(left)) return false;
-  const declaration = checker.getSymbolAtLocation(left)?.valueDeclaration;
-  return (
-    declaration !== undefined &&
-    ts.isVariableDeclaration(declaration) &&
-    declaration.type === undefined
-  );
+    if ((leftType.flags & ts.TypeFlags.Any) === 0 || !ts.isIdentifier(left)) return false;
+    const declaration = checker.getSymbolAtLocation(left)?.valueDeclaration;
+    return (
+        declaration !== undefined &&
+        ts.isVariableDeclaration(declaration) &&
+        declaration.type === undefined
+    );
 }
 
 /**
@@ -336,21 +345,21 @@ function isEvolvingAny(left: ts.Expression, leftType: ts.Type, checker: ts.TypeC
  * can ask the registry rather than matching a bare name.
  */
 function facadeCallee(
-  call: ts.CallExpression,
-  checker: ts.TypeChecker,
+    call: ts.CallExpression,
+    checker: ts.TypeChecker,
 ): { container: string | undefined; member: string } | undefined {
-  const declaration = checker.getResolvedSignature(call)?.declaration;
-  if (declaration === undefined || declaration.getSourceFile().fileName !== FACADE_FILE_NAME) {
-    return undefined;
-  }
-  const name = (declaration as ts.FunctionDeclaration | ts.MethodSignature).name;
-  if (name === undefined || !ts.isIdentifier(name)) return undefined;
-  return { container: facadeContainerOf(declaration), member: name.text };
+    const declaration = checker.getResolvedSignature(call)?.declaration;
+    if (declaration === undefined || declaration.getSourceFile().fileName !== FACADE_FILE_NAME) {
+        return undefined;
+    }
+    const name = (declaration as ts.FunctionDeclaration | ts.MethodSignature).name;
+    if (name === undefined || !ts.isIdentifier(name)) return undefined;
+    return { container: facadeContainerOf(declaration), member: name.text };
 }
 
 /** True iff `node` is the member name of a property access (`x.NAME`), not a value. */
 function isPropertyAccessName(node: ts.Identifier): boolean {
-  return ts.isPropertyAccessExpression(node.parent) && node.parent.name === node;
+    return ts.isPropertyAccessExpression(node.parent) && node.parent.name === node;
 }
 
 /**
@@ -360,6 +369,6 @@ function isPropertyAccessName(node: ts.Identifier): boolean {
  * facade callable is allowed to appear.
  */
 function isDirectCallee(node: ts.Expression): boolean {
-  const parent = node.parent;
-  return ts.isCallExpression(parent) && parent.expression === node;
+    const parent = node.parent;
+    return ts.isCallExpression(parent) && parent.expression === node;
 }

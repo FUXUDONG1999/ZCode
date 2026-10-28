@@ -15,23 +15,23 @@
 本 plan 负责：
 
 - 将以下 ZCode 已有 provider-visible reminder 在最终 provider request 中投影为 `role: "system"`：
-  - `skills_listing`
-  - `todo_reminder`
-  - `runtime_mode`
-  - `hook_context`
-  - `relevant_memory`
-  - `referenced_session_context`
-  - `task_status`
-  - `queued_system_notification`
-  - `resume_todo_state`
-  - `resume_goal_state`
-  - `rewind_notice`
-  - `model_anomaly`
-  - `output_style`
-  - `date_change`
-  - `plan_mode_exit`
-  - `diagnostics`
-  - 若未来拆成独立 runtime attachment entry，`prompt_attachment` 也走 `role: "system"`。
+    - `skills_listing`
+    - `todo_reminder`
+    - `runtime_mode`
+    - `hook_context`
+    - `relevant_memory`
+    - `referenced_session_context`
+    - `task_status`
+    - `queued_system_notification`
+    - `resume_todo_state`
+    - `resume_goal_state`
+    - `rewind_notice`
+    - `model_anomaly`
+    - `output_style`
+    - `date_change`
+    - `plan_mode_exit`
+    - `diagnostics`
+    - 若未来拆成独立 runtime attachment entry，`prompt_attachment` 也走 `role: "system"`。
 - 保持 request-level userContext/currentDate/user instructions/project context 的 user `<system-reminder>` 形态，不迁移为 `role: "system"`。
 - `target_continuation` 保持 model-only user 输入语义，`tool_result_warning` / `goal_completion_verification` 保持 tool-result / auxiliary-result 边界，不作为普通 MCS meta reminder。
 - 最终 provider projection 无条件合并 adjacent user messages，避免连续 user shape 漂移；不再只在 MCS fallback 时合并。
@@ -145,9 +145,9 @@ Expected provider-visible baseline:
 
 ```json
 [
-  { "role": "user", "content": "<system-reminder>...skills...</system-reminder>" },
-  { "role": "user", "content": "<system-reminder>...# currentDate...</system-reminder>" },
-  { "role": "user", "content": "real user prompt or content[]" }
+    { "role": "user", "content": "<system-reminder>...skills...</system-reminder>" },
+    { "role": "user", "content": "<system-reminder>...# currentDate...</system-reminder>" },
+    { "role": "user", "content": "real user prompt or content[]" }
 ]
 ```
 
@@ -155,8 +155,8 @@ For text file attachment, expected current baseline includes a user text block s
 
 ```json
 {
-  "type": "text",
-  "text": "<system-reminder>\nCalled the Read tool with the following input: ...\n</system-reminder>"
+    "type": "text",
+    "text": "<system-reminder>\nCalled the Read tool with the following input: ...\n</system-reminder>"
 }
 ```
 
@@ -190,13 +190,13 @@ Add tests covering:
 
 ```ts
 const excluded = new Set([
-  "context_prefix",
-  "target_continuation",
-  "tool_result_warning",
-  "goal_completion_verification",
+    "context_prefix",
+    "target_continuation",
+    "tool_result_warning",
+    "goal_completion_verification",
 ]);
 for (const source of SYSTEM_REMINDER_SOURCES) {
-  expect(isMidConversationSystemSource(source)).toBe(!excluded.has(source));
+    expect(isMidConversationSystemSource(source)).toBe(!excluded.has(source));
 }
 ```
 
@@ -216,15 +216,15 @@ Add source-level mid-conversation system candidate helper only. Do not add an un
 
 ```ts
 const MID_CONVERSATION_SYSTEM_SOURCES = new Set<SystemReminderSource>([
-  "skills_listing",
-  "todo_reminder",
-  "output_style",
-  "date_change",
-  "plan_mode_exit",
+    "skills_listing",
+    "todo_reminder",
+    "output_style",
+    "date_change",
+    "plan_mode_exit",
 ]);
 
 export function isMidConversationSystemSource(source: SystemReminderSource): boolean {
-  return MID_CONVERSATION_SYSTEM_SOURCES.has(source);
+    return MID_CONVERSATION_SYSTEM_SOURCES.has(source);
 }
 ```
 
@@ -253,38 +253,41 @@ Add tests with expected provider messages:
 
 ```ts
 it("moves skills listing after the first real user as a system message", () => {
-  const entries = [
-    entry({ role: "system", content: "prefix" }),
-    entry(user("<system-reminder>\nskills\n</system-reminder>"), "skills_listing"),
-    entry(user("<system-reminder>\n# currentDate\nToday\n</system-reminder>"), "context_prefix"),
-    entry(user("real prompt"), "real_user"),
-  ] satisfies RuntimeMessageEntry[];
+    const entries = [
+        entry({ role: "system", content: "prefix" }),
+        entry(user("<system-reminder>\nskills\n</system-reminder>"), "skills_listing"),
+        entry(
+            user("<system-reminder>\n# currentDate\nToday\n</system-reminder>"),
+            "context_prefix",
+        ),
+        entry(user("real prompt"), "real_user"),
+    ] satisfies RuntimeMessageEntry[];
 
-  const result = buildProviderRequestMessages({ entries, applyCacheControl: true });
+    const result = buildProviderRequestMessages({ entries, applyCacheControl: true });
 
-  expect(result.messages).toEqual([
-    { role: "system", content: "prefix", cacheControl: { type: "ephemeral" } },
-    { role: "user", content: "<system-reminder>\n# currentDate\nToday\n</system-reminder>" },
-    { role: "user", content: "real prompt", cacheControl: { type: "ephemeral" } },
-    { role: "system", content: "skills" },
-  ]);
+    expect(result.messages).toEqual([
+        { role: "system", content: "prefix", cacheControl: { type: "ephemeral" } },
+        { role: "user", content: "<system-reminder>\n# currentDate\nToday\n</system-reminder>" },
+        { role: "user", content: "real prompt", cacheControl: { type: "ephemeral" } },
+        { role: "system", content: "skills" },
+    ]);
 });
 
 it("projects todo and output style reminders to system without moving context prefix", () => {
-  const entries = [
-    entry(user("follow up"), "real_user"),
-    entry(user("<system-reminder>\ntodo\n</system-reminder>"), "todo_reminder"),
-    entry(user("<system-reminder>\nstyle\n</system-reminder>"), "output_style"),
-    entry(user("<system-reminder>\nmode\n</system-reminder>"), "runtime_mode"),
-  ] satisfies RuntimeMessageEntry[];
+    const entries = [
+        entry(user("follow up"), "real_user"),
+        entry(user("<system-reminder>\ntodo\n</system-reminder>"), "todo_reminder"),
+        entry(user("<system-reminder>\nstyle\n</system-reminder>"), "output_style"),
+        entry(user("<system-reminder>\nmode\n</system-reminder>"), "runtime_mode"),
+    ] satisfies RuntimeMessageEntry[];
 
-  const result = buildProviderRequestMessages({ entries, applyCacheControl: true });
+    const result = buildProviderRequestMessages({ entries, applyCacheControl: true });
 
-  expect(result.messages).toEqual([
-    { role: "user", content: "<system-reminder>\nmode\n</system-reminder>" },
-    { role: "user", content: "follow up", cacheControl: { type: "ephemeral" } },
-    { role: "system", content: "todo\n\nstyle" },
-  ]);
+    expect(result.messages).toEqual([
+        { role: "user", content: "<system-reminder>\nmode\n</system-reminder>" },
+        { role: "user", content: "follow up", cacheControl: { type: "ephemeral" } },
+        { role: "system", content: "todo\n\nstyle" },
+    ]);
 });
 ```
 
@@ -307,77 +310,77 @@ Implementation shape:
 
 ```ts
 interface PendingMidSystemEntry {
-  entry: RuntimeMessageEntry;
-  text: string;
+    entry: RuntimeMessageEntry;
+    text: string;
 }
 
 function projectMidConversationSystemEntries(
-  entries: readonly RuntimeMessageEntry[],
+    entries: readonly RuntimeMessageEntry[],
 ): RuntimeMessageEntry[] {
-  const projected: RuntimeMessageEntry[] = [];
-  const delayedUntilNextRealUser: PendingMidSystemEntry[] = [];
-  const trailingCurrentUser: PendingMidSystemEntry[] = [];
+    const projected: RuntimeMessageEntry[] = [];
+    const delayedUntilNextRealUser: PendingMidSystemEntry[] = [];
+    const trailingCurrentUser: PendingMidSystemEntry[] = [];
 
-  const emitSystem = (pending: PendingMidSystemEntry[]) => {
-    if (pending.length === 0) return;
-    projected.push({
-      message: {
-        role: "system",
-        content: pending.map((item) => item.text).join("\n\n"),
-      },
-    });
-    pending.length = 0;
-  };
+    const emitSystem = (pending: PendingMidSystemEntry[]) => {
+        if (pending.length === 0) return;
+        projected.push({
+            message: {
+                role: "system",
+                content: pending.map((item) => item.text).join("\n\n"),
+            },
+        });
+        pending.length = 0;
+    };
 
-  const emitOriginalEntries = (pending: PendingMidSystemEntry[]) => {
-    for (const item of pending) {
-      projected.push(item.entry);
+    const emitOriginalEntries = (pending: PendingMidSystemEntry[]) => {
+        for (const item of pending) {
+            projected.push(item.entry);
+        }
+        pending.length = 0;
+    };
+
+    const flushTrailingBefore = (nextEntry: RuntimeMessageEntry) => {
+        if (trailingCurrentUser.length === 0) return;
+        if (canKeepMidConversationSystemBefore(nextEntry)) {
+            emitSystem(trailingCurrentUser);
+            return;
+        }
+
+        // 无法形成 "user -> system -> assistant/end/system" 结构时，
+        // 保留原始 user reminder，避免为了调整 shape 而改变语义或丢内容。
+        emitOriginalEntries(trailingCurrentUser);
+    };
+
+    const lastProjectedEntry = () => projected[projected.length - 1];
+    const lastProjectedCanAnchor = () => {
+        const entry = lastProjectedEntry();
+        return entry ? isRealUserAnchorEntry(entry) : false;
+    };
+
+    for (const entry of entries) {
+        const projectedText = midConversationSystemText(entry);
+        if (projectedText !== undefined) {
+            const pending = { entry, text: projectedText };
+            if (lastProjectedCanAnchor()) {
+                trailingCurrentUser.push(pending);
+            } else {
+                delayedUntilNextRealUser.push(pending);
+            }
+            continue;
+        }
+
+        flushTrailingBefore(entry);
+        projected.push(entry);
+
+        if (isRealUserAnchorEntry(entry)) {
+            emitSystem(delayedUntilNextRealUser);
+        }
     }
-    pending.length = 0;
-  };
 
-  const flushTrailingBefore = (nextEntry: RuntimeMessageEntry) => {
-    if (trailingCurrentUser.length === 0) return;
-    if (canKeepMidConversationSystemBefore(nextEntry)) {
-      emitSystem(trailingCurrentUser);
-      return;
-    }
+    if (trailingCurrentUser.length > 0) emitSystem(trailingCurrentUser);
+    if (delayedUntilNextRealUser.length > 0) emitOriginalEntries(delayedUntilNextRealUser);
 
-    // 无法形成 "user -> system -> assistant/end/system" 结构时，
-    // 保留原始 user reminder，避免为了调整 shape 而改变语义或丢内容。
-    emitOriginalEntries(trailingCurrentUser);
-  };
-
-  const lastProjectedEntry = () => projected[projected.length - 1];
-  const lastProjectedCanAnchor = () => {
-    const entry = lastProjectedEntry();
-    return entry ? isRealUserAnchorEntry(entry) : false;
-  };
-
-  for (const entry of entries) {
-    const projectedText = midConversationSystemText(entry);
-    if (projectedText !== undefined) {
-      const pending = { entry, text: projectedText };
-      if (lastProjectedCanAnchor()) {
-        trailingCurrentUser.push(pending);
-      } else {
-        delayedUntilNextRealUser.push(pending);
-      }
-      continue;
-    }
-
-    flushTrailingBefore(entry);
-    projected.push(entry);
-
-    if (isRealUserAnchorEntry(entry)) {
-      emitSystem(delayedUntilNextRealUser);
-    }
-  }
-
-  if (trailingCurrentUser.length > 0) emitSystem(trailingCurrentUser);
-  if (delayedUntilNextRealUser.length > 0) emitOriginalEntries(delayedUntilNextRealUser);
-
-  return projected;
+    return projected;
 }
 ```
 
@@ -392,26 +395,26 @@ Helper semantics to implement in the same file:
 
 ```ts
 function isRealUserAnchorEntry(entry: RuntimeMessageEntry): boolean {
-  if (entry.message.role !== "user" || isToolResultUserMessage(entry.message)) return false;
-  return entry.metadata?.source === "real_user" || entry.metadata === undefined;
+    if (entry.message.role !== "user" || isToolResultUserMessage(entry.message)) return false;
+    return entry.metadata?.source === "real_user" || entry.metadata === undefined;
 }
 
 function canKeepMidConversationSystemBefore(nextEntry: RuntimeMessageEntry): boolean {
-  const next = nextEntry.message;
-  return (
-    next.role === "assistant" ||
-    next.role === "system" ||
-    next.role === "tool" ||
-    isToolResultUserMessage(next)
-  );
+    const next = nextEntry.message;
+    return (
+        next.role === "assistant" ||
+        next.role === "system" ||
+        next.role === "tool" ||
+        isToolResultUserMessage(next)
+    );
 }
 
 function midConversationSystemText(entry: RuntimeMessageEntry): string | undefined {
-  if (entry.kind !== "attachment") return undefined;
-  const source = entry.metadata?.source;
-  if (!source || !isKnownSystemReminderSource(source)) return undefined;
-  if (!isMidConversationSystemSource(source)) return undefined;
-  return entry.content;
+    if (entry.kind !== "attachment") return undefined;
+    const source = entry.metadata?.source;
+    if (!source || !isKnownSystemReminderSource(source)) return undefined;
+    if (!isMidConversationSystemSource(source)) return undefined;
+    return entry.content;
 }
 ```
 
@@ -431,9 +434,9 @@ const reorderResult = reorderAttachmentLikeEntries(entries);
 const midSystemEntries = projectMidConversationSystemEntries(reorderResult.entries);
 const latestRealUserMessageIndex = findLatestRealUserEntryIndex(midSystemEntries);
 const cacheControlIndex =
-  input.applyCacheControl === true
-    ? finalizeLatestNonSystemCacheControl(midSystemEntries)
-    : undefined;
+    input.applyCacheControl === true
+        ? finalizeLatestNonSystemCacheControl(midSystemEntries)
+        : undefined;
 const messages = midSystemEntries.map((entry) => cloneModelInputMessage(entry.message));
 ```
 
@@ -472,7 +475,7 @@ Use an existing trace/helper test to assert final `ModelRequest.payload.messages
 
 ```ts
 expect(
-  messages.some((message) => message.role === "system" && includesText(message, "TodoWrite")),
+    messages.some((message) => message.role === "system" && includesText(message, "TodoWrite")),
 ).toBe(true);
 expect(JSON.stringify(messages)).not.toContain("runtimeMessage");
 ```
@@ -504,9 +507,9 @@ Expected provider-visible shape:
 
 ```json
 [
-  { "role": "user", "content": "<system-reminder>...# currentDate...</system-reminder>" },
-  { "role": "user", "content": "real prompt" },
-  { "role": "system", "content": "The following skills are available..." }
+    { "role": "user", "content": "<system-reminder>...# currentDate...</system-reminder>" },
+    { "role": "user", "content": "real prompt" },
+    { "role": "system", "content": "The following skills are available..." }
 ]
 ```
 
@@ -550,13 +553,13 @@ Add tests proving:
 const history = createMessageHistory();
 history.addAttachment("output_style", "style body");
 expect(history.toRuntimeEntries()[0]).toMatchObject({
-  kind: "attachment",
-  metadata: { source: "output_style" },
-  content: "style body",
+    kind: "attachment",
+    metadata: { source: "output_style" },
+    content: "style body",
 });
 expect(history.toModelMessages()[0]).toEqual({
-  role: "user",
-  content: "<system-reminder>\nstyle body\n</system-reminder>",
+    role: "user",
+    content: "<system-reminder>\nstyle body\n</system-reminder>",
 });
 ```
 
@@ -568,16 +571,16 @@ Target shape:
 
 ```ts
 export type RuntimeMessageEntry =
-  | {
-      kind: "message";
-      message: ModelInputMessage;
-      metadata?: RuntimeMessageMetadata;
-    }
-  | {
-      kind: "attachment";
-      content: string;
-      metadata: RuntimeMessageMetadata;
-    };
+    | {
+          kind: "message";
+          message: ModelInputMessage;
+          metadata?: RuntimeMessageMetadata;
+      }
+    | {
+          kind: "attachment";
+          content: string;
+          metadata: RuntimeMessageMetadata;
+      };
 ```
 
 Rules:
@@ -846,15 +849,15 @@ Add tests for a text file attachment:
 const entries = buildRuntimeUserEntriesFromTurn("Summarize notes.", [textFileAttachment]);
 
 expect(entries).toEqual([
-  {
-    message: { role: "user", content: "Summarize notes." },
-    metadata: { source: "real_user" },
-  },
-  {
-    kind: "attachment",
-    source: "prompt_attachment",
-    body: "Called the Read tool ...",
-  },
+    {
+        message: { role: "user", content: "Summarize notes." },
+        metadata: { source: "real_user" },
+    },
+    {
+        kind: "attachment",
+        source: "prompt_attachment",
+        body: "Called the Read tool ...",
+    },
 ]);
 ```
 
@@ -862,8 +865,8 @@ For pasted images:
 
 ```ts
 expect(entries[0]!.message.content).toEqual([
-  { type: "text", text: "Describe screenshot." },
-  { type: "image", mediaType: "image/png", dataUrl: "data:image/png;base64,..." },
+    { type: "text", text: "Describe screenshot." },
+    { type: "image", mediaType: "image/png", dataUrl: "data:image/png;base64,..." },
 ]);
 expect(entries).toHaveLength(1);
 ```
@@ -932,23 +935,23 @@ Add provider projection test:
 
 ```ts
 const entries = [
-  entry(user("Summarize notes."), "real_user"),
-  entry(
-    user(
-      '<system-reminder>\nCalled the Read tool with the following input: {"file_path":"notes.md"}\n</system-reminder>',
+    entry(user("Summarize notes."), "real_user"),
+    entry(
+        user(
+            '<system-reminder>\nCalled the Read tool with the following input: {"file_path":"notes.md"}\n</system-reminder>',
+        ),
+        "prompt_attachment",
     ),
-    "prompt_attachment",
-  ),
 ];
 
 const result = buildProviderRequestMessages({ entries });
 
 expect(result.messages).toEqual([
-  { role: "user", content: "Summarize notes." },
-  {
-    role: "system",
-    content: 'Called the Read tool with the following input: {"file_path":"notes.md"}',
-  },
+    { role: "user", content: "Summarize notes." },
+    {
+        role: "system",
+        content: 'Called the Read tool with the following input: {"file_path":"notes.md"}',
+    },
 ]);
 ```
 
@@ -988,23 +991,23 @@ Expected provider-visible shape:
 
 ```json
 [
-  {
-    "role": "user",
-    "content": [
-      {
-        "type": "text",
-        "text": "Summarize the attached notes and mention whether the URL is present."
-      },
-      {
-        "type": "text",
-        "text": "[Resource: https://example.com/ref]"
-      }
-    ]
-  },
-  {
-    "role": "system",
-    "content": "Called the Read tool with the following input: {\"file_path\":\"notes.md\"}\n\nResult of calling the Read tool:\n..."
-  }
+    {
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": "Summarize the attached notes and mention whether the URL is present."
+            },
+            {
+                "type": "text",
+                "text": "[Resource: https://example.com/ref]"
+            }
+        ]
+    },
+    {
+        "role": "system",
+        "content": "Called the Read tool with the following input: {\"file_path\":\"notes.md\"}\n\nResult of calling the Read tool:\n..."
+    }
 ]
 ```
 

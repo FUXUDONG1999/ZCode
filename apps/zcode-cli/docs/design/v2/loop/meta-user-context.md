@@ -25,7 +25,7 @@ system block may carry provider-neutral cache intent:
 
 ```typescript
 cacheControl: {
-  type: "ephemeral";
+    type: "ephemeral";
 }
 ```
 
@@ -34,11 +34,11 @@ Anthropic-compatible providers, the AI SDK receives:
 
 ```typescript
 providerOptions: {
-  anthropic: {
-    cacheControl: {
-      type: "ephemeral";
+    anthropic: {
+        cacheControl: {
+            type: "ephemeral";
+        }
     }
-  }
 }
 ```
 

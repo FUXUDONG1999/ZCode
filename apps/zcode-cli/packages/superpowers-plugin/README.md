@@ -38,9 +38,9 @@ Superpowers is available via the [official Claude plugin marketplace](https://cl
 
 - Install the plugin from Anthropic's official marketplace:
 
-  ```bash
-  /plugin install superpowers@claude-plugins-official
-  ```
+    ```bash
+    /plugin install superpowers@claude-plugins-official
+    ```
 
 #### Superpowers Marketplace
 
@@ -48,15 +48,15 @@ The Superpowers marketplace provides Superpowers and some other related plugins 
 
 - Register the marketplace:
 
-  ```bash
-  /plugin marketplace add obra/superpowers-marketplace
-  ```
+    ```bash
+    /plugin marketplace add obra/superpowers-marketplace
+    ```
 
 - Install the plugin from this marketplace:
 
-  ```bash
-  /plugin install superpowers@superpowers-marketplace
-  ```
+    ```bash
+    /plugin install superpowers@superpowers-marketplace
+    ```
 
 ### Codex CLI
 
@@ -64,15 +64,15 @@ Superpowers is available via the [official Codex plugin marketplace](https://git
 
 - Open the plugin search interface:
 
-  ```bash
-  /plugins
-  ```
+    ```bash
+    /plugins
+    ```
 
 - Search for Superpowers:
 
-  ```bash
-  superpowers
-  ```
+    ```bash
+    superpowers
+    ```
 
 - Select `Install Plugin`.
 
@@ -88,29 +88,29 @@ Superpowers is available via the [official Codex plugin marketplace](https://git
 
 - Register the marketplace:
 
-  ```bash
-  droid plugin marketplace add https://github.com/obra/superpowers
-  ```
+    ```bash
+    droid plugin marketplace add https://github.com/obra/superpowers
+    ```
 
 - Install the plugin:
 
-  ```bash
-  droid plugin install superpowers@superpowers
-  ```
+    ```bash
+    droid plugin install superpowers@superpowers
+    ```
 
 ### Gemini CLI
 
 - Install the extension:
 
-  ```bash
-  gemini extensions install https://github.com/obra/superpowers
-  ```
+    ```bash
+    gemini extensions install https://github.com/obra/superpowers
+    ```
 
 - Update later:
 
-  ```bash
-  gemini extensions update superpowers
-  ```
+    ```bash
+    gemini extensions update superpowers
+    ```
 
 ### OpenCode
 
@@ -119,9 +119,9 @@ already use it in another harness.
 
 - Tell OpenCode:
 
-  ```
-  Fetch and follow instructions from https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md
-  ```
+    ```
+    Fetch and follow instructions from https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md
+    ```
 
 - Detailed docs: [docs/README.opencode.md](docs/README.opencode.md)
 
@@ -129,9 +129,9 @@ already use it in another harness.
 
 - In Cursor Agent chat, install from marketplace:
 
-  ```text
-  /add-plugin superpowers
-  ```
+    ```text
+    /add-plugin superpowers
+    ```
 
 - Or search for "superpowers" in the plugin marketplace.
 
@@ -139,15 +139,15 @@ already use it in another harness.
 
 - Register the marketplace:
 
-  ```bash
-  copilot plugin marketplace add obra/superpowers-marketplace
-  ```
+    ```bash
+    copilot plugin marketplace add obra/superpowers-marketplace
+    ```
 
 - Install the plugin:
 
-  ```bash
-  copilot plugin install superpowers@superpowers-marketplace
-  ```
+    ```bash
+    copilot plugin install superpowers@superpowers-marketplace
+    ```
 
 ## The Basic Workflow
 

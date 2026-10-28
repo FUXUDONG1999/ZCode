@@ -1,9 +1,9 @@
 import type { DatabaseSync } from "node:sqlite";
 import {
-  SESSION_ENTRY_MODEL_SELECTION,
-  type SessionEntryInfo,
-  type SessionEntryType,
-  type SessionId,
+    SESSION_ENTRY_MODEL_SELECTION,
+    type SessionEntryInfo,
+    type SessionEntryType,
+    type SessionId,
 } from "@zcode/contracts";
 import { decodeSessionEntryRow } from "../codecs.js";
 import { encodeJson } from "../json.js";
@@ -11,18 +11,18 @@ import type { SessionEntryRow } from "../rows.js";
 import { touchSession } from "./sessions.js";
 
 export function saveSessionEntry(db: DatabaseSync, input: SessionEntryInfo): void {
-  const isModelSelection = input.type === SESSION_ENTRY_MODEL_SELECTION;
-  // 旧版读取 data 的平铺身份；新版 port 仍传逻辑 Selection，包装只属于存储 adapter。
-  // undefined 与既有 fork 的 null 都写成明确空值，防止重启重新导入旧字段。
-  const encoded = encodeJson(
-    isModelSelection ? { modelSelection: input.data ?? null } : input.data,
-  );
-  if (!encoded) {
-    throw new Error("Session entry data must be JSON-serializable");
-  }
+    const isModelSelection = input.type === SESSION_ENTRY_MODEL_SELECTION;
+    // 旧版读取 data 的平铺身份；新版 port 仍传逻辑 Selection，包装只属于存储 adapter。
+    // undefined 与既有 fork 的 null 都写成明确空值，防止重启重新导入旧字段。
+    const encoded = encodeJson(
+        isModelSelection ? { modelSelection: input.data ?? null } : input.data,
+    );
+    if (!encoded) {
+        throw new Error("Session entry data must be JSON-serializable");
+    }
 
-  db.prepare(
-    `
+    db.prepare(
+        `
       insert into session_entry (id, session_id, type, time_created, time_updated, data)
       values (?, ?, ?, ?, ?, ?)
       on conflict(id) do update set
@@ -37,43 +37,43 @@ export function saveSessionEntry(db: DatabaseSync, input: SessionEntryInfo): voi
           else excluded.data
         end
       `,
-  ).run(
-    input.id,
-    input.sessionID,
-    input.type,
-    input.time.created,
-    input.time.updated,
-    encoded,
-    Number(isModelSelection),
-  );
-  if (input.touchSession !== false) {
-    touchSession(db, input.sessionID, input.time.updated);
-  }
+    ).run(
+        input.id,
+        input.sessionID,
+        input.type,
+        input.time.created,
+        input.time.updated,
+        encoded,
+        Number(isModelSelection),
+    );
+    if (input.touchSession !== false) {
+        touchSession(db, input.sessionID, input.time.updated);
+    }
 }
 
 export function sessionEntries(
-  db: DatabaseSync,
-  input: { sessionID: SessionId; type?: SessionEntryType | string },
+    db: DatabaseSync,
+    input: { sessionID: SessionId; type?: SessionEntryType | string },
 ): SessionEntryInfo[] {
-  const rows = input.type
-    ? db
-        .prepare(
-          `
+    const rows = input.type
+        ? db
+              .prepare(
+                  `
           select * from session_entry
           where session_id = ? and type = ?
           order by time_created, rowid
           `,
-        )
-        .all(input.sessionID, input.type)
-    : db
-        .prepare(
-          `
+              )
+              .all(input.sessionID, input.type)
+        : db
+              .prepare(
+                  `
           select * from session_entry
           where session_id = ?
           order by time_created, rowid
           `,
-        )
-        .all(input.sessionID);
+              )
+              .all(input.sessionID);
 
-  return (rows as unknown as SessionEntryRow[]).map(decodeSessionEntryRow);
+    return (rows as unknown as SessionEntryRow[]).map(decodeSessionEntryRow);
 }

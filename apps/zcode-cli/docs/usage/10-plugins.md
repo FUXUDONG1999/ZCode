@@ -35,11 +35,11 @@ manifest 示例：
 
 ```json
 {
-  "name": "example-plugin",
-  "version": "0.1.0",
-  "description": "示例技能与命令",
-  "skills": "skills",
-  "commands": "commands"
+    "name": "example-plugin",
+    "version": "0.1.0",
+    "description": "示例技能与命令",
+    "skills": "skills",
+    "commands": "commands"
 }
 ```
 
@@ -47,10 +47,10 @@ manifest 示例：
 
 ```json
 {
-  "plugins": {
-    "enabled": true,
-    "dirs": ["/absolute/path/to/example-plugin"]
-  }
+    "plugins": {
+        "enabled": true,
+        "dirs": ["/absolute/path/to/example-plugin"]
+    }
 }
 ```
 

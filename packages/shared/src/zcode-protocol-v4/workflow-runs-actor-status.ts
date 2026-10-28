@@ -16,7 +16,7 @@ import type { WorkflowRunActor, WorkflowRunState } from "./workflow-runs.js";
  * 字符串，但文件不再是 grep 眼里的二进制。）
  */
 function actorKey(siteId: string, ordinal: number): string {
-  return `${siteId}\0${ordinal}`;
+    return `${siteId}\0${ordinal}`;
 }
 
 /**
@@ -32,41 +32,41 @@ function actorKey(siteId: string, ordinal: number): string {
  * 会让每条节点事件都把整张 actors 表搬上线。
  */
 export function withDerivedWorkflowActorStatuses(run: WorkflowRunState): WorkflowRunState {
-  const executing = new Set<string>();
-  const live = new Set<string>();
-  const owned = new Set<string>();
-  for (const node of run.nodes) {
-    if (node.actorSiteId === undefined || node.actorOrdinal === undefined) continue;
-    const key = actorKey(node.actorSiteId, node.actorOrdinal);
-    owned.add(key);
-    switch (node.phase) {
-      case "executing":
-      case "repairing":
-      case "nudged":
-        executing.add(key);
-        break;
-      case "queued":
-      case "dispatched":
-      case "waiting":
-        live.add(key);
-        break;
-      default:
-        break;
+    const executing = new Set<string>();
+    const live = new Set<string>();
+    const owned = new Set<string>();
+    for (const node of run.nodes) {
+        if (node.actorSiteId === undefined || node.actorOrdinal === undefined) continue;
+        const key = actorKey(node.actorSiteId, node.actorOrdinal);
+        owned.add(key);
+        switch (node.phase) {
+            case "executing":
+            case "repairing":
+            case "nudged":
+                executing.add(key);
+                break;
+            case "queued":
+            case "dispatched":
+            case "waiting":
+                live.add(key);
+                break;
+            default:
+                break;
+        }
     }
-  }
-  const runLive = run.status === "pending" || run.status === "running";
-  return {
-    ...run,
-    actors: run.actors.map((actor) => {
-      const key = actorKey(actor.siteId, actor.ordinal);
-      const status: WorkflowRunActor["status"] = !runLive
-        ? "completed"
-        : executing.has(key)
-          ? "running"
-          : live.has(key) || !owned.has(key)
-            ? "waiting"
-            : "completed";
-      return actor.status === status ? actor : { ...actor, status };
-    }),
-  };
+    const runLive = run.status === "pending" || run.status === "running";
+    return {
+        ...run,
+        actors: run.actors.map((actor) => {
+            const key = actorKey(actor.siteId, actor.ordinal);
+            const status: WorkflowRunActor["status"] = !runLive
+                ? "completed"
+                : executing.has(key)
+                  ? "running"
+                  : live.has(key) || !owned.has(key)
+                    ? "waiting"
+                    : "completed";
+            return actor.status === status ? actor : { ...actor, status };
+        }),
+    };
 }

@@ -19,35 +19,35 @@ export type McpConfigKeyName = "mcpServers" | "mcp" | "mcp_servers" | "mcp.serve
  * - 必须有 type 字段 ("local" 或 "remote")
  */
 export interface OpenCodeMcpServerConfig {
-  type: "local" | "remote";
-  command?: string[];
-  url?: string;
-  env?: Record<string, string>;
-  headers?: Record<string, string>;
+    type: "local" | "remote";
+    command?: string[];
+    url?: string;
+    env?: Record<string, string>;
+    headers?: Record<string, string>;
 }
 
 export interface McpSourceDescriptor {
-  source: CliMcpSource;
-  configDirSegments: string[];
-  fileName: string;
-  format: McpFileFormat;
-  configKeyName: McpConfigKeyName;
+    source: CliMcpSource;
+    configDirSegments: string[];
+    fileName: string;
+    format: McpFileFormat;
+    configKeyName: McpConfigKeyName;
 }
 
 export const MCP_SOURCE_DESCRIPTORS: McpSourceDescriptor[] = [
-  {
-    source: "zcodeagentmcp",
-    configDirSegments: [".zcode", "cli"],
-    fileName: "config.json",
-    format: "json",
-    configKeyName: "mcp.servers",
-  },
+    {
+        source: "zcodeagentmcp",
+        configDirSegments: [".zcode", "cli"],
+        fileName: "config.json",
+        format: "json",
+        configKeyName: "mcp.servers",
+    },
 ];
 
 export function getSourceDescriptor(source: CliMcpSource): McpSourceDescriptor {
-  const descriptor = MCP_SOURCE_DESCRIPTORS.find((item) => item.source === source);
-  if (!descriptor) {
-    throw new Error(`Unsupported MCP source: ${source}`);
-  }
-  return descriptor;
+    const descriptor = MCP_SOURCE_DESCRIPTORS.find((item) => item.source === source);
+    if (!descriptor) {
+        throw new Error(`Unsupported MCP source: ${source}`);
+    }
+    return descriptor;
 }

@@ -1,8 +1,8 @@
 ---
 name: docx
 metadata:
-  author: Z.AI
-  version: "1.1"
+    author: Z.AI
+    version: "1.1"
 description: "Complete DOCX document creation, editing, and analysis capabilities with support for revisions, comments, formatting preservation, and text extraction. Also handles Word format conversion: legacy .doc → .docx, DOCX → PDF, DOCX → images (PNG/JPG) for visual review or previews, and DOCX → Markdown/plain text extraction. Use for creating new documents, modifying content, handling revisions, adding comments, other professional Word document tasks, or when the user asks to convert, export, or render a Word document to another format (e.g. 'Word转PDF', 'doc转docx', 'export this docx as PDF/images')."
 license: Proprietary. LICENSE.txt has complete terms
 ---
@@ -142,9 +142,9 @@ For Chinese font size table and common margins, see `references/common-rules.md`
 
 - [ ] Cover/content in separate sections
 - [ ] Three rules to prevent blank pages:
-  - ① When using section(NEXT_PAGE), previous section must NOT end with PageBreak (double break = blank page)
-  - ② PageBreak paragraph SHOULD contain visible text — **exception**: section-ending empty para + PageBreak is allowed (normal section separator, e.g., after cover page)
-  - ③ No more than 3 consecutive empty paragraphs
+    - ① When using section(NEXT_PAGE), previous section must NOT end with PageBreak (double break = blank page)
+    - ② PageBreak paragraph SHOULD contain visible text — **exception**: section-ending empty para + PageBreak is allowed (normal section separator, e.g., after cover page)
+    - ③ No more than 3 consecutive empty paragraphs
 - [ ] Full-page Table row height uses `rule: "exact"` (never `"atLeast"` for tall tables)
 - [ ] No unwanted blank pages (check each section ending)
 
@@ -258,9 +258,9 @@ depends on LibreOffice.
    the newest version. Full per-platform download-and-install commands: `env_setup/setup.md` →
    _"LibreOffice — Recommended Download Source"_.
    Package-manager fallback, only if the mirror is unreachable:
-   - macOS: `brew install --cask libreoffice`
-   - Linux (Debian/Ubuntu): `sudo apt install libreoffice-core`
-   - Windows: `winget install TheDocumentFoundation.LibreOffice`
+    - macOS: `brew install --cask libreoffice`
+    - Linux (Debian/Ubuntu): `sudo apt install libreoffice-core`
+    - Windows: `winget install TheDocumentFoundation.LibreOffice`
 4. **Register the binary on `PATH`, then re-verify.** An install that leaves `soffice` off the
    executable search path looks identical to "not installed" on the next probe — that is what causes
    the same several-hundred-MB package to be downloaded twice. **The mechanism differs per OS**

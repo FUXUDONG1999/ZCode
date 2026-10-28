@@ -22,33 +22,33 @@ const pendingHeapUsedKb = new Map<ProcessResourceRole, number>();
  * 非法消息（字段缺失、类型错误、夹带多余字段）直接丢弃，不抛错。
  */
 function ingest(role: ProcessResourceRole, raw: unknown): void {
-  const parsed = nodeSelfResourceSampleSchema.safeParse(raw);
-  if (!parsed.success) {
-    return;
-  }
-  // 多窗口 Host 会在同一 tick 到达；后到的小堆不能覆盖先到的峰值。
-  pendingHeapUsedKb.set(role, Math.max(pendingHeapUsedKb.get(role) ?? 0, parsed.data.heapUsedKb));
+    const parsed = nodeSelfResourceSampleSchema.safeParse(raw);
+    if (!parsed.success) {
+        return;
+    }
+    // 多窗口 Host 会在同一 tick 到达；后到的小堆不能覆盖先到的峰值。
+    pendingHeapUsedKb.set(role, Math.max(pendingHeapUsedKb.get(role) ?? 0, parsed.data.heapUsedKb));
 }
 
 export function ingestHostSelfResourceSample(raw: unknown): void {
-  ingest("host", raw);
+    ingest("host", raw);
 }
 
 export function ingestSchedulerSelfResourceSample(raw: unknown): void {
-  ingest("scheduler", raw);
+    ingest("scheduler", raw);
 }
 
 export const selfHeapProcessResourceSampleSource: ProcessResourceSampleSource = {
-  id: "self_heap",
-  sample(context) {
-    // 先取走再投递：投递抛错也不会把旧读数留到下一个 tick。
-    const delivering = [...pendingHeapUsedKb];
-    pendingHeapUsedKb.clear();
-    for (const [role, heapUsedKb] of delivering) {
-      context.addRoleHeapSample(role, heapUsedKb);
-    }
-  },
-  reset() {
-    pendingHeapUsedKb.clear();
-  },
+    id: "self_heap",
+    sample(context) {
+        // 先取走再投递：投递抛错也不会把旧读数留到下一个 tick。
+        const delivering = [...pendingHeapUsedKb];
+        pendingHeapUsedKb.clear();
+        for (const [role, heapUsedKb] of delivering) {
+            context.addRoleHeapSample(role, heapUsedKb);
+        }
+    },
+    reset() {
+        pendingHeapUsedKb.clear();
+    },
 };

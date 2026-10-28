@@ -1,23 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import type { WorkspaceFileEntry } from "@zcode/shared";
 import {
-  createWorkerWorkspaceFileSearchFilterBackend,
-  type WorkspaceFileSearchFilterBackend,
+    createWorkerWorkspaceFileSearchFilterBackend,
+    type WorkspaceFileSearchFilterBackend,
 } from "./workspaceFileSearchFilterBackend.js";
 
 interface UseWorkspaceFileSearchFilterOptions {
-  requireQuery?: boolean;
-  limit?: number;
+    requireQuery?: boolean;
+    limit?: number;
 }
 
 interface WorkspaceFileSearchFilterState {
-  /** 按 query 过滤并映射回的原始 entry 列表（有序）。 */
-  items: WorkspaceFileEntry[];
-  /**
-   * 当前 query 的过滤是否仍在途（Worker 异步）。调用方在 miss 判定等场景
-   * 应把在途状态视为"结果未知"，避免用短暂的空列表触发误动作。
-   */
-  filtering: boolean;
+    /** 按 query 过滤并映射回的原始 entry 列表（有序）。 */
+    items: WorkspaceFileEntry[];
+    /**
+     * 当前 query 的过滤是否仍在途（Worker 异步）。调用方在 miss 判定等场景
+     * 应把在途状态视为"结果未知"，避免用短暂的空列表触发误动作。
+     */
+    filtering: boolean;
 }
 
 /**
@@ -31,60 +31,60 @@ interface WorkspaceFileSearchFilterState {
  *   已全部移入 worker），组件卸载 dispose worker。
  */
 export function useWorkspaceFileSearchFilterEntries(
-  packed: string,
-  query: string,
-  options: UseWorkspaceFileSearchFilterOptions,
-  rootPath: string,
+    packed: string,
+    query: string,
+    options: UseWorkspaceFileSearchFilterOptions,
+    rootPath: string,
 ): WorkspaceFileSearchFilterState {
-  const backendRef = useRef<WorkspaceFileSearchFilterBackend | null>(null);
-  if (backendRef.current === null) {
-    backendRef.current = createWorkerWorkspaceFileSearchFilterBackend();
-  }
-  const [items, setItems] = useState<WorkspaceFileEntry[]>([]);
-  const [filtering, setFiltering] = useState(false);
-
-  useEffect(() => {
-    const backend = backendRef.current;
-    if (!backend) {
-      return;
+    const backendRef = useRef<WorkspaceFileSearchFilterBackend | null>(null);
+    if (backendRef.current === null) {
+        backendRef.current = createWorkerWorkspaceFileSearchFilterBackend();
     }
-    // 索引重建：清空旧结果（新索引的过滤尚未发生），再推送全量候选（packed 直透）。
-    setItems([]);
-    backend.setPacked(packed, rootPath);
-  }, [backendRef, packed, rootPath]);
+    const [items, setItems] = useState<WorkspaceFileEntry[]>([]);
+    const [filtering, setFiltering] = useState(false);
 
-  useEffect(() => {
-    const backend = backendRef.current;
-    if (!backend) {
-      return;
-    }
-    let cancelled = false;
-    setFiltering(true);
-    void backend.filter(query, options).then((result) => {
-      if (cancelled) {
-        return;
-      }
-      setFiltering(false);
-      if (result === null) {
-        // 过期结果（索引重建或更新的 filter 之后），保持当前 items 不动。
-        return;
-      }
-      setItems(result);
-    });
-    return () => {
-      cancelled = true;
-    };
-    // entries 必须在依赖里：索引重建（setEntries）后要重新发起过滤，否则结果
-    // 停留在旧索引的空列表（曾在删除 entryMap 时误删此触发链）。
-    // options 每次渲染都是新对象字面量；按字段展开为依赖避免每帧重过滤。
-  }, [backendRef, options.limit, options.requireQuery, packed, query, rootPath]);
+    useEffect(() => {
+        const backend = backendRef.current;
+        if (!backend) {
+            return;
+        }
+        // 索引重建：清空旧结果（新索引的过滤尚未发生），再推送全量候选（packed 直透）。
+        setItems([]);
+        backend.setPacked(packed, rootPath);
+    }, [backendRef, packed, rootPath]);
 
-  useEffect(() => {
-    return () => {
-      backendRef.current?.dispose();
-      backendRef.current = null;
-    };
-  }, [backendRef]);
+    useEffect(() => {
+        const backend = backendRef.current;
+        if (!backend) {
+            return;
+        }
+        let cancelled = false;
+        setFiltering(true);
+        void backend.filter(query, options).then((result) => {
+            if (cancelled) {
+                return;
+            }
+            setFiltering(false);
+            if (result === null) {
+                // 过期结果（索引重建或更新的 filter 之后），保持当前 items 不动。
+                return;
+            }
+            setItems(result);
+        });
+        return () => {
+            cancelled = true;
+        };
+        // entries 必须在依赖里：索引重建（setEntries）后要重新发起过滤，否则结果
+        // 停留在旧索引的空列表（曾在删除 entryMap 时误删此触发链）。
+        // options 每次渲染都是新对象字面量；按字段展开为依赖避免每帧重过滤。
+    }, [backendRef, options.limit, options.requireQuery, packed, query, rootPath]);
 
-  return { items, filtering };
+    useEffect(() => {
+        return () => {
+            backendRef.current?.dispose();
+            backendRef.current = null;
+        };
+    }, [backendRef]);
+
+    return { items, filtering };
 }

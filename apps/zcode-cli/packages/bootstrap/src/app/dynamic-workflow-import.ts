@@ -57,17 +57,17 @@
 
 import type { Logger, SessionId } from "@zcode/contracts";
 import type {
-  ActorRecord,
-  ImportedActorCandidate,
-  ImportedAskEntry,
-  ImportedInFlightAsk,
-  ImportedRunCache,
-  ImportedWorldEntry,
-  ListActorsOptions,
-  ListNodesOptions,
-  NodeKind,
-  NodeRecord,
-  RunRecord,
+    ActorRecord,
+    ImportedActorCandidate,
+    ImportedAskEntry,
+    ImportedInFlightAsk,
+    ImportedRunCache,
+    ImportedWorldEntry,
+    ListActorsOptions,
+    ListNodesOptions,
+    NodeKind,
+    NodeRecord,
+    RunRecord,
 } from "@zcode/dynamic-workflow";
 import { TERMINAL_RUN_STATUSES } from "./dynamic-workflow-run-observation.js";
 import type { ActorTranscriptStore } from "./workflow-actor-transcript.js";
@@ -80,9 +80,9 @@ import type { ActorTranscriptStore } from "./workflow-actor-transcript.js";
  * journal 的全部能力（含写）」变成一句真话——而它一个字节都不写。**前驱只读**是不变式，让类型把它说出来。
  */
 interface ImportedCacheJournalReader {
-  getRun(runId: string): RunRecord | undefined;
-  listActors(runId: string, opts: ListActorsOptions): ActorRecord[];
-  listNodes(runId: string, opts: ListNodesOptions): NodeRecord[];
+    getRun(runId: string): RunRecord | undefined;
+    listActors(runId: string, opts: ListActorsOptions): ActorRecord[];
+    listNodes(runId: string, opts: ListNodesOptions): NodeRecord[];
 }
 
 /**
@@ -100,17 +100,17 @@ const IMPORTED_NODE_KINDS: readonly NodeKind[] = ["ask", "world-read", "world-ru
  * 刻意不从 contracts import：本模块是领域侧的构建器，端口词汇表反过来依赖它才是正确方向。
  */
 type ImportedCacheRefusalReason =
-  /** journal 里没有这个前驱 run。 */
-  | "run_not_found"
-  /** 前驱仍在飞（非终态）。修订**任意终态** run 都合法，含 completed。 */
-  | "not_amendable"
-  /** 前驱有已完结但缺消息边界的 ask：无 marker 前驱整体拒绝（无回退降级）。 */
-  | "missing_boundaries";
+    /** journal 里没有这个前驱 run。 */
+    | "run_not_found"
+    /** 前驱仍在飞（非终态）。修订**任意终态** run 都合法，含 completed。 */
+    | "not_amendable"
+    /** 前驱有已完结但缺消息边界的 ask：无 marker 前驱整体拒绝（无回退降级）。 */
+    | "missing_boundaries";
 
 /** 构建结果：成功带表与 lineage 指针，失败只带判别键。 */
 type BuildImportedCacheResult =
-  | { ok: true; cache: ImportedRunCache; resumedFrom: string }
-  | { ok: false; reason: ImportedCacheRefusalReason };
+    | { ok: true; cache: ImportedRunCache; resumedFrom: string }
+    | { ok: false; reason: ImportedCacheRefusalReason };
 
 /**
  * amend 预检的两个拒绝理由：与端口的 `DynamicWorkflowRunAmendRefusalReason` 逐字面同集。
@@ -119,8 +119,8 @@ type BuildImportedCacheResult =
 type AmendPreflightRefusalReason = Exclude<ImportedCacheRefusalReason, "not_amendable">;
 
 type AmendPreflightResult =
-  | { ok: true; run: RunRecord }
-  | { ok: false; reason: AmendPreflightRefusalReason };
+    | { ok: true; run: RunRecord }
+    | { ok: false; reason: AmendPreflightRefusalReason };
 
 /**
  * amend 的**预检**：前驱存在 ∧ 每个已完结 ask 都有消息边界。**不看状态**——这两条都是前驱
@@ -129,17 +129,17 @@ type AmendPreflightResult =
  * 的预检与对已结算前驱的一样决定性。
  */
 export function preflightAmendImport(
-  journal: Pick<ImportedCacheJournalReader, "getRun" | "listNodes">,
-  predecessorRunId: string,
+    journal: Pick<ImportedCacheJournalReader, "getRun" | "listNodes">,
+    predecessorRunId: string,
 ): AmendPreflightResult {
-  const run = journal.getRun(predecessorRunId);
-  if (run === undefined) return { ok: false, reason: "run_not_found" };
-  // 边界检查只看 ask 行的 status 与 message_boundary，不读它们的回答。
-  const asks = journal.listNodes(predecessorRunId, { kinds: ["ask"], withResult: false });
-  if (!completedAsksHaveBoundaries(asks)) {
-    return { ok: false, reason: "missing_boundaries" };
-  }
-  return { ok: true, run };
+    const run = journal.getRun(predecessorRunId);
+    if (run === undefined) return { ok: false, reason: "run_not_found" };
+    // 边界检查只看 ask 行的 status 与 message_boundary，不读它们的回答。
+    const asks = journal.listNodes(predecessorRunId, { kinds: ["ask"], withResult: false });
+    if (!completedAsksHaveBoundaries(asks)) {
+        return { ok: false, reason: "missing_boundaries" };
+    }
+    return { ok: true, run };
 }
 
 /**
@@ -148,11 +148,11 @@ export function preflightAmendImport(
  * 的那些。未完结的 ask 没有边界是**正常**的（它们从不进导入前缀），所以只看 completed 行。
  */
 function completedAsksHaveBoundaries(nodes: readonly NodeRecord[]): boolean {
-  for (const node of nodes) {
-    if (node.kind !== "ask" || node.status !== "completed") continue;
-    if (node.messageBoundary === undefined) return false;
-  }
-  return true;
+    for (const node of nodes) {
+        if (node.kind !== "ask" || node.status !== "completed") continue;
+        if (node.messageBoundary === undefined) return false;
+    }
+    return true;
 }
 
 /**
@@ -161,13 +161,13 @@ function completedAsksHaveBoundaries(nodes: readonly NodeRecord[]): boolean {
  * 会漂移的接线，而漂移的症状是「转录面明明接上了却不做诚实性检查」这类静默降级。
  */
 interface AmendImportDeps {
-  journal: ImportedCacheJournalReader;
-  /**
-   * 会话转录读面。在场时多做一道**源诚实性检查**（见 {@link honorsBoundary}）；缺席时
-   * 候选照收——driver 侧的种子兑现仍会大声失败，那是 corruption 级的兜底。
-   */
-  actorTranscriptStore?: ActorTranscriptStore;
-  logger?: Logger;
+    journal: ImportedCacheJournalReader;
+    /**
+     * 会话转录读面。在场时多做一道**源诚实性检查**（见 {@link honorsBoundary}）；缺席时
+     * 候选照收——driver 侧的种子兑现仍会大声失败，那是 corruption 级的兜底。
+     */
+    actorTranscriptStore?: ActorTranscriptStore;
+    logger?: Logger;
 }
 
 /**
@@ -178,17 +178,17 @@ interface AmendImportDeps {
  * 必给同一张表」这句话变味。
  */
 export interface AmendImportOptions {
-  /**
-   * 已**静默**（不再有在写的 turn）的前驱会话 id。只影响在飞 ask 的接续：完结前缀的边界是
-   * journal 事实，与会话此刻长不长无关。
-   *
-   * **缺席 = 全部静默**，而不是「全都不静默」。两个调用点各取一半：amend 刚 abort 掉在飞前驱，
-   * 被中止的 turn 可能仍在落最后几条消息，所以它带着 driver 算出的集合进来；resume 侧的重建
-   * （{@link rebuildImportedCacheForResume}）面对的是一个早已结算、本进程里没有 driver 的前驱，
-   * 没有任何东西在写它的会话——缺席即此。方向反过来的话，重建出的表会比提交时那张少一个
-   * `inFlight`，而两侧必须是同一张表（见本文件头）。
-   */
-  quietSessions?: ReadonlySet<string>;
+    /**
+     * 已**静默**（不再有在写的 turn）的前驱会话 id。只影响在飞 ask 的接续：完结前缀的边界是
+     * journal 事实，与会话此刻长不长无关。
+     *
+     * **缺席 = 全部静默**，而不是「全都不静默」。两个调用点各取一半：amend 刚 abort 掉在飞前驱，
+     * 被中止的 turn 可能仍在落最后几条消息，所以它带着 driver 算出的集合进来；resume 侧的重建
+     * （{@link rebuildImportedCacheForResume}）面对的是一个早已结算、本进程里没有 driver 的前驱，
+     * 没有任何东西在写它的会话——缺席即此。方向反过来的话，重建出的表会比提交时那张少一个
+     * `inFlight`，而两侧必须是同一张表（见本文件头）。
+     */
+    quietSessions?: ReadonlySet<string>;
 }
 
 /**
@@ -207,48 +207,50 @@ export interface AmendImportOptions {
  * 未完结的 ask 没有边界是**正常**的（它们从不进导入前缀），所以门只看 completed 行。
  */
 export async function buildImportedCache(
-  deps: AmendImportDeps,
-  predecessorRunId: string,
-  options?: AmendImportOptions,
+    deps: AmendImportDeps,
+    predecessorRunId: string,
+    options?: AmendImportOptions,
 ): Promise<BuildImportedCacheResult> {
-  const { actorTranscriptStore: transcripts, journal, logger } = deps;
+    const { actorTranscriptStore: transcripts, journal, logger } = deps;
 
-  const run = journal.getRun(predecessorRunId);
-  if (run === undefined) return { ok: false, reason: "run_not_found" };
-  // 可修订集 = 任意终态，**刻意不复用** plain resume 的 isResumableRecord：那个谓词是
-  // byte-identical resume 的门（stopped），而修订恰恰对它排除的两类
-  // 最有用——脚本真失败（修 bug 保缓存）与 completed（温启动扩展分析）。两个集合各说各的。
-  if (!TERMINAL_RUN_STATUSES.has(run.status)) return { ok: false, reason: "not_amendable" };
+    const run = journal.getRun(predecessorRunId);
+    if (run === undefined) return { ok: false, reason: "run_not_found" };
+    // 可修订集 = 任意终态，**刻意不复用** plain resume 的 isResumableRecord：那个谓词是
+    // byte-identical resume 的门（stopped），而修订恰恰对它排除的两类
+    // 最有用——脚本真失败（修 bug 保缓存）与 completed（温启动扩展分析）。两个集合各说各的。
+    if (!TERMINAL_RUN_STATUSES.has(run.status)) return { ok: false, reason: "not_amendable" };
 
-  const nodes = journal.listNodes(predecessorRunId, {
-    kinds: IMPORTED_NODE_KINDS,
-    withResult: true,
-  });
-  if (!completedAsksHaveBoundaries(nodes)) return { ok: false, reason: "missing_boundaries" };
-
-  // ask 行按 actor 分组**一次**：此前每个候选 actor 都把整张节点表扫一遍（O(actor × 行)）。
-  const asksByActor = groupAsksByActor(nodes);
-  const actors = new Map<string, ImportedActorCandidate>();
-  const records = journal.listActors(predecessorRunId, { withPersona: true });
-  for (const record of namedUniqueActors(records, logger)) {
-    const name = record.name!;
-    const candidate = await buildActorCandidate({
-      actor: record,
-      journal,
-      ...(logger === undefined ? {} : { logger }),
-      asks: asksByActor.get(actorKey(record.siteId, record.ordinal)) ?? [],
-      predecessorRunId,
-      ...(options?.quietSessions === undefined ? {} : { quietSessions: options.quietSessions }),
-      ...(transcripts === undefined ? {} : { transcripts }),
+    const nodes = journal.listNodes(predecessorRunId, {
+        kinds: IMPORTED_NODE_KINDS,
+        withResult: true,
     });
-    if (candidate !== undefined) actors.set(name, candidate);
-  }
+    if (!completedAsksHaveBoundaries(nodes)) return { ok: false, reason: "missing_boundaries" };
 
-  return {
-    ok: true,
-    cache: { actors, world: buildWorldQueues(nodes) },
-    resumedFrom: predecessorRunId,
-  };
+    // ask 行按 actor 分组**一次**：此前每个候选 actor 都把整张节点表扫一遍（O(actor × 行)）。
+    const asksByActor = groupAsksByActor(nodes);
+    const actors = new Map<string, ImportedActorCandidate>();
+    const records = journal.listActors(predecessorRunId, { withPersona: true });
+    for (const record of namedUniqueActors(records, logger)) {
+        const name = record.name!;
+        const candidate = await buildActorCandidate({
+            actor: record,
+            journal,
+            ...(logger === undefined ? {} : { logger }),
+            asks: asksByActor.get(actorKey(record.siteId, record.ordinal)) ?? [],
+            predecessorRunId,
+            ...(options?.quietSessions === undefined
+                ? {}
+                : { quietSessions: options.quietSessions }),
+            ...(transcripts === undefined ? {} : { transcripts }),
+        });
+        if (candidate !== undefined) actors.set(name, candidate);
+    }
+
+    return {
+        ok: true,
+        cache: { actors, world: buildWorldQueues(nodes) },
+        resumedFrom: predecessorRunId,
+    };
 }
 
 /**
@@ -260,28 +262,28 @@ export async function buildImportedCache(
  * 重跑，而错挑的代价是把另一个 actor 的会话前缀当成本 actor 的上文。
  */
 function namedUniqueActors(records: ActorRecord[], logger?: Logger): ActorRecord[] {
-  const byName = new Map<string, ActorRecord[]>();
-  for (const record of records) {
-    const name = record.name;
-    if (name === undefined || name === "") continue;
-    const bucket = byName.get(name);
-    if (bucket === undefined) byName.set(name, [record]);
-    else bucket.push(record);
-  }
-  const unique: ActorRecord[] = [];
-  for (const [name, bucket] of byName) {
-    if (bucket.length === 1) {
-      unique.push(bucket[0]!);
-      continue;
+    const byName = new Map<string, ActorRecord[]>();
+    for (const record of records) {
+        const name = record.name;
+        if (name === undefined || name === "") continue;
+        const bucket = byName.get(name);
+        if (bucket === undefined) byName.set(name, [record]);
+        else bucket.push(record);
     }
-    logger?.warn?.("Dynamic workflow amend: duplicate actor name in predecessor, skipped", {
-      actorName: name,
-      count: bucket.length,
-      event: "dynamic_workflow.amend.duplicate_actor_name",
-      module: "bootstrap.app",
-    });
-  }
-  return unique;
+    const unique: ActorRecord[] = [];
+    for (const [name, bucket] of byName) {
+        if (bucket.length === 1) {
+            unique.push(bucket[0]!);
+            continue;
+        }
+        logger?.warn?.("Dynamic workflow amend: duplicate actor name in predecessor, skipped", {
+            actorName: name,
+            count: bucket.length,
+            event: "dynamic_workflow.amend.duplicate_actor_name",
+            module: "bootstrap.app",
+        });
+    }
+    return unique;
 }
 
 /**
@@ -292,84 +294,84 @@ function namedUniqueActors(records: ActorRecord[], logger?: Logger): ActorRecord
  * 唯一会整体拒绝的是边界记账不可信，因为那会让**已收下的**候选截断到错误位置。
  */
 async function buildActorCandidate(input: {
-  actor: ActorRecord;
-  journal: ImportedCacheJournalReader;
-  logger?: Logger;
-  /** 该 actor 的 ask 行（已按 actor 分好组，见 {@link groupAsksByActor}）。 */
-  asks: readonly NodeRecord[];
-  predecessorRunId: string;
-  quietSessions?: ReadonlySet<string>;
-  transcripts?: ActorTranscriptStore;
+    actor: ActorRecord;
+    journal: ImportedCacheJournalReader;
+    logger?: Logger;
+    /** 该 actor 的 ask 行（已按 actor 分好组，见 {@link groupAsksByActor}）。 */
+    asks: readonly NodeRecord[];
+    predecessorRunId: string;
+    quietSessions?: ReadonlySet<string>;
+    transcripts?: ActorTranscriptStore;
 }): Promise<ImportedActorCandidate | undefined> {
-  const { actor, asks, journal, logger, predecessorRunId, quietSessions, transcripts } = input;
-  const name = actor.name!;
+    const { actor, asks, journal, logger, predecessorRunId, quietSessions, transcripts } = input;
+    const name = actor.name!;
 
-  // persona 是引擎在 createActor 时同步落的冻结身份，所以正常必在场；缺席只可能是被外力
-  // 改写过的行。运行期比对没有比对物就无从谈起 persona 一致性——弃候选而不是拿 `{}` 顶。
-  if (actor.persona === undefined) return undefined;
+    // persona 是引擎在 createActor 时同步落的冻结身份，所以正常必在场；缺席只可能是被外力
+    // 改写过的行。运行期比对没有比对物就无从谈起 persona 一致性——弃候选而不是拿 `{}` 顶。
+    if (actor.persona === undefined) return undefined;
 
-  const { entries, next } = completedAskPrefix(asks);
-  // 既没有完结前缀、前缀后面也没有在飞的 ask：这个 actor 确实一点可导入的东西都没有。
-  // 早退省掉下面的链行走与一次转录读。
-  if (entries.length === 0 && next?.status !== "running") return undefined;
+    const { entries, next } = completedAskPrefix(asks);
+    // 既没有完结前缀、前缀后面也没有在飞的 ask：这个 actor 确实一点可导入的东西都没有。
+    // 早退省掉下面的链行走与一次转录读。
+    if (entries.length === 0 && next?.status !== "running") return undefined;
 
-  const source = resolveTranscriptSource({
-    actorName: name,
-    journal,
-    startRunId: predecessorRunId,
-  });
-  if (source === undefined) {
-    // 链上没有任何祖先持有该 actor 的会话（从未建过，或会话已被清理）。全保真转录是本特性的
-    // 裁决，没有转录就没有可接续的上文——降级为全新 actor。
-    logger?.info?.("Dynamic workflow amend: no transcript source for actor, import dropped", {
-      actorName: name,
-      event: "dynamic_workflow.amend.transcript_source_missing",
-      module: "bootstrap.app",
-      runId: predecessorRunId,
-    });
-    return undefined;
-  }
-
-  // 空前缀的边界是 0（没有任何完结交换，接续位置只能从 0 往后算）。
-  const boundary = entries.length === 0 ? 0 : entries[entries.length - 1]!.messageBoundary;
-  // 转录条数**只读一次**：源诚实性检查与在飞 ask 的接续位置用的是同一个数。读两次等于给
-  // 同一个事实开两个观察窗，而它们之间可以不相等。
-  const messageCount =
-    transcripts === undefined ? undefined : await countSource(transcripts, source.sessionId);
-  if (transcripts !== undefined && (messageCount === undefined || messageCount < boundary)) {
-    logger?.warn?.(
-      "Dynamic workflow amend: transcript source shorter than boundary, import dropped",
-      {
+    const source = resolveTranscriptSource({
         actorName: name,
-        event: "dynamic_workflow.amend.transcript_source_short",
-        messageBoundary: boundary,
-        module: "bootstrap.app",
-        sessionId: source.sessionId,
-      },
-    );
-    return undefined;
-  }
+        journal,
+        startRunId: predecessorRunId,
+    });
+    if (source === undefined) {
+        // 链上没有任何祖先持有该 actor 的会话（从未建过，或会话已被清理）。全保真转录是本特性的
+        // 裁决，没有转录就没有可接续的上文——降级为全新 actor。
+        logger?.info?.("Dynamic workflow amend: no transcript source for actor, import dropped", {
+            actorName: name,
+            event: "dynamic_workflow.amend.transcript_source_missing",
+            module: "bootstrap.app",
+            runId: predecessorRunId,
+        });
+        return undefined;
+    }
 
-  const inFlight = resolveInFlightAsk({
-    actor,
-    boundary,
-    ...(logger === undefined ? {} : { logger }),
-    ...(messageCount === undefined ? {} : { messageCount }),
-    ...(next === undefined ? {} : { next }),
-    predecessorRunId,
-    ...(quietSessions === undefined ? {} : { quietSessions }),
-    sourceSessionId: source.sessionId,
-  });
-  // 前缀为空且接续没谈成：这个候选一个字节都带不走，收下它只会让引擎为一张空表建会话。
-  if (entries.length === 0 && inFlight === undefined) return undefined;
+    // 空前缀的边界是 0（没有任何完结交换，接续位置只能从 0 往后算）。
+    const boundary = entries.length === 0 ? 0 : entries[entries.length - 1]!.messageBoundary;
+    // 转录条数**只读一次**：源诚实性检查与在飞 ask 的接续位置用的是同一个数。读两次等于给
+    // 同一个事实开两个观察窗，而它们之间可以不相等。
+    const messageCount =
+        transcripts === undefined ? undefined : await countSource(transcripts, source.sessionId);
+    if (transcripts !== undefined && (messageCount === undefined || messageCount < boundary)) {
+        logger?.warn?.(
+            "Dynamic workflow amend: transcript source shorter than boundary, import dropped",
+            {
+                actorName: name,
+                event: "dynamic_workflow.amend.transcript_source_short",
+                messageBoundary: boundary,
+                module: "bootstrap.app",
+                sessionId: source.sessionId,
+            },
+        );
+        return undefined;
+    }
 
-  return {
-    persona: actor.persona,
-    entries,
-    ...(inFlight === undefined ? {} : { inFlight }),
-    transcriptSourceSessionId: source.sessionId,
-    ...(source.resolvedModel === undefined ? {} : { resolvedModel: source.resolvedModel }),
-  };
+    const inFlight = resolveInFlightAsk({
+        actor,
+        boundary,
+        ...(logger === undefined ? {} : { logger }),
+        ...(messageCount === undefined ? {} : { messageCount }),
+        ...(next === undefined ? {} : { next }),
+        predecessorRunId,
+        ...(quietSessions === undefined ? {} : { quietSessions }),
+        sourceSessionId: source.sessionId,
+    });
+    // 前缀为空且接续没谈成：这个候选一个字节都带不走，收下它只会让引擎为一张空表建会话。
+    if (entries.length === 0 && inFlight === undefined) return undefined;
+
+    return {
+        persona: actor.persona,
+        entries,
+        ...(inFlight === undefined ? {} : { inFlight }),
+        transcriptSourceSessionId: source.sessionId,
+        ...(source.resolvedModel === undefined ? {} : { resolvedModel: source.resolvedModel }),
+    };
 }
 
 /**
@@ -388,41 +390,41 @@ async function buildActorCandidate(input: {
  * 任一条不成立都只是**不接续**（完结前缀照旧导入），与本模块「降级而不失败」的总基调一致。
  */
 function resolveInFlightAsk(input: {
-  actor: ActorRecord;
-  boundary: number;
-  logger?: Logger;
-  messageCount?: number;
-  next?: NodeRecord;
-  predecessorRunId: string;
-  quietSessions?: ReadonlySet<string>;
-  sourceSessionId: string;
+    actor: ActorRecord;
+    boundary: number;
+    logger?: Logger;
+    messageCount?: number;
+    next?: NodeRecord;
+    predecessorRunId: string;
+    quietSessions?: ReadonlySet<string>;
+    sourceSessionId: string;
 }): ImportedInFlightAsk | undefined {
-  const { actor, boundary, logger, messageCount, next, quietSessions, sourceSessionId } = input;
-  if (next === undefined || next.status !== "running") return undefined;
+    const { actor, boundary, logger, messageCount, next, quietSessions, sourceSessionId } = input;
+    if (next === undefined || next.status !== "running") return undefined;
 
-  const drop = (reason: string): undefined => {
-    logger?.info?.("Dynamic workflow amend: in-flight ask not carried", {
-      actorName: actor.name,
-      event: "dynamic_workflow.amend.in_flight_dropped",
-      module: "bootstrap.app",
-      reason,
-      runId: input.predecessorRunId,
-      sessionId: sourceSessionId,
-    });
-    return undefined;
-  };
+    const drop = (reason: string): undefined => {
+        logger?.info?.("Dynamic workflow amend: in-flight ask not carried", {
+            actorName: actor.name,
+            event: "dynamic_workflow.amend.in_flight_dropped",
+            module: "bootstrap.app",
+            reason,
+            runId: input.predecessorRunId,
+            sessionId: sourceSessionId,
+        });
+        return undefined;
+    };
 
-  if (actor.sessionId === undefined || actor.sessionId !== sourceSessionId) {
-    return drop("transcript_source_is_ancestor");
-  }
-  if (messageCount === undefined) return drop("no_transcript_count");
-  // 缺席 = 全部静默（见 {@link AmendImportOptions.quietSessions}）。
-  if (quietSessions !== undefined && !quietSessions.has(sourceSessionId)) {
-    return drop("session_not_quiescent");
-  }
-  if (messageCount <= boundary) return drop("no_transcript_beyond_prefix");
+    if (actor.sessionId === undefined || actor.sessionId !== sourceSessionId) {
+        return drop("transcript_source_is_ancestor");
+    }
+    if (messageCount === undefined) return drop("no_transcript_count");
+    // 缺席 = 全部静默（见 {@link AmendImportOptions.quietSessions}）。
+    if (quietSessions !== undefined && !quietSessions.has(sourceSessionId)) {
+        return drop("session_not_quiescent");
+    }
+    if (messageCount <= boundary) return drop("no_transcript_beyond_prefix");
 
-  return { inputHash: next.inputHash, messageBoundary: messageCount };
+    return { inputHash: next.inputHash, messageBoundary: messageCount };
 }
 
 /**
@@ -438,30 +440,30 @@ function resolveInFlightAsk(input: {
  * 这个坐标在两处各算一次。
  */
 function completedAskPrefix(asks: readonly NodeRecord[]): {
-  entries: ImportedAskEntry[];
-  next?: NodeRecord;
+    entries: ImportedAskEntry[];
+    next?: NodeRecord;
 } {
-  const bySeq = new Map<number, NodeRecord>();
-  for (const node of asks) {
-    if (node.actorSeq === undefined) continue;
-    bySeq.set(node.actorSeq, node);
-  }
-
-  const entries: ImportedAskEntry[] = [];
-  for (let seq = 0; ; seq++) {
-    const node = bySeq.get(seq);
-    if (node === undefined || node.status !== "completed") {
-      return { entries, ...(node === undefined ? {} : { next: node }) };
+    const bySeq = new Map<number, NodeRecord>();
+    for (const node of asks) {
+        if (node.actorSeq === undefined) continue;
+        bySeq.set(node.actorSeq, node);
     }
-    // 边界必在场：门 3 已对整个前驱把关，所以这里不是乐观读而是不变式的兑现。
-    const entry: ImportedAskEntry = {
-      inputHash: node.inputHash,
-      result: node.result,
-      messageBoundary: node.messageBoundary!,
-    };
-    if (node.stats !== undefined) entry.stats = node.stats;
-    entries.push(entry);
-  }
+
+    const entries: ImportedAskEntry[] = [];
+    for (let seq = 0; ; seq++) {
+        const node = bySeq.get(seq);
+        if (node === undefined || node.status !== "completed") {
+            return { entries, ...(node === undefined ? {} : { next: node }) };
+        }
+        // 边界必在场：门 3 已对整个前驱把关，所以这里不是乐观读而是不变式的兑现。
+        const entry: ImportedAskEntry = {
+            inputHash: node.inputHash,
+            result: node.result,
+            messageBoundary: node.messageBoundary!,
+        };
+        if (node.stats !== undefined) entry.stats = node.stats;
+        entries.push(entry);
+    }
 }
 
 /**
@@ -478,32 +480,34 @@ function completedAskPrefix(asks: readonly NodeRecord[]): {
  * 遇到损坏数据就是死循环，而防御的代价是一个 Set。
  */
 function resolveTranscriptSource(input: {
-  actorName: string;
-  journal: ImportedCacheJournalReader;
-  startRunId: string;
+    actorName: string;
+    journal: ImportedCacheJournalReader;
+    startRunId: string;
 }): { sessionId: string; resolvedModel?: string } | undefined {
-  const { actorName, journal, startRunId } = input;
-  const seen = new Set<string>();
-  let runId: string | undefined = startRunId;
+    const { actorName, journal, startRunId } = input;
+    const seen = new Set<string>();
+    let runId: string | undefined = startRunId;
 
-  while (runId !== undefined && !seen.has(runId)) {
-    seen.add(runId);
-    // 按名取行下推 SQL、不读 persona：此前每个候选 actor 在链的每一代都把整张 actor 表（连同
-    // 每段 system prompt）读出来再按名过滤。
-    const matches = journal.listActors(runId, { name: actorName, withPersona: false });
-    // 0 = 这一代根本没有这个 actor（链对该名字断了）；>1 = 重名，按名取会话是掷骰子。
-    // 两种都停在这里而不是继续上溯：上一代的会话不是**这段**转录的源。
-    if (matches.length !== 1) return undefined;
-    const actor = matches[0]!;
-    if (actor.sessionId !== undefined) {
-      return {
-        sessionId: actor.sessionId,
-        ...(actor.resolvedModel === undefined ? {} : { resolvedModel: actor.resolvedModel }),
-      };
+    while (runId !== undefined && !seen.has(runId)) {
+        seen.add(runId);
+        // 按名取行下推 SQL、不读 persona：此前每个候选 actor 在链的每一代都把整张 actor 表（连同
+        // 每段 system prompt）读出来再按名过滤。
+        const matches = journal.listActors(runId, { name: actorName, withPersona: false });
+        // 0 = 这一代根本没有这个 actor（链对该名字断了）；>1 = 重名，按名取会话是掷骰子。
+        // 两种都停在这里而不是继续上溯：上一代的会话不是**这段**转录的源。
+        if (matches.length !== 1) return undefined;
+        const actor = matches[0]!;
+        if (actor.sessionId !== undefined) {
+            return {
+                sessionId: actor.sessionId,
+                ...(actor.resolvedModel === undefined
+                    ? {}
+                    : { resolvedModel: actor.resolvedModel }),
+            };
+        }
+        runId = journal.getRun(runId)?.resumedFrom;
     }
-    runId = journal.getRun(runId)?.resumedFrom;
-  }
-  return undefined;
+    return undefined;
 }
 
 /**
@@ -523,14 +527,14 @@ function resolveTranscriptSource(input: {
  * workflow-actor-transcript.ts 的文件头。
  */
 async function countSource(
-  transcripts: ActorTranscriptStore,
-  sessionId: string,
+    transcripts: ActorTranscriptStore,
+    sessionId: string,
 ): Promise<number | undefined> {
-  try {
-    return (await transcripts.messages({ sessionID: sessionId as SessionId })).length;
-  } catch {
-    return undefined;
-  }
+    try {
+        return (await transcripts.messages({ sessionID: sessionId as SessionId })).length;
+    } catch {
+        return undefined;
+    }
 }
 
 /**
@@ -546,39 +550,43 @@ async function countSource(
  */
 /** actor 坐标键（与引擎的 `refToString` 同形）。 */
 function actorKey(siteId: string, ordinal: number): string {
-  return `${siteId}@${ordinal}`;
+    return `${siteId}@${ordinal}`;
 }
 
 /** 前驱的 ask 行按 actor 分组，组内保持 journal 顺序。 */
 function groupAsksByActor(nodes: readonly NodeRecord[]): Map<string, NodeRecord[]> {
-  const groups = new Map<string, NodeRecord[]>();
-  for (const node of nodes) {
-    if (node.kind !== "ask" || node.actorSiteId === undefined || node.actorOrdinal === undefined) {
-      continue;
+    const groups = new Map<string, NodeRecord[]>();
+    for (const node of nodes) {
+        if (
+            node.kind !== "ask" ||
+            node.actorSiteId === undefined ||
+            node.actorOrdinal === undefined
+        ) {
+            continue;
+        }
+        const key = actorKey(node.actorSiteId, node.actorOrdinal);
+        const group = groups.get(key);
+        if (group === undefined) groups.set(key, [node]);
+        else group.push(node);
     }
-    const key = actorKey(node.actorSiteId, node.actorOrdinal);
-    const group = groups.get(key);
-    if (group === undefined) groups.set(key, [node]);
-    else group.push(node);
-  }
-  return groups;
+    return groups;
 }
 
 function buildWorldQueues(nodes: readonly NodeRecord[]): ReadonlyMap<string, ImportedWorldEntry[]> {
-  const world = new Map<string, ImportedWorldEntry[]>();
-  for (const node of nodes) {
-    if (node.kind !== "world-read" && node.kind !== "world-run") continue;
-    if (node.status !== "completed") continue;
-    const queue = world.get(node.inputHash);
-    const entry: ImportedWorldEntry = {
-      inputHash: node.inputHash,
-      kind: node.kind,
-      result: node.result,
-    };
-    if (queue === undefined) world.set(node.inputHash, [entry]);
-    else queue.push(entry);
-  }
-  return world;
+    const world = new Map<string, ImportedWorldEntry[]>();
+    for (const node of nodes) {
+        if (node.kind !== "world-read" && node.kind !== "world-run") continue;
+        if (node.status !== "completed") continue;
+        const queue = world.get(node.inputHash);
+        const entry: ImportedWorldEntry = {
+            inputHash: node.inputHash,
+            kind: node.kind,
+            result: node.result,
+        };
+        if (queue === undefined) world.set(node.inputHash, [entry]);
+        else queue.push(entry);
+    }
+    return world;
 }
 
 /**
@@ -602,19 +610,19 @@ function buildWorldQueues(nodes: readonly NodeRecord[]): ReadonlyMap<string, Imp
  * `inFlight`，而两侧必须是同一张表（见本文件头）。
  */
 export async function rebuildImportedCacheForResume(
-  deps: AmendImportDeps,
-  /** 被 resume 的修订 run 与它的 `resumed_from`（调用方已确认后者在场）。 */
-  run: { runId: string; predecessorRunId: string },
+    deps: AmendImportDeps,
+    /** 被 resume 的修订 run 与它的 `resumed_from`（调用方已确认后者在场）。 */
+    run: { runId: string; predecessorRunId: string },
 ): Promise<ImportedRunCache | undefined> {
-  const { predecessorRunId, runId } = run;
-  const built = await buildImportedCache(deps, predecessorRunId);
-  if (built.ok) return built.cache;
-  deps.logger?.info?.("Dynamic workflow amend cache rebuild skipped; resuming without it", {
-    event: "dynamic_workflow.amend.rebuild_skipped",
-    module: "bootstrap.app",
-    reason: built.reason,
-    resumedFrom: predecessorRunId,
-    runId,
-  });
-  return undefined;
+    const { predecessorRunId, runId } = run;
+    const built = await buildImportedCache(deps, predecessorRunId);
+    if (built.ok) return built.cache;
+    deps.logger?.info?.("Dynamic workflow amend cache rebuild skipped; resuming without it", {
+        event: "dynamic_workflow.amend.rebuild_skipped",
+        module: "bootstrap.app",
+        reason: built.reason,
+        resumedFrom: predecessorRunId,
+        runId,
+    });
+    return undefined;
 }

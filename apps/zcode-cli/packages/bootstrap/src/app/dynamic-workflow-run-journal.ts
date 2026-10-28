@@ -14,7 +14,7 @@ import type { JournalStorePort, RunRecord, StoredEvent } from "@zcode/dynamic-wo
 
 /** task link 落库面（生产是 SqliteSessionStore；测试传 spy）。 */
 export interface DynamicWorkflowTaskLinkStore {
-  createSessionTaskLink(input: CreateSessionTaskLinkInput): Promise<unknown>;
+    createSessionTaskLink(input: CreateSessionTaskLinkInput): Promise<unknown>;
 }
 
 /**
@@ -23,12 +23,12 @@ export interface DynamicWorkflowTaskLinkStore {
  * actor 会话本身仍落库，只是会话树里少一条归属边（可降级，不影响 run 的正确性）。
  */
 export function isDynamicWorkflowTaskLinkStore(
-  store: SessionStorePort | undefined,
+    store: SessionStorePort | undefined,
 ): store is SessionStorePort & DynamicWorkflowTaskLinkStore {
-  return (
-    typeof (store as { createSessionTaskLink?: unknown } | undefined)?.createSessionTaskLink ===
-    "function"
-  );
+    return (
+        typeof (store as { createSessionTaskLink?: unknown } | undefined)?.createSessionTaskLink ===
+        "function"
+    );
 }
 
 /**
@@ -36,23 +36,23 @@ export function isDynamicWorkflowTaskLinkStore(
  * 实现可替换（precedent: isScriptWorkflowStore，script-workflow-utils.ts）。
  */
 export function resolveDynamicWorkflowJournalStore(
-  sessionStore: SessionStorePort | undefined,
-  logger?: Logger,
+    sessionStore: SessionStorePort | undefined,
+    logger?: Logger,
 ): JournalStorePort | undefined {
-  const candidate = sessionStore as
-    | (SessionStorePort & { workflowJournalStore?: () => JournalStorePort })
-    | undefined;
-  if (typeof candidate?.workflowJournalStore !== "function") {
-    // 可见降级：端口不构造 → CreateWorkflow 回占位诊断。绝不退回内存 journal——
-    // 那会让 run 看起来跑起来了，却在进程退出时把一切静默丢掉。
-    logger?.info?.("Dynamic workflow run service disabled: session store has no dwf journal", {
-      event: "dynamic_workflow.run_service.unavailable",
-      module: "bootstrap.app",
-      reason: "session_store_missing_workflow_journal_store",
-    });
-    return undefined;
-  }
-  return candidate.workflowJournalStore();
+    const candidate = sessionStore as
+        | (SessionStorePort & { workflowJournalStore?: () => JournalStorePort })
+        | undefined;
+    if (typeof candidate?.workflowJournalStore !== "function") {
+        // 可见降级：端口不构造 → CreateWorkflow 回占位诊断。绝不退回内存 journal——
+        // 那会让 run 看起来跑起来了，却在进程退出时把一切静默丢掉。
+        logger?.info?.("Dynamic workflow run service disabled: session store has no dwf journal", {
+            event: "dynamic_workflow.run_service.unavailable",
+            module: "bootstrap.app",
+            reason: "session_store_missing_workflow_journal_store",
+        });
+        return undefined;
+    }
+    return candidate.workflowJournalStore();
 }
 
 /**
@@ -64,33 +64,34 @@ export function resolveDynamicWorkflowJournalStore(
  * 而不是 instanceof，store 是端口、实现可替换。
  */
 interface DynamicWorkflowJournalStore extends JournalStorePort {
-  listNonTerminalRuns(parentSessionId: string): RunRecord[];
-  /**
-   * 某父会话名下的 run，最近更新在前，最多 limit 条（枚举面，服务 listRunsForSession）。
-   *
-   * 回 {@link DwfRunSessionListItem} 而不是 `RunRecord`：`RunRecord` 刻意不带时间（引擎不
-   * 关心），而枚举面要报 `updatedAt`。窄投影不读 `result_json`（无界产物，列表不展示），
-   * 但**保留 failure**——`resumable` 的谓词依赖 failure.code。
-   */
-  listRunsByParentSession(parentSessionId: string, limit: number): DwfRunSessionListItem[];
+    listNonTerminalRuns(parentSessionId: string): RunRecord[];
+    /**
+     * 某父会话名下的 run，最近更新在前，最多 limit 条（枚举面，服务 listRunsForSession）。
+     *
+     * 回 {@link DwfRunSessionListItem} 而不是 `RunRecord`：`RunRecord` 刻意不带时间（引擎不
+     * 关心），而枚举面要报 `updatedAt`。窄投影不读 `result_json`（无界产物，列表不展示），
+     * 但**保留 failure**——`resumable` 的谓词依赖 failure.code。
+     */
+    listRunsByParentSession(parentSessionId: string, limit: number): DwfRunSessionListItem[];
 }
 
 /** journal 是否带孤儿收敛所需的窄查询（生产的 SQLite 实现带，引擎的内存实现不带）。 */
 export function supportsNonTerminalRunQuery(
-  journal: JournalStorePort,
+    journal: JournalStorePort,
 ): journal is JournalStorePort & Pick<DynamicWorkflowJournalStore, "listNonTerminalRuns"> {
-  return (
-    typeof (journal as Partial<DynamicWorkflowJournalStore>).listNonTerminalRuns === "function"
-  );
+    return (
+        typeof (journal as Partial<DynamicWorkflowJournalStore>).listNonTerminalRuns === "function"
+    );
 }
 
 /** journal 是否带枚举窄查询。两条查询独立探测：缺一条只降级对应的读面，不连坐。 */
 export function supportsRunEnumeration(
-  journal: JournalStorePort,
+    journal: JournalStorePort,
 ): journal is JournalStorePort & Pick<DynamicWorkflowJournalStore, "listRunsByParentSession"> {
-  return (
-    typeof (journal as Partial<DynamicWorkflowJournalStore>).listRunsByParentSession === "function"
-  );
+    return (
+        typeof (journal as Partial<DynamicWorkflowJournalStore>).listRunsByParentSession ===
+        "function"
+    );
 }
 
 /**
@@ -102,7 +103,7 @@ export function supportsRunEnumeration(
  * 只会让两个工具静默降级成「本会话没有这个能力」。
  */
 export interface DynamicWorkflowIntrospectableJournal
-  extends JournalStorePort, DwfRunIntrospectionQueries {}
+    extends JournalStorePort, DwfRunIntrospectionQueries {}
 
 /**
  * journal 是否带「每一世的活动区间」读面（完成卡的时长口径，见
@@ -114,9 +115,9 @@ export interface DynamicWorkflowIntrospectableJournal
  * journal 就不提供它，而内存 journal 里的 run 本来也活不过进程）。
  */
 export function supportsRunLifeSpans(
-  journal: JournalStorePort,
+    journal: JournalStorePort,
 ): journal is JournalStorePort & Pick<DwfRunIntrospectionQueries, "listRunLifeSpans"> {
-  return typeof (journal as Partial<DwfRunIntrospectionQueries>).listRunLifeSpans === "function";
+    return typeof (journal as Partial<DwfRunIntrospectionQueries>).listRunLifeSpans === "function";
 }
 
 /**
@@ -125,9 +126,9 @@ export function supportsRunLifeSpans(
  * 只按条数翻页（内存 journal 的情形，它的 run 活不过进程，也不会攒出大页）。
  */
 export function supportsEventPages(
-  journal: JournalStorePort,
+    journal: JournalStorePort,
 ): journal is JournalStorePort & Pick<DwfRunIntrospectionQueries, "listEventPage"> {
-  return typeof (journal as Partial<DwfRunIntrospectionQueries>).listEventPage === "function";
+    return typeof (journal as Partial<DwfRunIntrospectionQueries>).listEventPage === "function";
 }
 
 /**
@@ -136,18 +137,18 @@ export function supportsEventPages(
  * 本来就攒不出大页。
  */
 export function pageByCountOnly(
-  journal: JournalStorePort,
-  runId: string,
-  page: { afterSequence?: number; limit: number },
+    journal: JournalStorePort,
+    runId: string,
+    page: { afterSequence?: number; limit: number },
 ): { events: StoredEvent[]; hasMore: boolean } {
-  const read = journal.listEvents(runId, {
-    types: "all",
-    reportItems: "all",
-    ...(page.afterSequence === undefined ? {} : { afterSequence: page.afterSequence }),
-    limit: page.limit + 1,
-  });
-  const hasMore = read.length > page.limit;
-  return { events: hasMore ? read.slice(0, page.limit) : read, hasMore };
+    const read = journal.listEvents(runId, {
+        types: "all",
+        reportItems: "all",
+        ...(page.afterSequence === undefined ? {} : { afterSequence: page.afterSequence }),
+        limit: page.limit + 1,
+    });
+    const hasMore = read.length > page.limit;
+    return { events: hasMore ? read.slice(0, page.limit) : read, hasMore };
 }
 
 /**
@@ -155,13 +156,13 @@ export function pageByCountOnly(
  * 部分在场的实现只会让某一个工具在运行时炸掉，而不是可见地降级。
  */
 export function supportsRunIntrospection(
-  journal: JournalStorePort,
+    journal: JournalStorePort,
 ): journal is DynamicWorkflowIntrospectableJournal {
-  const candidate = journal as Partial<DwfRunIntrospectionQueries>;
-  return (
-    typeof candidate.countNodesByStatus === "function" &&
-    typeof candidate.getRunRow === "function" &&
-    typeof candidate.listRecentLogEvents === "function" &&
-    typeof candidate.listRuns === "function"
-  );
+    const candidate = journal as Partial<DwfRunIntrospectionQueries>;
+    return (
+        typeof candidate.countNodesByStatus === "function" &&
+        typeof candidate.getRunRow === "function" &&
+        typeof candidate.listRecentLogEvents === "function" &&
+        typeof candidate.listRuns === "function"
+    );
 }

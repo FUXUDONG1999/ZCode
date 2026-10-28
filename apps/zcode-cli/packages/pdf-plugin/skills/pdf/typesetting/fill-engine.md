@@ -366,24 +366,24 @@ def build_page_with_fill_engine(story_blocks, page_width, page_height, margins):
 ```css
 /* Safety Net 1: Font size red line */
 :root {
-  --body-min-font: 14px;
-  --h1-min-font: 32px;
-  --h2-min-font: 24px;
-  --h3-min-font: 18px;
+    --body-min-font: 14px;
+    --h1-min-font: 32px;
+    --h2-min-font: 24px;
+    --h3-min-font: 18px;
 }
 
 body {
-  font-size: max(var(--body-font, 15px), var(--body-min-font));
+    font-size: max(var(--body-font, 15px), var(--body-min-font));
 }
 
 h1 {
-  font-size: max(var(--h1-font, 36px), var(--h1-min-font));
+    font-size: max(var(--h1-font, 36px), var(--h1-min-font));
 }
 h2 {
-  font-size: max(var(--h2-font, 28px), var(--h2-min-font));
+    font-size: max(var(--h2-font, 28px), var(--h2-min-font));
 }
 h3 {
-  font-size: max(var(--h3-font, 22px), var(--h3-min-font));
+    font-size: max(var(--h3-font, 22px), var(--h3-min-font));
 }
 
 /* Safety Net 2-3: Dynamically injected after JS virtual render */
@@ -393,59 +393,59 @@ h3 {
 ```javascript
 // Playwright page.evaluate() — Fill Engine
 function runFillEngine(pageElement) {
-  const pageH = pageElement.clientHeight;
-  const contentH = pageElement.scrollHeight;
-  const fillRatio = contentH / pageH;
+    const pageH = pageElement.clientHeight;
+    const contentH = pageElement.scrollHeight;
+    const fillRatio = contentH / pageH;
 
-  if (fillRatio >= 0.65) return; // No inflation needed
+    if (fillRatio >= 0.65) return; // No inflation needed
 
-  const root = pageElement.style;
+    const root = pageElement.style;
 
-  // 2a. Line-height inflation
-  const inflation = Math.min((0.65 - fillRatio) / 0.35, 1.0);
-  const newLH = 1.4 + (2.2 - 1.4) * inflation;
-  root.setProperty("--body-line-height", newLH.toFixed(2));
-  pageElement.querySelectorAll("p, li").forEach((el) => {
-    el.style.lineHeight = newLH.toFixed(2);
-  });
-
-  // 2c. Font scaling
-  if (fillRatio < 0.5) {
+    // 2a. Line-height inflation
+    const inflation = Math.min((0.65 - fillRatio) / 0.35, 1.0);
+    const newLH = 1.4 + (2.2 - 1.4) * inflation;
+    root.setProperty("--body-line-height", newLH.toFixed(2));
     pageElement.querySelectorAll("p, li").forEach((el) => {
-      const size = parseFloat(getComputedStyle(el).fontSize);
-      el.style.fontSize = Math.min(size + 2, size + 2) + "px"; // +2pt max
+        el.style.lineHeight = newLH.toFixed(2);
     });
-  } else if (fillRatio < 0.65) {
-    pageElement.querySelectorAll("p, li").forEach((el) => {
-      const size = parseFloat(getComputedStyle(el).fontSize);
-      el.style.fontSize = size + 1 + "px"; // +1pt
+
+    // 2c. Font scaling
+    if (fillRatio < 0.5) {
+        pageElement.querySelectorAll("p, li").forEach((el) => {
+            const size = parseFloat(getComputedStyle(el).fontSize);
+            el.style.fontSize = Math.min(size + 2, size + 2) + "px"; // +2pt max
+        });
+    } else if (fillRatio < 0.65) {
+        pageElement.querySelectorAll("p, li").forEach((el) => {
+            const size = parseFloat(getComputedStyle(el).fontSize);
+            el.style.fontSize = size + 1 + "px"; // +1pt
+        });
+    }
+
+    // 3a. Table height expansion
+    pageElement.querySelectorAll("td, th").forEach((cell) => {
+        const extra = Math.min(20, Math.round(((0.65 - fillRatio) / 0.25) * 20));
+        cell.style.paddingTop = 6 + extra + "px";
+        cell.style.paddingBottom = 6 + extra + "px";
     });
-  }
 
-  // 3a. Table height expansion
-  pageElement.querySelectorAll("td, th").forEach((cell) => {
-    const extra = Math.min(20, Math.round(((0.65 - fillRatio) / 0.25) * 20));
-    cell.style.paddingTop = 6 + extra + "px";
-    cell.style.paddingBottom = 6 + extra + "px";
-  });
+    // 3b. Blockquote exaggeration
+    pageElement.querySelectorAll("blockquote").forEach((bq) => {
+        const size = parseFloat(getComputedStyle(bq).fontSize);
+        bq.style.fontSize = size * 1.5 + "px";
+        bq.style.fontStyle = "italic";
+        bq.style.marginTop = "40px";
+        bq.style.marginBottom = "40px";
+    });
 
-  // 3b. Blockquote exaggeration
-  pageElement.querySelectorAll("blockquote").forEach((bq) => {
-    const size = parseFloat(getComputedStyle(bq).fontSize);
-    bq.style.fontSize = size * 1.5 + "px";
-    bq.style.fontStyle = "italic";
-    bq.style.marginTop = "40px";
-    bq.style.marginBottom = "40px";
-  });
-
-  // Safety Net 4: Y-axis anchoring
-  const newContentH = pageElement.scrollHeight;
-  const newRatio = newContentH / pageH;
-  if (newRatio < 0.4) {
-    const remaining = pageH - newContentH;
-    const offset = remaining * 0.382;
-    pageElement.style.paddingTop = offset + "px";
-  }
+    // Safety Net 4: Y-axis anchoring
+    const newContentH = pageElement.scrollHeight;
+    const newRatio = newContentH / pageH;
+    if (newRatio < 0.4) {
+        const remaining = pageH - newContentH;
+        const offset = remaining * 0.382;
+        pageElement.style.paddingTop = offset + "px";
+    }
 }
 ```
 

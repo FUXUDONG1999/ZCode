@@ -8,10 +8,10 @@ import type { StreamSpec } from "./timeline-bands.js";
 
 /** `currentPhase` 与一站的关联，与 `phaseEntryFor` 同一条名字规则。 */
 export function isCurrentPhase(
-  run: WorkflowRunState | undefined,
-  name: string | undefined,
+    run: WorkflowRunState | undefined,
+    name: string | undefined,
 ): boolean {
-  return phaseNameMatches(name, run?.currentPhase);
+    return phaseNameMatches(name, run?.currentPhase);
 }
 
 /**
@@ -22,20 +22,20 @@ export function isCurrentPhase(
  * 节点」——折叠不会为控制流没走的站点造一个 pending。
  */
 export function stationStatus(
-  run: WorkflowRunState | undefined,
-  nodeStatus: StepRunStatus | undefined,
-  current: boolean,
-  entered: boolean,
+    run: WorkflowRunState | undefined,
+    nodeStatus: StepRunStatus | undefined,
+    current: boolean,
+    entered: boolean,
 ): StepRunStatus | undefined {
-  if (run === undefined) return undefined;
-  if (nodeStatus === "running" || nodeStatus === "failed") return nodeStatus;
-  const live = run.status === "running" || run.status === "pending";
-  if (current && live) return "running";
-  // 当前阶段随 run 的终态收场：失败发生在这一站（不管它有没有节点）；cancelled 与节点的画法
-  // 一致，同样是 failed。
-  if (current) return run.status === "completed" ? "done" : "failed";
-  if (nodeStatus !== undefined) return nodeStatus;
-  return entered ? "done" : "pending";
+    if (run === undefined) return undefined;
+    if (nodeStatus === "running" || nodeStatus === "failed") return nodeStatus;
+    const live = run.status === "running" || run.status === "pending";
+    if (current && live) return "running";
+    // 当前阶段随 run 的终态收场：失败发生在这一站（不管它有没有节点）；cancelled 与节点的画法
+    // 一致，同样是 failed。
+    if (current) return run.status === "completed" ? "done" : "failed";
+    if (nodeStatus !== undefined) return nodeStatus;
+    return entered ? "done" : "pending";
 }
 
 /**
@@ -54,68 +54,68 @@ export function stationStatus(
  * 不是 stage 的站、以及没有成员 step 的 stage（只有标记）照旧走顺序规则（`sequential`）。
  */
 export function stageStatuses(input: {
-  run: WorkflowRunState | undefined;
-  /** 每一站成员 step 的折叠；缺席 = 没有节点。 */
-  nodeStatuses: readonly (StepRunStatus | undefined)[];
-  entered: readonly boolean[];
-  /** 每一站有没有成员 step（只有标记的阶段没有）。 */
-  hasMembers: readonly boolean[];
-  /** 每一站的 `alongside`（下标，只有后来者报得出，这里对称地读）。 */
-  alongside: readonly (readonly number[])[];
-  streams: readonly StreamSpec[];
-  /** 顺序规则给出的灯（非 stage 站原样用它）。 */
-  sequential: readonly (StepRunStatus | undefined)[];
+    run: WorkflowRunState | undefined;
+    /** 每一站成员 step 的折叠；缺席 = 没有节点。 */
+    nodeStatuses: readonly (StepRunStatus | undefined)[];
+    entered: readonly boolean[];
+    /** 每一站有没有成员 step（只有标记的阶段没有）。 */
+    hasMembers: readonly boolean[];
+    /** 每一站的 `alongside`（下标，只有后来者报得出，这里对称地读）。 */
+    alongside: readonly (readonly number[])[];
+    streams: readonly StreamSpec[];
+    /** 顺序规则给出的灯（非 stage 站原样用它）。 */
+    sequential: readonly (StepRunStatus | undefined)[];
 }): (StepRunStatus | undefined)[] {
-  const { alongside, entered, hasMembers, nodeStatuses, run, sequential, streams } = input;
-  if (run === undefined) return [...sequential];
-  const parallel = new Set([
-    ...streams.flatMap((stream) => [stream.from, stream.to]),
-    ...alongside.flatMap((near, i) => (near.length > 0 ? [i, ...near] : [])),
-  ]);
-  const stage = nodeStatuses.map((_, i) => hasMembers[i] === true && parallel.has(i));
-  const live = run.status === "running" || run.status === "pending";
-  const feeders = nodeStatuses.map(() => [] as number[]);
-  for (const stream of streams) feeders[stream.to]?.push(stream.from);
+    const { alongside, entered, hasMembers, nodeStatuses, run, sequential, streams } = input;
+    if (run === undefined) return [...sequential];
+    const parallel = new Set([
+        ...streams.flatMap((stream) => [stream.from, stream.to]),
+        ...alongside.flatMap((near, i) => (near.length > 0 ? [i, ...near] : [])),
+    ]);
+    const stage = nodeStatuses.map((_, i) => hasMembers[i] === true && parallel.has(i));
+    const live = run.status === "running" || run.status === "pending";
+    const feeders = nodeStatuses.map(() => [] as number[]);
+    for (const stream of streams) feeders[stream.to]?.push(stream.from);
 
-  const own = (i: number): StepRunStatus | undefined =>
-    stage[i] ? (nodeStatuses[i] ?? "pending") : sequential[i];
-  const open = nodeStatuses.map((_, i) => live && (own(i) === "running" || own(i) === "pending"));
-  for (let changed = true; changed; ) {
-    changed = false;
-    for (let i = 0; i < open.length; i += 1) {
-      if (open[i] || !live || !feeders[i]!.some((f) => open[f])) continue;
-      open[i] = true;
-      changed = true;
+    const own = (i: number): StepRunStatus | undefined =>
+        stage[i] ? (nodeStatuses[i] ?? "pending") : sequential[i];
+    const open = nodeStatuses.map((_, i) => live && (own(i) === "running" || own(i) === "pending"));
+    for (let changed = true; changed; ) {
+        changed = false;
+        for (let i = 0; i < open.length; i += 1) {
+            if (open[i] || !live || !feeders[i]!.some((f) => open[f])) continue;
+            open[i] = true;
+            changed = true;
+        }
     }
-  }
 
-  return nodeStatuses.map((status, i) => {
-    if (!stage[i]) return sequential[i];
-    if (status === undefined) {
-      if (live) return "pending";
-      return run.status === "completed" && entered[i] ? "done" : "pending";
-    }
-    if (status === "done" && live && feeders[i]!.some((f) => open[f])) return "running";
-    return status;
-  });
+    return nodeStatuses.map((status, i) => {
+        if (!stage[i]) return sequential[i];
+        if (status === undefined) {
+            if (live) return "pending";
+            return run.status === "completed" && entered[i] ? "done" : "pending";
+        }
+        if (status === "done" && live && feeders[i]!.some((f) => open[f])) return "running";
+        return status;
+    });
 }
 
 /** 载荷的 `phaseStreams` → 下标对：两端都得列出、不是自环、每个有序对只留一条。 */
 export function phaseStreamIndexes(
-  streams: readonly { from: string; to: string }[] | undefined,
-  index: ReadonlyMap<string, number>,
+    streams: readonly { from: string; to: string }[] | undefined,
+    index: ReadonlyMap<string, number>,
 ): StreamSpec[] {
-  const out: StreamSpec[] = [];
-  const seen = new Set<string>();
-  for (const stream of streams ?? []) {
-    const from = index.get(stream.from);
-    const to = index.get(stream.to);
-    if (from === undefined || to === undefined || from === to || seen.has(`${from}>${to}`))
-      continue;
-    seen.add(`${from}>${to}`);
-    out.push({ from, to });
-  }
-  return out;
+    const out: StreamSpec[] = [];
+    const seen = new Set<string>();
+    for (const stream of streams ?? []) {
+        const from = index.get(stream.from);
+        const to = index.get(stream.to);
+        if (from === undefined || to === undefined || from === to || seen.has(`${from}>${to}`))
+            continue;
+        seen.add(`${from}>${to}`);
+        out.push({ from, to });
+    }
+    return out;
 }
 
 /**
@@ -123,9 +123,9 @@ export function phaseStreamIndexes(
  * 否则 `faint`。「观察到过节点」而不是 `visited`：stage 的进入记录在 run 一开始就有了。
  */
 export function streamInk(
-  from: { status: StepRunStatus | undefined },
-  to: { status: StepRunStatus | undefined; fraction?: unknown },
+    from: { status: StepRunStatus | undefined },
+    to: { status: StepRunStatus | undefined; fraction?: unknown },
 ): "faint" | "strong" | "march" {
-  if (from.status === "running" && to.status === "running") return "march";
-  return to.fraction === undefined ? "faint" : "strong";
+    if (from.status === "running" && to.status === "running") return "march";
+    return to.fraction === undefined ? "faint" : "strong";
 }

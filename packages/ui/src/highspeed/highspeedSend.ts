@@ -1,8 +1,8 @@
 import type {
-  HighspeedCardSnapshot,
-  HighspeedMessageMeta,
-  HighspeedPrepareTurnResult,
-  ModelSelection,
+    HighspeedCardSnapshot,
+    HighspeedMessageMeta,
+    HighspeedPrepareTurnResult,
+    ModelSelection,
 } from "@zcode/shared";
 import type { CommandPayloadMap } from "@zcode/shared/zcode-protocol-v4";
 
@@ -10,16 +10,16 @@ import type { CommandPayloadMap } from "@zcode/shared/zcode-protocol-v4";
 type HighspeedModelExecution = NonNullable<CommandPayloadMap["sendText"]["modelExecution"]>;
 
 export type HighspeedTurnPreparer = (
-  taskId: string,
-  submissionSelection?: ModelSelection,
+    taskId: string,
+    submissionSelection?: ModelSelection,
 ) => Promise<HighspeedPrepareTurnResult | null>;
 
 /** 会话投影/草稿里可参与 Highspeed prepare 选择解析的字段（结构兼容 snapshot config）。 */
 export interface HighspeedPrepareSelectionSource {
-  readonly provider?: string;
-  readonly model?: string;
-  readonly thought?: string;
-  readonly modelSelection?: ModelSelection;
+    readonly provider?: string;
+    readonly model?: string;
+    readonly thought?: string;
+    readonly modelSelection?: ModelSelection;
 }
 
 /**
@@ -29,27 +29,28 @@ export interface HighspeedPrepareSelectionSource {
  * 会话投影 → 草稿 → 初始草稿逐字段回落；provider 或 model 无法解析时返回 null。
  */
 export function resolveHighspeedPrepareSelection(input: {
-  submissionSelection?: ModelSelection;
-  projectedConfig?: HighspeedPrepareSelectionSource | null;
-  draftConfig?: HighspeedPrepareSelectionSource | null;
-  initialDraftConfig?: HighspeedPrepareSelectionSource | null;
+    submissionSelection?: ModelSelection;
+    projectedConfig?: HighspeedPrepareSelectionSource | null;
+    draftConfig?: HighspeedPrepareSelectionSource | null;
+    initialDraftConfig?: HighspeedPrepareSelectionSource | null;
 }): { provider: string; model: string; reasoningLevel?: string } | null {
-  const { submissionSelection } = input;
-  const fallbacks = [input.projectedConfig, input.draftConfig, input.initialDraftConfig];
-  const provider = submissionSelection?.providerId ?? fallbacks.find((c) => c?.provider)?.provider;
-  const model = submissionSelection?.modelId ?? fallbacks.find((c) => c?.model)?.model;
-  if (!provider || !model) return null;
-  const reasoningLevel =
-    submissionSelection?.options?.reasoningLevel ??
-    fallbacks
-      .map((c) => c?.thought || c?.modelSelection?.options?.reasoningLevel)
-      .find((value) => !!value);
-  return { provider, model, ...(reasoningLevel ? { reasoningLevel } : {}) };
+    const { submissionSelection } = input;
+    const fallbacks = [input.projectedConfig, input.draftConfig, input.initialDraftConfig];
+    const provider =
+        submissionSelection?.providerId ?? fallbacks.find((c) => c?.provider)?.provider;
+    const model = submissionSelection?.modelId ?? fallbacks.find((c) => c?.model)?.model;
+    if (!provider || !model) return null;
+    const reasoningLevel =
+        submissionSelection?.options?.reasoningLevel ??
+        fallbacks
+            .map((c) => c?.thought || c?.modelSelection?.options?.reasoningLevel)
+            .find((value) => !!value);
+    return { provider, model, ...(reasoningLevel ? { reasoningLevel } : {}) };
 }
 
 export type HighspeedSendContext = {
-  override: ReturnType<typeof buildHighspeedRuntimeOverride>;
-  acceleratedCard?: HighspeedCardSnapshot;
+    override: ReturnType<typeof buildHighspeedRuntimeOverride>;
+    acceleratedCard?: HighspeedCardSnapshot;
 };
 
 /**
@@ -61,27 +62,27 @@ export type HighspeedSendContext = {
  * 见 docs/highspeed/highspeed-access-mode-migration.md。
  */
 export function buildHighspeedRuntimeOverride(
-  result: HighspeedPrepareTurnResult | null | undefined,
+    result: HighspeedPrepareTurnResult | null | undefined,
 ): {
-  highspeedMeta?: HighspeedMessageMeta;
-  modelSelection?: ModelSelection;
-  modelExecution?: HighspeedModelExecution;
+    highspeedMeta?: HighspeedMessageMeta;
+    modelSelection?: ModelSelection;
+    modelExecution?: HighspeedModelExecution;
 } {
-  if (result?.kind !== "accelerated") return {};
-  const highspeedMeta: HighspeedMessageMeta = {
-    schemaVersion: 1,
-    ...result.card,
-  };
-  if (!result.execution) return { highspeedMeta };
-  return {
-    highspeedMeta,
-    modelSelection: result.execution.modelSelection,
-    modelExecution: {
-      selectionScope: "execution",
-      requestAuth: result.execution.requestAuth,
-      selectionFallback: result.execution.selectionFallback,
-    },
-  };
+    if (result?.kind !== "accelerated") return {};
+    const highspeedMeta: HighspeedMessageMeta = {
+        schemaVersion: 1,
+        ...result.card,
+    };
+    if (!result.execution) return { highspeedMeta };
+    return {
+        highspeedMeta,
+        modelSelection: result.execution.modelSelection,
+        modelExecution: {
+            selectionScope: "execution",
+            requestAuth: result.execution.requestAuth,
+            selectionFallback: result.execution.selectionFallback,
+        },
+    };
 }
 
 /**
@@ -89,15 +90,15 @@ export function buildHighspeedRuntimeOverride(
  * CLI 仍是最终 admission 权威；这里仅把同一次 prepare 的结果拆成两类既有消费数据。
  */
 export async function prepareHighspeedSendContext(
-  taskId: string,
-  prepareTurn: HighspeedTurnPreparer,
-  submissionSelection?: ModelSelection,
+    taskId: string,
+    prepareTurn: HighspeedTurnPreparer,
+    submissionSelection?: ModelSelection,
 ): Promise<HighspeedSendContext> {
-  const result = await prepareTurn(taskId, submissionSelection);
-  return {
-    override: buildHighspeedRuntimeOverride(result),
-    ...(result?.kind === "accelerated" ? { acceleratedCard: result.card } : {}),
-  };
+    const result = await prepareTurn(taskId, submissionSelection);
+    return {
+        override: buildHighspeedRuntimeOverride(result),
+        ...(result?.kind === "accelerated" ? { acceleratedCard: result.card } : {}),
+    };
 }
 
 /** 发送等待预算：抽卡最多等这么久就放行普通发送（spec §1、§3）。 */
@@ -117,42 +118,43 @@ export const HIGHSPEED_REGULAR_TPS_WAIT_BUDGET_MS = 300;
  * 拉长到最多 16s（spec §3 规则 12、§9.4）。
  */
 export async function readRegularTpsWithinSendBudget(params: {
-  read: () => Promise<number | undefined>;
-  /** 本次发送从进入 prepare 到现在已消耗的毫秒数，用于扣减剩余预算。 */
-  elapsedMs: number;
-  onError?: (error: unknown) => void;
-  onTimeout?: (budgetMs: number) => void;
-  wait?: (milliseconds: number) => Promise<void>;
+    read: () => Promise<number | undefined>;
+    /** 本次发送从进入 prepare 到现在已消耗的毫秒数，用于扣减剩余预算。 */
+    elapsedMs: number;
+    onError?: (error: unknown) => void;
+    onTimeout?: (budgetMs: number) => void;
+    wait?: (milliseconds: number) => Promise<void>;
 }): Promise<number | undefined> {
-  const budgetMs = Math.max(
-    0,
-    Math.min(
-      HIGHSPEED_REGULAR_TPS_WAIT_BUDGET_MS,
-      HIGHSPEED_SEND_WAIT_BUDGET_MS - params.elapsedMs,
-    ),
-  );
-  // 先把 catch 挂好：无论是否等到结果，后台完成时的失败都不能变成 unhandled rejection。
-  const reading = (async () => params.read())().then(
-    (value) => ({ kind: "value" as const, value }),
-    (error: unknown) => {
-      params.onError?.(error);
-      return { kind: "error" as const };
-    },
-  );
-  if (budgetMs === 0) {
-    params.onTimeout?.(0);
-    return undefined;
-  }
-  const wait =
-    params.wait ??
-    ((milliseconds: number) => new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
-  const outcome = await Promise.race([
-    reading,
-    wait(budgetMs).then(() => ({ kind: "timeout" as const })),
-  ]);
-  if (outcome.kind === "timeout") {
-    params.onTimeout?.(budgetMs);
-    return undefined;
-  }
-  return outcome.kind === "value" ? outcome.value : undefined;
+    const budgetMs = Math.max(
+        0,
+        Math.min(
+            HIGHSPEED_REGULAR_TPS_WAIT_BUDGET_MS,
+            HIGHSPEED_SEND_WAIT_BUDGET_MS - params.elapsedMs,
+        ),
+    );
+    // 先把 catch 挂好：无论是否等到结果，后台完成时的失败都不能变成 unhandled rejection。
+    const reading = (async () => params.read())().then(
+        (value) => ({ kind: "value" as const, value }),
+        (error: unknown) => {
+            params.onError?.(error);
+            return { kind: "error" as const };
+        },
+    );
+    if (budgetMs === 0) {
+        params.onTimeout?.(0);
+        return undefined;
+    }
+    const wait =
+        params.wait ??
+        ((milliseconds: number) =>
+            new Promise<void>((resolve) => setTimeout(resolve, milliseconds)));
+    const outcome = await Promise.race([
+        reading,
+        wait(budgetMs).then(() => ({ kind: "timeout" as const })),
+    ]);
+    if (outcome.kind === "timeout") {
+        params.onTimeout?.(budgetMs);
+        return undefined;
+    }
+    return outcome.kind === "value" ? outcome.value : undefined;
 }

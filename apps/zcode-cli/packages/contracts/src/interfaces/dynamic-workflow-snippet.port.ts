@@ -9,24 +9,24 @@ import type { TraceContext } from "../tracing/tracer.js";
 
 /** 一条编译诊断的 JSON 形状（与 CreateWorkflow 的诊断同形；端口不 import zod schema）。 */
 export interface DynamicWorkflowSnippetDiagnostic {
-  code: number;
-  column: number;
-  line: number;
-  message: string;
+    code: number;
+    column: number;
+    line: number;
+    message: string;
 }
 
 export interface DynamicWorkflowSnippetEvalRequest {
-  /** snippet 源码（scratch facade 词汇：files.*、git.*、log、纯 TS）。 */
-  code: string;
-  /** 执行工作目录（沙箱子进程 cwd、world-read 的根）。 */
-  cwd: string;
-  /** 整段 snippet 的墙钟（ms）。钳制归工具层；端口只按值执行。 */
-  timeoutMs: number;
-  trace: TraceContext;
+    /** snippet 源码（scratch facade 词汇：files.*、git.*、log、纯 TS）。 */
+    code: string;
+    /** 执行工作目录（沙箱子进程 cwd、world-read 的根）。 */
+    cwd: string;
+    /** 整段 snippet 的墙钟（ms）。钳制归工具层；端口只按值执行。 */
+    timeoutMs: number;
+    trace: TraceContext;
 }
 
 export interface DynamicWorkflowSnippetEvalOptions {
-  signal?: AbortSignal;
+    signal?: AbortSignal;
 }
 
 /**
@@ -37,19 +37,19 @@ export interface DynamicWorkflowSnippetEvalOptions {
  * logs 在后两种形态都在场（失败前的叙事同样有价值）。
  */
 export type DynamicWorkflowSnippetEvalResult =
-  | { kind: "diagnostics"; diagnostics: DynamicWorkflowSnippetDiagnostic[] }
-  | { kind: "completed"; artifact?: unknown; logs: string[]; logsTruncated: boolean }
-  | {
-      kind: "failed";
-      error: { code: string; message: string };
-      logs: string[];
-      logsTruncated: boolean;
-    };
+    | { kind: "diagnostics"; diagnostics: DynamicWorkflowSnippetDiagnostic[] }
+    | { kind: "completed"; artifact?: unknown; logs: string[]; logsTruncated: boolean }
+    | {
+          kind: "failed";
+          error: { code: string; message: string };
+          logs: string[];
+          logsTruncated: boolean;
+      };
 
 export interface DynamicWorkflowSnippetPort {
-  /** 编译一次并同步执行至结算（完全瞬态：无 dwf_* 行、无后台任务）。 */
-  evalSnippet(
-    request: DynamicWorkflowSnippetEvalRequest,
-    options?: DynamicWorkflowSnippetEvalOptions,
-  ): Promise<DynamicWorkflowSnippetEvalResult>;
+    /** 编译一次并同步执行至结算（完全瞬态：无 dwf_* 行、无后台任务）。 */
+    evalSnippet(
+        request: DynamicWorkflowSnippetEvalRequest,
+        options?: DynamicWorkflowSnippetEvalOptions,
+    ): Promise<DynamicWorkflowSnippetEvalResult>;
 }

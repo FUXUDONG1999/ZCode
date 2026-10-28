@@ -20,90 +20,96 @@ export const ROW_STAGGER_MS = 8;
 export const ROW_STAGGER_CAP_MS = 400;
 
 const GROUP_TONE: Record<StepRunStatus, string> = {
-  done: "text-success",
-  failed: "text-destructive",
-  pending: "text-foreground-subtlest",
-  running: "text-warning",
+    done: "text-success",
+    failed: "text-destructive",
+    pending: "text-foreground-subtlest",
+    running: "text-warning",
 };
 
 function GroupIcon({ status }: { status: StepRunStatus }) {
-  if (status === "done") return <CircleCheckIcon aria-hidden className="size-2.5" />;
-  if (status === "running") {
-    return (
-      <LoaderCircleIcon aria-hidden className="size-2.5 animate-spin motion-reduce:animate-none" />
-    );
-  }
-  if (status === "failed") return <CircleXIcon aria-hidden className="size-2.5" />;
-  return <span aria-hidden className="size-2 rounded-full border-[1.5px] border-current" />;
+    if (status === "done") return <CircleCheckIcon aria-hidden className="size-2.5" />;
+    if (status === "running") {
+        return (
+            <LoaderCircleIcon
+                aria-hidden
+                className="size-2.5 animate-spin motion-reduce:animate-none"
+            />
+        );
+    }
+    if (status === "failed") return <CircleXIcon aria-hidden className="size-2.5" />;
+    return <span aria-hidden className="size-2 rounded-full border-[1.5px] border-current" />;
 }
 
 export function WorkflowRoll({
-  groups,
-  renderRow,
-  unlisted = 0,
+    groups,
+    renderRow,
+    unlisted = 0,
 }: {
-  groups: readonly RollGroup[];
-  /** 渲染一行；`enterDelayMs` 是这一行在整卷名单里的落地延迟。 */
-  renderRow: (pill: TimelinePill, enterDelayMs: number) => ReactNode;
-  /** 这一站列不出行的子代理数（跑完的、还没跑的都算）；零即那一行淡字缺席。 */
-  unlisted?: number;
+    groups: readonly RollGroup[];
+    /** 渲染一行；`enterDelayMs` 是这一行在整卷名单里的落地延迟。 */
+    renderRow: (pill: TimelinePill, enterDelayMs: number) => ReactNode;
+    /** 这一站列不出行的子代理数（跑完的、还没跑的都算）；零即那一行淡字缺席。 */
+    unlisted?: number;
 }) {
-  const { intl } = useZCodeIntl();
-  let index = 0;
-  return (
-    <div className="wf-unfold grid grid-cols-2 gap-x-2 pt-0.5" data-testid="workflow-roster-roll">
-      {groups.map((group) => {
-        const label = intl.formatMessage(
-          { id: `chat.toolCall.workflow.timeline.roster.${group.status}` },
-          { count: group.pills.length },
-        );
-        // 两种语言的词条都以人数开头（`{count} done` / `{count} 个已完成`）：人数加粗、其余照常。
-        const split = /^(\d+)(.*)$/.exec(label);
-        return (
-          <Fragment key={group.status}>
-            <div
-              aria-level={4}
-              className={cn(
-                "col-span-2 mt-1 flex h-[22px] items-center gap-[5px] pl-1 font-mono text-ui-xs leading-none tabular-nums first:mt-0",
-                GROUP_TONE[group.status],
-              )}
-              data-roll-group={group.status}
-              data-testid="workflow-roll-heading"
-              role="heading"
-            >
-              <GroupIcon status={group.status} />
-              {split === null ? (
-                <span>{label}</span>
-              ) : (
-                <>
-                  <span className="font-medium">{split[1]}</span>
-                  <span>{split[2]!.trim()}</span>
-                </>
-              )}
-              <span aria-hidden className="ml-[3px] h-px flex-1 bg-border" />
-            </div>
-            {group.pills.map((pill) =>
-              renderRow(pill, Math.min(ROW_STAGGER_MS * index++, ROW_STAGGER_CAP_MS)),
-            )}
-          </Fragment>
-        );
-      })}
-      {unlisted <= 0 ? null : (
-        <p
-          className="col-span-2 mt-1.5 min-w-0 text-ui-xs text-foreground-subtlest"
-          data-testid="workflow-roll-unlisted"
+    const { intl } = useZCodeIntl();
+    let index = 0;
+    return (
+        <div
+            className="wf-unfold grid grid-cols-2 gap-x-2 pt-0.5"
+            data-testid="workflow-roster-roll"
         >
-          {intl.formatMessage(
-            {
-              id:
-                unlisted === 1
-                  ? "chat.toolCall.workflow.timeline.roster.unlisted.one"
-                  : "chat.toolCall.workflow.timeline.roster.unlisted.many",
-            },
-            { count: unlisted },
-          )}
-        </p>
-      )}
-    </div>
-  );
+            {groups.map((group) => {
+                const label = intl.formatMessage(
+                    { id: `chat.toolCall.workflow.timeline.roster.${group.status}` },
+                    { count: group.pills.length },
+                );
+                // 两种语言的词条都以人数开头（`{count} done` / `{count} 个已完成`）：人数加粗、其余照常。
+                const split = /^(\d+)(.*)$/.exec(label);
+                return (
+                    <Fragment key={group.status}>
+                        <div
+                            aria-level={4}
+                            className={cn(
+                                "col-span-2 mt-1 flex h-[22px] items-center gap-[5px] pl-1 font-mono text-ui-xs leading-none tabular-nums first:mt-0",
+                                GROUP_TONE[group.status],
+                            )}
+                            data-roll-group={group.status}
+                            data-testid="workflow-roll-heading"
+                            role="heading"
+                        >
+                            <GroupIcon status={group.status} />
+                            {split === null ? (
+                                <span>{label}</span>
+                            ) : (
+                                <>
+                                    <span className="font-medium">{split[1]}</span>
+                                    <span>{split[2]!.trim()}</span>
+                                </>
+                            )}
+                            <span aria-hidden className="ml-[3px] h-px flex-1 bg-border" />
+                        </div>
+                        {group.pills.map((pill) =>
+                            renderRow(pill, Math.min(ROW_STAGGER_MS * index++, ROW_STAGGER_CAP_MS)),
+                        )}
+                    </Fragment>
+                );
+            })}
+            {unlisted <= 0 ? null : (
+                <p
+                    className="col-span-2 mt-1.5 min-w-0 text-ui-xs text-foreground-subtlest"
+                    data-testid="workflow-roll-unlisted"
+                >
+                    {intl.formatMessage(
+                        {
+                            id:
+                                unlisted === 1
+                                    ? "chat.toolCall.workflow.timeline.roster.unlisted.one"
+                                    : "chat.toolCall.workflow.timeline.roster.unlisted.many",
+                        },
+                        { count: unlisted },
+                    )}
+                </p>
+            )}
+        </div>
+    );
 }

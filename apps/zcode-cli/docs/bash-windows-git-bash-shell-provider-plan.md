@@ -27,20 +27,20 @@
 
 ```ts
 const request: ExecutionRequest = {
-  command: {
-    mode: "shell",
-    command: "arr=(a b); printf '%s\\n' \"${arr[1]}\"",
-    shellProfile: "posix-bash",
-    shellOverride: {
-      dialect: "git-bash",
-      id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
-      label: "Git Bash",
-      path: "C:\\Program Files\\Git\\bin\\bash.exe",
-      source: "user-config",
+    command: {
+        mode: "shell",
+        command: "arr=(a b); printf '%s\\n' \"${arr[1]}\"",
+        shellProfile: "posix-bash",
+        shellOverride: {
+            dialect: "git-bash",
+            id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
+            label: "Git Bash",
+            path: "C:\\Program Files\\Git\\bin\\bash.exe",
+            source: "user-config",
+        },
     },
-  },
-  cwd: "C:\\repo",
-  captureCwdAfterSuccess: true,
+    cwd: "C:\\repo",
+    captureCwdAfterSuccess: true,
 };
 ```
 
@@ -75,14 +75,14 @@ Git Bash 自动解析顺序：
 Windows path 和 Git Bash path 需要双向转换：
 
 - Windows path -> Git Bash path：
-  - `C:\repo` 或 `C:/repo` -> `/c/repo`
-  - UNC `\\server\share` -> `//server/share`
-  - 其他情况把反斜杠替换成斜杠
+    - `C:\repo` 或 `C:/repo` -> `/c/repo`
+    - UNC `\\server\share` -> `//server/share`
+    - 其他情况把反斜杠替换成斜杠
 - Git Bash path -> Windows path：
-  - `//server/share` -> `\\server\share`
-  - `/cygdrive/c/repo` -> `C:\repo`
-  - `/c/repo` -> `C:\repo`
-  - 其他情况把斜杠替换成反斜杠
+    - `//server/share` -> `\\server\share`
+    - `/cygdrive/c/repo` -> `C:\repo`
+    - `/c/repo` -> `C:\repo`
+    - 其他情况把斜杠替换成反斜杠
 
 bash provider 不是一个裸 shell path，而是一个 provider shape：
 
@@ -90,15 +90,15 @@ bash provider 不是一个裸 shell path，而是一个 provider shape：
 - `shellPath`
 - `detached: true`
 - `buildExecCommand(command, options)`：
-  - 生成 POSIX shell wrapper
-  - 可选 source shell snapshot
-  - 禁用 `extglob` / zsh extended glob
-  - 通过 `eval <quoted command>` 执行用户命令
-  - 把 `pwd -P` 写入 cwd capture 文件
-  - 在 Windows 上，把 temp/cwd 文件路径转换为 Git Bash path 后再嵌入 shell script
+    - 生成 POSIX shell wrapper
+    - 可选 source shell snapshot
+    - 禁用 `extglob` / zsh extended glob
+    - 通过 `eval <quoted command>` 执行用户命令
+    - 把 `pwd -P` 写入 cwd capture 文件
+    - 在 Windows 上，把 temp/cwd 文件路径转换为 Git Bash path 后再嵌入 shell script
 - `getSpawnArgs(commandString)`：
-  - 无 snapshot 时返回 `["-c", "-l", commandString]`
-  - 有 snapshot 时跳过 `-l`
+    - 无 snapshot 时返回 `["-c", "-l", commandString]`
+    - 有 snapshot 时跳过 `-l`
 - spawn env 包含 `SHELL=<shellPath>` 和 `GIT_EDITOR=true`
 
 Windows 不设启动门槛：Git Bash 缺失时 fallback 到 `cmd.exe`，而不是让 CLI 启动失败或提示安装。
@@ -133,14 +133,14 @@ Windows 不设启动门槛：Git Bash 缺失时 fallback 到 `cmd.exe`，而不�
 当前执行链路：
 
 1. `Bash` handler 创建 `ExecutionRequest`：
-   - `command.mode = "shell"`
-   - `command.shellProfile = "posix-bash"`
-   - foreground command 设置 `captureCwdAfterSuccess = true`
+    - `command.mode = "shell"`
+    - `command.shellProfile = "posix-bash"`
+    - foreground command 设置 `captureCwdAfterSuccess = true`
 2. `NodeExecutionAdapter.spawnChild()`：
-   - 通过 `buildExecutionEnv()` 构建 env
-   - 通过 `createCwdCapturePlan(request, platform)` 创建 cwd capture wrapper
-   - 通过 `resolveExecutionCommand(capturePlan.command, ...)` 解析 spawn shape
-   - 使用 `shell`、`cwd`、`env`、stdio、timeout、output budget 执行子进程
+    - 通过 `buildExecutionEnv()` 构建 env
+    - 通过 `createCwdCapturePlan(request, platform)` 创建 cwd capture wrapper
+    - 通过 `resolveExecutionCommand(capturePlan.command, ...)` 解析 spawn shape
+    - 使用 `shell`、`cwd`、`env`、stdio、timeout、output budget 执行子进程
 3. `resolveExecutionCommand()` 只有在 `platform !== "win32"` 时才调用 `resolvePosixBashShell()`。
 4. Windows 上 shell mode 走 `resolveShell()`，也就是 `ComSpec ?? "cmd.exe"`。
 
@@ -148,8 +148,8 @@ Windows 不设启动门槛：Git Bash 缺失时 fallback 到 `cmd.exe`，而不�
 
 - `docs/design/v2/tool/04-bash.md` 目前写的是 Windows 默认 shell mode 使用 `ComSpec` / `cmd.exe`，并且不得默认暗中搜索 Git Bash。Phase 1 需要更新这个 contract：Git Bash 自动检测只允许在 Bash tool 的 `shellProfile === "posix-bash"` 内部路径生效。
 - `cwd-capture.ts` 当前按 `platform` 选择 wrapper：
-  - Windows：`cmd.exe` 语法，使用 `%ERRORLEVEL%` 和 `exit /b`
-  - 非 Windows：POSIX 语法，使用 `$?` 和 `pwd -P`
+    - Windows：`cmd.exe` 语法，使用 `%ERRORLEVEL%` 和 `exit /b`
+    - 非 Windows：POSIX 语法，使用 `$?` 和 `pwd -P`
 - 所以如果直接在 Windows 上启用 Git Bash，但不重构 cwd capture，就会把 `cmd.exe` wrapper 丢进 Bash 执行，foreground Bash 命令会坏。
 
 现有可复用能力：
@@ -168,9 +168,9 @@ Windows `Bash` tool 的 shell 选择优先级：
 
 1. `ExecutionCommand.shellOverride` 存在、`source === "user-config"`、path 仍可执行，并且 dialect 是 adapter 支持的 Windows dialect，则使用该 override。
 2. 没有 override，或 override 已失效，则自动检测 Git Bash：
-   - `C:\Program Files\Git\bin\bash.exe`
-   - `C:\Program Files (x86)\Git\bin\bash.exe`
-   - PATH 中的 `git.exe` 反推 `..\..\bin\bash.exe`
+    - `C:\Program Files\Git\bin\bash.exe`
+    - `C:\Program Files (x86)\Git\bin\bash.exe`
+    - PATH 中的 `git.exe` 反推 `..\..\bin\bash.exe`
 3. 自动检测失败时，fallback 到当前 `ComSpec ?? "cmd.exe"` 行为。
 
 Phase 1 不新增读取 shell path 的环境变量：
@@ -193,16 +193,16 @@ Phase 1 不新增读取 shell path 的环境变量：
 
 ```ts
 export type IntegratedTerminalShellSelection =
-  | {
-      mode: "auto";
-    }
-  | {
-      mode: "shell";
-      dialect: "cmd" | "git-bash";
-      id: string;
-      label: string;
-      path: string;
-    };
+    | {
+          mode: "auto";
+      }
+    | {
+          mode: "shell";
+          dialect: "cmd" | "git-bash";
+          id: string;
+          label: string;
+          path: string;
+      };
 ```
 
 说明：
@@ -265,80 +265,80 @@ WSL 后续建议：
 ### Phase 1 文件
 
 - 修改：`apps/zcode-cli/docs/design/v2/tool/04-bash.md`
-  - 更新 Windows contract，允许 `Bash` tool best-effort 使用 Git Bash。
-  - 记录 shell override 是内部执行注入口，不是 provider-visible schema。
-  - 保留“Git Bash 非必需”和“fallback 到 cmd.exe”的保证。
+    - 更新 Windows contract，允许 `Bash` tool best-effort 使用 Git Bash。
+    - 记录 shell override 是内部执行注入口，不是 provider-visible schema。
+    - 保留“Git Bash 非必需”和“fallback 到 cmd.exe”的保证。
 
 - 修改：`apps/zcode-cli/docs/bash-shell-provider.md`
-  - 增加说明：Windows shell provider 由本分阶段 plan 覆盖。
-  - 保留原 macOS/Linux plan 的历史语义。
+    - 增加说明：Windows shell provider 由本分阶段 plan 覆盖。
+    - 保留原 macOS/Linux plan 的历史语义。
 
 - 修改：`apps/zcode-cli/packages/contracts/src/interfaces/execution.port.ts`
-  - 增加 `ExecutionShellDialect` / `ExecutionShellOverride`。
-  - 在 shell command 上增加 `shellOverride?: ExecutionShellOverride`。
-  - 注释写明只供 Bash tool 内部执行路径使用。
+    - 增加 `ExecutionShellDialect` / `ExecutionShellOverride`。
+    - 在 shell command 上增加 `shellOverride?: ExecutionShellOverride`。
+    - 注释写明只供 Bash tool 内部执行路径使用。
 
 - 修改：`apps/zcode-cli/packages/adapters/src/exec/bash-shell-provider.ts`
-  - 增加 Windows Git Bash resolver。
-  - 增加 Windows path <-> Git Bash path 转换 helper。
-  - 增加 shell provider metadata。
+    - 增加 Windows Git Bash resolver。
+    - 增加 Windows path <-> Git Bash path 转换 helper。
+    - 增加 shell provider metadata。
 
 - 修改：`apps/zcode-cli/packages/adapters/src/exec/cwd-capture.ts`
-  - 增加 shell dialect aware cwd capture。
-  - 保留现有 cmd wrapper 和 POSIX wrapper。
-  - Git Bash 下转换 cwd capture 文件路径和 readback path。
+    - 增加 shell dialect aware cwd capture。
+    - 保留现有 cmd wrapper 和 POSIX wrapper。
+    - Git Bash 下转换 cwd capture 文件路径和 readback path。
 
 - 修改：`apps/zcode-cli/packages/adapters/src/exec/index.ts`
-  - 接入 shell provider metadata。
-  - 把 shell dialect 传入 cwd capture。
-  - generic shell mode 保持不变。
+    - 接入 shell provider metadata。
+    - 把 shell dialect 传入 cwd capture。
+    - generic shell mode 保持不变。
 
 - 修改：`apps/zcode-cli/packages/adapters/tests/exec.test.ts`
-  - 补 override 优先级、resolver、cwd capture、readback、fallback、background 的聚焦单测。
+    - 补 override 优先级、resolver、cwd capture、readback、fallback、background 的聚焦单测。
 
 ### Phase 2 文件
 
 - 修改：`packages/shared/src/protocol.ts`
-  - 增加 `IntegratedTerminalShellSelection` 和 `AppSettings.integratedTerminalShell`。
+    - 增加 `IntegratedTerminalShellSelection` 和 `AppSettings.integratedTerminalShell`。
 
 - 修改：`packages/shared/src/validationAppSettings.ts`
-  - 增加 settings schema / patch schema。
-  - 归一化空值为 `{ mode: "auto" }` 或 `undefined`。
+    - 增加 settings schema / patch schema。
+    - 归一化空值为 `{ mode: "auto" }` 或 `undefined`。
 
 - 修改：`packages/services/src/setting/settingService.ts`
-  - 归一化 `integratedTerminalShell` patch。
+    - 归一化 `integratedTerminalShell` patch。
 
 - 修改：`packages/services/src/system/system.ts`
-  - 增加 `listIntegratedTerminalShells(): Promise<IntegratedTerminalShellOption[]>`。
+    - 增加 `listIntegratedTerminalShells(): Promise<IntegratedTerminalShellOption[]>`。
 
 - 修改：`packages/services/src/system/systemService.ts`
-  - Windows 下枚举 `cmd.exe` 和 Git Bash。
-  - 非 Windows 返回空列表，或只返回当前平台后续支持的候选；本计划 UI 只消费 Windows。
+    - Windows 下枚举 `cmd.exe` 和 Git Bash。
+    - 非 Windows 返回空列表，或只返回当前平台后续支持的候选；本计划 UI 只消费 Windows。
 
 - 修改：`packages/ui/src/SettingsPage.tsx`
-  - 读取、保存 `integratedTerminalShell`。
-  - 拉取 system shell options。
+    - 读取、保存 `integratedTerminalShell`。
+    - 拉取 system shell options。
 
 - 修改：`packages/ui/src/settingsPageHelpers.tsx`
-  - 在 Windows only 条件下渲染“集成终端Shell”下拉。
-  - 第一项为“自动选择”。
+    - 在 Windows only 条件下渲染“集成终端Shell”下拉。
+    - 第一项为“自动选择”。
 
 - 修改：`packages/ui/src/i18n/locales/zh-CN.ts`
-  - 增加中文文案。
+    - 增加中文文案。
 
 - 修改：`packages/ui/src/i18n/locales/en-US.ts`
-  - 增加英文文案。
+    - 增加英文文案。
 
 - 修改：`apps/zcode-cli/packages/core/src/tool/handlers/bash.ts`
-  - 从运行时依赖读取 Phase 2 映射后的 shell override。
-  - 构造 `ExecutionRequest` 时传入 `command.shellOverride`。
+    - 从运行时依赖读取 Phase 2 映射后的 shell override。
+    - 构造 `ExecutionRequest` 时传入 `command.shellOverride`。
 
 - 修改：相关 tests
-  - `packages/shared/test/zcodeEndpoint.test.ts` 或 settings schema 现有测试文件。
-  - `packages/services/test/settingService.test.ts`。
-  - `packages/services/test/systemService.test.ts`。
-  - `packages/ui/test/settingsDataBaseDirControl.test.ts` 或新增 settings shell row 测试。
-  - `apps/zcode-cli/packages/core/tests/bash-handler.test.ts`。
+    - `packages/shared/test/zcodeEndpoint.test.ts` 或 settings schema 现有测试文件。
+    - `packages/services/test/settingService.test.ts`。
+    - `packages/services/test/systemService.test.ts`。
+    - `packages/ui/test/settingsDataBaseDirControl.test.ts` 或新增 settings shell row 测试。
+    - `apps/zcode-cli/packages/core/tests/bash-handler.test.ts`。
 
 ## Phase 1 实施任务
 
@@ -391,68 +391,68 @@ git diff --check -- apps/zcode-cli/docs/design/v2/tool/04-bash.md apps/zcode-cli
 
 ```ts
 it("uses a valid user-configured Windows Git Bash override before auto detection", () => {
-  const resolved = resolveExecutionCommand(
-    {
-      mode: "shell",
-      command: "printf 'ok\\n'",
-      shellProfile: "posix-bash",
-      shellOverride: {
-        dialect: "git-bash",
-        id: "git-bash:D:\\Tools\\Git\\bin\\bash.exe",
-        label: "Git Bash",
-        path: "D:\\Tools\\Git\\bin\\bash.exe",
-        source: "user-config",
-      },
-    },
-    {
-      env: {
-        COMSPEC: "C:\\Windows\\System32\\cmd.exe",
-        PATH: "C:\\Windows\\System32",
-      },
-      exists: (path) =>
-        path === "D:\\Tools\\Git\\bin\\bash.exe" ||
-        path === "C:\\Program Files\\Git\\bin\\bash.exe",
-      platform: "win32",
-    },
-  );
+    const resolved = resolveExecutionCommand(
+        {
+            mode: "shell",
+            command: "printf 'ok\\n'",
+            shellProfile: "posix-bash",
+            shellOverride: {
+                dialect: "git-bash",
+                id: "git-bash:D:\\Tools\\Git\\bin\\bash.exe",
+                label: "Git Bash",
+                path: "D:\\Tools\\Git\\bin\\bash.exe",
+                source: "user-config",
+            },
+        },
+        {
+            env: {
+                COMSPEC: "C:\\Windows\\System32\\cmd.exe",
+                PATH: "C:\\Windows\\System32",
+            },
+            exists: (path) =>
+                path === "D:\\Tools\\Git\\bin\\bash.exe" ||
+                path === "C:\\Program Files\\Git\\bin\\bash.exe",
+            platform: "win32",
+        },
+    );
 
-  expect(resolved).toMatchObject({
-    args: ["-c", "-l", expect.any(String)],
-    cwdDialect: "git-bash",
-    file: "D:\\Tools\\Git\\bin\\bash.exe",
-    shell: false,
-  });
+    expect(resolved).toMatchObject({
+        args: ["-c", "-l", expect.any(String)],
+        cwdDialect: "git-bash",
+        file: "D:\\Tools\\Git\\bin\\bash.exe",
+        shell: false,
+    });
 });
 
 it("falls back to auto detection when the user-configured shell no longer exists", () => {
-  const resolved = resolveExecutionCommand(
-    {
-      mode: "shell",
-      command: "printf 'ok\\n'",
-      shellProfile: "posix-bash",
-      shellOverride: {
-        dialect: "git-bash",
-        id: "git-bash:D:\\Missing\\bash.exe",
-        label: "Git Bash",
-        path: "D:\\Missing\\bash.exe",
-        source: "user-config",
-      },
-    },
-    {
-      env: {
-        COMSPEC: "C:\\Windows\\System32\\cmd.exe",
-        PATH: "C:\\Windows\\System32",
-      },
-      exists: (path) => path === "C:\\Program Files\\Git\\bin\\bash.exe",
-      platform: "win32",
-    },
-  );
+    const resolved = resolveExecutionCommand(
+        {
+            mode: "shell",
+            command: "printf 'ok\\n'",
+            shellProfile: "posix-bash",
+            shellOverride: {
+                dialect: "git-bash",
+                id: "git-bash:D:\\Missing\\bash.exe",
+                label: "Git Bash",
+                path: "D:\\Missing\\bash.exe",
+                source: "user-config",
+            },
+        },
+        {
+            env: {
+                COMSPEC: "C:\\Windows\\System32\\cmd.exe",
+                PATH: "C:\\Windows\\System32",
+            },
+            exists: (path) => path === "C:\\Program Files\\Git\\bin\\bash.exe",
+            platform: "win32",
+        },
+    );
 
-  expect(resolved).toMatchObject({
-    cwdDialect: "git-bash",
-    file: "C:\\Program Files\\Git\\bin\\bash.exe",
-    shell: false,
-  });
+    expect(resolved).toMatchObject({
+        cwdDialect: "git-bash",
+        file: "C:\\Program Files\\Git\\bin\\bash.exe",
+        shell: false,
+    });
 });
 ```
 
@@ -464,18 +464,18 @@ it("falls back to auto detection when the user-configured shell no longer exists
 export type ExecutionShellDialect = "cmd" | "posix" | "git-bash";
 
 export interface ExecutionShellOverride {
-  /**
-   * Stable id from settings/UI. Adapter must not parse semantics from this field.
-   */
-  id?: string;
-  /** Human-readable label for diagnostics only. */
-  label?: string;
-  /** Absolute shell executable path in host OS path syntax. */
-  path: string;
-  /** Shell syntax and cwd capture dialect used by this shell. */
-  dialect: ExecutionShellDialect;
-  /** Current supported source. Future callers may add internal test/runtime sources explicitly. */
-  source: "user-config";
+    /**
+     * Stable id from settings/UI. Adapter must not parse semantics from this field.
+     */
+    id?: string;
+    /** Human-readable label for diagnostics only. */
+    label?: string;
+    /** Absolute shell executable path in host OS path syntax. */
+    path: string;
+    /** Shell syntax and cwd capture dialect used by this shell. */
+    dialect: ExecutionShellDialect;
+    /** Current supported source. Future callers may add internal test/runtime sources explicitly. */
+    source: "user-config";
 }
 ```
 
@@ -511,53 +511,53 @@ pnpm --filter @zcode/contracts typecheck
 
 ```ts
 it("resolves Windows Git Bash from the default Program Files path for posix-bash", () => {
-  const resolved = resolveExecutionCommand(
-    {
-      mode: "shell",
-      command: "printf 'ok\\n'",
-      shellProfile: "posix-bash",
-    },
-    {
-      env: {
-        COMSPEC: "C:\\Windows\\System32\\cmd.exe",
-        PATH: "C:\\Windows\\System32",
-      },
-      exists: (path) => path === "C:\\Program Files\\Git\\bin\\bash.exe",
-      platform: "win32",
-    },
-  );
+    const resolved = resolveExecutionCommand(
+        {
+            mode: "shell",
+            command: "printf 'ok\\n'",
+            shellProfile: "posix-bash",
+        },
+        {
+            env: {
+                COMSPEC: "C:\\Windows\\System32\\cmd.exe",
+                PATH: "C:\\Windows\\System32",
+            },
+            exists: (path) => path === "C:\\Program Files\\Git\\bin\\bash.exe",
+            platform: "win32",
+        },
+    );
 
-  expect(resolved).toMatchObject({
-    args: ["-c", "-l", expect.any(String)],
-    cwdDialect: "git-bash",
-    file: "C:\\Program Files\\Git\\bin\\bash.exe",
-    shell: false,
-  });
+    expect(resolved).toMatchObject({
+        args: ["-c", "-l", expect.any(String)],
+        cwdDialect: "git-bash",
+        file: "C:\\Program Files\\Git\\bin\\bash.exe",
+        shell: false,
+    });
 });
 
 it("falls back to ComSpec when Windows Git Bash cannot be resolved", () => {
-  const resolved = resolveExecutionCommand(
-    {
-      mode: "shell",
-      command: "dir",
-      shellProfile: "posix-bash",
-    },
-    {
-      env: {
-        COMSPEC: "C:\\Windows\\System32\\cmd.exe",
-        PATH: "C:\\tools",
-      },
-      exists: () => false,
-      platform: "win32",
-    },
-  );
+    const resolved = resolveExecutionCommand(
+        {
+            mode: "shell",
+            command: "dir",
+            shellProfile: "posix-bash",
+        },
+        {
+            env: {
+                COMSPEC: "C:\\Windows\\System32\\cmd.exe",
+                PATH: "C:\\tools",
+            },
+            exists: () => false,
+            platform: "win32",
+        },
+    );
 
-  expect(resolved).toEqual({
-    args: [],
-    cwdDialect: "cmd",
-    file: "dir",
-    shell: "C:\\Windows\\System32\\cmd.exe",
-  });
+    expect(resolved).toEqual({
+        args: [],
+        cwdDialect: "cmd",
+        file: "dir",
+        shell: "C:\\Windows\\System32\\cmd.exe",
+    });
 });
 ```
 
@@ -597,11 +597,11 @@ pnpm --filter @zcode/adapters test -- --run tests/exec.test.ts -t "Windows Git B
 
 ```ts
 export interface BashShellProvider {
-  dialect: ExecutionShellDialect;
-  envOverlay?: Record<string, string>;
-  file: string;
-  getSpawnArgs(command: string): string[];
-  shell: boolean | string;
+    dialect: ExecutionShellDialect;
+    envOverlay?: Record<string, string>;
+    file: string;
+    getSpawnArgs(command: string): string[];
+    shell: boolean | string;
 }
 ```
 
@@ -609,11 +609,11 @@ export interface BashShellProvider {
 
 ```ts
 export interface ResolvedSpawnCommand {
-  args: string[];
-  cwdDialect: ExecutionShellDialect;
-  envOverlay?: Record<string, string>;
-  file: string;
-  shell: boolean | string;
+    args: string[];
+    cwdDialect: ExecutionShellDialect;
+    envOverlay?: Record<string, string>;
+    file: string;
+    shell: boolean | string;
 }
 ```
 
@@ -623,27 +623,27 @@ export interface ResolvedSpawnCommand {
 
 ```ts
 const WINDOWS_GIT_BASH_PATHS = [
-  "C:\\Program Files\\Git\\bin\\bash.exe",
-  "C:\\Program Files (x86)\\Git\\bin\\bash.exe",
+    "C:\\Program Files\\Git\\bin\\bash.exe",
+    "C:\\Program Files (x86)\\Git\\bin\\bash.exe",
 ] as const;
 
 export function resolveWindowsGitBashShell(
-  env: NodeJS.ProcessEnv,
-  exists?: ExecutableCheck,
+    env: NodeJS.ProcessEnv,
+    exists?: ExecutableCheck,
 ): string | undefined {
-  for (const candidate of WINDOWS_GIT_BASH_PATHS) {
-    if (isExecutableCandidate(candidate, exists)) return candidate;
-  }
+    for (const candidate of WINDOWS_GIT_BASH_PATHS) {
+        if (isExecutableCandidate(candidate, exists)) return candidate;
+    }
 
-  const gitExe = windowsExecutableCandidates("git", env).find((candidate) =>
-    isExecutableCandidate(candidate, exists),
-  );
-  if (!gitExe) return undefined;
+    const gitExe = windowsExecutableCandidates("git", env).find((candidate) =>
+        isExecutableCandidate(candidate, exists),
+    );
+    if (!gitExe) return undefined;
 
-  const inferred = win32.normalize(
-    win32.join(win32.dirname(gitExe), "..", "..", "bin", "bash.exe"),
-  );
-  return isExecutableCandidate(inferred, exists) ? inferred : undefined;
+    const inferred = win32.normalize(
+        win32.join(win32.dirname(gitExe), "..", "..", "bin", "bash.exe"),
+    );
+    return isExecutableCandidate(inferred, exists) ? inferred : undefined;
 }
 ```
 
@@ -655,28 +655,28 @@ export function resolveWindowsGitBashShell(
 
 ```ts
 export function windowsPathToGitBashPath(value: string): string {
-  if (value.startsWith("\\\\")) return value.replaceAll("\\", "/");
-  const driveMatch = value.match(/^([A-Za-z]):[/\\]?/u);
-  if (driveMatch) {
-    const rest = value.slice(2).replaceAll("\\", "/");
-    return `/${driveMatch[1]!.toLowerCase()}${rest.startsWith("/") ? rest : `/${rest}`}`;
-  }
-  return value.replaceAll("\\", "/");
+    if (value.startsWith("\\\\")) return value.replaceAll("\\", "/");
+    const driveMatch = value.match(/^([A-Za-z]):[/\\]?/u);
+    if (driveMatch) {
+        const rest = value.slice(2).replaceAll("\\", "/");
+        return `/${driveMatch[1]!.toLowerCase()}${rest.startsWith("/") ? rest : `/${rest}`}`;
+    }
+    return value.replaceAll("\\", "/");
 }
 
 export function gitBashPathToWindowsPath(value: string): string {
-  if (value.startsWith("//")) return value.replaceAll("/", "\\");
-  const cygdrive = value.match(/^\/cygdrive\/([A-Za-z])(\/|$)/u);
-  if (cygdrive) {
-    const rest = value.slice(`/cygdrive/${cygdrive[1]}`.length).replaceAll("/", "\\");
-    return `${cygdrive[1]!.toUpperCase()}:${rest || "\\"}`;
-  }
-  const drive = value.match(/^\/([A-Za-z])(\/|$)/u);
-  if (drive) {
-    const rest = value.slice(2).replaceAll("/", "\\");
-    return `${drive[1]!.toUpperCase()}:\\${rest}`;
-  }
-  return value.replaceAll("/", "\\");
+    if (value.startsWith("//")) return value.replaceAll("/", "\\");
+    const cygdrive = value.match(/^\/cygdrive\/([A-Za-z])(\/|$)/u);
+    if (cygdrive) {
+        const rest = value.slice(`/cygdrive/${cygdrive[1]}`.length).replaceAll("/", "\\");
+        return `${cygdrive[1]!.toUpperCase()}:${rest || "\\"}`;
+    }
+    const drive = value.match(/^\/([A-Za-z])(\/|$)/u);
+    if (drive) {
+        const rest = value.slice(2).replaceAll("/", "\\");
+        return `${drive[1]!.toUpperCase()}:\\${rest}`;
+    }
+    return value.replaceAll("/", "\\");
 }
 ```
 
@@ -686,18 +686,21 @@ export function gitBashPathToWindowsPath(value: string): string {
 
 ```ts
 function resolveWindowsBashShellProvider(options: {
-  env: NodeJS.ProcessEnv;
-  exists?: ExecutableCheck;
-  override?: ExecutionShellOverride;
+    env: NodeJS.ProcessEnv;
+    exists?: ExecutableCheck;
+    override?: ExecutionShellOverride;
 }): BashShellProvider | undefined {
-  const override = options.override;
-  if (override?.source === "user-config" && isExecutableCandidate(override.path, options.exists)) {
-    if (override.dialect === "git-bash") return createGitBashProvider(override.path);
-    if (override.dialect === "cmd") return createWindowsCmdProvider(options.env, override.path);
-  }
+    const override = options.override;
+    if (
+        override?.source === "user-config" &&
+        isExecutableCandidate(override.path, options.exists)
+    ) {
+        if (override.dialect === "git-bash") return createGitBashProvider(override.path);
+        if (override.dialect === "cmd") return createWindowsCmdProvider(options.env, override.path);
+    }
 
-  const gitBash = resolveWindowsGitBashShell(options.env, options.exists);
-  return gitBash ? createGitBashProvider(gitBash) : undefined;
+    const gitBash = resolveWindowsGitBashShell(options.env, options.exists);
+    return gitBash ? createGitBashProvider(gitBash) : undefined;
 }
 ```
 
@@ -727,11 +730,11 @@ pnpm --filter @zcode/adapters test -- --run tests/exec.test.ts -t "Windows Git B
 
 ```ts
 export function createCwdCapturePlan(
-  request: ExecutionRequest,
-  options: {
-    dialect: ExecutionShellDialect;
-    platform: NodeJS.Platform;
-  },
+    request: ExecutionRequest,
+    options: {
+        dialect: ExecutionShellDialect;
+        platform: NodeJS.Platform;
+    },
 ): CwdCapturePlan;
 ```
 
@@ -741,12 +744,12 @@ export function createCwdCapturePlan(
 
 ```ts
 const wrappedCommand =
-  options.dialect === "cmd"
-    ? createWindowsCmdCwdCaptureCommand(request.command.command, cwdFilePath)
-    : createPosixCwdCaptureCommand(
-        request.command.command,
-        options.dialect === "git-bash" ? windowsPathToGitBashPath(cwdFilePath) : cwdFilePath,
-      );
+    options.dialect === "cmd"
+        ? createWindowsCmdCwdCaptureCommand(request.command.command, cwdFilePath)
+        : createPosixCwdCaptureCommand(
+              request.command.command,
+              options.dialect === "git-bash" ? windowsPathToGitBashPath(cwdFilePath) : cwdFilePath,
+          );
 ```
 
 - [ ] **Step 3: Git Bash readback path 转回 Windows path**
@@ -755,8 +758,8 @@ const wrappedCommand =
 
 ```ts
 export function readCapturedCwd(
-  cwdFilePath: string | undefined,
-  options: { dialect: ExecutionShellDialect },
+    cwdFilePath: string | undefined,
+    options: { dialect: ExecutionShellDialect },
 ): string | undefined;
 ```
 
@@ -795,21 +798,21 @@ const spawnCommand =
 
 ```ts
 it("uses POSIX cwd capture syntax for Windows Git Bash", () => {
-  const plan = createCwdCapturePlan(
-    {
-      command: {
-        mode: "shell",
-        command: "cd subdir",
-        shellProfile: "posix-bash",
-      },
-      captureCwdAfterSuccess: true,
-    },
-    { dialect: "git-bash", platform: "win32" },
-  );
+    const plan = createCwdCapturePlan(
+        {
+            command: {
+                mode: "shell",
+                command: "cd subdir",
+                shellProfile: "posix-bash",
+            },
+            captureCwdAfterSuccess: true,
+        },
+        { dialect: "git-bash", platform: "win32" },
+    );
 
-  expect(plan.command.command).toContain("__zcode_status=$?");
-  expect(plan.command.command).toContain("pwd -P >");
-  expect(plan.command.command).not.toContain("%ERRORLEVEL%");
+    expect(plan.command.command).toContain("__zcode_status=$?");
+    expect(plan.command.command).toContain("pwd -P >");
+    expect(plan.command.command).not.toContain("%ERRORLEVEL%");
 });
 ```
 
@@ -842,36 +845,36 @@ pnpm --filter @zcode/adapters test -- --run tests/exec.test.ts -t "cwd capture"
 
 ```ts
 it("keeps generic Windows shell commands on the legacy shell path", () => {
-  const resolved = resolveExecutionCommand(
-    {
-      mode: "shell",
-      command: "dir",
-      shellOverride: {
-        dialect: "git-bash",
-        id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
-        label: "Git Bash",
-        path: "C:\\Program Files\\Git\\bin\\bash.exe",
-        source: "user-config",
-      },
-    },
-    {
-      env: {
-        COMSPEC: "C:\\Windows\\System32\\cmd.exe",
-        SHELL: "C:\\Program Files\\Git\\bin\\bash.exe",
-      },
-      exists: () => {
-        throw new Error("Git Bash resolver should not run without shellProfile");
-      },
-      platform: "win32",
-    },
-  );
+    const resolved = resolveExecutionCommand(
+        {
+            mode: "shell",
+            command: "dir",
+            shellOverride: {
+                dialect: "git-bash",
+                id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
+                label: "Git Bash",
+                path: "C:\\Program Files\\Git\\bin\\bash.exe",
+                source: "user-config",
+            },
+        },
+        {
+            env: {
+                COMSPEC: "C:\\Windows\\System32\\cmd.exe",
+                SHELL: "C:\\Program Files\\Git\\bin\\bash.exe",
+            },
+            exists: () => {
+                throw new Error("Git Bash resolver should not run without shellProfile");
+            },
+            platform: "win32",
+        },
+    );
 
-  expect(resolved).toEqual({
-    args: [],
-    cwdDialect: "cmd",
-    file: "dir",
-    shell: "C:\\Windows\\System32\\cmd.exe",
-  });
+    expect(resolved).toEqual({
+        args: [],
+        cwdDialect: "cmd",
+        file: "dir",
+        shell: "C:\\Windows\\System32\\cmd.exe",
+    });
 });
 ```
 
@@ -899,22 +902,22 @@ pnpm --filter @zcode/adapters test -- --run tests/exec.test.ts -t "Windows .exe"
 
 ```ts
 it.skipIf(process.platform !== "win32" || !hasGitBash())(
-  "runs Bash syntax through Git Bash on Windows",
-  async () => {
-    const adapter = createNodeExecutionAdapter();
-    const result = await adapter.run({
-      command: {
-        mode: "shell",
-        shellProfile: "posix-bash",
-        command: "arr=(a b); printf 'array=%s\\n' \"${arr[1]}\"",
-      },
-      captureCwdAfterSuccess: true,
-      timeoutMs: 5000,
-    });
+    "runs Bash syntax through Git Bash on Windows",
+    async () => {
+        const adapter = createNodeExecutionAdapter();
+        const result = await adapter.run({
+            command: {
+                mode: "shell",
+                shellProfile: "posix-bash",
+                command: "arr=(a b); printf 'array=%s\\n' \"${arr[1]}\"",
+            },
+            captureCwdAfterSuccess: true,
+            timeoutMs: 5000,
+        });
 
-    expect(result.status).toBe("completed");
-    expect(result.stdout.text).toContain("array=b");
-  },
+        expect(result.status).toBe("completed");
+        expect(result.stdout.text).toContain("array=b");
+    },
 );
 ```
 
@@ -924,10 +927,10 @@ it.skipIf(process.platform !== "win32" || !hasGitBash())(
 
 ```ts
 expect(resolveExecutionCommand(dirCommand, existsAlwaysFalseWindowsOptions)).toEqual({
-  args: [],
-  cwdDialect: "cmd",
-  file: "dir",
-  shell: "C:\\Windows\\System32\\cmd.exe",
+    args: [],
+    cwdDialect: "cmd",
+    file: "dir",
+    shell: "C:\\Windows\\System32\\cmd.exe",
 });
 ```
 
@@ -1009,16 +1012,16 @@ pnpm typecheck
 export type IntegratedTerminalShellDialect = "cmd" | "git-bash";
 
 export type IntegratedTerminalShellSelection =
-  | {
-      mode: "auto";
-    }
-  | {
-      mode: "shell";
-      dialect: IntegratedTerminalShellDialect;
-      id: string;
-      label: string;
-      path: string;
-    };
+    | {
+          mode: "auto";
+      }
+    | {
+          mode: "shell";
+          dialect: IntegratedTerminalShellDialect;
+          id: string;
+          label: string;
+          path: string;
+      };
 ```
 
 在 `AppSettings` 增加：
@@ -1034,16 +1037,16 @@ export type IntegratedTerminalShellSelection =
 
 ```ts
 const integratedTerminalShellSchema = z.union([
-  z.object({
-    mode: z.literal("auto"),
-  }),
-  z.object({
-    mode: z.literal("shell"),
-    dialect: z.enum(["cmd", "git-bash"]),
-    id: z.string().trim().min(1),
-    label: z.string().trim().min(1),
-    path: z.string().trim().min(1),
-  }),
+    z.object({
+        mode: z.literal("auto"),
+    }),
+    z.object({
+        mode: z.literal("shell"),
+        dialect: z.enum(["cmd", "git-bash"]),
+        id: z.string().trim().min(1),
+        label: z.string().trim().min(1),
+        path: z.string().trim().min(1),
+    }),
 ]);
 ```
 
@@ -1067,10 +1070,10 @@ const integratedTerminalShellSchema = z.union([
 
 ```ts
 if (
-  "integratedTerminalShell" in normalizedPatch &&
-  normalizedPatch.integratedTerminalShell?.mode === "auto"
+    "integratedTerminalShell" in normalizedPatch &&
+    normalizedPatch.integratedTerminalShell?.mode === "auto"
 ) {
-  normalizedPatch.integratedTerminalShell = undefined;
+    normalizedPatch.integratedTerminalShell = undefined;
 }
 ```
 
@@ -1080,20 +1083,20 @@ if (
 
 ```ts
 it("normalizes integrated terminal shell auto selection back to default", async () => {
-  const service = createSettingServiceForTest();
-  await service.update({
-    integratedTerminalShell: {
-      dialect: "git-bash",
-      id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
-      label: "Git Bash",
-      mode: "shell",
-      path: "C:\\Program Files\\Git\\bin\\bash.exe",
-    },
-  });
-  await service.update({ integratedTerminalShell: { mode: "auto" } });
+    const service = createSettingServiceForTest();
+    await service.update({
+        integratedTerminalShell: {
+            dialect: "git-bash",
+            id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
+            label: "Git Bash",
+            mode: "shell",
+            path: "C:\\Program Files\\Git\\bin\\bash.exe",
+        },
+    });
+    await service.update({ integratedTerminalShell: { mode: "auto" } });
 
-  const settings = await service.get();
-  expect(settings.integratedTerminalShell).toBeUndefined();
+    const settings = await service.get();
+    expect(settings.integratedTerminalShell).toBeUndefined();
 });
 ```
 
@@ -1112,11 +1115,11 @@ it("normalizes integrated terminal shell auto selection back to default", async 
 
 ```ts
 export interface IntegratedTerminalShellOption {
-  dialect: IntegratedTerminalShellDialect;
-  id: string;
-  label: string;
-  path: string;
-  source: "system" | "path";
+    dialect: IntegratedTerminalShellDialect;
+    id: string;
+    label: string;
+    path: string;
+    source: "system" | "path";
 }
 ```
 
@@ -1135,21 +1138,21 @@ export interface IntegratedTerminalShellOption {
 ```ts
 const options: IntegratedTerminalShellOption[] = [];
 options.push({
-  dialect: "cmd",
-  id: `cmd:${process.env.ComSpec ?? "cmd.exe"}`,
-  label: "CMD",
-  path: process.env.ComSpec ?? "cmd.exe",
-  source: "system",
+    dialect: "cmd",
+    id: `cmd:${process.env.ComSpec ?? "cmd.exe"}`,
+    label: "CMD",
+    path: process.env.ComSpec ?? "cmd.exe",
+    source: "system",
 });
 const gitBash = resolveWindowsGitBashShell(process.env);
 if (gitBash) {
-  options.push({
-    dialect: "git-bash",
-    id: `git-bash:${gitBash}`,
-    label: "Git Bash",
-    path: gitBash,
-    source: "system",
-  });
+    options.push({
+        dialect: "git-bash",
+        id: `git-bash:${gitBash}`,
+        label: "Git Bash",
+        path: gitBash,
+        source: "system",
+    });
 }
 return dedupeShellOptions(options);
 ```
@@ -1166,31 +1169,31 @@ return [];
 
 ```ts
 it("lists Windows cmd and Git Bash shell options when Git Bash is detectable", async () => {
-  const service = createSystemService({
-    env: {
-      ComSpec: "C:\\Windows\\System32\\cmd.exe",
-      PATH: "C:\\Program Files\\Git\\cmd",
-    },
-    exists: (path) => path === "C:\\Program Files\\Git\\bin\\bash.exe",
-    platform: "win32",
-  });
+    const service = createSystemService({
+        env: {
+            ComSpec: "C:\\Windows\\System32\\cmd.exe",
+            PATH: "C:\\Program Files\\Git\\cmd",
+        },
+        exists: (path) => path === "C:\\Program Files\\Git\\bin\\bash.exe",
+        platform: "win32",
+    });
 
-  await expect(service.listIntegratedTerminalShells()).resolves.toEqual([
-    {
-      dialect: "cmd",
-      id: "cmd:C:\\Windows\\System32\\cmd.exe",
-      label: "CMD",
-      path: "C:\\Windows\\System32\\cmd.exe",
-      source: "system",
-    },
-    {
-      dialect: "git-bash",
-      id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
-      label: "Git Bash",
-      path: "C:\\Program Files\\Git\\bin\\bash.exe",
-      source: "system",
-    },
-  ]);
+    await expect(service.listIntegratedTerminalShells()).resolves.toEqual([
+        {
+            dialect: "cmd",
+            id: "cmd:C:\\Windows\\System32\\cmd.exe",
+            label: "CMD",
+            path: "C:\\Windows\\System32\\cmd.exe",
+            source: "system",
+        },
+        {
+            dialect: "git-bash",
+            id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
+            label: "Git Bash",
+            path: "C:\\Program Files\\Git\\bin\\bash.exe",
+            source: "system",
+        },
+    ]);
 });
 ```
 
@@ -1221,9 +1224,9 @@ sed -n '1,240p' DESIGN.md
 
 ```ts
 const [integratedTerminalShell, setIntegratedTerminalShell] =
-  useState<IntegratedTerminalShellSelection>({ mode: "auto" });
+    useState<IntegratedTerminalShellSelection>({ mode: "auto" });
 const [integratedTerminalShellOptions, setIntegratedTerminalShellOptions] = useState<
-  IntegratedTerminalShellOption[]
+    IntegratedTerminalShellOption[]
 >([]);
 ```
 
@@ -1237,10 +1240,10 @@ system info 是 Windows 时加载 options：
 
 ```ts
 if (info.platform === "win32") {
-  services.systemService
-    .listIntegratedTerminalShells()
-    .then(setIntegratedTerminalShellOptions)
-    .catch(() => setIntegratedTerminalShellOptions([]));
+    services.systemService
+        .listIntegratedTerminalShells()
+        .then(setIntegratedTerminalShellOptions)
+        .catch(() => setIntegratedTerminalShellOptions([]));
 }
 ```
 
@@ -1248,11 +1251,11 @@ if (info.platform === "win32") {
 
 ```ts
 const handleIntegratedTerminalShellChange = useCallback(
-  async (selection: IntegratedTerminalShellSelection) => {
-    await services.settingService.update({ integratedTerminalShell: selection });
-    setIntegratedTerminalShell(selection);
-  },
-  [services.settingService],
+    async (selection: IntegratedTerminalShellSelection) => {
+        await services.settingService.update({ integratedTerminalShell: selection });
+        setIntegratedTerminalShell(selection);
+    },
+    [services.settingService],
 );
 ```
 
@@ -1262,38 +1265,41 @@ const handleIntegratedTerminalShellChange = useCallback(
 
 ```tsx
 {
-  platform === "win32" ? (
-    <SettingsRow
-      label={intl.formatMessage({ id: "settings.integratedTerminalShell" })}
-      description={intl.formatMessage({
-        id: "settings.integratedTerminalShellDescription",
-      })}
-      control={
-        <Select
-          value={serializeIntegratedTerminalShellSelection(integratedTerminalShell)}
-          onValueChange={(value) => {
-            void onIntegratedTerminalShellChange(
-              parseIntegratedTerminalShellSelection(value, integratedTerminalShellOptions),
-            );
-          }}
-        >
-          <SelectTrigger size="lg" className="w-[260px] min-w-0 justify-between">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="auto">
-              {intl.formatMessage({ id: "settings.integratedTerminalShell.auto" })}
-            </SelectItem>
-            {integratedTerminalShellOptions.map((option) => (
-              <SelectItem key={option.id} value={option.id}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      }
-    />
-  ) : null;
+    platform === "win32" ? (
+        <SettingsRow
+            label={intl.formatMessage({ id: "settings.integratedTerminalShell" })}
+            description={intl.formatMessage({
+                id: "settings.integratedTerminalShellDescription",
+            })}
+            control={
+                <Select
+                    value={serializeIntegratedTerminalShellSelection(integratedTerminalShell)}
+                    onValueChange={(value) => {
+                        void onIntegratedTerminalShellChange(
+                            parseIntegratedTerminalShellSelection(
+                                value,
+                                integratedTerminalShellOptions,
+                            ),
+                        );
+                    }}
+                >
+                    <SelectTrigger size="lg" className="w-[260px] min-w-0 justify-between">
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="auto">
+                            {intl.formatMessage({ id: "settings.integratedTerminalShell.auto" })}
+                        </SelectItem>
+                        {integratedTerminalShellOptions.map((option) => (
+                            <SelectItem key={option.id} value={option.id}>
+                                {option.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+            }
+        />
+    ) : null;
 }
 ```
 
@@ -1301,26 +1307,26 @@ const handleIntegratedTerminalShellChange = useCallback(
 
 ```ts
 function serializeIntegratedTerminalShellSelection(
-  selection: IntegratedTerminalShellSelection,
+    selection: IntegratedTerminalShellSelection,
 ): string {
-  return selection.mode === "auto" ? "auto" : selection.id;
+    return selection.mode === "auto" ? "auto" : selection.id;
 }
 
 function parseIntegratedTerminalShellSelection(
-  value: string,
-  options: IntegratedTerminalShellOption[],
+    value: string,
+    options: IntegratedTerminalShellOption[],
 ): IntegratedTerminalShellSelection {
-  if (value === "auto") return { mode: "auto" };
-  const option = options.find((candidate) => candidate.id === value);
-  return option
-    ? {
-        dialect: option.dialect,
-        id: option.id,
-        label: option.label,
-        mode: "shell",
-        path: option.path,
-      }
-    : { mode: "auto" };
+    if (value === "auto") return { mode: "auto" };
+    const option = options.find((candidate) => candidate.id === value);
+    return option
+        ? {
+              dialect: option.dialect,
+              id: option.id,
+              label: option.label,
+              mode: "shell",
+              path: option.path,
+          }
+        : { mode: "auto" };
 }
 ```
 
@@ -1374,16 +1380,16 @@ function parseIntegratedTerminalShellSelection(
 
 ```ts
 function integratedTerminalShellToExecutionOverride(
-  selection: IntegratedTerminalShellSelection | undefined,
+    selection: IntegratedTerminalShellSelection | undefined,
 ): ExecutionShellOverride | undefined {
-  if (!selection || selection.mode === "auto") return undefined;
-  return {
-    dialect: selection.dialect,
-    id: selection.id,
-    label: selection.label,
-    path: selection.path,
-    source: "user-config",
-  };
+    if (!selection || selection.mode === "auto") return undefined;
+    return {
+        dialect: selection.dialect,
+        id: selection.id,
+        label: selection.label,
+        path: selection.path,
+        source: "user-config",
+    };
 }
 ```
 
@@ -1399,10 +1405,10 @@ Core 不直接依赖 `AppSettings` 或 UI/service 类型。`AgentRuntime` 通过
 
 ```ts
 const command: ExecutionCommand = {
-  mode: "shell",
-  command: input.command,
-  shellProfile: "posix-bash",
-  ...(context.bashShellOverride ? { shellOverride: context.bashShellOverride } : {}),
+    mode: "shell",
+    command: input.command,
+    shellProfile: "posix-bash",
+    ...(context.bashShellOverride ? { shellOverride: context.bashShellOverride } : {}),
 };
 ```
 
@@ -1412,36 +1418,36 @@ const command: ExecutionCommand = {
 
 ```ts
 it("passes user-configured integrated terminal shell into Bash execution request", async () => {
-  const execution = createMockExecutionPort();
-  const handler = createBashHandler({
-    execution,
-    settings: {
-      integratedTerminalShell: {
-        dialect: "git-bash",
-        id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
-        label: "Git Bash",
-        mode: "shell",
-        path: "C:\\Program Files\\Git\\bin\\bash.exe",
-      },
-    },
-  });
-
-  await handler.execute({ command: "printf 'ok\\n'" }, createToolContext());
-
-  expect(execution.run).toHaveBeenCalledWith(
-    expect.objectContaining({
-      command: expect.objectContaining({
-        shellOverride: {
-          dialect: "git-bash",
-          id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
-          label: "Git Bash",
-          path: "C:\\Program Files\\Git\\bin\\bash.exe",
-          source: "user-config",
+    const execution = createMockExecutionPort();
+    const handler = createBashHandler({
+        execution,
+        settings: {
+            integratedTerminalShell: {
+                dialect: "git-bash",
+                id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
+                label: "Git Bash",
+                mode: "shell",
+                path: "C:\\Program Files\\Git\\bin\\bash.exe",
+            },
         },
-      }),
-    }),
-    expect.anything(),
-  );
+    });
+
+    await handler.execute({ command: "printf 'ok\\n'" }, createToolContext());
+
+    expect(execution.run).toHaveBeenCalledWith(
+        expect.objectContaining({
+            command: expect.objectContaining({
+                shellOverride: {
+                    dialect: "git-bash",
+                    id: "git-bash:C:\\Program Files\\Git\\bin\\bash.exe",
+                    label: "Git Bash",
+                    path: "C:\\Program Files\\Git\\bin\\bash.exe",
+                    source: "user-config",
+                },
+            }),
+        }),
+        expect.anything(),
+    );
 });
 ```
 

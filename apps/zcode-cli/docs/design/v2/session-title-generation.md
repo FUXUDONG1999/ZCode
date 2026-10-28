@@ -37,12 +37,12 @@ ZCode 目前在首次持久化 session 时直接从用户输入截断得到 `ses
 type SessionTitleSource = "default" | "first_input" | "generated" | "custom";
 
 interface SessionInfo {
-  title: string;
-  titleSource?: SessionTitleSource;
-  titleMessageID?: MessageId;
-  time: {
-    titleUpdated?: number;
-  };
+    title: string;
+    titleSource?: SessionTitleSource;
+    titleMessageID?: MessageId;
+    time: {
+        titleUpdated?: number;
+    };
 }
 ```
 
@@ -58,10 +58,10 @@ SQLite `session` 表增加：
 
 ```ts
 interface UpdateSessionInput {
-  title?: string;
-  titleSource?: SessionTitleSource;
-  titleMessageID?: MessageId | null;
-  expectedTitleSources?: SessionTitleSource[];
+    title?: string;
+    titleSource?: SessionTitleSource;
+    titleMessageID?: MessageId | null;
+    expectedTitleSources?: SessionTitleSource[];
 }
 ```
 
@@ -143,11 +143,11 @@ provider options 与最终 provider/model 对齐；`model.lite` 没有配置时�
 
 ```ts
 interface SessionTitleUpdatedPayload {
-  messageID?: MessageId;
-  modelRef?: ModelRef;
-  previousTitle: string;
-  source: SessionTitleSource;
-  title: string;
+    messageID?: MessageId;
+    modelRef?: ModelRef;
+    previousTitle: string;
+    source: SessionTitleSource;
+    title: string;
 }
 ```
 

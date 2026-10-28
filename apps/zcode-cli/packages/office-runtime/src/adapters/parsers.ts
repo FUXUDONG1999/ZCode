@@ -9,14 +9,14 @@ import { parsePptx } from "#office/adapters/parse/pptx.ts"; // kind:pptx
 import { parseXlsx } from "#office/adapters/parse/xlsx.ts"; // kind:xlsx
 
 export type ParseFormat = (
-  bytes: Uint8Array,
-  path: string,
-  pdfAssets: PdfAssets,
+    bytes: Uint8Array,
+    path: string,
+    pdfAssets: PdfAssets,
 ) => Promise<ParsedDocument>;
 
 export const PARSERS: Partial<Record<DocKind, ParseFormat>> = {
-  docx: (bytes, path) => parseDocx(bytes, path), // kind:docx
-  pdf: (bytes, path, pdfAssets) => parsePdf(bytes, path, pdfAssets), // kind:pdf
-  pptx: (bytes, path) => parsePptx(bytes, path), // kind:pptx
-  xlsx: (bytes, path) => parseXlsx(bytes, path), // kind:xlsx
+    docx: (bytes, path) => parseDocx(bytes, path), // kind:docx
+    pdf: (bytes, path, pdfAssets) => parsePdf(bytes, path, pdfAssets), // kind:pdf
+    pptx: (bytes, path) => parsePptx(bytes, path), // kind:pptx
+    xlsx: (bytes, path) => parseXlsx(bytes, path), // kind:xlsx
 };

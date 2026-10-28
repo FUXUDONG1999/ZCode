@@ -8,13 +8,13 @@ import { refreshMcpOAuthTokensUnderLock } from "./oauth-refresh.js";
 type McpAuthorizationCodeOAuthConfig = Extract<McpOAuthConfig, { type: "authorization_code" }>;
 
 export interface CreateMcpOAuthTokenProviderInput {
-  config: McpAuthorizationCodeOAuthConfig;
-  credentialStore: SharedZCodeCredentialStore;
-  fetchFn?: FetchLike;
-  keyPrefix: string;
-  logger?: Logger;
-  serverName: string;
-  serverUrl: string;
+    config: McpAuthorizationCodeOAuthConfig;
+    credentialStore: SharedZCodeCredentialStore;
+    fetchFn?: FetchLike;
+    keyPrefix: string;
+    logger?: Logger;
+    serverName: string;
+    serverUrl: string;
 }
 
 /**
@@ -32,38 +32,38 @@ export interface CreateMcpOAuthTokenProviderInput {
  * 401 走 SDK 的 `handleOAuthUnauthorized()` → `auth()`，绕过 refresh 锁，并发刷新问题立即复发。
  */
 export function createMcpOAuthTokenProvider(input: CreateMcpOAuthTokenProviderInput): AuthProvider {
-  const refreshInput = {
-    credentialStore: input.credentialStore,
-    ...(input.fetchFn ? { fetchFn: input.fetchFn } : {}),
-    keyPrefix: input.keyPrefix,
-    ...(input.logger ? { logger: input.logger } : {}),
-    serverName: input.serverName,
-    serverUrl: input.serverUrl,
-    ...(input.config.clientId ? { staticClientId: input.config.clientId } : {}),
-  };
+    const refreshInput = {
+        credentialStore: input.credentialStore,
+        ...(input.fetchFn ? { fetchFn: input.fetchFn } : {}),
+        keyPrefix: input.keyPrefix,
+        ...(input.logger ? { logger: input.logger } : {}),
+        serverName: input.serverName,
+        serverUrl: input.serverUrl,
+        ...(input.config.clientId ? { staticClientId: input.config.clientId } : {}),
+    };
 
-  return {
-    async token(): Promise<string | undefined> {
-      const pair = await loadCredentialPair(input.credentialStore, input.keyPrefix);
-      // 没有 token 时返回 undefined：请求照发、拿到 401，再由 onUnauthorized 统一分类。
-      if (!pair?.tokens) return undefined;
-      if (!isCanonicalTokenNearExpiry(pair)) return pair.tokens.access_token;
-      // 临期主动刷新。没有 refresh token 就直接用现值撑到 401，不虚构刷新。
-      if (!pair.tokens.refresh_token) return pair.tokens.access_token;
-      return await refreshMcpOAuthTokensUnderLock({ ...refreshInput, reactive: false });
-    },
+    return {
+        async token(): Promise<string | undefined> {
+            const pair = await loadCredentialPair(input.credentialStore, input.keyPrefix);
+            // 没有 token 时返回 undefined：请求照发、拿到 401，再由 onUnauthorized 统一分类。
+            if (!pair?.tokens) return undefined;
+            if (!isCanonicalTokenNearExpiry(pair)) return pair.tokens.access_token;
+            // 临期主动刷新。没有 refresh token 就直接用现值撑到 401，不虚构刷新。
+            if (!pair.tokens.refresh_token) return pair.tokens.access_token;
+            return await refreshMcpOAuthTokensUnderLock({ ...refreshInput, reactive: false });
+        },
 
-    async onUnauthorized(): Promise<void> {
-      const pair = await loadCredentialPair(input.credentialStore, input.keyPrefix);
-      if (!pair?.tokens?.refresh_token) {
-        throw createInteractiveAuthorizationRequiredError({
-          reason: pair?.tokens ? "no_refresh_token" : "no_credentials",
-          serverName: input.serverName,
-        });
-      }
-      // 契约是「让下一次 token() 返回可用 token」，返回值本身被 SDK 忽略；刷新结果已发布到
-      // canonical，下一次 token() 会重新读取。
-      await refreshMcpOAuthTokensUnderLock({ ...refreshInput, reactive: true });
-    },
-  };
+        async onUnauthorized(): Promise<void> {
+            const pair = await loadCredentialPair(input.credentialStore, input.keyPrefix);
+            if (!pair?.tokens?.refresh_token) {
+                throw createInteractiveAuthorizationRequiredError({
+                    reason: pair?.tokens ? "no_refresh_token" : "no_credentials",
+                    serverName: input.serverName,
+                });
+            }
+            // 契约是「让下一次 token() 返回可用 token」，返回值本身被 SDK 忽略；刷新结果已发布到
+            // canonical，下一次 token() 会重新读取。
+            await refreshMcpOAuthTokensUnderLock({ ...refreshInput, reactive: true });
+        },
+    };
 }

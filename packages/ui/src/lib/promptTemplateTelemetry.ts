@@ -6,33 +6,33 @@ const PROMPT_TEMPLATE_EVENT_REGION = "app.session";
 const PROMPT_TEMPLATE_EVENT_TYPE = "ck";
 
 export interface PromptTemplateClickTelemetryParams {
-  templateId: string;
-  templateName: string;
-  templatePrompt: string;
+    templateId: string;
+    templateName: string;
+    templatePrompt: string;
 }
 
 export function buildPromptTemplateClickTelemetryPayload(
-  params: PromptTemplateClickTelemetryParams,
+    params: PromptTemplateClickTelemetryParams,
 ): TelemetryEventPayload {
-  return {
-    elementName: PROMPT_TEMPLATE_CLICK_EVENT_NAME,
-    eventRegion: PROMPT_TEMPLATE_EVENT_REGION,
-    eventType: PROMPT_TEMPLATE_EVENT_TYPE,
-    eventText: params.templateName,
-    eventExtraDetail: {
-      template_id: params.templateId,
-      template_prompt: params.templatePrompt,
-    },
-  };
+    return {
+        elementName: PROMPT_TEMPLATE_CLICK_EVENT_NAME,
+        eventRegion: PROMPT_TEMPLATE_EVENT_REGION,
+        eventType: PROMPT_TEMPLATE_EVENT_TYPE,
+        eventText: params.templateName,
+        eventExtraDetail: {
+            template_id: params.templateId,
+            template_prompt: params.templatePrompt,
+        },
+    };
 }
 
 export function reportPromptTemplateClick(
-  platform: Pick<IPlatformService, "reportTelemetryEvent">,
-  params: PromptTemplateClickTelemetryParams,
+    platform: Pick<IPlatformService, "reportTelemetryEvent">,
+    params: PromptTemplateClickTelemetryParams,
 ): Promise<void> {
-  return reportAppTelemetryEvent(
-    platform,
-    buildPromptTemplateClickTelemetryPayload(params),
-    "prompt-template-telemetry",
-  );
+    return reportAppTelemetryEvent(
+        platform,
+        buildPromptTemplateClickTelemetryPayload(params),
+        "prompt-template-telemetry",
+    );
 }

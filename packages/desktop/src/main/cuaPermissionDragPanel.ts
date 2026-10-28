@@ -21,46 +21,46 @@ import { resolvePanelBounds, type PanelSize, type Rect } from "./cuaPermissionPa
 
 /** 浮窗需要的最小窗口能力面，便于测试替身实现。 */
 export interface CuaPermissionPanelWindow {
-  onceReadyToShow(callback: () => void): void;
-  setBounds(bounds: Rect): void;
-  showInactive(): void;
-  hide(): void;
-  destroy(): void;
-  isDestroyed(): boolean;
-  send(channel: string, payload: unknown): void;
+    onceReadyToShow(callback: () => void): void;
+    setBounds(bounds: Rect): void;
+    showInactive(): void;
+    hide(): void;
+    destroy(): void;
+    isDestroyed(): boolean;
+    send(channel: string, payload: unknown): void;
 }
 
 export interface CreateCuaPermissionDragPanelOptions {
-  createWindow: (initialBounds: Rect) => CuaPermissionPanelWindow;
-  getDisplayWorkArea: () => Rect;
-  /** 系统设置窗口 bounds 数据源；缺失或抛错时 fail-open 到屏幕底部。 */
-  getSettingsBounds?: () => Rect | null;
-  /** 释放上述数据源（通常是 kill 掉常驻子进程）。 */
-  stopSettingsBounds?: () => void;
-  /** 浮窗 tile 显示的应用图标（data URL）。缺省时页面回退到内置占位图形。 */
-  getIconDataUrl?: () => string | null;
-  /** ZCode 当前界面语言。每次 show 都重新读取，禁止浮窗自行猜测系统语言。 */
-  getLocale: () => Locale;
-  logger: {
-    info: (...args: unknown[]) => void;
-    warn: (...args: unknown[]) => void;
-  };
-  panelSize?: PanelSize;
-  repositionIntervalMs?: number;
+    createWindow: (initialBounds: Rect) => CuaPermissionPanelWindow;
+    getDisplayWorkArea: () => Rect;
+    /** 系统设置窗口 bounds 数据源；缺失或抛错时 fail-open 到屏幕底部。 */
+    getSettingsBounds?: () => Rect | null;
+    /** 释放上述数据源（通常是 kill 掉常驻子进程）。 */
+    stopSettingsBounds?: () => void;
+    /** 浮窗 tile 显示的应用图标（data URL）。缺省时页面回退到内置占位图形。 */
+    getIconDataUrl?: () => string | null;
+    /** ZCode 当前界面语言。每次 show 都重新读取，禁止浮窗自行猜测系统语言。 */
+    getLocale: () => Locale;
+    logger: {
+        info: (...args: unknown[]) => void;
+        warn: (...args: unknown[]) => void;
+    };
+    panelSize?: PanelSize;
+    repositionIntervalMs?: number;
 }
 
 export interface CuaPermissionDragPanel {
-  show(permission: CuaPermissionKind): void;
-  /**
-   * 停止位置跟踪但保持窗口可见可拖。
-   *
-   * 拖拽落地后系统设置会弹一个模态提示（"…may not be able to record…"），继续跟踪会让浮窗
-   * 追着提示框跑、把自己塞到它下面。拖过一次之后位置就该定住 —— 此时用户注意力已在系统设置上，
-   * 浮窗再动只会干扰。下一个权限阶段 `show()` 时会自动恢复跟踪。
-   */
-  freezePosition(): void;
-  hide(): void;
-  destroy(): void;
+    show(permission: CuaPermissionKind): void;
+    /**
+     * 停止位置跟踪但保持窗口可见可拖。
+     *
+     * 拖拽落地后系统设置会弹一个模态提示（"…may not be able to record…"），继续跟踪会让浮窗
+     * 追着提示框跑、把自己塞到它下面。拖过一次之后位置就该定住 —— 此时用户注意力已在系统设置上，
+     * 浮窗再动只会干扰。下一个权限阶段 `show()` 时会自动恢复跟踪。
+     */
+    freezePosition(): void;
+    hide(): void;
+    destroy(): void;
 }
 
 export const CUA_PERMISSION_PANEL_STATE_CHANNEL = "zcode:cua-permission-panel-state";
@@ -70,117 +70,119 @@ const DEFAULT_PANEL_SIZE: PanelSize = { width: 560, height: 124 };
 const DEFAULT_REPOSITION_INTERVAL_MS = 150;
 
 export function createCuaPermissionDragPanel(
-  options: CreateCuaPermissionDragPanelOptions,
+    options: CreateCuaPermissionDragPanelOptions,
 ): CuaPermissionDragPanel {
-  const panelSize = options.panelSize ?? DEFAULT_PANEL_SIZE;
-  const intervalMs = options.repositionIntervalMs ?? DEFAULT_REPOSITION_INTERVAL_MS;
+    const panelSize = options.panelSize ?? DEFAULT_PANEL_SIZE;
+    const intervalMs = options.repositionIntervalMs ?? DEFAULT_REPOSITION_INTERVAL_MS;
 
-  let window: CuaPermissionPanelWindow | null = null;
-  let timer: NodeJS.Timeout | null = null;
-  let lastBounds: Rect | null = null;
-  let destroyed = false;
+    let window: CuaPermissionPanelWindow | null = null;
+    let timer: NodeJS.Timeout | null = null;
+    let lastBounds: Rect | null = null;
+    let destroyed = false;
 
-  function readSettingsBounds(): Rect | null {
-    if (!options.getSettingsBounds) return null;
-    try {
-      return options.getSettingsBounds();
-    } catch (error) {
-      // fail-open：吸附只是观感增强，数据源出问题绝不能让授权引导挂掉。
-      options.logger.warn(
-        "[cua-permission-panel] settings bounds source failed; falling back to screen bottom",
-        error instanceof Error ? error.message : String(error),
-      );
-      return null;
+    function readSettingsBounds(): Rect | null {
+        if (!options.getSettingsBounds) return null;
+        try {
+            return options.getSettingsBounds();
+        } catch (error) {
+            // fail-open：吸附只是观感增强，数据源出问题绝不能让授权引导挂掉。
+            options.logger.warn(
+                "[cua-permission-panel] settings bounds source failed; falling back to screen bottom",
+                error instanceof Error ? error.message : String(error),
+            );
+            return null;
+        }
     }
-  }
 
-  function sameRect(a: Rect | null, b: Rect): boolean {
-    return a !== null && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
-  }
+    function sameRect(a: Rect | null, b: Rect): boolean {
+        return (
+            a !== null && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height
+        );
+    }
 
-  function reposition(): void {
-    if (!window || window.isDestroyed()) return;
-    const bounds = resolvePanelBounds({
-      settings: readSettingsBounds(),
-      display: options.getDisplayWorkArea(),
-      panel: panelSize,
-    });
-    // 每 tick 都 setBounds 会造成可见抖动，只在目标矩形真的变化时移动。
-    if (sameRect(lastBounds, bounds)) return;
-    lastBounds = bounds;
-    window.setBounds(bounds);
-  }
-
-  function startTracking(): void {
-    if (timer) return;
-    timer = setInterval(reposition, intervalMs);
-    // 定位跟踪绝不该阻止进程退出。
-    timer.unref?.();
-  }
-
-  function stopTracking(): void {
-    if (!timer) return;
-    clearInterval(timer);
-    timer = null;
-  }
-
-  return {
-    show(permission: CuaPermissionKind): void {
-      if (destroyed) destroyed = false;
-      const initialBounds = resolvePanelBounds({
-        settings: readSettingsBounds(),
-        display: options.getDisplayWorkArea(),
-        panel: panelSize,
-      });
-      lastBounds = initialBounds;
-
-      if (!window || window.isDestroyed()) {
-        window = options.createWindow(initialBounds);
-        window.onceReadyToShow(() => {
-          if (!window || window.isDestroyed()) return;
-          window.setBounds(lastBounds ?? initialBounds);
-          // 浮窗是独立静态 renderer，不在主 React Intl 树内；不传 locale 的话
-          // 英文 ZCode 也会显示硬编码中文。先发当前 locale 再显示，避免中文 fallback 闪屏。
-          window.send(CUA_PERMISSION_PANEL_STATE_CHANNEL, {
-            permission,
-            locale: options.getLocale(),
-            iconDataUrl: options.getIconDataUrl?.() ?? null,
-          });
-          window.showInactive();
-          startTracking();
+    function reposition(): void {
+        if (!window || window.isDestroyed()) return;
+        const bounds = resolvePanelBounds({
+            settings: readSettingsBounds(),
+            display: options.getDisplayWorkArea(),
+            panel: panelSize,
         });
-        return;
-      }
+        // 每 tick 都 setBounds 会造成可见抖动，只在目标矩形真的变化时移动。
+        if (sameRect(lastBounds, bounds)) return;
+        lastBounds = bounds;
+        window.setBounds(bounds);
+    }
 
-      window.setBounds(initialBounds);
-      window.send(CUA_PERMISSION_PANEL_STATE_CHANNEL, {
-        permission,
-        locale: options.getLocale(),
-        iconDataUrl: options.getIconDataUrl?.() ?? null,
-      });
-      window.showInactive();
-      startTracking();
-    },
+    function startTracking(): void {
+        if (timer) return;
+        timer = setInterval(reposition, intervalMs);
+        // 定位跟踪绝不该阻止进程退出。
+        timer.unref?.();
+    }
 
-    hide(): void {
-      stopTracking();
-      if (window && !window.isDestroyed()) window.hide();
-    },
+    function stopTracking(): void {
+        if (!timer) return;
+        clearInterval(timer);
+        timer = null;
+    }
 
-    freezePosition(): void {
-      stopTracking();
-    },
+    return {
+        show(permission: CuaPermissionKind): void {
+            if (destroyed) destroyed = false;
+            const initialBounds = resolvePanelBounds({
+                settings: readSettingsBounds(),
+                display: options.getDisplayWorkArea(),
+                panel: panelSize,
+            });
+            lastBounds = initialBounds;
 
-    destroy(): void {
-      if (destroyed) return;
-      destroyed = true;
-      stopTracking();
-      if (window && !window.isDestroyed()) window.destroy();
-      window = null;
-      lastBounds = null;
-      options.stopSettingsBounds?.();
-    },
-  };
+            if (!window || window.isDestroyed()) {
+                window = options.createWindow(initialBounds);
+                window.onceReadyToShow(() => {
+                    if (!window || window.isDestroyed()) return;
+                    window.setBounds(lastBounds ?? initialBounds);
+                    // 浮窗是独立静态 renderer，不在主 React Intl 树内；不传 locale 的话
+                    // 英文 ZCode 也会显示硬编码中文。先发当前 locale 再显示，避免中文 fallback 闪屏。
+                    window.send(CUA_PERMISSION_PANEL_STATE_CHANNEL, {
+                        permission,
+                        locale: options.getLocale(),
+                        iconDataUrl: options.getIconDataUrl?.() ?? null,
+                    });
+                    window.showInactive();
+                    startTracking();
+                });
+                return;
+            }
+
+            window.setBounds(initialBounds);
+            window.send(CUA_PERMISSION_PANEL_STATE_CHANNEL, {
+                permission,
+                locale: options.getLocale(),
+                iconDataUrl: options.getIconDataUrl?.() ?? null,
+            });
+            window.showInactive();
+            startTracking();
+        },
+
+        hide(): void {
+            stopTracking();
+            if (window && !window.isDestroyed()) window.hide();
+        },
+
+        freezePosition(): void {
+            stopTracking();
+        },
+
+        destroy(): void {
+            if (destroyed) return;
+            destroyed = true;
+            stopTracking();
+            if (window && !window.isDestroyed()) window.destroy();
+            window = null;
+            lastBounds = null;
+            options.stopSettingsBounds?.();
+        },
+    };
 }
 
 /**
@@ -201,65 +203,65 @@ export function createCuaPermissionDragPanel(
  * 换言之 focusable 管「窗口不拿焦点」，type:panel 管「app 不被激活」，缺任一半都会破功。
  */
 export function createRealCuaPermissionPanelWindow(deps: {
-  BrowserWindow: typeof import("electron").BrowserWindow;
-  app: Pick<typeof import("electron").app, "isPackaged">;
-  preloadPath: string;
-  rendererDir: string;
-  rendererDevUrl?: string | undefined;
+    BrowserWindow: typeof import("electron").BrowserWindow;
+    app: Pick<typeof import("electron").app, "isPackaged">;
+    preloadPath: string;
+    rendererDir: string;
+    rendererDevUrl?: string | undefined;
 }): (initialBounds: Rect) => CuaPermissionPanelWindow {
-  return (initialBounds: Rect) => {
-    const win = new deps.BrowserWindow({
-      ...initialBounds,
-      // macOS: NSPanel with NSWindowStyleMaskNonactivatingPanel —— 见上方注释，
-      // 这是「点击浮窗不把系统设置踢到后台」的必要条件。
-      type: "panel",
-      frame: false,
-      transparent: true,
-      hasShadow: true,
-      resizable: false,
-      movable: false,
-      minimizable: false,
-      maximizable: false,
-      fullscreenable: false,
-      focusable: false,
-      skipTaskbar: true,
-      show: false,
-      webPreferences: {
-        preload: deps.preloadPath,
-        contextIsolation: true,
-        nodeIntegration: false,
-      },
-    });
+    return (initialBounds: Rect) => {
+        const win = new deps.BrowserWindow({
+            ...initialBounds,
+            // macOS: NSPanel with NSWindowStyleMaskNonactivatingPanel —— 见上方注释，
+            // 这是「点击浮窗不把系统设置踢到后台」的必要条件。
+            type: "panel",
+            frame: false,
+            transparent: true,
+            hasShadow: true,
+            resizable: false,
+            movable: false,
+            minimizable: false,
+            maximizable: false,
+            fullscreenable: false,
+            focusable: false,
+            skipTaskbar: true,
+            show: false,
+            webPreferences: {
+                preload: deps.preloadPath,
+                contextIsolation: true,
+                nodeIntegration: false,
+            },
+        });
 
-    // 与主窗口保持一致：生产包始终加载签名包内的渲染资源。
-    if (!deps.app.isPackaged && deps.rendererDevUrl) {
-      void win.loadURL(`${deps.rendererDevUrl}/cua-permission-panel.html`);
-    } else {
-      void win.loadFile(`${deps.rendererDir}/cua-permission-panel.html`);
-    }
+        // 与主窗口保持一致：生产包始终加载签名包内的渲染资源。
+        if (!deps.app.isPackaged && deps.rendererDevUrl) {
+            void win.loadURL(`${deps.rendererDevUrl}/cua-permission-panel.html`);
+        } else {
+            void win.loadFile(`${deps.rendererDir}/cua-permission-panel.html`);
+        }
 
-    return {
-      onceReadyToShow(callback: () => void) {
-        win.once("ready-to-show", callback);
-      },
-      setBounds(bounds: Rect) {
-        win.setBounds(bounds);
-      },
-      showInactive() {
-        win.showInactive();
-        win.setAlwaysOnTop(true, "screen-saver");
-        win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-      },
-      hide() {
-        win.hide();
-      },
-      destroy() {
-        win.destroy();
-      },
-      isDestroyed: () => win.isDestroyed(),
-      send(channel: string, payload: unknown) {
-        if (!win.isDestroyed()) win.webContents.send(channel, payload);
-      },
+        return {
+            onceReadyToShow(callback: () => void) {
+                win.once("ready-to-show", callback);
+            },
+            setBounds(bounds: Rect) {
+                win.setBounds(bounds);
+            },
+            showInactive() {
+                win.showInactive();
+                win.setAlwaysOnTop(true, "screen-saver");
+                win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+            },
+            hide() {
+                win.hide();
+            },
+            destroy() {
+                win.destroy();
+            },
+            isDestroyed: () => win.isDestroyed(),
+            send(channel: string, payload: unknown) {
+                if (!win.isDestroyed()) win.webContents.send(channel, payload);
+            },
+        };
     };
-  };
 }

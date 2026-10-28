@@ -7,31 +7,31 @@ let pressed = false;
 let detachWindowListeners: (() => void) | null = null;
 
 function publish(next: boolean): void {
-  if (pressed === next) return;
-  pressed = next;
-  for (const listener of listeners) listener();
+    if (pressed === next) return;
+    pressed = next;
+    for (const listener of listeners) listener();
 }
 
 function attachWindowListeners(): () => void {
-  const syncModifier = (event: KeyboardEvent) => {
-    publish(
-      isPrimaryFollowupModifierPressed({
-        isApplePlatform: isAppleKeyboardPlatform(),
-        metaKey: event.metaKey,
-        ctrlKey: event.ctrlKey,
-      }),
-    );
-  };
-  const clearModifier = () => publish(false);
-  window.addEventListener("keydown", syncModifier);
-  window.addEventListener("keyup", syncModifier);
-  window.addEventListener("blur", clearModifier);
-  return () => {
-    window.removeEventListener("keydown", syncModifier);
-    window.removeEventListener("keyup", syncModifier);
-    window.removeEventListener("blur", clearModifier);
-    pressed = false;
-  };
+    const syncModifier = (event: KeyboardEvent) => {
+        publish(
+            isPrimaryFollowupModifierPressed({
+                isApplePlatform: isAppleKeyboardPlatform(),
+                metaKey: event.metaKey,
+                ctrlKey: event.ctrlKey,
+            }),
+        );
+    };
+    const clearModifier = () => publish(false);
+    window.addEventListener("keydown", syncModifier);
+    window.addEventListener("keyup", syncModifier);
+    window.addEventListener("blur", clearModifier);
+    return () => {
+        window.removeEventListener("keydown", syncModifier);
+        window.removeEventListener("keyup", syncModifier);
+        window.removeEventListener("blur", clearModifier);
+        pressed = false;
+    };
 }
 
 /**
@@ -39,27 +39,27 @@ function attachWindowListeners(): () => void {
  * 每个 Composer 各绑一套 keydown/keyup 会重复处理；这里用单一外部 store 广播瞬时状态。
  */
 export function subscribePrimaryFollowupModifier(listener: () => void): () => void {
-  listeners.add(listener);
-  if (!detachWindowListeners && typeof window !== "undefined") {
-    detachWindowListeners = attachWindowListeners();
-  }
-  return () => {
-    listeners.delete(listener);
-    if (listeners.size === 0 && detachWindowListeners) {
-      detachWindowListeners();
-      detachWindowListeners = null;
+    listeners.add(listener);
+    if (!detachWindowListeners && typeof window !== "undefined") {
+        detachWindowListeners = attachWindowListeners();
     }
-  };
+    return () => {
+        listeners.delete(listener);
+        if (listeners.size === 0 && detachWindowListeners) {
+            detachWindowListeners();
+            detachWindowListeners = null;
+        }
+    };
 }
 
 export function getPrimaryFollowupModifierSnapshot(): boolean {
-  return pressed;
+    return pressed;
 }
 
 export function usePrimaryFollowupModifier(): boolean {
-  return useSyncExternalStore(
-    subscribePrimaryFollowupModifier,
-    getPrimaryFollowupModifierSnapshot,
-    () => false,
-  );
+    return useSyncExternalStore(
+        subscribePrimaryFollowupModifier,
+        getPrimaryFollowupModifierSnapshot,
+        () => false,
+    );
 }

@@ -11,69 +11,69 @@ import { parseProviderQualifiedModelSelection } from "../../app/provider-registr
 import type { V4CommandCoreHost, V4SessionRecordView } from "./types.js";
 
 export class V4InputAdmissionRejectedError extends Error {
-  constructor(
-    readonly reasonCode: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = "V4InputAdmissionRejectedError";
-  }
+    constructor(
+        readonly reasonCode: string,
+        message: string,
+    ) {
+        super(message);
+        this.name = "V4InputAdmissionRejectedError";
+    }
 }
 
 /** V4 用户输入统一准入：正文或附件至少存在一个。 */
 export function hasPromptInput(text: string, attachments: readonly unknown[] | undefined): boolean {
-  return text.trim().length > 0 || Boolean(attachments && attachments.length > 0);
+    return text.trim().length > 0 || Boolean(attachments && attachments.length > 0);
 }
 
 /** held（inputRouting.mode=choice）下 sendText/sendGoalCommand 缺 disposition → 拒绝（10 §6.4）。 */
 export class V4HeldQueueDispositionRequiredError extends Error {
-  readonly reasonCode = "heldQueueDispositionRequired";
-  constructor() {
-    super("held queue requires heldQueueDisposition (clearQueueAndSend | keepQueueAndSend)");
-    this.name = "V4HeldQueueDispositionRequiredError";
-  }
+    readonly reasonCode = "heldQueueDispositionRequired";
+    constructor() {
+        super("held queue requires heldQueueDisposition (clearQueueAndSend | keepQueueAndSend)");
+        this.name = "V4HeldQueueDispositionRequiredError";
+    }
 }
 
 /** 确认框打开后队列被另一端增删：旧确认不能继续清空/保留并发送。 */
 export class V4HeldQueueConfirmationStaleError extends Error {
-  readonly reasonCode = "guard.heldQueueConfirmationStale";
-  constructor() {
-    super("paused queue changed after send confirmation opened");
-    this.name = "V4HeldQueueConfirmationStaleError";
-  }
+    readonly reasonCode = "guard.heldQueueConfirmationStale";
+    constructor() {
+        super("paused queue changed after send confirmation opened");
+        this.name = "V4HeldQueueConfirmationStaleError";
+    }
 }
 
 export async function enqueueDeferredInputForBusyWork(
-  record: V4SessionRecordView,
-  text: string,
-  options: {
-    commandKind?: SteerTurnOptions["commandKind"];
-    inputId: string;
-    queryId: SteerTurnOptions["queryId"];
-    intent?: SteerTurnOptions["intent"];
-    attachments?: TurnAttachment[];
-    toolDisallowlist?: SteerTurnOptions["toolDisallowlist"];
-  },
+    record: V4SessionRecordView,
+    text: string,
+    options: {
+        commandKind?: SteerTurnOptions["commandKind"];
+        inputId: string;
+        queryId: SteerTurnOptions["queryId"];
+        intent?: SteerTurnOptions["intent"];
+        attachments?: TurnAttachment[];
+        toolDisallowlist?: SteerTurnOptions["toolDisallowlist"];
+    },
 ): Promise<boolean> {
-  if (!record.app.enqueueDeferredInput) return false;
-  const result = await record.app.enqueueDeferredInput(text, {
-    ...(options.commandKind ? { commandKind: options.commandKind } : {}),
-    delivery: "queue",
-    inputId: options.inputId,
-    ...(options.intent ? { intent: options.intent } : {}),
-    ...(options.attachments ? { attachments: options.attachments } : {}),
-    ...(options.toolDisallowlist ? { toolDisallowlist: options.toolDisallowlist } : {}),
-    queryId: options.queryId,
-  });
-  if (result.kind === "queued") return true;
-  throw new V4InputAdmissionRejectedError(
-    result.reason === "input_too_large"
-      ? "proto.payloadTooLarge"
-      : result.reason === "empty_input"
-        ? "proto.invalidPayload"
-        : "fault.command.inputRejected",
-    `deferred input rejected: ${result.reason}`,
-  );
+    if (!record.app.enqueueDeferredInput) return false;
+    const result = await record.app.enqueueDeferredInput(text, {
+        ...(options.commandKind ? { commandKind: options.commandKind } : {}),
+        delivery: "queue",
+        inputId: options.inputId,
+        ...(options.intent ? { intent: options.intent } : {}),
+        ...(options.attachments ? { attachments: options.attachments } : {}),
+        ...(options.toolDisallowlist ? { toolDisallowlist: options.toolDisallowlist } : {}),
+        queryId: options.queryId,
+    });
+    if (result.kind === "queued") return true;
+    throw new V4InputAdmissionRejectedError(
+        result.reason === "input_too_large"
+            ? "proto.payloadTooLarge"
+            : result.reason === "empty_input"
+              ? "proto.invalidPayload"
+              : "fault.command.inputRejected",
+        `deferred input rejected: ${result.reason}`,
+    );
 }
 
 /**
@@ -82,32 +82,32 @@ export async function enqueueDeferredInputForBusyWork(
  * clear → 先清空 queue 再 startNow；keep → 保留 queue 直接 startNow；缺省 → reject。
  */
 export async function applyHeldQueueDisposition(
-  host: V4CommandCoreHost,
-  record: V4SessionRecordView,
-  disposition: "clearQueueAndSend" | "keepQueueAndSend" | undefined,
-  expectedQueueItemIds?: readonly string[],
+    host: V4CommandCoreHost,
+    record: V4SessionRecordView,
+    disposition: "clearQueueAndSend" | "keepQueueAndSend" | undefined,
+    expectedQueueItemIds?: readonly string[],
 ): Promise<void> {
-  const routing = host.getInputRoutingMode?.(record.app.sessionId) ?? null;
-  if (routing !== "choice") return;
-  if (!disposition) {
-    throw new V4HeldQueueDispositionRequiredError();
-  }
-  if (expectedQueueItemIds) {
-    const expected = new Set(expectedQueueItemIds);
-    const sameItems =
-      expected.size === expectedQueueItemIds.length &&
-      host.getQueueLength?.(record.app.sessionId) === expected.size &&
-      expectedQueueItemIds.every(
-        (queueItemId) => host.getQueueItem?.(record.app.sessionId, queueItemId) !== null,
-      );
-    if (!sameItems) {
-      throw new V4HeldQueueConfirmationStaleError();
+    const routing = host.getInputRoutingMode?.(record.app.sessionId) ?? null;
+    if (routing !== "choice") return;
+    if (!disposition) {
+        throw new V4HeldQueueDispositionRequiredError();
     }
-  }
-  if (disposition === "clearQueueAndSend") {
-    await record.app.clearQueueItems();
-    host.clearQueuedTurnExecutions?.(record.app.sessionId);
-  }
+    if (expectedQueueItemIds) {
+        const expected = new Set(expectedQueueItemIds);
+        const sameItems =
+            expected.size === expectedQueueItemIds.length &&
+            host.getQueueLength?.(record.app.sessionId) === expected.size &&
+            expectedQueueItemIds.every(
+                (queueItemId) => host.getQueueItem?.(record.app.sessionId, queueItemId) !== null,
+            );
+        if (!sameItems) {
+            throw new V4HeldQueueConfirmationStaleError();
+        }
+    }
+    if (disposition === "clearQueueAndSend") {
+        await record.app.clearQueueItems();
+        host.clearQueuedTurnExecutions?.(record.app.sessionId);
+    }
 }
 
 /**
@@ -115,47 +115,47 @@ export async function applyHeldQueueDisposition(
  * 当前 Session 值固定进 canonical intent。固定完成后 Queue/Guide 不再读取可变 Session。
  */
 export function resolveSubmittedExecutionState(
-  record: V4SessionRecordView,
-  payload: {
-    modelSelection?: ModelSelection;
-    mode?: SubmissionMode;
-    planEnabled?: boolean;
-  },
+    record: V4SessionRecordView,
+    payload: {
+        modelSelection?: ModelSelection;
+        mode?: SubmissionMode;
+        planEnabled?: boolean;
+    },
 ): { modelSelection: ModelSelection; mode: SubmissionMode; planEnabled: boolean } {
-  let modelSelection = payload.modelSelection;
-  if (!modelSelection) {
-    const runtimeSelection = record.app.runtime?.getSessionModelSelection?.();
-    const entrySelection = runtimeSelection
-      ? undefined
-      : parseProviderQualifiedModelSelection(record.app.getModel());
-    if (!runtimeSelection && !entrySelection) {
-      throw new Error(`Session model must be provider-qualified: ${record.app.getModel()}`);
-    }
-    // 修复原因：getThoughtLevel() 是 Active Model 的 effective 展示事实。把它补回
-    // canonical intent 会把 Config 默认值伪装成显式 pin；旧发送端只能固定 Session
-    // 已经持有的稀疏 Selection，不能在 admission 时重新解释它。
-    modelSelection = runtimeSelection
-      ? {
-          providerId: runtimeSelection.providerId,
-          modelId: runtimeSelection.modelId,
-          ...(runtimeSelection.options ? { options: { ...runtimeSelection.options } } : {}),
+    let modelSelection = payload.modelSelection;
+    if (!modelSelection) {
+        const runtimeSelection = record.app.runtime?.getSessionModelSelection?.();
+        const entrySelection = runtimeSelection
+            ? undefined
+            : parseProviderQualifiedModelSelection(record.app.getModel());
+        if (!runtimeSelection && !entrySelection) {
+            throw new Error(`Session model must be provider-qualified: ${record.app.getModel()}`);
         }
-      : {
-          providerId: entrySelection!.providerId,
-          modelId: entrySelection!.modelId,
-          ...(entrySelection!.options ? { options: { ...entrySelection!.options } } : {}),
-        };
-  }
-  const current = resolveExecutionState({
-    mode: record.app.getMode?.(),
-    planEnabled: record.app.runtime?.getPlanEnabled?.(),
-  });
-  const state = resolveExecutionState(payload, current);
-  return {
-    modelSelection,
-    mode: state.mode === "auto" ? "build" : state.mode,
-    planEnabled: state.planEnabled,
-  };
+        // 修复原因：getThoughtLevel() 是 Active Model 的 effective 展示事实。把它补回
+        // canonical intent 会把 Config 默认值伪装成显式 pin；旧发送端只能固定 Session
+        // 已经持有的稀疏 Selection，不能在 admission 时重新解释它。
+        modelSelection = runtimeSelection
+            ? {
+                  providerId: runtimeSelection.providerId,
+                  modelId: runtimeSelection.modelId,
+                  ...(runtimeSelection.options ? { options: { ...runtimeSelection.options } } : {}),
+              }
+            : {
+                  providerId: entrySelection!.providerId,
+                  modelId: entrySelection!.modelId,
+                  ...(entrySelection!.options ? { options: { ...entrySelection!.options } } : {}),
+              };
+    }
+    const current = resolveExecutionState({
+        mode: record.app.getMode?.(),
+        planEnabled: record.app.runtime?.getPlanEnabled?.(),
+    });
+    const state = resolveExecutionState(payload, current);
+    return {
+        modelSelection,
+        mode: state.mode === "auto" ? "build" : state.mode,
+        planEnabled: state.planEnabled,
+    };
 }
 
 /**
@@ -165,7 +165,7 @@ export function resolveSubmittedExecutionState(
  * 只读会话当前值，不改写 session 常驻模型。
  */
 export function resolveSessionFallbackModelSelection(record: V4SessionRecordView): ModelSelection {
-  return resolveSubmittedExecutionState(record, {}).modelSelection;
+    return resolveSubmittedExecutionState(record, {}).modelSelection;
 }
 
 /**
@@ -174,18 +174,18 @@ export function resolveSessionFallbackModelSelection(record: V4SessionRecordView
  * 按 Provider Family 过滤；会话常驻模型也被污染时拒绝入队，禁止继续扩散内部 Selection。
  */
 export function resolveOrdinaryQueueModelSelection(
-  record: V4SessionRecordView,
-  candidate?: ModelSelection,
+    record: V4SessionRecordView,
+    candidate?: ModelSelection,
 ): ModelSelection {
-  const selection =
-    candidate && !isHighspeedProviderId(candidate.providerId)
-      ? candidate
-      : resolveSessionFallbackModelSelection(record);
-  if (isHighspeedProviderId(selection.providerId)) {
-    throw new V4InputAdmissionRejectedError(
-      "fault.command.inputRejected",
-      "ordinary queue model selection is unavailable",
-    );
-  }
-  return selection;
+    const selection =
+        candidate && !isHighspeedProviderId(candidate.providerId)
+            ? candidate
+            : resolveSessionFallbackModelSelection(record);
+    if (isHighspeedProviderId(selection.providerId)) {
+        throw new V4InputAdmissionRejectedError(
+            "fault.command.inputRejected",
+            "ordinary queue model selection is unavailable",
+        );
+    }
+    return selection;
 }

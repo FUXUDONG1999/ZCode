@@ -148,25 +148,25 @@ Turn Input
 
 ```typescript
 interface SessionState {
-  id: SessionId;
-  createdAt: Date;
-  updatedAt: Date;
-  mode: CollaborationMode;
-  status: SessionStatus;
+    id: SessionId;
+    createdAt: Date;
+    updatedAt: Date;
+    mode: CollaborationMode;
+    status: SessionStatus;
 
-  // 事件相关
-  eventLog: SessionEvent[];
-  turnCount: number;
-  totalTokenCount: number;
+    // 事件相关
+    eventLog: SessionEvent[];
+    turnCount: number;
+    totalTokenCount: number;
 
-  // Context 管理
-  contextWindow: number;
-  contextUsed: number;
-  compactBoundaries: CompactBoundary[];
+    // Context 管理
+    contextWindow: number;
+    contextUsed: number;
+    compactBoundaries: CompactBoundary[];
 
-  // 并发
-  pendingPermissions: PendingPermission[];
-  activeToolCalls: ToolCall[];
+    // 并发
+    pendingPermissions: PendingPermission[];
+    activeToolCalls: ToolCall[];
 }
 ```
 
@@ -174,31 +174,31 @@ interface SessionState {
 
 ```typescript
 interface TurnState {
-  id: TurnId;
-  sessionId: SessionId;
-  turnNumber: number;
+    id: TurnId;
+    sessionId: SessionId;
+    turnNumber: number;
 
-  // Phase
-  phase: TurnPhase;
+    // Phase
+    phase: TurnPhase;
 
-  // Model 相关
-  modelRequest?: ModelRequest;
-  modelResponse?: ModelResponse;
-  streamingParts: StreamingPart[];
+    // Model 相关
+    modelRequest?: ModelRequest;
+    modelResponse?: ModelResponse;
+    streamingParts: StreamingPart[];
 
-  // Tool 相关
-  toolCalls: ToolCall[];
-  toolResults: ToolResult[];
-  toolSchedule: ToolSchedule;
+    // Tool 相关
+    toolCalls: ToolCall[];
+    toolResults: ToolResult[];
+    toolSchedule: ToolSchedule;
 
-  // Permission 相关
-  pendingPermissions: PermissionRequest[];
-  resolvedPermissions: PermissionResult[];
+    // Permission 相关
+    pendingPermissions: PermissionRequest[];
+    resolvedPermissions: PermissionResult[];
 
-  // 结果
-  finalResponse?: string;
-  error?: TurnError;
-  resultType: TurnResultType;
+    // 结果
+    finalResponse?: string;
+    error?: TurnError;
+    resultType: TurnResultType;
 }
 ```
 
@@ -206,16 +206,16 @@ interface TurnState {
 
 ```typescript
 enum TurnPhase {
-  Idle = "idle", // 等待输入
-  ProcessingInput = "processing_input",
-  AwaitingModelResponse = "awaiting_model_response",
-  Streaming = "streaming",
-  SchedulingTools = "scheduling_tools",
-  ExecutingTools = "executing_tools",
-  AggregatingResults = "aggregating_results",
-  AwaitingPermission = "awaiting_permission",
-  Completing = "completing",
-  Error = "error",
+    Idle = "idle", // 等待输入
+    ProcessingInput = "processing_input",
+    AwaitingModelResponse = "awaiting_model_response",
+    Streaming = "streaming",
+    SchedulingTools = "scheduling_tools",
+    ExecutingTools = "executing_tools",
+    AggregatingResults = "aggregating_results",
+    AwaitingPermission = "awaiting_permission",
+    Completing = "completing",
+    Error = "error",
 }
 ```
 
@@ -242,42 +242,42 @@ enum TurnPhase {
 ```typescript
 // 基础 Event
 interface SessionEvent {
-  id: EventId;
-  sessionId: SessionId;
-  turnId?: TurnId;
-  type: SessionEventType;
-  timestamp: Date;
-  traceId: TraceId;
-  sequenceNumber: number;
-  payload: EventPayload;
-  metadata?: EventMetadata;
+    id: EventId;
+    sessionId: SessionId;
+    turnId?: TurnId;
+    type: SessionEventType;
+    timestamp: Date;
+    traceId: TraceId;
+    sequenceNumber: number;
+    payload: EventPayload;
+    metadata?: EventMetadata;
 }
 
 // Tool Call Event 示例
 interface ToolCallScheduledEvent extends SessionEvent {
-  type: "tool_call_scheduled";
-  payload: {
-    toolCallId: ToolCallId;
-    toolName: string;
-    input: unknown;
-    dependencies: ToolCallId[];
-    parallelGroupIndex: number;
-    canRunParallel: boolean;
-    schedule: {
-      parallelGroups: ToolCallId[][];
-      executionOrder: ToolCallId[];
+    type: "tool_call_scheduled";
+    payload: {
+        toolCallId: ToolCallId;
+        toolName: string;
+        input: unknown;
+        dependencies: ToolCallId[];
+        parallelGroupIndex: number;
+        canRunParallel: boolean;
+        schedule: {
+            parallelGroups: ToolCallId[][];
+            executionOrder: ToolCallId[];
+        };
     };
-  };
 }
 
 interface ToolCallResultEvent extends SessionEvent {
-  type: "tool_call_result";
-  payload: {
-    toolCallId: ToolCallId;
-    result: ToolResult;
-    duration: number;
-    outputSize: number;
-  };
+    type: "tool_call_result";
+    payload: {
+        toolCallId: ToolCallId;
+        result: ToolResult;
+        duration: number;
+        outputSize: number;
+    };
 }
 ```
 
@@ -308,22 +308,22 @@ interface ToolCallResultEvent extends SessionEvent {
 ```typescript
 // EventReducer
 function reduce(state: SessionProjection, event: SessionEvent): SessionProjection {
-  switch (event.type) {
-    case "turn_started":
-      return { ...state, currentTurn: createTurnProjection(event.payload) };
+    switch (event.type) {
+        case "turn_started":
+            return { ...state, currentTurn: createTurnProjection(event.payload) };
 
-    case "tool_call_result":
-      return updateToolCallView(state, event.payload);
+        case "tool_call_result":
+            return updateToolCallView(state, event.payload);
 
-    case "permission_resolved":
-      return updatePendingPermissionView(state, event.payload);
+        case "permission_resolved":
+            return updatePendingPermissionView(state, event.payload);
 
-    case "compact_boundary":
-      return applyCompactBoundary(state, event.payload);
+        case "compact_boundary":
+            return applyCompactBoundary(state, event.payload);
 
-    default:
-      return state;
-  }
+        default:
+            return state;
+    }
 }
 ```
 
@@ -332,15 +332,15 @@ function reduce(state: SessionProjection, event: SessionEvent): SessionProjectio
 ```typescript
 // ConversationView 用于构建 model prompt
 interface ConversationView {
-  messages: Message[];
-  systemPrompt: string;
-  compactBoundaries: CompactBoundary[];
-  contextBudget: ContextBudget;
+    messages: Message[];
+    systemPrompt: string;
+    compactBoundaries: CompactBoundary[];
+    contextBudget: ContextBudget;
 
-  // 构建方法
-  toModelMessages(): ModelMessage[];
-  estimateTokenCount(): number;
-  shouldCompact(): boolean;
+    // 构建方法
+    toModelMessages(): ModelMessage[];
+    estimateTokenCount(): number;
+    shouldCompact(): boolean;
 }
 ```
 
@@ -352,20 +352,20 @@ interface ConversationView {
 
 ```typescript
 interface ToolSchedule {
-  items: ToolScheduleItem[];
-  parallelGroups: ToolCallId[][]; // 可以并行的组
-  executionOrder: ToolCallId[]; // 最终执行顺序
+    items: ToolScheduleItem[];
+    parallelGroups: ToolCallId[][]; // 可以并行的组
+    executionOrder: ToolCallId[]; // 最终执行顺序
 }
 
 interface ToolScheduleItem {
-  toolCallId: ToolCallId;
-  toolName: string;
-  dependencies: ToolCallId[];
-  canRunParallel: boolean;
-  readOnly?: boolean;
-  destructive?: boolean;
-  sideEffectScope?: ToolSideEffectScope;
-  estimatedDuration?: number;
+    toolCallId: ToolCallId;
+    toolName: string;
+    dependencies: ToolCallId[];
+    canRunParallel: boolean;
+    readOnly?: boolean;
+    destructive?: boolean;
+    sideEffectScope?: ToolSideEffectScope;
+    estimatedDuration?: number;
 }
 ```
 
@@ -381,21 +381,21 @@ interface ToolScheduleItem {
 
 ```typescript
 function scheduleTools(toolCalls: ToolCall[]): ToolSchedule {
-  // 1. 拓扑排序
-  const sorted = topologicalSort(toolCalls, getDependencies);
+    // 1. 拓扑排序
+    const sorted = topologicalSort(toolCalls, getDependencies);
 
-  // 2. 分组：同一依赖层内只把 read-only/concurrentSafe 工具放入并行组；
-  //    有副作用或未声明并发安全的工具独立成组。
-  const groups = groupByParallelSafety(sorted);
+    // 2. 分组：同一依赖层内只把 read-only/concurrentSafe 工具放入并行组；
+    //    有副作用或未声明并发安全的工具独立成组。
+    const groups = groupByParallelSafety(sorted);
 
-  // 3. 验证无循环依赖
-  validateNoCycles(groups);
+    // 3. 验证无循环依赖
+    validateNoCycles(groups);
 
-  return {
-    items: sorted,
-    parallelGroups: groups,
-    executionOrder: flatten(groups),
-  };
+    return {
+        items: sorted,
+        parallelGroups: groups,
+        executionOrder: flatten(groups),
+    };
 }
 ```
 
@@ -433,10 +433,10 @@ Tool Call 请求
 
 ```typescript
 enum CollaborationMode {
-  Plan = "plan", // 只读，产生计划
-  Build = "build", // 正常执行
-  Yolo = "yolo", // 跳过 permission prompt
-  Auto = "auto", // 保留，暂不实现
+    Plan = "plan", // 只读，产生计划
+    Build = "build", // 正常执行
+    Yolo = "yolo", // 跳过 permission prompt
+    Auto = "auto", // 保留，暂不实现
 }
 ```
 
@@ -444,24 +444,24 @@ enum CollaborationMode {
 
 ```typescript
 interface PermissionRequestedEvent extends SessionEvent {
-  type: "permission_requested";
-  payload: {
-    toolCallId: ToolCallId;
-    toolName: string;
-    riskLevel: RiskLevel;
-    reason: string;
-    input: unknown;
-  };
+    type: "permission_requested";
+    payload: {
+        toolCallId: ToolCallId;
+        toolName: string;
+        riskLevel: RiskLevel;
+        reason: string;
+        input: unknown;
+    };
 }
 
 interface PermissionResolvedEvent extends SessionEvent {
-  type: "permission_resolved";
-  payload: {
-    toolCallId: ToolCallId;
-    decision: PermissionDecision;
-    reason?: string;
-    userModifiedInput?: unknown;
-  };
+    type: "permission_resolved";
+    payload: {
+        toolCallId: ToolCallId;
+        decision: PermissionDecision;
+        reason?: string;
+        userModifiedInput?: unknown;
+    };
 }
 ```
 
@@ -473,15 +473,15 @@ interface PermissionResolvedEvent extends SessionEvent {
 
 ```typescript
 interface ContextBudget {
-  maxTokens: number;
-  usedTokens: number;
-  reservedTokens: number; // system prompt, tool definitions 等固定开销
+    maxTokens: number;
+    usedTokens: number;
+    reservedTokens: number; // system prompt, tool definitions 等固定开销
 
-  // 各部分预算
-  systemPromptBudget: number;
-  conversationBudget: number;
-  toolResultBudget: number;
-  memoryBudget: number;
+    // 各部分预算
+    systemPromptBudget: number;
+    conversationBudget: number;
+    toolResultBudget: number;
+    memoryBudget: number;
 }
 ```
 
@@ -489,9 +489,9 @@ interface ContextBudget {
 
 ```typescript
 interface CompactTrigger {
-  condition: "token_threshold" | "turn_count" | "manual";
-  threshold: number; // 如 0.85 (85%)
-  priority: CompactPriority;
+    condition: "token_threshold" | "turn_count" | "manual";
+    threshold: number; // 如 0.85 (85%)
+    priority: CompactPriority;
 }
 ```
 
@@ -530,21 +530,21 @@ emit SessionCompacted Event
 
 ```typescript
 enum TurnErrorType {
-  ModelError = "model_error",
-  ToolError = "tool_error",
-  PermissionDenied = "permission_denied",
-  ContextExceeded = "context_exceeded",
-  Timeout = "timeout",
-  Canceled = "canceled",
-  Unknown = "unknown",
+    ModelError = "model_error",
+    ToolError = "tool_error",
+    PermissionDenied = "permission_denied",
+    ContextExceeded = "context_exceeded",
+    Timeout = "timeout",
+    Canceled = "canceled",
+    Unknown = "unknown",
 }
 
 interface TurnError {
-  type: TurnErrorType;
-  message: string;
-  cause?: Error;
-  recoverable: boolean;
-  retryable: boolean;
+    type: TurnErrorType;
+    message: string;
+    cause?: Error;
+    recoverable: boolean;
+    retryable: boolean;
 }
 ```
 

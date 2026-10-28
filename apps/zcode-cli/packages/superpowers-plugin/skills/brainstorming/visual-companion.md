@@ -99,34 +99,34 @@ Use `--url-host` to control what hostname is printed in the returned URL JSON.
 ## The Loop
 
 1. **Check server is alive**, then **write HTML** to a new file in `screen_dir`:
-   - Before each write, check that `$STATE_DIR/server-info` exists. If it doesn't (or `$STATE_DIR/server-stopped` exists), the server has shut down — restart it with `start-server.sh` before continuing. The server auto-exits after 30 minutes of inactivity.
-   - Use semantic filenames: `platform.html`, `visual-style.html`, `layout.html`
-   - **Never reuse filenames** — each screen gets a fresh file
-   - Use Write tool — **never use cat/heredoc** (dumps noise into terminal)
-   - Server automatically serves the newest file
+    - Before each write, check that `$STATE_DIR/server-info` exists. If it doesn't (or `$STATE_DIR/server-stopped` exists), the server has shut down — restart it with `start-server.sh` before continuing. The server auto-exits after 30 minutes of inactivity.
+    - Use semantic filenames: `platform.html`, `visual-style.html`, `layout.html`
+    - **Never reuse filenames** — each screen gets a fresh file
+    - Use Write tool — **never use cat/heredoc** (dumps noise into terminal)
+    - Server automatically serves the newest file
 
 2. **Tell user what to expect and end your turn:**
-   - Remind them of the URL (every step, not just first)
-   - Give a brief text summary of what's on screen (e.g., "Showing 3 layout options for the homepage")
-   - Ask them to respond in the terminal: "Take a look and let me know what you think. Click to select an option if you'd like."
+    - Remind them of the URL (every step, not just first)
+    - Give a brief text summary of what's on screen (e.g., "Showing 3 layout options for the homepage")
+    - Ask them to respond in the terminal: "Take a look and let me know what you think. Click to select an option if you'd like."
 
 3. **On your next turn** — after the user responds in the terminal:
-   - Read `$STATE_DIR/events` if it exists — this contains the user's browser interactions (clicks, selections) as JSON lines
-   - Merge with the user's terminal text to get the full picture
-   - The terminal message is the primary feedback; `state_dir/events` provides structured interaction data
+    - Read `$STATE_DIR/events` if it exists — this contains the user's browser interactions (clicks, selections) as JSON lines
+    - Merge with the user's terminal text to get the full picture
+    - The terminal message is the primary feedback; `state_dir/events` provides structured interaction data
 
 4. **Iterate or advance** — if feedback changes current screen, write a new file (e.g., `layout-v2.html`). Only move to the next question when the current step is validated.
 
 5. **Unload when returning to terminal** — when the next step doesn't need the browser (e.g., a clarifying question, a tradeoff discussion), push a waiting screen to clear the stale content:
 
-   ```html
-   <!-- filename: waiting.html (or waiting-2.html, etc.) -->
-   <div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
-     <p class="subtitle">Continuing in terminal...</p>
-   </div>
-   ```
+    ```html
+    <!-- filename: waiting.html (or waiting-2.html, etc.) -->
+    <div style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+        <p class="subtitle">Continuing in terminal...</p>
+    </div>
+    ```
 
-   This prevents the user from staring at a resolved choice while the conversation has moved on. When the next visual question comes up, push a new content file as usual.
+    This prevents the user from staring at a resolved choice while the conversation has moved on. When the next visual question comes up, push a new content file as usual.
 
 6. Repeat until done.
 
@@ -141,20 +141,20 @@ Write just the content that goes inside the page. The server wraps it in the fra
 <p class="subtitle">Consider readability and visual hierarchy</p>
 
 <div class="options">
-  <div class="option" data-choice="a" onclick="toggleSelect(this)">
-    <div class="letter">A</div>
-    <div class="content">
-      <h3>Single Column</h3>
-      <p>Clean, focused reading experience</p>
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+        <div class="letter">A</div>
+        <div class="content">
+            <h3>Single Column</h3>
+            <p>Clean, focused reading experience</p>
+        </div>
     </div>
-  </div>
-  <div class="option" data-choice="b" onclick="toggleSelect(this)">
-    <div class="letter">B</div>
-    <div class="content">
-      <h3>Two Column</h3>
-      <p>Sidebar navigation with main content</p>
+    <div class="option" data-choice="b" onclick="toggleSelect(this)">
+        <div class="letter">B</div>
+        <div class="content">
+            <h3>Two Column</h3>
+            <p>Sidebar navigation with main content</p>
+        </div>
     </div>
-  </div>
 </div>
 ```
 
@@ -168,13 +168,13 @@ The frame template provides these CSS classes for your content:
 
 ```html
 <div class="options">
-  <div class="option" data-choice="a" onclick="toggleSelect(this)">
-    <div class="letter">A</div>
-    <div class="content">
-      <h3>Title</h3>
-      <p>Description</p>
+    <div class="option" data-choice="a" onclick="toggleSelect(this)">
+        <div class="letter">A</div>
+        <div class="content">
+            <h3>Title</h3>
+            <p>Description</p>
+        </div>
     </div>
-  </div>
 </div>
 ```
 
@@ -182,7 +182,7 @@ The frame template provides these CSS classes for your content:
 
 ```html
 <div class="options" data-multiselect>
-  <!-- same option markup — users can select/deselect multiple -->
+    <!-- same option markup — users can select/deselect multiple -->
 </div>
 ```
 
@@ -190,13 +190,13 @@ The frame template provides these CSS classes for your content:
 
 ```html
 <div class="cards">
-  <div class="card" data-choice="design1" onclick="toggleSelect(this)">
-    <div class="card-image"><!-- mockup content --></div>
-    <div class="card-body">
-      <h3>Name</h3>
-      <p>Description</p>
+    <div class="card" data-choice="design1" onclick="toggleSelect(this)">
+        <div class="card-image"><!-- mockup content --></div>
+        <div class="card-body">
+            <h3>Name</h3>
+            <p>Description</p>
+        </div>
     </div>
-  </div>
 </div>
 ```
 
@@ -204,8 +204,8 @@ The frame template provides these CSS classes for your content:
 
 ```html
 <div class="mockup">
-  <div class="mockup-header">Preview: Dashboard Layout</div>
-  <div class="mockup-body"><!-- your mockup HTML --></div>
+    <div class="mockup-header">Preview: Dashboard Layout</div>
+    <div class="mockup-body"><!-- your mockup HTML --></div>
 </div>
 ```
 
@@ -213,8 +213,8 @@ The frame template provides these CSS classes for your content:
 
 ```html
 <div class="split">
-  <div class="mockup"><!-- left --></div>
-  <div class="mockup"><!-- right --></div>
+    <div class="mockup"><!-- left --></div>
+    <div class="mockup"><!-- right --></div>
 </div>
 ```
 
@@ -222,18 +222,18 @@ The frame template provides these CSS classes for your content:
 
 ```html
 <div class="pros-cons">
-  <div class="pros">
-    <h4>Pros</h4>
-    <ul>
-      <li>Benefit</li>
-    </ul>
-  </div>
-  <div class="cons">
-    <h4>Cons</h4>
-    <ul>
-      <li>Drawback</li>
-    </ul>
-  </div>
+    <div class="pros">
+        <h4>Pros</h4>
+        <ul>
+            <li>Benefit</li>
+        </ul>
+    </div>
+    <div class="cons">
+        <h4>Cons</h4>
+        <ul>
+            <li>Drawback</li>
+        </ul>
+    </div>
 </div>
 ```
 
@@ -242,8 +242,8 @@ The frame template provides these CSS classes for your content:
 ```html
 <div class="mock-nav">Logo | Home | About | Contact</div>
 <div style="display: flex;">
-  <div class="mock-sidebar">Navigation</div>
-  <div class="mock-content">Main content area</div>
+    <div class="mock-sidebar">Navigation</div>
+    <div class="mock-content">Main content area</div>
 </div>
 <button class="mock-button">Action Button</button>
 <input class="mock-input" placeholder="Input field" />

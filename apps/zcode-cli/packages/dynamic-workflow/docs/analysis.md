@@ -225,10 +225,10 @@ cardinality, and materializes artifact types as strings.
 
 ```ts
 interface AnalysisCore {
-  sites: { asks; worldReads; joins; actors; fanouts }; // ids, labels, locations, order, within
-  facts: { askData; askActor; worldReadData; joinIn; fanoutIn; returnData };
-  trace: { events; regions; controls; root; phases }; // the temporal walk's output
-  types: { siteType; joinPortTypes }; // the checker's answers, as strings
+    sites: { asks; worldReads; joins; actors; fanouts }; // ids, labels, locations, order, within
+    facts: { askData; askActor; worldReadData; joinIn; fanoutIn; returnData };
+    trace: { events; regions; controls; root; phases }; // the temporal walk's output
+    types: { siteType; joinPortTypes }; // the checker's answers, as strings
 }
 ```
 
@@ -725,49 +725,49 @@ rendered as a lane, never a node. An edge means "runs after" and records why.
 
 ```ts
 interface Step {
-  id;
-  kind;
-  label;
-  labelPattern?;
-  loc;
-  lane;
-  lanes?;
-  source?;
-  region;
-  certainty;
-  phase?;
-  repeat?;
+    id;
+    kind;
+    label;
+    labelPattern?;
+    loc;
+    lane;
+    lanes?;
+    source?;
+    region;
+    certainty;
+    phase?;
+    repeat?;
 }
 interface Lane {
-  id;
-  name?;
-  namePattern?;
-  loc?;
-  families?;
+    id;
+    name?;
+    namePattern?;
+    loc?;
+    families?;
 }
 interface Region {
-  id;
-  kind;
-  parent?;
-  loc?;
-  bound?;
-  label?;
+    id;
+    kind;
+    parent?;
+    loc?;
+    bound?;
+    label?;
 }
 interface OrderEdge {
-  from;
-  to;
-  kind;
-  certainty;
-  exact?;
+    from;
+    to;
+    kind;
+    certainty;
+    exact?;
 }
 interface CausalityGraph {
-  steps;
-  regions;
-  lanes;
-  edges;
-  sink?: { fedBy };
-  phases?;
-  phaseEdges?;
+    steps;
+    regions;
+    lanes;
+    edges;
+    sink?: { fedBy };
+    phases?;
+    phaseEdges?;
 }
 ```
 

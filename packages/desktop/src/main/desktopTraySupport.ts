@@ -10,69 +10,69 @@ import { execFile } from "node:child_process";
  */
 
 export interface DesktopCloseToTrayCapability {
-  /** 关闭驻留托盘是否可用 */
-  supported: boolean;
-  /** 是否为 GNOME 系桌面且无托盘；仅用于设置页置灰文案追加扩展安装提示 */
-  gnomeLikeWithoutTray: boolean;
+    /** 关闭驻留托盘是否可用 */
+    supported: boolean;
+    /** 是否为 GNOME 系桌面且无托盘；仅用于设置页置灰文案追加扩展安装提示 */
+    gnomeLikeWithoutTray: boolean;
 }
 
 export type TraySupportCommandExecutor = (
-  command: string,
-  args: string[],
-  timeoutMs: number,
+    command: string,
+    args: string[],
+    timeoutMs: number,
 ) => Promise<{ stdout: string }>;
 
 const STATUS_NOTIFIER_WATCHER_NAME = "org.kde.StatusNotifierWatcher";
 
 const defaultExecutor: TraySupportCommandExecutor = (command, args, timeoutMs) =>
-  new Promise((resolve, reject) => {
-    execFile(command, args, { timeout: timeoutMs, windowsHide: true }, (error, stdout) => {
-      if (error) {
-        reject(error);
-        return;
-      }
-      resolve({ stdout });
+    new Promise((resolve, reject) => {
+        execFile(command, args, { timeout: timeoutMs, windowsHide: true }, (error, stdout) => {
+            if (error) {
+                reject(error);
+                return;
+            }
+            resolve({ stdout });
+        });
     });
-  });
 
 /** 依次尝试的探测工具：gdbus（GNOME 系标配）→ busctl（systemd 系标配）→ qdbus（QT 系） */
 const probeCommands: ReadonlyArray<{ command: string; args: string[] }> = [
-  {
-    command: "gdbus",
-    args: [
-      "call",
-      "--session",
-      "--dest",
-      "org.freedesktop.DBus",
-      "--object-path",
-      "/org/freedesktop/DBus",
-      "--method",
-      "org.freedesktop.DBus.NameHasOwner",
-      STATUS_NOTIFIER_WATCHER_NAME,
-    ],
-  },
-  {
-    command: "busctl",
-    args: [
-      "--user",
-      "call",
-      "org.freedesktop.DBus",
-      "/org/freedesktop/DBus",
-      "org.freedesktop.DBus",
-      "NameHasOwner",
-      "s",
-      STATUS_NOTIFIER_WATCHER_NAME,
-    ],
-  },
-  {
-    command: "qdbus",
-    args: [
-      "org.freedesktop.DBus",
-      "/org/freedesktop/DBus",
-      "org.freedesktop.DBus.NameHasOwner",
-      STATUS_NOTIFIER_WATCHER_NAME,
-    ],
-  },
+    {
+        command: "gdbus",
+        args: [
+            "call",
+            "--session",
+            "--dest",
+            "org.freedesktop.DBus",
+            "--object-path",
+            "/org/freedesktop/DBus",
+            "--method",
+            "org.freedesktop.DBus.NameHasOwner",
+            STATUS_NOTIFIER_WATCHER_NAME,
+        ],
+    },
+    {
+        command: "busctl",
+        args: [
+            "--user",
+            "call",
+            "org.freedesktop.DBus",
+            "/org/freedesktop/DBus",
+            "org.freedesktop.DBus",
+            "NameHasOwner",
+            "s",
+            STATUS_NOTIFIER_WATCHER_NAME,
+        ],
+    },
+    {
+        command: "qdbus",
+        args: [
+            "org.freedesktop.DBus",
+            "/org/freedesktop/DBus",
+            "org.freedesktop.DBus.NameHasOwner",
+            STATUS_NOTIFIER_WATCHER_NAME,
+        ],
+    },
 ];
 
 /**
@@ -80,52 +80,55 @@ const probeCommands: ReadonlyArray<{ command: string; args: string[] }> = [
  * gdbus `(true,)` / busctl `b "true"` / qdbus `true`。无法识别返回 null。
  */
 export function parseStatusNotifierOwnerOutput(stdout: string): boolean | null {
-  const text = stdout.trim();
-  // busctl 的布尔输出是不带引号的 `b true` / `b false`（字符串类型才带引号）；
-  // 带引号变体一并接受，回退链路必须对实际工具输出保持兼容（CR-01）。
-  if (/^\(true,?\)$/.test(text) || /^b\s+"?true"?$/.test(text) || text === "true") {
-    return true;
-  }
-  if (/^\(false,?\)$/.test(text) || /^b\s+"?false"?$/.test(text) || text === "false") {
-    return false;
-  }
-  return null;
+    const text = stdout.trim();
+    // busctl 的布尔输出是不带引号的 `b true` / `b false`（字符串类型才带引号）；
+    // 带引号变体一并接受，回退链路必须对实际工具输出保持兼容（CR-01）。
+    if (/^\(true,?\)$/.test(text) || /^b\s+"?true"?$/.test(text) || text === "true") {
+        return true;
+    }
+    if (/^\(false,?\)$/.test(text) || /^b\s+"?false"?$/.test(text) || text === "false") {
+        return false;
+    }
+    return null;
 }
 
 /** XDG_CURRENT_DESKTOP 含 gnome（不区分大小写）视为 GNOME 系桌面 */
 export function isGnomeLikeDesktop(env: NodeJS.ProcessEnv): boolean {
-  const desktop = env.XDG_CURRENT_DESKTOP ?? env.XDG_SESSION_DESKTOP ?? "";
-  return desktop.toLowerCase().split(/[:;]/).includes("gnome");
+    const desktop = env.XDG_CURRENT_DESKTOP ?? env.XDG_SESSION_DESKTOP ?? "";
+    return desktop.toLowerCase().split(/[:;]/).includes("gnome");
 }
 
 export async function detectDesktopCloseToTrayCapability(options: {
-  platform: NodeJS.Platform;
-  env?: NodeJS.ProcessEnv;
-  execute?: TraySupportCommandExecutor;
-  commandTimeoutMs?: number;
+    platform: NodeJS.Platform;
+    env?: NodeJS.ProcessEnv;
+    execute?: TraySupportCommandExecutor;
+    commandTimeoutMs?: number;
 }): Promise<DesktopCloseToTrayCapability> {
-  const execute = options.execute ?? defaultExecutor;
-  const timeoutMs = options.commandTimeoutMs ?? 1500;
-  const env = options.env ?? process.env;
+    const execute = options.execute ?? defaultExecutor;
+    const timeoutMs = options.commandTimeoutMs ?? 1500;
+    const env = options.env ?? process.env;
 
-  if (options.platform !== "linux") {
-    // Windows 托盘始终可用；macOS 不使用托盘（关窗语义由系统 Dock 模型承担）。
-    return { supported: true, gnomeLikeWithoutTray: false };
-  }
-
-  // 任一工具给出明确结果即返回；全部失败按"不可用"处理（安全默认，绝不失联）。
-  for (const probe of probeCommands) {
-    try {
-      const { stdout } = await execute(probe.command, probe.args, timeoutMs);
-      const hasOwner = parseStatusNotifierOwnerOutput(stdout);
-      if (hasOwner !== null) {
-        return { supported: hasOwner, gnomeLikeWithoutTray: !hasOwner && isGnomeLikeDesktop(env) };
-      }
-    } catch {
-      // 工具缺失/执行失败/超时：尝试下一个
+    if (options.platform !== "linux") {
+        // Windows 托盘始终可用；macOS 不使用托盘（关窗语义由系统 Dock 模型承担）。
+        return { supported: true, gnomeLikeWithoutTray: false };
     }
-  }
-  return { supported: false, gnomeLikeWithoutTray: isGnomeLikeDesktop(env) };
+
+    // 任一工具给出明确结果即返回；全部失败按"不可用"处理（安全默认，绝不失联）。
+    for (const probe of probeCommands) {
+        try {
+            const { stdout } = await execute(probe.command, probe.args, timeoutMs);
+            const hasOwner = parseStatusNotifierOwnerOutput(stdout);
+            if (hasOwner !== null) {
+                return {
+                    supported: hasOwner,
+                    gnomeLikeWithoutTray: !hasOwner && isGnomeLikeDesktop(env),
+                };
+            }
+        } catch {
+            // 工具缺失/执行失败/超时：尝试下一个
+        }
+    }
+    return { supported: false, gnomeLikeWithoutTray: isGnomeLikeDesktop(env) };
 }
 
 /**
@@ -133,48 +136,48 @@ export async function detectDesktopCloseToTrayCapability(options: {
  * 刷新时机：app ready 后首次探测、设置页 IPC 查询（stale 则重探）。
  */
 export function createCloseToTrayCapabilityMonitor(options: {
-  platform: NodeJS.Platform;
-  env?: NodeJS.ProcessEnv;
-  execute?: TraySupportCommandExecutor;
-  commandTimeoutMs?: number;
-  staleMs?: number;
-  now?: () => number;
+    platform: NodeJS.Platform;
+    env?: NodeJS.ProcessEnv;
+    execute?: TraySupportCommandExecutor;
+    commandTimeoutMs?: number;
+    staleMs?: number;
+    now?: () => number;
 }) {
-  const staleMs = options.staleMs ?? 10_000;
-  const now = options.now ?? Date.now;
-  let cached: DesktopCloseToTrayCapability | null = null;
-  let cachedAt = 0;
-  let pending: Promise<DesktopCloseToTrayCapability> | null = null;
+    const staleMs = options.staleMs ?? 10_000;
+    const now = options.now ?? Date.now;
+    let cached: DesktopCloseToTrayCapability | null = null;
+    let cachedAt = 0;
+    let pending: Promise<DesktopCloseToTrayCapability> | null = null;
 
-  const detect = () =>
-    detectDesktopCloseToTrayCapability({
-      platform: options.platform,
-      env: options.env,
-      execute: options.execute,
-      commandTimeoutMs: options.commandTimeoutMs,
-    });
-
-  return {
-    /** 同步缓存；启动后首次探测完成前为 null（调用方按"不可用"安全默认处理） */
-    getSync(): DesktopCloseToTrayCapability | null {
-      return cached;
-    },
-    refresh(force = false): Promise<DesktopCloseToTrayCapability> {
-      if (!force && cached && now() - cachedAt < staleMs) {
-        return Promise.resolve(cached);
-      }
-      pending ??= detect()
-        .then((result) => {
-          cached = result;
-          cachedAt = now();
-          return result;
-        })
-        .finally(() => {
-          pending = null;
+    const detect = () =>
+        detectDesktopCloseToTrayCapability({
+            platform: options.platform,
+            env: options.env,
+            execute: options.execute,
+            commandTimeoutMs: options.commandTimeoutMs,
         });
-      return pending;
-    },
-  };
+
+    return {
+        /** 同步缓存；启动后首次探测完成前为 null（调用方按"不可用"安全默认处理） */
+        getSync(): DesktopCloseToTrayCapability | null {
+            return cached;
+        },
+        refresh(force = false): Promise<DesktopCloseToTrayCapability> {
+            if (!force && cached && now() - cachedAt < staleMs) {
+                return Promise.resolve(cached);
+            }
+            pending ??= detect()
+                .then((result) => {
+                    cached = result;
+                    cachedAt = now();
+                    return result;
+                })
+                .finally(() => {
+                    pending = null;
+                });
+            return pending;
+        },
+    };
 }
 
 export type CloseToTrayCapabilityMonitor = ReturnType<typeof createCloseToTrayCapabilityMonitor>;
@@ -189,17 +192,17 @@ export type CloseToTrayCapabilityMonitor = ReturnType<typeof createCloseToTrayCa
  * - 其它平台：不可隐藏（darwin 走系统默认，不进此分支）
  */
 export function resolveCloseToTraySupported(input: {
-  platform: NodeJS.Platform;
-  desktopTrayReady: boolean;
-  capabilitySupported: boolean | undefined;
+    platform: NodeJS.Platform;
+    desktopTrayReady: boolean;
+    capabilitySupported: boolean | undefined;
 }): boolean {
-  if (input.platform === "win32") {
-    return input.desktopTrayReady;
-  }
-  if (input.platform === "linux") {
-    return input.desktopTrayReady && input.capabilitySupported === true;
-  }
-  return false;
+    if (input.platform === "win32") {
+        return input.desktopTrayReady;
+    }
+    if (input.platform === "linux") {
+        return input.desktopTrayReady && input.capabilitySupported === true;
+    }
+    return false;
 }
 
 /**
@@ -208,17 +211,17 @@ export function resolveCloseToTraySupported(input: {
  * 但 Linux 此前没有设置入口，存量 true 不可能是用户显式选择，首次启动强制归位为默认关。
  */
 export function resolveCloseToTrayBootstrapValue(input: {
-  platform: NodeJS.Platform;
-  stored: boolean | undefined;
-  linuxMigrationInitialized: boolean | undefined;
+    platform: NodeJS.Platform;
+    stored: boolean | undefined;
+    linuxMigrationInitialized: boolean | undefined;
 }): { value: boolean; needsLinuxMigration: boolean } {
-  if (input.platform !== "linux") {
-    return { value: input.stored ?? true, needsLinuxMigration: false };
-  }
-  if (input.linuxMigrationInitialized !== true) {
-    return { value: false, needsLinuxMigration: true };
-  }
-  return { value: input.stored ?? false, needsLinuxMigration: false };
+    if (input.platform !== "linux") {
+        return { value: input.stored ?? true, needsLinuxMigration: false };
+    }
+    if (input.linuxMigrationInitialized !== true) {
+        return { value: false, needsLinuxMigration: true };
+    }
+    return { value: input.stored ?? false, needsLinuxMigration: false };
 }
 
 /**
@@ -228,14 +231,14 @@ export function resolveCloseToTrayBootstrapValue(input: {
  * 失败期间 Linux 用户保持旧行为（迁移未完成态），可接受。
  */
 export function resolveCloseToTrayRuntimeValue(input: {
-  platform: NodeJS.Platform;
-  stored: boolean | undefined;
-  linuxMigrationInitialized: boolean | undefined;
-  migrationPersisted: boolean;
+    platform: NodeJS.Platform;
+    stored: boolean | undefined;
+    linuxMigrationInitialized: boolean | undefined;
+    migrationPersisted: boolean;
 }): boolean {
-  const bootstrap = resolveCloseToTrayBootstrapValue(input);
-  if (bootstrap.needsLinuxMigration && !input.migrationPersisted) {
-    return input.stored ?? true;
-  }
-  return bootstrap.value;
+    const bootstrap = resolveCloseToTrayBootstrapValue(input);
+    if (bootstrap.needsLinuxMigration && !input.migrationPersisted) {
+        return input.stored ?? true;
+    }
+    return bootstrap.value;
 }

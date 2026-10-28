@@ -83,17 +83,17 @@ emitPermissionResolved ─────────► 确认窗消除           
 
 ```ts
 interface PermissionResponderRaceInput {
-  /** hook 链：resolve undefined 表示无决定（退赛）；抛错同样按退赛处理并回调 onHookFailure。 */
-  runHooks: (signal: AbortSignal) => Promise<PermissionBrokerResult | undefined>;
-  /** broker 等待：注册应答 deferred 必须在本函数调用内同步完成（既有契约）。 */
-  requestBroker: (signal: AbortSignal) => Promise<PermissionBrokerResult>;
-  signal?: AbortSignal; // 外层 turn 取消，abort 双方
-  onHookFailure?: (error: unknown) => void; // hook 链抛错且 broker 仍在等待时回调（warn 日志）
+    /** hook 链：resolve undefined 表示无决定（退赛）；抛错同样按退赛处理并回调 onHookFailure。 */
+    runHooks: (signal: AbortSignal) => Promise<PermissionBrokerResult | undefined>;
+    /** broker 等待：注册应答 deferred 必须在本函数调用内同步完成（既有契约）。 */
+    requestBroker: (signal: AbortSignal) => Promise<PermissionBrokerResult>;
+    signal?: AbortSignal; // 外层 turn 取消，abort 双方
+    onHookFailure?: (error: unknown) => void; // hook 链抛错且 broker 仍在等待时回调（warn 日志）
 }
 
 interface PermissionResponderRaceOutcome {
-  result: PermissionBrokerResult;
-  source: "hook" | "broker";
+    result: PermissionBrokerResult;
+    source: "hook" | "broker";
 }
 ```
 

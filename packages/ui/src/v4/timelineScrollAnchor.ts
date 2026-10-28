@@ -13,24 +13,24 @@
 export const BOTTOM_ANCHOR_EPSILON_PX = 48;
 
 export interface TimelineScrollMetrics {
-  /** 滚动容器 scrollTop。 */
-  scrollTop: number;
-  /** 滚动容器可视高度（clientHeight）。 */
-  viewportHeight: number;
-  /** 内容总高度（scrollHeight）。 */
-  contentHeight: number;
+    /** 滚动容器 scrollTop。 */
+    scrollTop: number;
+    /** 滚动容器可视高度（clientHeight）。 */
+    viewportHeight: number;
+    /** 内容总高度（scrollHeight）。 */
+    contentHeight: number;
 }
 
 /** 距底部的剩余可滚动距离（内容不足一屏时为 0）。 */
 export function distanceToBottom(metrics: TimelineScrollMetrics): number {
-  return Math.max(0, metrics.contentHeight - metrics.viewportHeight - metrics.scrollTop);
+    return Math.max(0, metrics.contentHeight - metrics.viewportHeight - metrics.scrollTop);
 }
 
 export function isAtBottom(
-  metrics: TimelineScrollMetrics,
-  epsilonPx: number = BOTTOM_ANCHOR_EPSILON_PX,
+    metrics: TimelineScrollMetrics,
+    epsilonPx: number = BOTTOM_ANCHOR_EPSILON_PX,
 ): boolean {
-  return distanceToBottom(metrics) <= epsilonPx;
+    return distanceToBottom(metrics) <= epsilonPx;
 }
 
 /**
@@ -39,10 +39,10 @@ export function isAtBottom(
  * 程序化贴底（落点即底部 → 保持）。
  */
 export function nextFollowingAfterScroll(
-  metrics: TimelineScrollMetrics,
-  epsilonPx: number = BOTTOM_ANCHOR_EPSILON_PX,
+    metrics: TimelineScrollMetrics,
+    epsilonPx: number = BOTTOM_ANCHOR_EPSILON_PX,
 ): boolean {
-  return isAtBottom(metrics, epsilonPx);
+    return isAtBottom(metrics, epsilonPx);
 }
 
 export type TimelineScrollEventSource = "user" | "programmatic" | "layout";
@@ -52,13 +52,13 @@ export type TimelineScrollEventSource = "user" | "programmatic" | "layout";
  * 才按最终落点决定是否跟随。
  */
 export function resolveFollowingAfterScroll(input: {
-  following: boolean;
-  metrics: TimelineScrollMetrics;
-  source: TimelineScrollEventSource;
-  epsilonPx?: number;
+    following: boolean;
+    metrics: TimelineScrollMetrics;
+    source: TimelineScrollEventSource;
+    epsilonPx?: number;
 }): boolean {
-  if (input.source !== "user") return input.following;
-  return nextFollowingAfterScroll(input.metrics, input.epsilonPx);
+    if (input.source !== "user") return input.following;
+    return nextFollowingAfterScroll(input.metrics, input.epsilonPx);
 }
 
 /**
@@ -66,10 +66,10 @@ export function resolveFollowingAfterScroll(input: {
  * 跟随中 → 贴底；已解除 → 保持阅读位置（绝不拉回）。
  */
 export function anchorActionAfterContentChange(
-  following: boolean,
-  contentWidthChanging: boolean = false,
+    following: boolean,
+    contentWidthChanging: boolean = false,
 ): "stickToBottom" | "hold" {
-  return following && !contentWidthChanging ? "stickToBottom" : "hold";
+    return following && !contentWidthChanging ? "stickToBottom" : "hold";
 }
 
 /**
@@ -77,16 +77,16 @@ export function anchorActionAfterContentChange(
  * 宽度 resize 会让多条消息在相邻帧分批测高；此时逐条补偿 scrollTop 会形成可见抖动。
  */
 export function shouldAdjustVirtualizerForItemSizeChange(input: {
-  following: boolean;
-  suppressAdjustment: boolean;
-  contentWidthChanging: boolean;
-  itemEnd: number;
-  scrollTop: number;
+    following: boolean;
+    suppressAdjustment: boolean;
+    contentWidthChanging: boolean;
+    itemEnd: number;
+    scrollTop: number;
 }): boolean {
-  if (input.suppressAdjustment || input.following || input.contentWidthChanging) {
-    return false;
-  }
-  return input.itemEnd <= input.scrollTop;
+    if (input.suppressAdjustment || input.following || input.contentWidthChanging) {
+        return false;
+    }
+    return input.itemEnd <= input.scrollTop;
 }
 
 /** 未观察滚动的判定容差：小于该值的 scrollTop 回退视为亚像素抖动，不算用户上滚。 */
@@ -96,38 +96,38 @@ export type TimelineUserScrollIntent = "none" | "awayFromBottom" | "towardBottom
 
 /** wheel 的 deltaY 与 scrollTop 同向：负值阅读更早内容，正值靠近底部。 */
 export function timelineWheelScrollIntent(deltaY: number): TimelineUserScrollIntent {
-  if (deltaY < 0) return "awayFromBottom";
-  if (deltaY > 0) return "towardBottom";
-  return "none";
+    if (deltaY < 0) return "awayFromBottom";
+    if (deltaY > 0) return "towardBottom";
+    return "none";
 }
 
 /** touch 手指位移与 scrollTop 反向：手指下移表示阅读更早内容。 */
 export function timelineTouchScrollIntent(
-  previousClientY: number,
-  nextClientY: number,
+    previousClientY: number,
+    nextClientY: number,
 ): TimelineUserScrollIntent {
-  if (nextClientY > previousClientY) return "awayFromBottom";
-  if (nextClientY < previousClientY) return "towardBottom";
-  return "none";
+    if (nextClientY > previousClientY) return "awayFromBottom";
+    if (nextClientY < previousClientY) return "towardBottom";
+    return "none";
 }
 
 /** 键盘滚动意图；输入控件内的光标按键不属于 timeline 滚动。 */
 export function timelineKeyboardScrollIntent(input: {
-  key: string;
-  shiftKey: boolean;
-  editableTarget: boolean;
+    key: string;
+    shiftKey: boolean;
+    editableTarget: boolean;
 }): TimelineUserScrollIntent {
-  if (input.editableTarget) return "none";
-  if (input.key === "ArrowUp" || input.key === "PageUp" || input.key === "Home") {
-    return "awayFromBottom";
-  }
-  if (input.key === "ArrowDown" || input.key === "PageDown" || input.key === "End") {
-    return "towardBottom";
-  }
-  if (input.key === " ") {
-    return input.shiftKey ? "awayFromBottom" : "towardBottom";
-  }
-  return "none";
+    if (input.editableTarget) return "none";
+    if (input.key === "ArrowUp" || input.key === "PageUp" || input.key === "Home") {
+        return "awayFromBottom";
+    }
+    if (input.key === "ArrowDown" || input.key === "PageDown" || input.key === "End") {
+        return "towardBottom";
+    }
+    if (input.key === " ") {
+        return input.shiftKey ? "awayFromBottom" : "towardBottom";
+    }
+    return "none";
 }
 
 /**
@@ -146,40 +146,40 @@ export function timelineKeyboardScrollIntent(input: {
  * 3. 方向未知或向下的用户输入 → 落点在底则恢复跟随，明显回退则解除，其余保持。
  */
 export function reconcileFollowingForContentAnchor(input: {
-  /** 当前跟随态（scroll 事件驱动的既有值）。 */
-  following: boolean;
-  /** commit 时刻（贴底动作前）的实时滚动指标。 */
-  metrics: TimelineScrollMetrics;
-  /** 组件最近一次「已账目」的 scrollTop（scroll 事件读取值或程序化写入后的回读值）。 */
-  lastObservedScrollTop: number;
-  /** 当前内容 commit 前捕获到的用户滚动意图；省略时按旧的未知来源对账。 */
-  userScrollIntent?: TimelineUserScrollIntent;
-  bottomEpsilonPx?: number;
-  scrollEpsilonPx?: number;
+    /** 当前跟随态（scroll 事件驱动的既有值）。 */
+    following: boolean;
+    /** commit 时刻（贴底动作前）的实时滚动指标。 */
+    metrics: TimelineScrollMetrics;
+    /** 组件最近一次「已账目」的 scrollTop（scroll 事件读取值或程序化写入后的回读值）。 */
+    lastObservedScrollTop: number;
+    /** 当前内容 commit 前捕获到的用户滚动意图；省略时按旧的未知来源对账。 */
+    userScrollIntent?: TimelineUserScrollIntent;
+    bottomEpsilonPx?: number;
+    scrollEpsilonPx?: number;
 }): boolean {
-  const userScrollIntent = input.userScrollIntent ?? "unknown";
-  if (userScrollIntent === "awayFromBottom") return false;
-  if (userScrollIntent === "none") return input.following;
-  if (isAtBottom(input.metrics, input.bottomEpsilonPx ?? BOTTOM_ANCHOR_EPSILON_PX)) {
-    return true;
-  }
-  const unobservedUpscroll =
-    input.metrics.scrollTop <
-    input.lastObservedScrollTop - (input.scrollEpsilonPx ?? UNOBSERVED_SCROLL_EPSILON_PX);
-  if (unobservedUpscroll) {
-    return false;
-  }
-  return input.following;
+    const userScrollIntent = input.userScrollIntent ?? "unknown";
+    if (userScrollIntent === "awayFromBottom") return false;
+    if (userScrollIntent === "none") return input.following;
+    if (isAtBottom(input.metrics, input.bottomEpsilonPx ?? BOTTOM_ANCHOR_EPSILON_PX)) {
+        return true;
+    }
+    const unobservedUpscroll =
+        input.metrics.scrollTop <
+        input.lastObservedScrollTop - (input.scrollEpsilonPx ?? UNOBSERVED_SCROLL_EPSILON_PX);
+    if (unobservedUpscroll) {
+        return false;
+    }
+    return input.following;
 }
 
 /** 「回到底部」按钮可见性：仅在解除跟随且确实存在内容时展示。 */
 export function shouldShowBackToBottom(following: boolean, rowCount: number): boolean {
-  return !following && rowCount > 0;
+    return !following && rowCount > 0;
 }
 
 /** 会话切换 / 首次绑定：重置为跟随（打开会话定位到最新消息）。 */
 export function initialFollowing(): boolean {
-  return true;
+    return true;
 }
 
 // ── loadOlder：prepend 滚动锚定（虚拟滚动前插的经典坑）──
@@ -193,10 +193,10 @@ export function initialFollowing(): boolean {
 // 的常规 shift 逻辑，不再经此函数。
 
 export interface PrependVirtualAnchor {
-  key: string;
-  /** 锚点 measurement 起点相对视口顶部的偏移。 */
-  offsetTop: number;
-  start: number;
+    key: string;
+    /** 锚点 measurement 起点相对视口顶部的偏移。 */
+    offsetTop: number;
+    start: number;
 }
 
 /**
@@ -207,30 +207,30 @@ export interface PrependVirtualAnchor {
  * 保存的视口偏移计算绝对目标，再减实时 scrollTop，才能稳定恢复原阅读位置。
  */
 export function prependVirtualAnchorAdjustment(
-  previous: PrependVirtualAnchor,
-  next: PrependVirtualAnchor,
-  currentScrollTop: number,
+    previous: PrependVirtualAnchor,
+    next: PrependVirtualAnchor,
+    currentScrollTop: number,
 ): number | null {
-  if (previous.key !== next.key) return null;
-  if (
-    !Number.isFinite(previous.offsetTop) ||
-    !Number.isFinite(next.start) ||
-    !Number.isFinite(currentScrollTop)
-  ) {
-    return null;
-  }
-  return next.start - previous.offsetTop - currentScrollTop;
+    if (previous.key !== next.key) return null;
+    if (
+        !Number.isFinite(previous.offsetTop) ||
+        !Number.isFinite(next.start) ||
+        !Number.isFinite(currentScrollTop)
+    ) {
+        return null;
+    }
+    return next.start - previous.offsetTop - currentScrollTop;
 }
 
 export interface PrependAnchorInput {
-  /** 上一 commit 的窗口首行 rowId（null = 尚无行）。 */
-  prevFirstRowId: number | null;
-  /** 本 commit 的窗口首行 rowId（null = 行被清空）。 */
-  nextFirstRowId: number | null;
-  /** 上一 commit 的虚拟列表总高度。 */
-  prevTotalSize: number;
-  /** 本 commit 的虚拟列表总高度。 */
-  nextTotalSize: number;
+    /** 上一 commit 的窗口首行 rowId（null = 尚无行）。 */
+    prevFirstRowId: number | null;
+    /** 本 commit 的窗口首行 rowId（null = 行被清空）。 */
+    nextFirstRowId: number | null;
+    /** 上一 commit 的虚拟列表总高度。 */
+    prevTotalSize: number;
+    /** 本 commit 的虚拟列表总高度。 */
+    nextTotalSize: number;
 }
 
 /**
@@ -238,12 +238,12 @@ export interface PrependAnchorInput {
  * 追加/替换/清空/首帧一律 null（不动滚动位置，交给底部锚定逻辑）。
  */
 export function prependScrollAdjustment(input: PrependAnchorInput): number | null {
-  if (input.prevFirstRowId === null || input.nextFirstRowId === null) {
-    return null;
-  }
-  if (input.nextFirstRowId >= input.prevFirstRowId) return null;
-  const delta = input.nextTotalSize - input.prevTotalSize;
-  return delta > 0 ? delta : null;
+    if (input.prevFirstRowId === null || input.nextFirstRowId === null) {
+        return null;
+    }
+    if (input.nextFirstRowId >= input.prevFirstRowId) return null;
+    const delta = input.nextTotalSize - input.prevTotalSize;
+    return delta > 0 ? delta : null;
 }
 
 /** 顶部触发阈值：距顶小于该距离视为「到顶」，自动拉取更早一窗。 */
@@ -253,22 +253,22 @@ export const LOAD_OLDER_TRIGGER_PX = 64;
 export const LOAD_OLDER_PREFETCH_VIEWPORTS = 2;
 
 export function historyPrefetchTriggerPx(viewportHeight: number): number {
-  if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) {
-    return LOAD_OLDER_TRIGGER_PX;
-  }
-  return Math.max(LOAD_OLDER_TRIGGER_PX, viewportHeight * LOAD_OLDER_PREFETCH_VIEWPORTS);
+    if (!Number.isFinite(viewportHeight) || viewportHeight <= 0) {
+        return LOAD_OLDER_TRIGGER_PX;
+    }
+    return Math.max(LOAD_OLDER_TRIGGER_PX, viewportHeight * LOAD_OLDER_PREFETCH_VIEWPORTS);
 }
 
 /** scroll 事件是否应触发 loadOlder（到顶 + 可拉 + 非在途）。 */
 export function shouldTriggerLoadOlder(input: {
-  scrollTop: number;
-  canLoadOlder: boolean;
-  loadingOlder: boolean;
-  triggerPx?: number;
+    scrollTop: number;
+    canLoadOlder: boolean;
+    loadingOlder: boolean;
+    triggerPx?: number;
 }): boolean {
-  return (
-    input.canLoadOlder &&
-    !input.loadingOlder &&
-    input.scrollTop <= (input.triggerPx ?? LOAD_OLDER_TRIGGER_PX)
-  );
+    return (
+        input.canLoadOlder &&
+        !input.loadingOlder &&
+        input.scrollTop <= (input.triggerPx ?? LOAD_OLDER_TRIGGER_PX)
+    );
 }

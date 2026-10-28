@@ -1,8 +1,8 @@
 ---
 name: pdf
 metadata:
-  author: Z.AI
-  version: "1.1"
+    author: Z.AI
+    version: "1.1"
 description: "Professional PDF toolkit covering four production workflows: reports, creative visuals, academic LaTeX, and existing PDF processing. Routes automatically by document type and supports reports, posters, papers, resumes, extraction, merging, splitting, and form filling. Use this skill for any conversion whose output is a PDF: Office → PDF (.docx/.doc/.pptx/.ppt/.xlsx/.xls/.odt/.odp/.ods/.rtf/.csv/.txt → PDF), HTML → PDF, and LaTeX/.tex → PDF; also PDF → images, PDF → text, and PDF → tables when reading a PDF apart. Trigger when the user asks to convert, export, render, print, or turn a file into a PDF, or to merge/split/extract from one — including phrasings like 'Word转PDF', 'PPT转PDF', 'Excel转PDF', 'html转pdf', '导出为PDF', 'save/export as PDF', or 'PDF转图片/文字'."
 license: Proprietary. LICENSE.txt has complete terms
 ---
@@ -263,7 +263,7 @@ The rules above handle **how** to embed diagrams in PDF. For **what the diagram 
    | Embedded in A4 PDF (ReportLab/LaTeX, ~450pt content width) | 10pt | 8pt | 7pt |
    | Embedded in slide deck (landscape, ~720pt wide) | 12pt | 10pt | 9pt |
 
-   **Principle**: After embedding, the smallest text in the diagram must still be legible when the document is viewed at 100% zoom. If the diagram is scaled down to fit page width, recalculate: `effective_size = original_size × (display_width / canvas_width)`. If effective size drops below the minimum, either increase original font size or reduce diagram complexity.
+    **Principle**: After embedding, the smallest text in the diagram must still be legible when the document is viewed at 100% zoom. If the diagram is scaled down to fit page width, recalculate: `effective_size = original_size × (display_width / canvas_width)`. If effective size drops below the minimum, either increase original font size or reduce diagram complexity.
 
 6. **Legend/annotations must not overlap content** - Separate container, ≥ 40px gap from last node, fully within canvas bounds.
 
@@ -409,13 +409,13 @@ When generating HTML for Playwright `page.pdf()`, the content **MUST fill the en
 
 ```css
 @page {
-  size: <width> <height>; /* e.g., 720px 960px, or A4 */
-  margin: 0;
+    size: <width> <height>; /* e.g., 720px 960px, or A4 */
+    margin: 0;
 }
 html,
 body {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 }
 ```
 
@@ -442,9 +442,9 @@ Playwright `page.pdf({ printBackground: true })` renders the body background col
 /* MANDATORY: body background = content background */
 html,
 body {
-  margin: 0;
-  padding: 0;
-  background: var(--c-bg); /* Same color as content canvas */
+    margin: 0;
+    padding: 0;
+    background: var(--c-bg); /* Same color as content canvas */
 }
 ```
 
@@ -456,14 +456,14 @@ body {
 
 ```css
 :root {
-  --primary: #0f172a; /* darkest page background */
+    --primary: #0f172a; /* darkest page background */
 }
 html,
 body {
-  margin: 0;
-  padding: 0;
-  width: 210mm; /* match @page size */
-  background: var(--primary); /* fallback for sub-pixel gaps */
+    margin: 0;
+    padding: 0;
+    width: 210mm; /* match @page size */
+    background: var(--primary); /* fallback for sub-pixel gaps */
 }
 ```
 

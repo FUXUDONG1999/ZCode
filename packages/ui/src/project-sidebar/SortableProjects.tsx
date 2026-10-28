@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
 import {
-  DndContext,
-  PointerSensor,
-  KeyboardSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
+    DndContext,
+    PointerSensor,
+    KeyboardSensor,
+    closestCenter,
+    useSensor,
+    useSensors,
 } from "@dnd-kit/core";
 import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { VirtualProject } from "@/project-sidebar/contract.js";
 import { projectKey } from "@/project-sidebar/view.js";
@@ -22,29 +22,32 @@ const keyboardOptions = { coordinateGetter: sortableKeyboardCoordinates };
 
 /** 原因：原生 HTML 拖放只在 drop 后换顺序，缺少旧项目树的相邻行位移动画。 */
 export function SortableProjects({
-  projects,
-  renderProject,
-  onReorder,
+    projects,
+    renderProject,
+    onReorder,
 }: {
-  projects: VirtualProject[];
-  renderProject(project: VirtualProject): ReactNode;
-  onReorder(active: string, over: string): void;
+    projects: VirtualProject[];
+    renderProject(project: VirtualProject): ReactNode;
+    onReorder(active: string, over: string): void;
 }) {
-  const sensors = useSensors(
-    useSensor(PointerSensor, pointerOptions),
-    useSensor(KeyboardSensor, keyboardOptions),
-  );
-  return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={({ active, over }) => {
-        if (over && active.id !== over.id) onReorder(String(active.id), String(over.id));
-      }}
-    >
-      <SortableContext items={projects.map(projectKey)} strategy={verticalListSortingStrategy}>
-        {projects.map(renderProject)}
-      </SortableContext>
-    </DndContext>
-  );
+    const sensors = useSensors(
+        useSensor(PointerSensor, pointerOptions),
+        useSensor(KeyboardSensor, keyboardOptions),
+    );
+    return (
+        <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={({ active, over }) => {
+                if (over && active.id !== over.id) onReorder(String(active.id), String(over.id));
+            }}
+        >
+            <SortableContext
+                items={projects.map(projectKey)}
+                strategy={verticalListSortingStrategy}
+            >
+                {projects.map(renderProject)}
+            </SortableContext>
+        </DndContext>
+    );
 }

@@ -6,23 +6,23 @@
 const chains = new Map<string, Promise<unknown>>();
 
 export async function withPluginStorageLock<T>(
-  storageRoot: string,
-  operation: () => Promise<T>,
+    storageRoot: string,
+    operation: () => Promise<T>,
 ): Promise<T> {
-  const previous = chains.get(storageRoot) ?? Promise.resolve();
-  // Chain regardless of previous outcome; swallow prior errors for the gate only.
-  const gate = previous.then(
-    () => undefined,
-    () => undefined,
-  );
-  const run = gate.then(() => operation());
-  // Keep the chain alive but never let a rejection break future gating.
-  chains.set(
-    storageRoot,
-    run.then(
-      () => undefined,
-      () => undefined,
-    ),
-  );
-  return run;
+    const previous = chains.get(storageRoot) ?? Promise.resolve();
+    // Chain regardless of previous outcome; swallow prior errors for the gate only.
+    const gate = previous.then(
+        () => undefined,
+        () => undefined,
+    );
+    const run = gate.then(() => operation());
+    // Keep the chain alive but never let a rejection break future gating.
+    chains.set(
+        storageRoot,
+        run.then(
+            () => undefined,
+            () => undefined,
+        ),
+    );
+    return run;
 }

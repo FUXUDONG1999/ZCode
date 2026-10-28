@@ -10,25 +10,25 @@
 // `this.` 换成 `host.`。
 
 import type {
-  EscalateQuestionRequest,
-  SessionId,
-  WorkflowEscalateOutcome,
-  WorkflowEscalatePort,
+    EscalateQuestionRequest,
+    SessionId,
+    WorkflowEscalateOutcome,
+    WorkflowEscalatePort,
 } from "@zcode/contracts";
 import {
-  refToString,
-  WorkflowError,
-  type ActorRef,
-  type PersonaSpec,
-  type RunEvent,
+    refToString,
+    WorkflowError,
+    type ActorRef,
+    type PersonaSpec,
+    type RunEvent,
 } from "@zcode/dynamic-workflow";
 import {
-  ESCALATION_BUDGET_EXHAUSTED,
-  MAX_ESCALATIONS_PER_ASK,
-  defer,
-  effectiveActorName,
-  normalizeEscalationContext,
-  questionIdFragments,
+    ESCALATION_BUDGET_EXHAUSTED,
+    MAX_ESCALATIONS_PER_ASK,
+    defer,
+    effectiveActorName,
+    normalizeEscalationContext,
+    questionIdFragments,
 } from "./workflow-driver-helpers.js";
 import type { AgentRuntimeWorkflowDriverDeps, SessionState } from "./workflow-driver-types.js";
 
@@ -38,12 +38,12 @@ import type { AgentRuntimeWorkflowDriverDeps, SessionState } from "./workflow-dr
  * 类的双轨落地（journal + emit，顺序不可换——见 driver 的 record 注释）。
  */
 export interface EscalationHost {
-  readonly deps: AgentRuntimeWorkflowDriverDeps;
-  readonly sessions: ReadonlyMap<string, SessionState>;
-  readonly qidToSession: Map<string, SessionState>;
-  /** 取下一个 per-run 单调的升级序号（qid 的第二段）。 */
-  nextEscalationSeq(): number;
-  record(event: RunEvent): void;
+    readonly deps: AgentRuntimeWorkflowDriverDeps;
+    readonly sessions: ReadonlyMap<string, SessionState>;
+    readonly qidToSession: Map<string, SessionState>;
+    /** 取下一个 per-run 单调的升级序号（qid 的第二段）。 */
+    nextEscalationSeq(): number;
+    record(event: RunEvent): void;
 }
 
 /**
@@ -55,32 +55,32 @@ export interface EscalationHost {
  * 「被撤下」这两个退场原因互相覆盖。
  */
 export function respondToParkedEscalation(
-  host: EscalationHost,
-  qid: string,
-  answer: string,
+    host: EscalationHost,
+    qid: string,
+    answer: string,
 ): boolean {
-  const state = host.qidToSession.get(qid);
-  if (state === undefined) return false;
-  const deferred = state.pendingEscalations.get(qid);
-  host.qidToSession.delete(qid);
-  state.pendingEscalations.delete(qid);
-  if (deferred === undefined) return false;
-  try {
-    host.record({ type: "escalation-resolved", qid, answer });
-  } catch (error) {
-    // 与 raise 路径**相反**的取舍，理由也相反：那里写不进去就没人看得见这个问题，停驻只会
-    // 让 actor 永久阻塞，所以撤回并上抛；到了这里 actor 已经在等这段答案，为了一条观察事件
-    // 把它继续挂着才是更坏的结果。记 warn，答案照送。
-    host.deps.logger?.warn?.("Dynamic workflow escalation resolved event not journaled", {
-      errorMessage: error instanceof Error ? error.message : String(error),
-      event: "dynamic_workflow.escalation.resolved_journal_failed",
-      module: "bootstrap.app",
-      qid,
-      runId: host.deps.runId ?? "run",
-    });
-  }
-  deferred.resolve(answer);
-  return true;
+    const state = host.qidToSession.get(qid);
+    if (state === undefined) return false;
+    const deferred = state.pendingEscalations.get(qid);
+    host.qidToSession.delete(qid);
+    state.pendingEscalations.delete(qid);
+    if (deferred === undefined) return false;
+    try {
+        host.record({ type: "escalation-resolved", qid, answer });
+    } catch (error) {
+        // 与 raise 路径**相反**的取舍，理由也相反：那里写不进去就没人看得见这个问题，停驻只会
+        // 让 actor 永久阻塞，所以撤回并上抛；到了这里 actor 已经在等这段答案，为了一条观察事件
+        // 把它继续挂着才是更坏的结果。记 warn，答案照送。
+        host.deps.logger?.warn?.("Dynamic workflow escalation resolved event not journaled", {
+            errorMessage: error instanceof Error ? error.message : String(error),
+            event: "dynamic_workflow.escalation.resolved_journal_failed",
+            module: "bootstrap.app",
+            qid,
+            runId: host.deps.runId ?? "run",
+        });
+    }
+    deferred.resolve(answer);
+    return true;
 }
 
 /**
@@ -92,16 +92,16 @@ export function respondToParkedEscalation(
  * 正常路径不需要它：停驻中的 escalate 会阻塞住 turn，ask 不可能在还欠着答案时结算。
  */
 export function withdrawSessionEscalations(host: EscalationHost, state: SessionState): void {
-  if (state.pendingEscalations.size === 0) return;
-  const entries = [...state.pendingEscalations];
-  state.pendingEscalations.clear();
-  for (const [qid, deferred] of entries) {
-    host.qidToSession.delete(qid);
-    host.deps.escalationRegistry.withdraw(qid);
-    deferred.reject(
-      new WorkflowError("Cancelled", `Escalation ${qid} was cancelled along with its ask.`),
-    );
-  }
+    if (state.pendingEscalations.size === 0) return;
+    const entries = [...state.pendingEscalations];
+    state.pendingEscalations.clear();
+    for (const [qid, deferred] of entries) {
+        host.qidToSession.delete(qid);
+        host.deps.escalationRegistry.withdraw(qid);
+        deferred.reject(
+            new WorkflowError("Cancelled", `Escalation ${qid} was cancelled along with its ask.`),
+        );
+    }
 }
 
 /**
@@ -116,78 +116,78 @@ export function withdrawSessionEscalations(host: EscalationHost, state: SessionS
  * 当成可重试的故障，反复撞同一堵墙——而这个特性存在的理由正是消灭那种空转。
  */
 export function makeSessionEscalatePort(
-  host: EscalationHost,
-  sessionId: SessionId,
-  actor: ActorRef,
-  persona: PersonaSpec,
+    host: EscalationHost,
+    sessionId: SessionId,
+    actor: ActorRef,
+    persona: PersonaSpec,
 ): WorkflowEscalatePort {
-  const actorName = effectiveActorName(persona);
-  return {
-    escalate: (request: EscalateQuestionRequest): Promise<WorkflowEscalateOutcome> => {
-      const state = host.sessions.get(sessionId);
-      if (state === undefined || state.currentInstance === undefined) {
-        // 无在飞 ask：问题无处停驻。不停驻、不悬挂（与 submit 的同名守卫同一条论证）。
-        return Promise.resolve({
-          kind: "refused",
-          reason: "no_active_ask",
-          message:
-            "No ask is in flight, so there is nowhere to park this question and nobody " +
-            "would answer it. Escalate only while working on an ask.",
-        });
-      }
-      if (state.escalationsUsed >= MAX_ESCALATIONS_PER_ASK) {
-        // per-ask 上限（nudge 预算同族）：第 4 次起短路，绝不停驻。
-        return Promise.resolve({
-          kind: "refused",
-          reason: "budget_exhausted",
-          message: ESCALATION_BUDGET_EXHAUSTED,
-        });
-      }
-      state.escalationsUsed++;
+    const actorName = effectiveActorName(persona);
+    return {
+        escalate: (request: EscalateQuestionRequest): Promise<WorkflowEscalateOutcome> => {
+            const state = host.sessions.get(sessionId);
+            if (state === undefined || state.currentInstance === undefined) {
+                // 无在飞 ask：问题无处停驻。不停驻、不悬挂（与 submit 的同名守卫同一条论证）。
+                return Promise.resolve({
+                    kind: "refused",
+                    reason: "no_active_ask",
+                    message:
+                        "No ask is in flight, so there is nowhere to park this question and nobody " +
+                        "would answer it. Escalate only while working on an ask.",
+                });
+            }
+            if (state.escalationsUsed >= MAX_ESCALATIONS_PER_ASK) {
+                // per-ask 上限（nudge 预算同族）：第 4 次起短路，绝不停驻。
+                return Promise.resolve({
+                    kind: "refused",
+                    reason: "budget_exhausted",
+                    message: ESCALATION_BUDGET_EXHAUSTED,
+                });
+            }
+            state.escalationsUsed++;
 
-      const qid = mintEscalationQuestionId(host);
-      const deferred = defer<string>();
-      state.pendingEscalations.set(qid, deferred);
-      host.qidToSession.set(qid, state);
-      const context = normalizeEscalationContext(request.context);
-      // 时钟**只读一次**，事件与停驻记录共用：两处各调一次 Date.now() 会让同一个问题在事件轨
-      // 与快照上带着相差几毫秒的两个提问时刻，而下游要拿它算「等了多久」。
-      const askedAt = Date.now();
-      host.deps.escalationRegistry.park(
-        {
-          qid,
-          runId: host.deps.runId ?? "run",
-          actor: refToString(actor),
-          ...(actorName === undefined ? {} : { actorName }),
-          question: request.question,
-          ...(context === undefined ? {} : { context }),
-          askedAt,
+            const qid = mintEscalationQuestionId(host);
+            const deferred = defer<string>();
+            state.pendingEscalations.set(qid, deferred);
+            host.qidToSession.set(qid, state);
+            const context = normalizeEscalationContext(request.context);
+            // 时钟**只读一次**，事件与停驻记录共用：两处各调一次 Date.now() 会让同一个问题在事件轨
+            // 与快照上带着相差几毫秒的两个提问时刻，而下游要拿它算「等了多久」。
+            const askedAt = Date.now();
+            host.deps.escalationRegistry.park(
+                {
+                    qid,
+                    runId: host.deps.runId ?? "run",
+                    actor: refToString(actor),
+                    ...(actorName === undefined ? {} : { actorName }),
+                    question: request.question,
+                    ...(context === undefined ? {} : { context }),
+                    askedAt,
+                },
+                (answer) => {
+                    respondToParkedEscalation(host, qid, answer);
+                },
+            );
+            try {
+                host.record({
+                    type: "escalation-raised",
+                    qid,
+                    actor,
+                    ...(actorName === undefined ? {} : { actorName }),
+                    question: request.question,
+                    ...(context === undefined ? {} : { context }),
+                    askedAt,
+                });
+            } catch (error) {
+                // journal 写不进去就没有 durable 的问答记录，而停驻会让 actor 无限期阻塞在一个
+                // 谁也看不见的问题上。撤回登记并把错误交给 handler，比悄悄停驻诚实。
+                state.pendingEscalations.delete(qid);
+                host.qidToSession.delete(qid);
+                host.deps.escalationRegistry.withdraw(qid);
+                throw error;
+            }
+            return deferred.promise.then((answer) => ({ kind: "answered", answer, qid }) as const);
         },
-        (answer) => {
-          respondToParkedEscalation(host, qid, answer);
-        },
-      );
-      try {
-        host.record({
-          type: "escalation-raised",
-          qid,
-          actor,
-          ...(actorName === undefined ? {} : { actorName }),
-          question: request.question,
-          ...(context === undefined ? {} : { context }),
-          askedAt,
-        });
-      } catch (error) {
-        // journal 写不进去就没有 durable 的问答记录，而停驻会让 actor 无限期阻塞在一个
-        // 谁也看不见的问题上。撤回登记并把错误交给 handler，比悄悄停驻诚实。
-        state.pendingEscalations.delete(qid);
-        host.qidToSession.delete(qid);
-        host.deps.escalationRegistry.withdraw(qid);
-        throw error;
-      }
-      return deferred.promise.then((answer) => ({ kind: "answered", answer, qid }) as const);
-    },
-  };
+    };
 }
 
 /**
@@ -200,15 +200,15 @@ export function makeSessionEscalatePort(
  * 同一个 runId（装配错误），此时大声失败而不是发一个会错配答案的 id。
  */
 function mintEscalationQuestionId(host: EscalationHost): string {
-  const seq = host.nextEscalationSeq();
-  for (const fragment of questionIdFragments(host.deps.runId ?? "run")) {
-    const candidate = `dwfq-${fragment}-${seq}`;
-    if (!host.deps.escalationRegistry.isTaken(candidate)) return candidate;
-  }
-  throw new WorkflowError(
-    "DriverError",
-    `Cannot mint a free escalation question id for run ${host.deps.runId ?? "run"} ` +
-      `(seq=${seq}): every candidate is already taken in the registry. Two drivers may be ` +
-      `sharing one runId.`,
-  );
+    const seq = host.nextEscalationSeq();
+    for (const fragment of questionIdFragments(host.deps.runId ?? "run")) {
+        const candidate = `dwfq-${fragment}-${seq}`;
+        if (!host.deps.escalationRegistry.isTaken(candidate)) return candidate;
+    }
+    throw new WorkflowError(
+        "DriverError",
+        `Cannot mint a free escalation question id for run ${host.deps.runId ?? "run"} ` +
+            `(seq=${seq}): every candidate is already taken in the registry. Two drivers may be ` +
+            `sharing one runId.`,
+    );
 }

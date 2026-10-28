@@ -1,7 +1,7 @@
 interface BrowserOperationResultLike {
-  ok?: unknown;
-  meta?: unknown;
-  tab?: unknown;
+    ok?: unknown;
+    meta?: unknown;
+    tab?: unknown;
 }
 
 /**
@@ -9,18 +9,18 @@ interface BrowserOperationResultLike {
  * 普通 navigate/locator/screenshot 命令必须返回 false，否则会吞掉同一操作周期内真正的用户 resize。
  */
 export function browserOperationResetsResizeBaseline(command: unknown): boolean {
-  if (!command || typeof command !== "object") return false;
-  const method = Reflect.get(command, "method");
-  if (method === "browserVisibilitySet") return Reflect.get(command, "visible") === true;
-  return ["activateTab", "browserViewportReset", "browserViewportSet", "newTab"].includes(
-    String(method),
-  );
+    if (!command || typeof command !== "object") return false;
+    const method = Reflect.get(command, "method");
+    if (method === "browserVisibilitySet") return Reflect.get(command, "visible") === true;
+    return ["activateTab", "browserViewportReset", "browserViewportSet", "newTab"].includes(
+        String(method),
+    );
 }
 
 function readTabId(value: unknown): string | undefined {
-  if (!value || typeof value !== "object") return undefined;
-  const tabId = Reflect.get(value, "tabId");
-  return typeof tabId === "string" && tabId.length > 0 ? tabId : undefined;
+    if (!value || typeof value !== "object") return undefined;
+    const tabId = Reflect.get(value, "tabId");
+    return typeof tabId === "string" && tabId.length > 0 ? tabId : undefined;
 }
 
 /**
@@ -28,11 +28,11 @@ function readTabId(value: unknown): string | undefined {
  * 只能在成功结果里读取 manager 已解析的真实 tab identity，禁止 UI 自行猜测。
  */
 export function resolveBrowserOperationTabId(
-  command: unknown,
-  result?: BrowserOperationResultLike,
+    command: unknown,
+    result?: BrowserOperationResultLike,
 ): string | undefined {
-  const requestedTabId = readTabId(command);
-  if (requestedTabId) return requestedTabId;
-  if (result?.ok !== true) return undefined;
-  return readTabId(result.meta) ?? readTabId(result.tab);
+    const requestedTabId = readTabId(command);
+    if (requestedTabId) return requestedTabId;
+    if (result?.ok !== true) return undefined;
+    return readTabId(result.meta) ?? readTabId(result.tab);
 }

@@ -64,27 +64,27 @@ eval <user command> && pwd -P > <cwdFile>
 ## 文件职责
 
 - `apps/zcode-cli/packages/contracts/src/interfaces/execution.port.ts`
-  - 扩展 execution request/result 的内部 cwd capture contract。
+    - 扩展 execution request/result 的内部 cwd capture contract。
 - `apps/zcode-cli/packages/adapters/src/exec/index.ts`
-  - 在 NodeExecutionAdapter 里调用 cwd capture plan，并把 `resolvedCwd` 回填到 result。
+    - 在 NodeExecutionAdapter 里调用 cwd capture plan，并把 `resolvedCwd` 回填到 result。
 - `apps/zcode-cli/packages/adapters/src/exec/cwd-capture.ts`
-  - 封装 Bash cwd wrapper 生成、cwd file 读取、realpath 校验和临时文件清理。
+    - 封装 Bash cwd wrapper 生成、cwd file 读取、realpath 校验和临时文件清理。
 - `apps/zcode-cli/packages/core/src/tool/types.ts`
-  - 在 `ToolExecutionContext` 增加可选 cwd setter。
+    - 在 `ToolExecutionContext` 增加可选 cwd setter。
 - `apps/zcode-cli/packages/core/src/tool/executor/types.ts`
-  - 在 executor options/deps 增加可选 `setWorkingDirectory`。
+    - 在 executor options/deps 增加可选 `setWorkingDirectory`。
 - `apps/zcode-cli/packages/core/src/tool/executor/call-runner.ts`
-  - 把 cwd setter 注入 tool context。
+    - 把 cwd setter 注入 tool context。
 - `apps/zcode-cli/packages/core/src/runtime/agent-runtime.ts`
-  - 提供 setter，把合法 cwd 写入当前 runtime 实例；同时保留稳定 `workspaceRoot`，供 project identity 和 message root 使用。
+    - 提供 setter，把合法 cwd 写入当前 runtime 实例；同时保留稳定 `workspaceRoot`，供 project identity 和 message root 使用。
 - `apps/zcode-cli/packages/core/src/tool/handlers/bash.ts`
-  - Bash foreground request 开启 cwd capture，成功后消费 `result.resolvedCwd`。
+    - Bash foreground request 开启 cwd capture，成功后消费 `result.resolvedCwd`。
 - `apps/zcode-cli/packages/adapters/tests/exec.test.ts`
-  - 覆盖 adapter 层 cwd capture。
+    - 覆盖 adapter 层 cwd capture。
 - `apps/zcode-cli/packages/core/tests/bash-handler.test.ts`
-  - 覆盖 Bash handler 是否调用 cwd setter。
+    - 覆盖 Bash handler 是否调用 cwd setter。
 - `apps/zcode-cli/packages/core/tests/runtime-tool-loop.test.ts`
-  - 覆盖 runtime 级跨 Bash call cwd 持久化。
+    - 覆盖 runtime 级跨 Bash call cwd 持久化。
 
 ## Task 1: 扩展 Execution Contract
 
@@ -139,27 +139,27 @@ Expected: PASS。
 
 ```ts
 it("captures final cwd for successful foreground shell commands when requested", async () => {
-  const root = await mkdtemp(join(tmpdir(), "zcode-exec-cwd-"));
-  const child = join(root, "child");
-  await mkdir(child);
+    const root = await mkdtemp(join(tmpdir(), "zcode-exec-cwd-"));
+    const child = join(root, "child");
+    await mkdir(child);
 
-  try {
-    const adapter = new NodeExecutionAdapter();
-    const result = await adapter.run({
-      command: {
-        mode: "shell",
-        command: `cd ${JSON.stringify(child)}`,
-      },
-      cwd: root,
-      captureCwdAfterSuccess: true,
-    });
+    try {
+        const adapter = new NodeExecutionAdapter();
+        const result = await adapter.run({
+            command: {
+                mode: "shell",
+                command: `cd ${JSON.stringify(child)}`,
+            },
+            cwd: root,
+            captureCwdAfterSuccess: true,
+        });
 
-    expect(result.status).toBe("completed");
-    expect(result.exitCode).toBe(0);
-    expect(result.resolvedCwd).toBe(await realpath(child));
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+        expect(result.status).toBe("completed");
+        expect(result.exitCode).toBe(0);
+        expect(result.resolvedCwd).toBe(await realpath(child));
+    } finally {
+        await rm(root, { recursive: true, force: true });
+    }
 });
 ```
 
@@ -169,26 +169,26 @@ it("captures final cwd for successful foreground shell commands when requested",
 
 ```ts
 it("does not capture cwd for generic shell commands by default", async () => {
-  const root = await mkdtemp(join(tmpdir(), "zcode-exec-cwd-default-"));
-  const child = join(root, "child");
-  await mkdir(child);
+    const root = await mkdtemp(join(tmpdir(), "zcode-exec-cwd-default-"));
+    const child = join(root, "child");
+    await mkdir(child);
 
-  try {
-    const adapter = new NodeExecutionAdapter();
-    const result = await adapter.run({
-      command: {
-        mode: "shell",
-        command: `cd ${JSON.stringify(child)}`,
-      },
-      cwd: root,
-    });
+    try {
+        const adapter = new NodeExecutionAdapter();
+        const result = await adapter.run({
+            command: {
+                mode: "shell",
+                command: `cd ${JSON.stringify(child)}`,
+            },
+            cwd: root,
+        });
 
-    expect(result.status).toBe("completed");
-    expect(result.exitCode).toBe(0);
-    expect(result.resolvedCwd).toBeUndefined();
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+        expect(result.status).toBe("completed");
+        expect(result.exitCode).toBe(0);
+        expect(result.resolvedCwd).toBeUndefined();
+    } finally {
+        await rm(root, { recursive: true, force: true });
+    }
 });
 ```
 
@@ -204,27 +204,27 @@ import { join } from "node:path";
 
 ```ts
 it("does not capture cwd when the shell command exits non-zero", async () => {
-  const root = await mkdtemp(join(tmpdir(), "zcode-exec-cwd-fail-"));
-  const child = join(root, "child");
-  await mkdir(child);
+    const root = await mkdtemp(join(tmpdir(), "zcode-exec-cwd-fail-"));
+    const child = join(root, "child");
+    await mkdir(child);
 
-  try {
-    const adapter = new NodeExecutionAdapter();
-    const result = await adapter.run({
-      command: {
-        mode: "shell",
-        command: `cd ${JSON.stringify(child)}; false`,
-      },
-      cwd: root,
-      captureCwdAfterSuccess: true,
-    });
+    try {
+        const adapter = new NodeExecutionAdapter();
+        const result = await adapter.run({
+            command: {
+                mode: "shell",
+                command: `cd ${JSON.stringify(child)}; false`,
+            },
+            cwd: root,
+            captureCwdAfterSuccess: true,
+        });
 
-    expect(result.status).toBe("failed");
-    expect(result.exitCode).toBe(1);
-    expect(result.resolvedCwd).toBeUndefined();
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+        expect(result.status).toBe("failed");
+        expect(result.exitCode).toBe(1);
+        expect(result.resolvedCwd).toBeUndefined();
+    } finally {
+        await rm(root, { recursive: true, force: true });
+    }
 });
 ```
 
@@ -234,24 +234,24 @@ it("does not capture cwd when the shell command exits non-zero", async () => {
 
 ```ts
 it("does not wrap Windows shell commands for POSIX cwd capture", () => {
-  const resolved = resolveExecutionCommand(
-    {
-      mode: "shell",
-      command: "cd C:\\repo",
-    },
-    {
-      env: {
-        COMSPEC: "C:\\Windows\\System32\\cmd.exe",
-      },
-      platform: "win32",
-    },
-  );
+    const resolved = resolveExecutionCommand(
+        {
+            mode: "shell",
+            command: "cd C:\\repo",
+        },
+        {
+            env: {
+                COMSPEC: "C:\\Windows\\System32\\cmd.exe",
+            },
+            platform: "win32",
+        },
+    );
 
-  expect(resolved).toEqual({
-    args: [],
-    file: "cd C:\\repo",
-    shell: "C:\\Windows\\System32\\cmd.exe",
-  });
+    expect(resolved).toEqual({
+        args: [],
+        file: "cd C:\\repo",
+        shell: "C:\\Windows\\System32\\cmd.exe",
+    });
 });
 ```
 
@@ -273,8 +273,8 @@ Expected: FAIL，失败原因是 `resolvedCwd` 还没有实现。
 
 ```ts
 interface CwdCapturePlan {
-  command: ExecutionCommand;
-  cwdFilePath?: string;
+    command: ExecutionCommand;
+    cwdFilePath?: string;
 }
 ```
 
@@ -282,29 +282,29 @@ interface CwdCapturePlan {
 
 ```ts
 function createCwdCapturePlan(
-  request: ExecutionRequest,
-  platform: NodeJS.Platform,
+    request: ExecutionRequest,
+    platform: NodeJS.Platform,
 ): CwdCapturePlan {
-  if (
-    request.captureCwdAfterSuccess !== true ||
-    request.command.mode !== "shell" ||
-    platform === "win32"
-  ) {
-    return { command: request.command };
-  }
+    if (
+        request.captureCwdAfterSuccess !== true ||
+        request.command.mode !== "shell" ||
+        platform === "win32"
+    ) {
+        return { command: request.command };
+    }
 
-  const cwdCaptureDir = tmpdir();
-  mkdirSync(cwdCaptureDir, { recursive: true });
-  const cwdFilePath = join(cwdCaptureDir, `zcode-${crypto.randomUUID()}-cwd`);
-  const wrappedCommand = `${request.command.command}\n__zcode_status=$?\nif [ "$__zcode_status" -eq 0 ]; then pwd -P > ${shellQuote(cwdFilePath)}; fi\nexit "$__zcode_status"`;
+    const cwdCaptureDir = tmpdir();
+    mkdirSync(cwdCaptureDir, { recursive: true });
+    const cwdFilePath = join(cwdCaptureDir, `zcode-${crypto.randomUUID()}-cwd`);
+    const wrappedCommand = `${request.command.command}\n__zcode_status=$?\nif [ "$__zcode_status" -eq 0 ]; then pwd -P > ${shellQuote(cwdFilePath)}; fi\nexit "$__zcode_status"`;
 
-  return {
-    command: {
-      ...request.command,
-      command: wrappedCommand,
-    },
-    cwdFilePath,
-  };
+    return {
+        command: {
+            ...request.command,
+            command: wrappedCommand,
+        },
+        cwdFilePath,
+    };
 }
 ```
 
@@ -312,7 +312,7 @@ function createCwdCapturePlan(
 
 ```ts
 function shellQuote(value: string): string {
-  return `'${value.replaceAll("'", "'\\''")}'`;
+    return `'${value.replaceAll("'", "'\\''")}'`;
 }
 ```
 
@@ -336,22 +336,22 @@ const resolvedCwd = readCapturedCwd(cwdFilePath);
 
 ```ts
 function readCapturedCwd(cwdFilePath?: string): string | undefined {
-  if (!cwdFilePath) return undefined;
-  try {
-    const value = readFileSync(cwdFilePath, "utf8").replace(/\r?\n$/u, "");
-    if (!value) return undefined;
-    const stats = statSync(value);
-    if (!stats.isDirectory()) return undefined;
-    return realpathSync(value);
-  } catch {
-    return undefined;
-  } finally {
+    if (!cwdFilePath) return undefined;
     try {
-      unlinkSync(cwdFilePath);
+        const value = readFileSync(cwdFilePath, "utf8").replace(/\r?\n$/u, "");
+        if (!value) return undefined;
+        const stats = statSync(value);
+        if (!stats.isDirectory()) return undefined;
+        return realpathSync(value);
     } catch {
-      // ignore cleanup failure
+        return undefined;
+    } finally {
+        try {
+            unlinkSync(cwdFilePath);
+        } catch {
+            // ignore cleanup failure
+        }
     }
-  }
 }
 ```
 
@@ -439,31 +439,31 @@ Expected: PASS。
 
 ```ts
 it("updates session cwd from successful foreground Bash execution", async () => {
-  const nextCwd = resolve("/tmp/zcode-next-cwd");
-  let observedCwd: string | undefined;
-  let capturedRequest: ExecutionRequest | undefined;
-  const executionPort: ExecutionPort = {
-    async run(request) {
-      capturedRequest = request;
-      return executionResult({
-        status: "completed",
-        exitCode: 0,
-        resolvedCwd: nextCwd,
-      });
-    },
-  };
+    const nextCwd = resolve("/tmp/zcode-next-cwd");
+    let observedCwd: string | undefined;
+    let capturedRequest: ExecutionRequest | undefined;
+    const executionPort: ExecutionPort = {
+        async run(request) {
+            capturedRequest = request;
+            return executionResult({
+                status: "completed",
+                exitCode: 0,
+                resolvedCwd: nextCwd,
+            });
+        },
+    };
 
-  await bashHandler(
-    { command: "cd /tmp/zcode-next-cwd" } satisfies BashInput,
-    contextWith(executionPort, {
-      setWorkingDirectory: (cwd) => {
-        observedCwd = cwd;
-      },
-    }),
-  );
+    await bashHandler(
+        { command: "cd /tmp/zcode-next-cwd" } satisfies BashInput,
+        contextWith(executionPort, {
+            setWorkingDirectory: (cwd) => {
+                observedCwd = cwd;
+            },
+        }),
+    );
 
-  expect(capturedRequest?.captureCwdAfterSuccess).toBe(true);
-  expect(observedCwd).toBe(nextCwd);
+    expect(capturedRequest?.captureCwdAfterSuccess).toBe(true);
+    expect(observedCwd).toBe(nextCwd);
 });
 ```
 
@@ -473,33 +473,33 @@ it("updates session cwd from successful foreground Bash execution", async () => 
 
 ```ts
 it("does not capture or update cwd for background Bash execution", async () => {
-  let observedCwd: string | undefined;
-  let capturedRequest: ExecutionRequest | undefined;
-  const executionPort: ExecutionPort = {
-    async run() {
-      throw new Error("run should not be used for background execution");
-    },
-    async start(request) {
-      capturedRequest = request;
-      return {
-        taskId: "exec_bg",
-        status: "running",
-        startedAt: new Date(),
-      };
-    },
-  };
+    let observedCwd: string | undefined;
+    let capturedRequest: ExecutionRequest | undefined;
+    const executionPort: ExecutionPort = {
+        async run() {
+            throw new Error("run should not be used for background execution");
+        },
+        async start(request) {
+            capturedRequest = request;
+            return {
+                taskId: "exec_bg",
+                status: "running",
+                startedAt: new Date(),
+            };
+        },
+    };
 
-  await bashHandler(
-    { command: "cd /tmp", run_in_background: true } satisfies BashInput,
-    contextWith(executionPort, {
-      setWorkingDirectory: (cwd) => {
-        observedCwd = cwd;
-      },
-    }),
-  );
+    await bashHandler(
+        { command: "cd /tmp", run_in_background: true } satisfies BashInput,
+        contextWith(executionPort, {
+            setWorkingDirectory: (cwd) => {
+                observedCwd = cwd;
+            },
+        }),
+    );
 
-  expect(capturedRequest?.captureCwdAfterSuccess).toBeUndefined();
-  expect(observedCwd).toBeUndefined();
+    expect(capturedRequest?.captureCwdAfterSuccess).toBeUndefined();
+    expect(observedCwd).toBeUndefined();
 });
 ```
 
@@ -507,29 +507,29 @@ it("does not capture or update cwd for background Bash execution", async () => {
 
 ```ts
 it.each([
-  ["failed", executionResult({ status: "failed", exitCode: 1, resolvedCwd: "/tmp/ignored" })],
-  [
-    "timed_out",
-    executionResult({ status: "timed_out", timedOut: true, resolvedCwd: "/tmp/ignored" }),
-  ],
+    ["failed", executionResult({ status: "failed", exitCode: 1, resolvedCwd: "/tmp/ignored" })],
+    [
+        "timed_out",
+        executionResult({ status: "timed_out", timedOut: true, resolvedCwd: "/tmp/ignored" }),
+    ],
 ])("does not update cwd for %s Bash results", async (_name, result) => {
-  let observedCwd: string | undefined;
-  const executionPort: ExecutionPort = {
-    async run() {
-      return result;
-    },
-  };
+    let observedCwd: string | undefined;
+    const executionPort: ExecutionPort = {
+        async run() {
+            return result;
+        },
+    };
 
-  await bashHandler(
-    { command: "cd /tmp && false" } satisfies BashInput,
-    contextWith(executionPort, {
-      setWorkingDirectory: (cwd) => {
-        observedCwd = cwd;
-      },
-    }),
-  );
+    await bashHandler(
+        { command: "cd /tmp && false" } satisfies BashInput,
+        contextWith(executionPort, {
+            setWorkingDirectory: (cwd) => {
+                observedCwd = cwd;
+            },
+        }),
+    );
 
-  expect(observedCwd).toBeUndefined();
+    expect(observedCwd).toBeUndefined();
 });
 ```
 
@@ -555,7 +555,7 @@ Expected: FAIL，失败原因是 Bash request 未设置 capture 或未消费 `re
 
 ```ts
 if (result.status === "completed" && result.exitCode === 0 && result.resolvedCwd) {
-  await context.setWorkingDirectory?.(result.resolvedCwd);
+    await context.setWorkingDirectory?.(result.resolvedCwd);
 }
 ```
 
@@ -588,44 +588,44 @@ Expected: PASS。
 
 ```ts
 it("persists Bash cwd updates across tool calls in the same runtime", async () => {
-  const root = resolve("/tmp/zcode-runtime-cwd-root");
-  const child = resolve(root, "child");
-  const observedCwds: string[] = [];
-  const executionPort: ExecutionPort = {
-    async run(request) {
-      observedCwds.push(request.cwd ?? "");
-      if (observedCwds.length === 1) {
-        return executionResult({
-          status: "completed",
-          exitCode: 0,
-          resolvedCwd: child,
-        });
-      }
-      return executionResult({
-        status: "completed",
-        exitCode: 0,
-        stdout: request.cwd ?? "",
-      });
-    },
-  };
+    const root = resolve("/tmp/zcode-runtime-cwd-root");
+    const child = resolve(root, "child");
+    const observedCwds: string[] = [];
+    const executionPort: ExecutionPort = {
+        async run(request) {
+            observedCwds.push(request.cwd ?? "");
+            if (observedCwds.length === 1) {
+                return executionResult({
+                    status: "completed",
+                    exitCode: 0,
+                    resolvedCwd: child,
+                });
+            }
+            return executionResult({
+                status: "completed",
+                exitCode: 0,
+                stdout: request.cwd ?? "",
+            });
+        },
+    };
 
-  const runtime = createRuntimeForTest({
-    executionPort,
-    workingDirectory: root,
-  });
+    const runtime = createRuntimeForTest({
+        executionPort,
+        workingDirectory: root,
+    });
 
-  await runSingleToolCall(runtime, {
-    id: "toolu_cd",
-    name: "Bash",
-    input: { command: "cd child" },
-  });
-  await runSingleToolCall(runtime, {
-    id: "toolu_pwd",
-    name: "Bash",
-    input: { command: "pwd" },
-  });
+    await runSingleToolCall(runtime, {
+        id: "toolu_cd",
+        name: "Bash",
+        input: { command: "cd child" },
+    });
+    await runSingleToolCall(runtime, {
+        id: "toolu_pwd",
+        name: "Bash",
+        input: { command: "pwd" },
+    });
 
-  expect(observedCwds).toEqual([root, child]);
+    expect(observedCwds).toEqual([root, child]);
 });
 ```
 
@@ -665,26 +665,26 @@ expect(capturedRequest?.captureCwdAfterSuccess).toBeUndefined();
 
 ```ts
 it("does not expose resolved cwd in provider-visible Bash content", async () => {
-  const executionPort: ExecutionPort = {
-    async run() {
-      return executionResult({
-        status: "completed",
-        exitCode: 0,
-        resolvedCwd: "/tmp/secret-cwd",
-        stdout: "ok\n",
-      });
-    },
-  };
+    const executionPort: ExecutionPort = {
+        async run() {
+            return executionResult({
+                status: "completed",
+                exitCode: 0,
+                resolvedCwd: "/tmp/secret-cwd",
+                stdout: "ok\n",
+            });
+        },
+    };
 
-  const output = (await bashHandler(
-    { command: "cd /tmp/secret-cwd && echo ok" } satisfies BashInput,
-    contextWith(executionPort),
-  )) as BashOutput;
+    const output = (await bashHandler(
+        { command: "cd /tmp/secret-cwd && echo ok" } satisfies BashInput,
+        contextWith(executionPort),
+    )) as BashOutput;
 
-  const content = bashToolEntry.formatModelContent?.(output);
-  expect(content).toBe("ok");
-  expect(JSON.stringify(output)).not.toContain("resolvedCwd");
-  expect(JSON.stringify(content)).not.toContain("secret-cwd");
+    const content = bashToolEntry.formatModelContent?.(output);
+    expect(content).toBe("ok");
+    expect(JSON.stringify(output)).not.toContain("resolvedCwd");
+    expect(JSON.stringify(content)).not.toContain("secret-cwd");
 });
 ```
 

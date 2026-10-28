@@ -4,16 +4,16 @@ import { dirname, resolve } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const target = process.argv[2];
 const readyMarkerNames = {
-  main: ".main-build-ready",
-  host: ".host-build-ready",
-  preload: ".preload-build-ready",
-  // scheduler 已成为独立 tsup target，onSuccess 会调用同一 marker 脚本。
-  // 旧白名单缺少该 target，导致 production build 在 bundle 成功后仍以 unknown target 失败。
-  scheduler: ".scheduler-build-ready",
+    main: ".main-build-ready",
+    host: ".host-build-ready",
+    preload: ".preload-build-ready",
+    // scheduler 已成为独立 tsup target，onSuccess 会调用同一 marker 脚本。
+    // 旧白名单缺少该 target，导致 production build 在 bundle 成功后仍以 unknown target 失败。
+    scheduler: ".scheduler-build-ready",
 };
 
 if (!Object.hasOwn(readyMarkerNames, target)) {
-  throw new Error(`unknown ready marker target: ${target ?? "<empty>"}`);
+    throw new Error(`unknown ready marker target: ${target ?? "<empty>"}`);
 }
 
 const readyMarkerPath = resolve(root, "out", readyMarkerNames[target]);

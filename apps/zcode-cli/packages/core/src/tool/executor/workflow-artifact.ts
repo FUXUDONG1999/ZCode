@@ -24,11 +24,11 @@ const WORKFLOW_REPORTS_PREVIEW_MAX_CHARS = 8_000;
 const WORKFLOW_REPORT_ITEM_MAX_CHARS = 2_000;
 
 interface WorkflowReportsNotificationSection {
-  /** **真实总条数**（不是预览里的条数）。 */
-  count: number;
-  /** 预览里实际给出的条数；小于 count 即预览是局部的。 */
-  shown: number;
-  preview: string;
+    /** **真实总条数**（不是预览里的条数）。 */
+    count: number;
+    /** 预览里实际给出的条数；小于 count 即预览是局部的。 */
+    shown: number;
+    preview: string;
 }
 
 /**
@@ -43,27 +43,27 @@ interface WorkflowReportsNotificationSection {
  * 零条时返回 `undefined`，调用方据此让整节缺席——不发一节空的 `<reports>`。
  */
 export function buildWorkflowReportsNotificationSection(
-  items: readonly unknown[] | undefined,
-  total?: number,
+    items: readonly unknown[] | undefined,
+    total?: number,
 ): WorkflowReportsNotificationSection | undefined {
-  if (items === undefined || items.length === 0) return undefined;
+    if (items === undefined || items.length === 0) return undefined;
 
-  const lines: string[] = [];
-  let used = 0;
-  for (const [index, item] of items.entries()) {
-    const text = clip(serializeWorkflowArtifact(item) ?? "", WORKFLOW_REPORT_ITEM_MAX_CHARS);
-    const line = `[${index + 1}] ${text}`;
-    // 至少给一条：一条超长产物也比"报过 11 条但一条都看不到"有用。
-    if (lines.length > 0 && used + line.length + 1 > WORKFLOW_REPORTS_PREVIEW_MAX_CHARS) break;
-    lines.push(line);
-    used += line.length + 1;
-  }
+    const lines: string[] = [];
+    let used = 0;
+    for (const [index, item] of items.entries()) {
+        const text = clip(serializeWorkflowArtifact(item) ?? "", WORKFLOW_REPORT_ITEM_MAX_CHARS);
+        const line = `[${index + 1}] ${text}`;
+        // 至少给一条：一条超长产物也比"报过 11 条但一条都看不到"有用。
+        if (lines.length > 0 && used + line.length + 1 > WORKFLOW_REPORTS_PREVIEW_MAX_CHARS) break;
+        lines.push(line);
+        used += line.length + 1;
+    }
 
-  return {
-    count: Math.max(total ?? 0, items.length),
-    shown: lines.length,
-    preview: lines.join("\n"),
-  };
+    return {
+        count: Math.max(total ?? 0, items.length),
+        shown: lines.length,
+        preview: lines.join("\n"),
+    };
 }
 
 /**
@@ -79,19 +79,22 @@ export function buildWorkflowReportsNotificationSection(
  * 零条时返回 `undefined`，调用方据此让整字段缺席。
  */
 export function buildWorkflowReportsManifestSection(
-  items: readonly unknown[] | undefined,
-  total?: number,
+    items: readonly unknown[] | undefined,
+    total?: number,
 ): { count: number; shown: number; preview: string[] } | undefined {
-  if (items === undefined || items.length === 0) return undefined;
+    if (items === undefined || items.length === 0) return undefined;
 
-  const preview: string[] = [];
-  for (const item of items) {
-    if (preview.length >= WORKFLOW_NOTIFICATION_REPORTS_MAX_ITEMS) break;
-    preview.push(
-      clip(serializeWorkflowArtifact(item) ?? "", WORKFLOW_NOTIFICATION_REPORT_ITEM_MAX_CHARS),
-    );
-  }
-  return { count: Math.max(total ?? 0, items.length), shown: preview.length, preview };
+    const preview: string[] = [];
+    for (const item of items) {
+        if (preview.length >= WORKFLOW_NOTIFICATION_REPORTS_MAX_ITEMS) break;
+        preview.push(
+            clip(
+                serializeWorkflowArtifact(item) ?? "",
+                WORKFLOW_NOTIFICATION_REPORT_ITEM_MAX_CHARS,
+            ),
+        );
+    }
+    return { count: Math.max(total ?? 0, items.length), shown: preview.length, preview };
 }
 
 /** manifest 载荷里逐条产物预览的界（shared schema：≤500 字符）。 */
@@ -100,5 +103,5 @@ const WORKFLOW_NOTIFICATION_REPORT_ITEM_MAX_CHARS = 500;
 const WORKFLOW_NOTIFICATION_REPORTS_MAX_ITEMS = 8;
 
 function clip(text: string, max: number): string {
-  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+    return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 }

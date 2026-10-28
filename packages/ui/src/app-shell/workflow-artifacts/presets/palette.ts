@@ -17,26 +17,26 @@ export const ARTIFACT_CHART_MAX_SERIES = 6;
 
 /** 第 index 条序列的颜色（CSS 变量引用，主题切换即时生效）。 */
 export function artifactSeriesColorVar(index: number): string {
-  return `var(--color-usage-chart-${(index % ARTIFACT_CHART_MAX_SERIES) + 1})`;
+    return `var(--color-usage-chart-${(index % ARTIFACT_CHART_MAX_SERIES) + 1})`;
 }
 
 const SERIES_DASH: readonly (string | undefined)[] = [
-  undefined,
-  "6 3",
-  "2 3",
-  "9 3 2 3",
-  "1 3",
-  "12 4",
+    undefined,
+    "6 3",
+    "2 3",
+    "9 3 2 3",
+    "1 3",
+    "12 4",
 ];
 
 /** 第 index 条序列的线型；第一条是实线。 */
 export function artifactSeriesDash(index: number): string | undefined {
-  return SERIES_DASH[index % SERIES_DASH.length];
+    return SERIES_DASH[index % SERIES_DASH.length];
 }
 
 const SERIES_SYMBOL = ["circle", "cross", "diamond", "square", "triangle", "star"] as const;
 
 /** 散点图的点形；与线型同理，是颜色之外的第二条身份线索。 */
 export function artifactSeriesSymbol(index: number): (typeof SERIES_SYMBOL)[number] {
-  return SERIES_SYMBOL[index % SERIES_SYMBOL.length]!;
+    return SERIES_SYMBOL[index % SERIES_SYMBOL.length]!;
 }

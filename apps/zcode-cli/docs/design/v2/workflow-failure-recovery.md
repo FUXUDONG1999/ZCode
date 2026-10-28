@@ -27,37 +27,37 @@ retried.
 
 ```ts
 interface WorkflowFailure {
-  code?: string;
-  kind:
-    | "network"
-    | "rate_limit"
-    | "timeout"
-    | "auth"
-    | "provider"
-    | "model_context"
-    | "configuration"
-    | "permission"
-    | "tool"
-    | "cancelled"
-    | "unknown";
-  message: string;
-  retryable: boolean;
-  recoverable: boolean;
-  activityId?: string;
-  nodeId?: string;
-  phase?: string;
-  sessionId?: string;
-  traceId?: string;
-  turnId?: string;
+    code?: string;
+    kind:
+        | "network"
+        | "rate_limit"
+        | "timeout"
+        | "auth"
+        | "provider"
+        | "model_context"
+        | "configuration"
+        | "permission"
+        | "tool"
+        | "cancelled"
+        | "unknown";
+    message: string;
+    retryable: boolean;
+    recoverable: boolean;
+    activityId?: string;
+    nodeId?: string;
+    phase?: string;
+    sessionId?: string;
+    traceId?: string;
+    turnId?: string;
 }
 
 interface WorkflowRecoveryAction {
-  action: "retry" | "retry_with_current_model" | "skip_node" | "cancel";
-  activityId?: string;
-  destructive?: boolean;
-  label: string;
-  nodeId?: string;
-  phase?: string;
+    action: "retry" | "retry_with_current_model" | "skip_node" | "cancel";
+    activityId?: string;
+    destructive?: boolean;
+    label: string;
+    nodeId?: string;
+    phase?: string;
 }
 ```
 

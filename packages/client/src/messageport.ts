@@ -4,16 +4,16 @@ import { RemoteServiceAccess } from "./remoteServiceAccess.js";
 import { isRendererProductionBuild } from "./rendererLoggingEnv.js";
 
 function logMessagePortDebug(message: string): void {
-  // 生产构建下 renderer 连接日志不输出，避免窗口启动和重连路径产生同步 console 成本。
-  if (isRendererProductionBuild()) {
-    return;
-  }
-  console.log(message);
+    // 生产构建下 renderer 连接日志不输出，避免窗口启动和重连路径产生同步 console 成本。
+    if (isRendererProductionBuild()) {
+        return;
+    }
+    console.log(message);
 }
 
 export interface MessagePortServiceConnection {
-  services: IServiceAccessor;
-  dispose: (reason?: Error) => void;
+    services: IServiceAccessor;
+    dispose: (reason?: Error) => void;
 }
 
 /**
@@ -23,30 +23,30 @@ export interface MessagePortServiceConnection {
  * 否则旧 attachment 上的挂起 RPC 无法 settle，并会继续占用上层去重状态。
  */
 export function createMessagePortServiceConnection(
-  port: MessagePort,
-  options: { sourceServerManagementService?: boolean } = {},
+    port: MessagePort,
+    options: { sourceServerManagementService?: boolean } = {},
 ): MessagePortServiceConnection {
-  logMessagePortDebug("[messageport] creating protocol and client...");
-  const protocol = new MessagePortProtocol(port);
-  const client = new ChannelClient(protocol);
-  client.onDidInitialize(() => {
-    logMessagePortDebug("[messageport] ChannelClient received Initialize from server");
-  });
-  logMessagePortDebug("[messageport] client created, waiting for Initialize...");
+    logMessagePortDebug("[messageport] creating protocol and client...");
+    const protocol = new MessagePortProtocol(port);
+    const client = new ChannelClient(protocol);
+    client.onDidInitialize(() => {
+        logMessagePortDebug("[messageport] ChannelClient received Initialize from server");
+    });
+    logMessagePortDebug("[messageport] client created, waiting for Initialize...");
 
-  const services = new RemoteServiceAccess(client, options);
-  let disposed = false;
-  return {
-    services,
-    dispose: (reason?: Error) => {
-      if (disposed) {
-        return;
-      }
-      disposed = true;
-      client.dispose(reason);
-      protocol.disconnect();
-    },
-  };
+    const services = new RemoteServiceAccess(client, options);
+    let disposed = false;
+    return {
+        services,
+        dispose: (reason?: Error) => {
+            if (disposed) {
+                return;
+            }
+            disposed = true;
+            client.dispose(reason);
+            protocol.disconnect();
+        },
+    };
 }
 
 /**
@@ -56,8 +56,8 @@ export function createMessagePortServiceConnection(
  * 暴露 ChannelServer，renderer 用此函数建立 ChannelClient 连接。
  */
 export function connectViaMessagePort(
-  port: MessagePort,
-  options: { sourceServerManagementService?: boolean } = {},
+    port: MessagePort,
+    options: { sourceServerManagementService?: boolean } = {},
 ): IServiceAccessor {
-  return createMessagePortServiceConnection(port, options).services;
+    return createMessagePortServiceConnection(port, options).services;
 }

@@ -15,16 +15,16 @@ import type { SessionEvent } from "@zcode/contracts";
  * 判成恒真条件——所以边界在这里，用一次显式的动态读取表达。
  */
 export const readRuntimeFunction = (
-  source: unknown,
-  key: string,
+    source: unknown,
+    key: string,
 ): ((...args: never[]) => unknown) | undefined => {
-  if (!source || typeof source !== "object") return undefined;
-  const value = (source as Record<string, unknown>)[key];
-  return typeof value === "function" ? (value as (...args: never[]) => unknown) : undefined;
+    if (!source || typeof source !== "object") return undefined;
+    const value = (source as Record<string, unknown>)[key];
+    return typeof value === "function" ? (value as (...args: never[]) => unknown) : undefined;
 };
 
 type RuntimeEventSubscriber = (sink: {
-  onSessionEvent: (event: SessionEvent) => void;
+    onSessionEvent: (event: SessionEvent) => void;
 }) => () => void;
 
 /**
@@ -34,12 +34,12 @@ type RuntimeEventSubscriber = (sink: {
  * 与改动前一致）。这是"这个宿主没有这个能力"的诚实答复，而不是假装订阅上了。
  */
 export const readRuntimeEventSubscriber = (
-  runtime: unknown,
+    runtime: unknown,
 ): RuntimeEventSubscriber | undefined => {
-  const subscribe = readRuntimeFunction(runtime, "subscribeEvents");
-  if (!subscribe) return undefined;
-  return (sink) => {
-    const detach = (subscribe as (s: unknown) => unknown).call(runtime, sink);
-    return typeof detach === "function" ? (detach as () => void) : () => undefined;
-  };
+    const subscribe = readRuntimeFunction(runtime, "subscribeEvents");
+    if (!subscribe) return undefined;
+    return (sink) => {
+        const detach = (subscribe as (s: unknown) => unknown).call(runtime, sink);
+        return typeof detach === "function" ? (detach as () => void) : () => undefined;
+    };
 };

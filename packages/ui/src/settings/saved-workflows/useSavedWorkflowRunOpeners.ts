@@ -1,14 +1,14 @@
 import { useCallback } from "react";
 import type { ZCodeSavedWorkflowRun } from "@zcode/shared";
 import type {
-  SavedWorkflowsOpenArtifactParams,
-  SavedWorkflowsOpenRunParams,
+    SavedWorkflowsOpenArtifactParams,
+    SavedWorkflowsOpenRunParams,
 } from "@/settings/saved-workflows/savedWorkflowContract.js";
 
 /** 一行运行记录归属的项目（项目档恒定，全局档按 `run.cwd` 反查）。 */
 export interface SavedWorkflowRunOpenTarget {
-  workspacePath: string;
-  workspaceIdentity?: string;
+    workspacePath: string;
+    workspaceIdentity?: string;
 }
 
 /**
@@ -30,53 +30,59 @@ export interface SavedWorkflowRunOpenTarget {
  * display 上）。产物 tab 不画图，所以老行缺 `toolCallId` 时产物仍然打得开。
  */
 export function useSavedWorkflowRunOpeners(options: {
-  /** 该行归属的项目；返回 null 即两个入口都关闭（全局档里 cwd 对应的项目没打开）。 */
-  resolveTarget: (run: ZCodeSavedWorkflowRun) => SavedWorkflowRunOpenTarget | null;
-  onOpenWorkflowRun?: (params: SavedWorkflowsOpenRunParams) => void;
-  onOpenWorkflowArtifact?: (params: SavedWorkflowsOpenArtifactParams) => void;
+    /** 该行归属的项目；返回 null 即两个入口都关闭（全局档里 cwd 对应的项目没打开）。 */
+    resolveTarget: (run: ZCodeSavedWorkflowRun) => SavedWorkflowRunOpenTarget | null;
+    onOpenWorkflowRun?: (params: SavedWorkflowsOpenRunParams) => void;
+    onOpenWorkflowArtifact?: (params: SavedWorkflowsOpenArtifactParams) => void;
 }): {
-  handleOpenRun: (run: ZCodeSavedWorkflowRun, workflowName: string) => void;
-  handleOpenArtifact: (run: ZCodeSavedWorkflowRun, artifactId: string) => void;
+    handleOpenRun: (run: ZCodeSavedWorkflowRun, workflowName: string) => void;
+    handleOpenArtifact: (run: ZCodeSavedWorkflowRun, artifactId: string) => void;
 } {
-  const { onOpenWorkflowArtifact, onOpenWorkflowRun, resolveTarget } = options;
+    const { onOpenWorkflowArtifact, onOpenWorkflowRun, resolveTarget } = options;
 
-  const handleOpenRun = useCallback(
-    (run: ZCodeSavedWorkflowRun, workflowName: string) => {
-      if (!run.parentSessionId || !run.toolCallId) return;
-      const target = resolveTarget(run);
-      if (!target) return;
-      onOpenWorkflowRun?.({
-        sessionId: run.parentSessionId,
-        runId: run.runId,
-        toolCallId: run.toolCallId,
-        workflowName,
-        workspacePath: target.workspacePath,
-        ...(target.workspaceIdentity ? { workspaceIdentity: target.workspaceIdentity } : {}),
-      });
-    },
-    [onOpenWorkflowRun, resolveTarget],
-  );
+    const handleOpenRun = useCallback(
+        (run: ZCodeSavedWorkflowRun, workflowName: string) => {
+            if (!run.parentSessionId || !run.toolCallId) return;
+            const target = resolveTarget(run);
+            if (!target) return;
+            onOpenWorkflowRun?.({
+                sessionId: run.parentSessionId,
+                runId: run.runId,
+                toolCallId: run.toolCallId,
+                workflowName,
+                workspacePath: target.workspacePath,
+                ...(target.workspaceIdentity
+                    ? { workspaceIdentity: target.workspaceIdentity }
+                    : {}),
+            });
+        },
+        [onOpenWorkflowRun, resolveTarget],
+    );
 
-  const handleOpenArtifact = useCallback(
-    (run: ZCodeSavedWorkflowRun, artifactId: string) => {
-      if (!run.parentSessionId) return;
-      const target = resolveTarget(run);
-      if (!target) return;
-      // 行上的 chip 载荷（`ZCodeSavedWorkflowRun.artifacts`）带最新版的 `contentType`：
-      // 终点据它把 html 产物直接开成浏览器 tab。老行整个 `artifacts` 缺席，少一个键是退化不是错误。
-      const artifact = run.artifacts?.find((candidate) => candidate.id === artifactId);
-      onOpenWorkflowArtifact?.({
-        sessionId: run.parentSessionId,
-        runId: run.runId,
-        artifactId,
-        ...(artifact?.title === undefined ? {} : { title: artifact.title }),
-        ...(artifact?.contentType === undefined ? {} : { contentType: artifact.contentType }),
-        workspacePath: target.workspacePath,
-        ...(target.workspaceIdentity ? { workspaceIdentity: target.workspaceIdentity } : {}),
-      });
-    },
-    [onOpenWorkflowArtifact, resolveTarget],
-  );
+    const handleOpenArtifact = useCallback(
+        (run: ZCodeSavedWorkflowRun, artifactId: string) => {
+            if (!run.parentSessionId) return;
+            const target = resolveTarget(run);
+            if (!target) return;
+            // 行上的 chip 载荷（`ZCodeSavedWorkflowRun.artifacts`）带最新版的 `contentType`：
+            // 终点据它把 html 产物直接开成浏览器 tab。老行整个 `artifacts` 缺席，少一个键是退化不是错误。
+            const artifact = run.artifacts?.find((candidate) => candidate.id === artifactId);
+            onOpenWorkflowArtifact?.({
+                sessionId: run.parentSessionId,
+                runId: run.runId,
+                artifactId,
+                ...(artifact?.title === undefined ? {} : { title: artifact.title }),
+                ...(artifact?.contentType === undefined
+                    ? {}
+                    : { contentType: artifact.contentType }),
+                workspacePath: target.workspacePath,
+                ...(target.workspaceIdentity
+                    ? { workspaceIdentity: target.workspaceIdentity }
+                    : {}),
+            });
+        },
+        [onOpenWorkflowArtifact, resolveTarget],
+    );
 
-  return { handleOpenArtifact, handleOpenRun };
+    return { handleOpenArtifact, handleOpenRun };
 }

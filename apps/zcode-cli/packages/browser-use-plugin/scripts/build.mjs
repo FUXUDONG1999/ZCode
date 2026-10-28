@@ -20,39 +20,39 @@ const nodeRequireBanner = `import { createRequire as __zcodeCreateRequire } from
 const require = __zcodeCreateRequire(import.meta.url);`;
 
 const createBundleOptions = ({ entryPoint, outfile }) => ({
-  banner: {
-    js: nodeRequireBanner,
-  },
-  bundle: true,
-  entryPoints: [entryPoint],
-  format: "esm",
-  legalComments: "none",
-  outfile,
-  platform: "node",
-  target: "node24",
-  external: ["sharp"],
+    banner: {
+        js: nodeRequireBanner,
+    },
+    bundle: true,
+    entryPoints: [entryPoint],
+    format: "esm",
+    legalComments: "none",
+    outfile,
+    platform: "node",
+    target: "node24",
+    external: ["sharp"],
 });
 
 /**
  * 供 scripts 直跑与 smoke test 复用的构建入口，保证测试校验的产物与发布产物同一套 esbuild 选项。
  */
 export const buildBrowserUsePluginBundles = async ({
-  packageRoot = defaultPackageRoot,
-  browserClientOutfile = resolve(packageRoot, "scripts", "browser-client.mjs"),
+    packageRoot = defaultPackageRoot,
+    browserClientOutfile = resolve(packageRoot, "scripts", "browser-client.mjs"),
 } = {}) => {
-  // node_repl 宿主的产物由 @zcode/node-repl-host 自己构建与携带；这个包只出 browser-client。
-  await mkdir(dirname(browserClientOutfile), { recursive: true });
-  await build(
-    createBundleOptions({
-      entryPoint: resolve(packageRoot, "src", "browser-client.ts"),
-      outfile: browserClientOutfile,
-    }),
-  );
-  await chmod(browserClientOutfile, executableFileMode);
-  return { browserClientOutfile };
+    // node_repl 宿主的产物由 @zcode/node-repl-host 自己构建与携带；这个包只出 browser-client。
+    await mkdir(dirname(browserClientOutfile), { recursive: true });
+    await build(
+        createBundleOptions({
+            entryPoint: resolve(packageRoot, "src", "browser-client.ts"),
+            outfile: browserClientOutfile,
+        }),
+    );
+    await chmod(browserClientOutfile, executableFileMode);
+    return { browserClientOutfile };
 };
 
 const entryPath = process.argv[1];
 if (entryPath && import.meta.url === pathToFileURL(entryPath).href) {
-  await buildBrowserUsePluginBundles();
+    await buildBrowserUsePluginBundles();
 }

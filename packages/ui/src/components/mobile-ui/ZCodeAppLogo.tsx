@@ -8,15 +8,15 @@ import appLogoUrl from "@/assets/app-logo.svg";
  * 注意：Z.ai OAuth 提供商图标仍用 provider-icons/logo-zai.svg，两者不可混用。
  */
 export function ZCodeAppLogo({ className }: ZCodeAppLogoProps) {
-  return (
-    <img
-      src={appLogoUrl}
-      alt=""
-      aria-hidden="true"
-      draggable={false}
-      // 稳定的测试/E2E 钩子：打包器可能把 SVG 内联为 data URL，不能靠文件名断言。
-      data-app-logo="zcode"
-      className={cn("shrink-0 select-none object-contain", className)}
-    />
-  );
+    return (
+        <img
+            src={appLogoUrl}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            // 稳定的测试/E2E 钩子：打包器可能把 SVG 内联为 data URL，不能靠文件名断言。
+            data-app-logo="zcode"
+            className={cn("shrink-0 select-none object-contain", className)}
+        />
+    );
 }

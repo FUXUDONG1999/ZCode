@@ -4,33 +4,33 @@ import { isTaskListRowActive } from "@/v4/taskListRowActivity.js";
 export type TaskListTimeSortBy = "created" | "updated";
 
 interface TaskListSortableItem {
-  taskId: string;
-  createdAt: number;
-  updatedAt: number;
+    taskId: string;
+    createdAt: number;
+    updatedAt: number;
 }
 
 export function compareTaskListItemsByTime(
-  left: TaskListSortableItem,
-  right: TaskListSortableItem,
-  sortBy: TaskListTimeSortBy,
+    left: TaskListSortableItem,
+    right: TaskListSortableItem,
+    sortBy: TaskListTimeSortBy,
 ): number {
-  if (sortBy === "created") {
-    if (right.createdAt !== left.createdAt) {
-      return right.createdAt - left.createdAt;
+    if (sortBy === "created") {
+        if (right.createdAt !== left.createdAt) {
+            return right.createdAt - left.createdAt;
+        }
+        if (right.updatedAt !== left.updatedAt) {
+            return right.updatedAt - left.updatedAt;
+        }
+        return right.taskId.localeCompare(left.taskId);
     }
+
     if (right.updatedAt !== left.updatedAt) {
-      return right.updatedAt - left.updatedAt;
+        return right.updatedAt - left.updatedAt;
+    }
+    if (right.createdAt !== left.createdAt) {
+        return right.createdAt - left.createdAt;
     }
     return right.taskId.localeCompare(left.taskId);
-  }
-
-  if (right.updatedAt !== left.updatedAt) {
-    return right.updatedAt - left.updatedAt;
-  }
-  if (right.createdAt !== left.createdAt) {
-    return right.createdAt - left.createdAt;
-  }
-  return right.taskId.localeCompare(left.taskId);
 }
 
 /**
@@ -42,30 +42,30 @@ export function compareTaskListItemsByTime(
  * 后者回合已收口但活动时间仍被后台事件推进，不进运行层就会重演同一类换位。
  */
 export function compareTaskListItemsWithRunningFirst<T extends TaskListSortableItem>(
-  left: T,
-  right: T,
-  sortBy: TaskListTimeSortBy,
-  isRunning: (task: T) => boolean,
+    left: T,
+    right: T,
+    sortBy: TaskListTimeSortBy,
+    isRunning: (task: T) => boolean,
 ): number {
-  const leftRunning = isRunning(left);
-  const rightRunning = isRunning(right);
-  if (leftRunning !== rightRunning) {
-    return leftRunning ? -1 : 1;
-  }
-  if (leftRunning) {
-    if (right.createdAt !== left.createdAt) {
-      return right.createdAt - left.createdAt;
+    const leftRunning = isRunning(left);
+    const rightRunning = isRunning(right);
+    if (leftRunning !== rightRunning) {
+        return leftRunning ? -1 : 1;
     }
-    // running 层禁止以 updatedAt 决胜；taskId 是不会随事件变化的稳定 tie-break。
-    return right.taskId.localeCompare(left.taskId);
-  }
-  return compareTaskListItemsByTime(left, right, sortBy);
+    if (leftRunning) {
+        if (right.createdAt !== left.createdAt) {
+            return right.createdAt - left.createdAt;
+        }
+        // running 层禁止以 updatedAt 决胜；taskId 是不会随事件变化的稳定 tie-break。
+        return right.taskId.localeCompare(left.taskId);
+    }
+    return compareTaskListItemsByTime(left, right, sortBy);
 }
 
 export function compareZCodeTaskListItems(
-  left: ZCodeTaskMeta,
-  right: ZCodeTaskMeta,
-  sortBy: TaskListTimeSortBy,
+    left: ZCodeTaskMeta,
+    right: ZCodeTaskMeta,
+    sortBy: TaskListTimeSortBy,
 ): number {
-  return compareTaskListItemsWithRunningFirst(left, right, sortBy, isTaskListRowActive);
+    return compareTaskListItemsWithRunningFirst(left, right, sortBy, isTaskListRowActive);
 }

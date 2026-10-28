@@ -12,93 +12,93 @@ const AUTO_DREAM_MINIMUM_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const AUTO_DREAM_SCAN_THROTTLE_MS = 10 * 60 * 1000;
 
 export type AutoDreamTimingDecision =
-  | { decision: "scan" }
-  | { decision: "skip"; reason: "minimum-interval" | "scan-throttled" };
+    | { decision: "scan" }
+    | { decision: "skip"; reason: "minimum-interval" | "scan-throttled" };
 
 export function evaluateAutoDreamTiming(input: {
-  lastConsolidatedAtMs: number;
-  lastScanAtMs: number;
-  nowMs: number;
+    lastConsolidatedAtMs: number;
+    lastScanAtMs: number;
+    nowMs: number;
 }): AutoDreamTimingDecision {
-  if (input.nowMs - input.lastConsolidatedAtMs < AUTO_DREAM_MINIMUM_INTERVAL_MS) {
-    return { decision: "skip", reason: "minimum-interval" };
-  }
-  if (input.nowMs - input.lastScanAtMs < AUTO_DREAM_SCAN_THROTTLE_MS) {
-    return { decision: "skip", reason: "scan-throttled" };
-  }
-  return { decision: "scan" };
+    if (input.nowMs - input.lastConsolidatedAtMs < AUTO_DREAM_MINIMUM_INTERVAL_MS) {
+        return { decision: "skip", reason: "minimum-interval" };
+    }
+    if (input.nowMs - input.lastScanAtMs < AUTO_DREAM_SCAN_THROTTLE_MS) {
+        return { decision: "skip", reason: "scan-throttled" };
+    }
+    return { decision: "scan" };
 }
 
 export async function readDreamLastConsolidatedAt(memoryRoot: string): Promise<number> {
-  try {
-    return (await stat(dreamLockPath(memoryRoot))).mtimeMs;
-  } catch {
-    return 0;
-  }
+    try {
+        return (await stat(dreamLockPath(memoryRoot))).mtimeMs;
+    } catch {
+        return 0;
+    }
 }
 
 export async function acquireDreamLock(input: {
-  memoryRoot: string;
-  nowMs?: number;
-  pid?: number;
+    memoryRoot: string;
+    nowMs?: number;
+    pid?: number;
 }): Promise<number | null> {
-  const lockPath = dreamLockPath(input.memoryRoot);
-  const nowMs = input.nowMs ?? Date.now();
-  const pid = input.pid ?? process.pid;
-  let priorMtimeMs: number | undefined;
-  let priorPid: number | undefined;
+    const lockPath = dreamLockPath(input.memoryRoot);
+    const nowMs = input.nowMs ?? Date.now();
+    const pid = input.pid ?? process.pid;
+    let priorMtimeMs: number | undefined;
+    let priorPid: number | undefined;
 
-  try {
-    const [lockStat, content] = await Promise.all([stat(lockPath), readFile(lockPath, "utf8")]);
-    priorMtimeMs = lockStat.mtimeMs;
-    const parsedPid = Number.parseInt(content.trim(), 10);
-    if (Number.isFinite(parsedPid)) priorPid = parsedPid;
-  } catch {
-    // 不存在或不可读都按无 owner 处理，后续 write-readback 决定所有权。
-  }
+    try {
+        const [lockStat, content] = await Promise.all([stat(lockPath), readFile(lockPath, "utf8")]);
+        priorMtimeMs = lockStat.mtimeMs;
+        const parsedPid = Number.parseInt(content.trim(), 10);
+        if (Number.isFinite(parsedPid)) priorPid = parsedPid;
+    } catch {
+        // 不存在或不可读都按无 owner 处理，后续 write-readback 决定所有权。
+    }
 
-  if (
-    priorMtimeMs !== undefined &&
-    nowMs - priorMtimeMs < DREAM_LOCK_FRESH_MS &&
-    priorPid !== undefined &&
-    isLiveProcess(priorPid)
-  ) {
-    return null;
-  }
+    if (
+        priorMtimeMs !== undefined &&
+        nowMs - priorMtimeMs < DREAM_LOCK_FRESH_MS &&
+        priorPid !== undefined &&
+        isLiveProcess(priorPid)
+    ) {
+        return null;
+    }
 
-  await mkdir(input.memoryRoot, { recursive: true });
-  await writeFile(lockPath, String(pid), "utf8");
-  let writtenPid: number;
-  try {
-    writtenPid = Number.parseInt((await readFile(lockPath, "utf8")).trim(), 10);
-  } catch {
-    return null;
-  }
-  if (writtenPid !== pid) return null;
-  return priorMtimeMs ?? 0;
+    await mkdir(input.memoryRoot, { recursive: true });
+    await writeFile(lockPath, String(pid), "utf8");
+    let writtenPid: number;
+    try {
+        writtenPid = Number.parseInt((await readFile(lockPath, "utf8")).trim(), 10);
+    } catch {
+        return null;
+    }
+    if (writtenPid !== pid) return null;
+    return priorMtimeMs ?? 0;
 }
 
 export async function restoreDreamLockAfterFailure(input: {
-  memoryRoot: string;
-  priorMtimeMs: number;
+    memoryRoot: string;
+    priorMtimeMs: number;
 }): Promise<void> {
-  const lockPath = dreamLockPath(input.memoryRoot);
-  if (input.priorMtimeMs === 0) {
-    await unlink(lockPath);
-    return;
-  }
-  await writeFile(lockPath, "", "utf8");
-  const priorSeconds = input.priorMtimeMs / 1000;
-  await utimes(lockPath, priorSeconds, priorSeconds);
+    const lockPath = dreamLockPath(input.memoryRoot);
+    if (input.priorMtimeMs === 0) {
+        await unlink(lockPath);
+        return;
+    }
+    await writeFile(lockPath, "", "utf8");
+    const priorSeconds = input.priorMtimeMs / 1000;
+    await utimes(lockPath, priorSeconds, priorSeconds);
 }
 
 export function buildMemoryDreamPrompt(input: {
-  memoryRoot: string;
-  sessionIds: readonly string[];
-  transcriptRoot: string;
+    memoryRoot: string;
+    sessionIds: readonly string[];
+    transcriptRoot: string;
 }): string {
-  const sessionLines = input.sessionIds.map((sessionId) => `- ${sessionId}`).join("\n");
-  return `# Dream: Memory Consolidation
+    const sessionLines = input.sessionIds.map((sessionId) => `- ${sessionId}`).join("\n");
+    return `# Dream: Memory Consolidation
 
 You are performing a dream — a reflective pass over your memory files. Synthesize what you've learned recently into durable, well-organized memories so that future sessions can orient quickly.
 
@@ -170,70 +170,70 @@ ${sessionLines}`;
 }
 
 export function collectDreamTouchedPaths(
-  paths: Set<string>,
-  input: {
-    rootDir: string;
-    toolCall: ModelToolCall;
-    workingDirectory: string;
-    workspaceRoot: string;
-  },
+    paths: Set<string>,
+    input: {
+        rootDir: string;
+        toolCall: ModelToolCall;
+        workingDirectory: string;
+        workspaceRoot: string;
+    },
 ): void {
-  if (input.toolCall.name === "Write" || input.toolCall.name === "Edit") {
-    const filePath = stringProperty(input.toolCall.input, "file_path");
-    const resolved = filePath ? resolveTouchedPath(filePath, input) : undefined;
-    if (resolved) paths.add(resolved);
-    return;
-  }
-  if (input.toolCall.name !== "Bash") return;
-  const command = stringProperty(input.toolCall.input, "command");
-  if (!command) return;
-  const analysis = analyzeBashCommand(command);
-  for (const invocation of analysis.commands) {
-    if (invocation.argv[0] !== "rm") continue;
-    for (const argument of invocation.argv.slice(1)) {
-      if (argument === "--" || argument.startsWith("-")) continue;
-      const resolved = resolveTouchedPath(argument, input);
-      if (resolved) paths.add(resolved);
+    if (input.toolCall.name === "Write" || input.toolCall.name === "Edit") {
+        const filePath = stringProperty(input.toolCall.input, "file_path");
+        const resolved = filePath ? resolveTouchedPath(filePath, input) : undefined;
+        if (resolved) paths.add(resolved);
+        return;
     }
-  }
+    if (input.toolCall.name !== "Bash") return;
+    const command = stringProperty(input.toolCall.input, "command");
+    if (!command) return;
+    const analysis = analyzeBashCommand(command);
+    for (const invocation of analysis.commands) {
+        if (invocation.argv[0] !== "rm") continue;
+        for (const argument of invocation.argv.slice(1)) {
+            if (argument === "--" || argument.startsWith("-")) continue;
+            const resolved = resolveTouchedPath(argument, input);
+            if (resolved) paths.add(resolved);
+        }
+    }
 }
 
 function dreamLockPath(memoryRoot: string): string {
-  return join(memoryRoot, DREAM_LOCK_FILE);
+    return join(memoryRoot, DREAM_LOCK_FILE);
 }
 
 function isLiveProcess(pid: number): boolean {
-  if (pid <= 1) return false;
-  try {
-    process.kill(pid, 0);
-    return true;
-  } catch {
-    return false;
-  }
+    if (pid <= 1) return false;
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 function resolveTouchedPath(
-  filePath: string,
-  input: Pick<
-    Parameters<typeof collectDreamTouchedPaths>[1],
-    "rootDir" | "workingDirectory" | "workspaceRoot"
-  >,
+    filePath: string,
+    input: Pick<
+        Parameters<typeof collectDreamTouchedPaths>[1],
+        "rootDir" | "workingDirectory" | "workspaceRoot"
+    >,
 ): string | undefined {
-  if (!filePath.endsWith(".md")) return undefined;
-  try {
-    return resolveContainedMemoryFilePath({
-      filePath,
-      rootDir: input.rootDir,
-      workingDirectory: input.workingDirectory,
-      workspaceRoot: input.workspaceRoot,
-    });
-  } catch {
-    return undefined;
-  }
+    if (!filePath.endsWith(".md")) return undefined;
+    try {
+        return resolveContainedMemoryFilePath({
+            filePath,
+            rootDir: input.rootDir,
+            workingDirectory: input.workingDirectory,
+            workspaceRoot: input.workspaceRoot,
+        });
+    } catch {
+        return undefined;
+    }
 }
 
 function stringProperty(value: unknown, property: string): string | undefined {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
-  const propertyValue = (value as Record<string, unknown>)[property];
-  return typeof propertyValue === "string" ? propertyValue : undefined;
+    if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+    const propertyValue = (value as Record<string, unknown>)[property];
+    return typeof propertyValue === "string" ? propertyValue : undefined;
 }

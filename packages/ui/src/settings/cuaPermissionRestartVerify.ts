@@ -9,10 +9,10 @@
 import { isCuaPermissionStatusAvailable, type CuaPermissionStatusResult } from "@zcode/services";
 
 export interface WaitForAccessibilityNotStaleOptions {
-  /** 总超时(默认 6s):覆盖 tccd 传播 lag,首轮通常立即 granted。 */
-  timeoutMs?: number;
-  /** 轮询间隔(默认 500ms)。 */
-  intervalMs?: number;
+    /** 总超时(默认 6s):覆盖 tccd 传播 lag,首轮通常立即 granted。 */
+    timeoutMs?: number;
+    /** 轮询间隔(默认 500ms)。 */
+    intervalMs?: number;
 }
 
 export type GetCuaPermissionStatusFn = () => Promise<CuaPermissionStatusResult>;
@@ -35,22 +35,22 @@ const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout
  *  - unavailable / 抛错 → 重启中途瞬时态,继续轮询;超时仍未恢复 → 升级。
  */
 export async function waitForAccessibilityNotStale(
-  getStatus: GetCuaPermissionStatusFn,
-  options: WaitForAccessibilityNotStaleOptions = {},
+    getStatus: GetCuaPermissionStatusFn,
+    options: WaitForAccessibilityNotStaleOptions = {},
 ): Promise<boolean> {
-  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
-  const intervalMs = options.intervalMs ?? DEFAULT_INTERVAL_MS;
-  const deadline = Date.now() + timeoutMs;
-  for (;;) {
-    try {
-      const result = await getStatus();
-      if (isCuaPermissionStatusAvailable(result) && result.accessibility !== "stale") {
-        return false;
-      }
-    } catch {
-      // 重启中途 getStatus 可能瞬时失败(socket 切换 / Helper 刚起)。视为未解决,继续轮询。
+    const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const intervalMs = options.intervalMs ?? DEFAULT_INTERVAL_MS;
+    const deadline = Date.now() + timeoutMs;
+    for (;;) {
+        try {
+            const result = await getStatus();
+            if (isCuaPermissionStatusAvailable(result) && result.accessibility !== "stale") {
+                return false;
+            }
+        } catch {
+            // 重启中途 getStatus 可能瞬时失败(socket 切换 / Helper 刚起)。视为未解决,继续轮询。
+        }
+        if (Date.now() >= deadline) return true;
+        await sleep(intervalMs);
     }
-    if (Date.now() >= deadline) return true;
-    await sleep(intervalMs);
-  }
 }

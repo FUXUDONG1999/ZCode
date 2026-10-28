@@ -18,11 +18,11 @@ export const UNBOUNDED_RETRY_MAX_ATTEMPTS = 0;
 export const SINGLE_ATTEMPT_MAX_ATTEMPTS = 1;
 
 export function isUnboundedRetryBudget(budget: ModelRetryBudget | undefined): boolean {
-  return budget === ModelRetryBudget.Unbounded;
+    return budget === ModelRetryBudget.Unbounded;
 }
 
 export function isSingleAttemptRetryBudget(budget: ModelRetryBudget | undefined): boolean {
-  return budget === ModelRetryBudget.SingleAttempt;
+    return budget === ModelRetryBudget.SingleAttempt;
 }
 
 /**
@@ -30,36 +30,36 @@ export function isSingleAttemptRetryBudget(budget: ModelRetryBudget | undefined)
  * 失败闸门、empty completion 与状态事件四处分别特判档位。
  */
 export function resolveRetryOptionsForBudget(
-  retry: ResolvedAiSdkModelRetryOptions,
-  budget: ModelRetryBudget | undefined,
+    retry: ResolvedAiSdkModelRetryOptions,
+    budget: ModelRetryBudget | undefined,
 ): ResolvedAiSdkModelRetryOptions {
-  return isSingleAttemptRetryBudget(budget)
-    ? { ...retry, maxAttempts: SINGLE_ATTEMPT_MAX_ATTEMPTS }
-    : retry;
+    return isSingleAttemptRetryBudget(budget)
+        ? { ...retry, maxAttempts: SINGLE_ATTEMPT_MAX_ATTEMPTS }
+        : retry;
 }
 
 /** 失败之后还允许再试一次吗（等价于既有的 `retryBudgetAttempt < maxAttempts`，unbounded 恒真）。 */
 export function retryBudgetAllows(
-  budget: ModelRetryBudget | undefined,
-  retryBudgetAttempt: number,
-  maxAttempts: number,
+    budget: ModelRetryBudget | undefined,
+    retryBudgetAttempt: number,
+    maxAttempts: number,
 ): boolean {
-  return isUnboundedRetryBudget(budget) || retryBudgetAttempt < maxAttempts;
+    return isUnboundedRetryBudget(budget) || retryBudgetAttempt < maxAttempts;
 }
 
 /** attempt 循环的继续条件（等价于既有的 `attempt <= loopMaxAttempts`，unbounded 恒真）。 */
 export function retryAttemptLoopContinues(
-  budget: ModelRetryBudget | undefined,
-  attempt: number,
-  loopMaxAttempts: number,
+    budget: ModelRetryBudget | undefined,
+    attempt: number,
+    loopMaxAttempts: number,
 ): boolean {
-  return isUnboundedRetryBudget(budget) || attempt <= loopMaxAttempts;
+    return isUnboundedRetryBudget(budget) || attempt <= loopMaxAttempts;
 }
 
 /** 写进状态事件 / 日志的 maxAttempts：unbounded 下是哨兵 0。 */
 export function retryBudgetMaxAttempts(
-  budget: ModelRetryBudget | undefined,
-  maxAttempts: number,
+    budget: ModelRetryBudget | undefined,
+    maxAttempts: number,
 ): number {
-  return isUnboundedRetryBudget(budget) ? UNBOUNDED_RETRY_MAX_ATTEMPTS : maxAttempts;
+    return isUnboundedRetryBudget(budget) ? UNBOUNDED_RETRY_MAX_ATTEMPTS : maxAttempts;
 }

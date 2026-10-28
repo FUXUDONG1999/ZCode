@@ -79,15 +79,15 @@ When you can't trace manually, add instrumentation:
 ```typescript
 // Before the problematic operation
 async function gitInit(directory: string) {
-  const stack = new Error().stack;
-  console.error("DEBUG git init:", {
-    directory,
-    cwd: process.cwd(),
-    nodeEnv: process.env.NODE_ENV,
-    stack,
-  });
+    const stack = new Error().stack;
+    console.error("DEBUG git init:", {
+        directory,
+        cwd: process.cwd(),
+        nodeEnv: process.env.NODE_ENV,
+        stack,
+    });
 
-  await execFileAsync("git", ["init"], { cwd: directory });
+    await execFileAsync("git", ["init"], { cwd: directory });
 }
 ```
 

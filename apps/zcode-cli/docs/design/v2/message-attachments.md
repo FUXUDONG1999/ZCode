@@ -122,11 +122,11 @@ ZCode 当前的 session store 形态是：消息由 `MessageInfo + Part[]` 组�
 
 ```typescript
 type FilePart = {
-  type: "file";
-  mime: string;
-  filename?: string;
-  url: string;
-  source?: FilePartSource;
+    type: "file";
+    mime: string;
+    filename?: string;
+    url: string;
+    source?: FilePartSource;
 };
 ```
 
@@ -266,18 +266,18 @@ wire 或 model-io 诊断中。
 
 ```typescript
 interface MessageProjectionOptions {
-  mode: "live" | "resume" | "compact" | "replay";
-  stripMedia?: boolean;
-  toolOutputMaxChars?: number;
-  maxAttachmentBytes?: number;
+    mode: "live" | "resume" | "compact" | "replay";
+    stripMedia?: boolean;
+    toolOutputMaxChars?: number;
+    maxAttachmentBytes?: number;
 }
 
 interface MessageProjector {
-  toModelMessages(
-    messages: StoredMessage[],
-    model: ModelDescriptor,
-    options: MessageProjectionOptions,
-  ): Promise<ModelInputMessage[]>;
+    toModelMessages(
+        messages: StoredMessage[],
+        model: ModelDescriptor,
+        options: MessageProjectionOptions,
+    ): Promise<ModelInputMessage[]>;
 }
 ```
 
@@ -339,20 +339,20 @@ interface MessageProjector {
 
 ```typescript
 type UserPromptInput = {
-  text: string;
-  textElements?: TextElement[];
-  attachments?: UserAttachmentInput[];
+    text: string;
+    textElements?: TextElement[];
+    attachments?: UserAttachmentInput[];
 };
 
 type UserAttachmentInput =
-  | { type: "local_file"; path: string; placeholder?: string }
-  | { type: "image"; imageUrl: string; placeholder?: string }
-  | { type: "resource_link"; uri: string; name?: string; title?: string; mimeType?: string };
+    | { type: "local_file"; path: string; placeholder?: string }
+    | { type: "image"; imageUrl: string; placeholder?: string }
+    | { type: "resource_link"; uri: string; name?: string; title?: string; mimeType?: string };
 
 interface TextElement {
-  byteRange: { start: number; end: number };
-  placeholder?: string;
-  attachmentId?: string;
+    byteRange: { start: number; end: number };
+    placeholder?: string;
+    attachmentId?: string;
 }
 ```
 
@@ -362,34 +362,34 @@ interface TextElement {
 
 ```typescript
 type MessageContentBlock =
-  | { type: "text"; text: string }
-  | {
-      type: "image";
-      mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp";
-      dataUrl: string;
-      detail?: "auto" | "low" | "high" | "original";
-      source: AttachmentRef;
-    }
-  | {
-      type: "file";
-      mediaType: string;
-      name?: string;
-      uri?: string;
-      dataUrl?: string;
-      text?: string;
-      source: AttachmentRef;
-    }
-  | { type: "resource_link"; uri: string; name?: string; title?: string };
+    | { type: "text"; text: string }
+    | {
+          type: "image";
+          mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp";
+          dataUrl: string;
+          detail?: "auto" | "low" | "high" | "original";
+          source: AttachmentRef;
+      }
+    | {
+          type: "file";
+          mediaType: string;
+          name?: string;
+          uri?: string;
+          dataUrl?: string;
+          text?: string;
+          source: AttachmentRef;
+      }
+    | { type: "resource_link"; uri: string; name?: string; title?: string };
 
 interface AttachmentRef {
-  id: string;
-  kind: "local_file" | "resource" | "inline";
-  uri?: string;
-  path?: string;
-  mimeType?: string;
-  sizeBytes?: number;
-  sha256?: string;
-  placeholder?: string;
+    id: string;
+    kind: "local_file" | "resource" | "inline";
+    uri?: string;
+    path?: string;
+    mimeType?: string;
+    sizeBytes?: number;
+    sha256?: string;
+    placeholder?: string;
 }
 ```
 
@@ -397,18 +397,18 @@ session `FilePart` 需要补充存储 metadata，在现有 `FilePart` 形状上�
 
 ```typescript
 interface AttachmentStorageMetadata {
-  sizeBytes?: number;
-  sha256?: string;
-  storageKind: "inline" | "artifact" | "local_ref" | "remote_ref" | "metadata_only";
-  artifactUri?: string;
-  originalUrl?: string;
-  recoverability: "provider_ready" | "rebuildable" | "preview_only" | "metadata_only" | "missing";
-  preview?: {
-    text?: string;
-    truncated?: boolean;
-    originalBytes?: number;
-  };
-  errorCode?: string;
+    sizeBytes?: number;
+    sha256?: string;
+    storageKind: "inline" | "artifact" | "local_ref" | "remote_ref" | "metadata_only";
+    artifactUri?: string;
+    originalUrl?: string;
+    recoverability: "provider_ready" | "rebuildable" | "preview_only" | "metadata_only" | "missing";
+    preview?: {
+        text?: string;
+        truncated?: boolean;
+        originalBytes?: number;
+    };
+    errorCode?: string;
 }
 ```
 

@@ -1,10 +1,10 @@
 import { collapseStatuses, hasPhaseVocabulary } from "./participant-model.js";
 import type {
-  StepRunStatus,
-  StepStatusTable,
-  WorkflowCausalityGraphData,
-  WorkflowPhaseData,
-  WorkflowStepData,
+    StepRunStatus,
+    StepStatusTable,
+    WorkflowCausalityGraphData,
+    WorkflowPhaseData,
+    WorkflowStepData,
 } from "./types.js";
 
 /**
@@ -23,14 +23,14 @@ export { hasPhaseVocabulary };
  * 跨阶段拷贝各自算它所在阶段的成员。
  */
 export function phaseMembers(graph: WorkflowCausalityGraphData): Map<string, WorkflowStepData[]> {
-  const members = new Map<string, WorkflowStepData[]>(
-    (graph.phases ?? []).map((phase) => [phase.id, []]),
-  );
-  for (const step of graph.steps) {
-    if (step.phase === undefined) continue;
-    members.get(step.phase)?.push(step);
-  }
-  return members;
+    const members = new Map<string, WorkflowStepData[]>(
+        (graph.phases ?? []).map((phase) => [phase.id, []]),
+    );
+    for (const step of graph.steps) {
+        if (step.phase === undefined) continue;
+        members.get(step.phase)?.push(step);
+    }
+    return members;
 }
 
 /**
@@ -38,19 +38,19 @@ export function phaseMembers(graph: WorkflowCausalityGraphData): Map<string, Wor
  * 没有 = 静态渲染或整站没被观察到，返回 undefined。
  */
 export function collapsePhaseStatus(
-  members: readonly WorkflowStepData[],
-  statuses: StepStatusTable | undefined,
+    members: readonly WorkflowStepData[],
+    statuses: StepStatusTable | undefined,
 ): StepRunStatus | undefined {
-  return collapseStatuses(
-    members.map((step) => step.id),
-    statuses,
-  );
+    return collapseStatuses(
+        members.map((step) => step.id),
+        statuses,
+    );
 }
 
 /** 按 id 取阶段；检视器与宿主要用它拿显示名素材。 */
 export function findPhase(
-  graph: WorkflowCausalityGraphData,
-  phaseId: string,
+    graph: WorkflowCausalityGraphData,
+    phaseId: string,
 ): WorkflowPhaseData | undefined {
-  return (graph.phases ?? []).find((phase) => phase.id === phaseId);
+    return (graph.phases ?? []).find((phase) => phase.id === phaseId);
 }

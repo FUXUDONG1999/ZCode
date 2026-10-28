@@ -9,27 +9,27 @@ import type { ZCodeProtocolAgentServerContext } from "./server-types.js";
 
 /** Session settings 只投影非模型的 workspace mode 与 slash commands。 */
 export function toV4WorkspaceConfigState(
-  settings: ZCodeSessionSettingsState,
-  slashCommands: readonly ZCodeSlashCommand[],
+    settings: ZCodeSessionSettingsState,
+    slashCommands: readonly ZCodeSlashCommand[],
 ): WorkspaceConfigState {
-  return {
-    configOptions: [
-      {
-        id: "mode",
-        name: "Mode",
-        category: "mode",
-        type: "select",
-        currentValue: normalizeAvailableZCodeMode(settings.mode.current),
-        options: getZCodeAgentModeSelectOptions(),
-      },
-    ],
-    slashCommands: slashCommands.map((command) => ({
-      name: command.name,
-      description: command.description,
-      ...(command.inputHint !== undefined ? { inputHint: command.inputHint } : {}),
-      ...(command.source !== undefined ? { source: command.source } : {}),
-    })),
-  };
+    return {
+        configOptions: [
+            {
+                id: "mode",
+                name: "Mode",
+                category: "mode",
+                type: "select",
+                currentValue: normalizeAvailableZCodeMode(settings.mode.current),
+                options: getZCodeAgentModeSelectOptions(),
+            },
+        ],
+        slashCommands: slashCommands.map((command) => ({
+            name: command.name,
+            description: command.description,
+            ...(command.inputHint !== undefined ? { inputHint: command.inputHint } : {}),
+            ...(command.source !== undefined ? { source: command.source } : {}),
+        })),
+    };
 }
 
 /**
@@ -40,20 +40,20 @@ export function toV4WorkspaceConfigState(
  * 提供，这条会话协议只在出现 live session 后发布任务级配置。
  */
 export async function buildLiveWorkspaceConfigStateV4(
-  context: ZCodeProtocolAgentServerContext,
-  workspaceId: string,
+    context: ZCodeProtocolAgentServerContext,
+    workspaceId: string,
 ): Promise<WorkspaceConfigState | null> {
-  const record = Array.from(context.sessions.values()).find(
-    (candidate) => candidate.workspace.workspaceKey === workspaceId,
-  );
-  if (!record) return null;
-  const settings = await mapSessionSettings(record.app);
-  const slashCommands = await listProtocolSlashCommands({
-    // 灰度门是 Host 判定的 workspace 级事实，目录装配读进程缓存。
-    dynamicWorkflowEnabled: context.appRuntimePreferences.dynamicWorkflowEnabled,
-    env: context.deps.env,
-    logger: context.logger,
-    workingDirectory: record.workspace.workspacePath,
-  });
-  return toV4WorkspaceConfigState(settings, slashCommands);
+    const record = Array.from(context.sessions.values()).find(
+        (candidate) => candidate.workspace.workspaceKey === workspaceId,
+    );
+    if (!record) return null;
+    const settings = await mapSessionSettings(record.app);
+    const slashCommands = await listProtocolSlashCommands({
+        // 灰度门是 Host 判定的 workspace 级事实，目录装配读进程缓存。
+        dynamicWorkflowEnabled: context.appRuntimePreferences.dynamicWorkflowEnabled,
+        env: context.deps.env,
+        logger: context.logger,
+        workingDirectory: record.workspace.workspacePath,
+    });
+    return toV4WorkspaceConfigState(settings, slashCommands);
 }

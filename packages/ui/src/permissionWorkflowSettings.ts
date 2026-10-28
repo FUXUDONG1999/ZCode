@@ -16,7 +16,7 @@ import { getPermissionOptionDisplayKind } from "@/lib/permissionRequest.js";
 export const WORKFLOW_PERMISSION_SETTINGS_SELECTOR = '[data-testid="workflow-permission-settings"]';
 
 const FOCUSABLE_SELECTOR =
-  'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * 窗里改过的设置与「所选模型不可用」。两份状态都记下它属于哪个 requestId，读时不匹配即视为没有：
@@ -24,43 +24,43 @@ const FOCUSABLE_SELECTOR =
  * 父组件的归零 effect 晚于它执行，会把新回报的「不可用」抹掉。
  */
 export function usePermissionWorkflowSettings(requestId: string) {
-  const [content, setContent] = useState<{
-    requestId: string;
-    value: WorkflowAskSettingsContent | undefined;
-  } | null>(null);
-  const [blocked, setBlocked] = useState<{ requestId: string; value: boolean } | null>(null);
-  const onContentChange = useCallback(
-    (value: WorkflowAskSettingsContent | undefined) => setContent({ requestId, value }),
-    [requestId],
-  );
-  const onBlockedChange = useCallback(
-    (value: boolean) => setBlocked({ requestId, value }),
-    [requestId],
-  );
-  return {
-    content: content?.requestId === requestId ? content.value : undefined,
-    blocked: blocked?.requestId === requestId && blocked.value,
-    onBlockedChange,
-    onContentChange,
-  };
+    const [content, setContent] = useState<{
+        requestId: string;
+        value: WorkflowAskSettingsContent | undefined;
+    } | null>(null);
+    const [blocked, setBlocked] = useState<{ requestId: string; value: boolean } | null>(null);
+    const onContentChange = useCallback(
+        (value: WorkflowAskSettingsContent | undefined) => setContent({ requestId, value }),
+        [requestId],
+    );
+    const onBlockedChange = useCallback(
+        (value: boolean) => setBlocked({ requestId, value }),
+        [requestId],
+    );
+    return {
+        content: content?.requestId === requestId ? content.value : undefined,
+        blocked: blocked?.requestId === requestId && blocked.value,
+        onBlockedChange,
+        onContentChange,
+    };
 }
 
 /** 设置只随放行应答走：拒绝什么都不启动，Refine 的下一个窗带着模型改过的调用重来。 */
 export function isWorkflowSettingsCarrier(option: ZCodePermissionOption): boolean {
-  const kind = getPermissionOptionDisplayKind(option.kind);
-  return kind === "allowOnce" || kind === "allowAlways";
+    const kind = getPermissionOptionDisplayKind(option.kind);
+    return kind === "allowOnce" || kind === "allowAlways";
 }
 
 /** 改过设置后，前两个选项说清这次应答带着什么走；其余描述不变。 */
 export function workflowAdjustedOptionDescriptionId(messageId: string | null): string | null {
-  switch (messageId) {
-    case "chat.permission.allowOnce.description":
-      return "chat.permission.workflow.allowOnce.adjusted";
-    case "chat.permission.workflow.allowForSession.description":
-      return "chat.permission.workflow.allowForSession.adjusted";
-    default:
-      return messageId;
-  }
+    switch (messageId) {
+        case "chat.permission.allowOnce.description":
+            return "chat.permission.workflow.allowOnce.adjusted";
+        case "chat.permission.workflow.allowForSession.description":
+            return "chat.permission.workflow.allowForSession.adjusted";
+        default:
+            return messageId;
+    }
 }
 
 /**
@@ -68,10 +68,10 @@ export function workflowAdjustedOptionDescriptionId(messageId: string | null): s
  * 让焦点次序与阅读次序一致。块不在或没有可聚焦控件即返回 false，交回选项列表自己的循环。
  */
 export function focusLastWorkflowSettingsControl(root: HTMLElement | null): boolean {
-  const block = root?.querySelector<HTMLElement>(WORKFLOW_PERMISSION_SETTINGS_SELECTOR);
-  const controls = block?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-  const last = controls === undefined ? undefined : controls[controls.length - 1];
-  if (last === undefined) return false;
-  last.focus();
-  return true;
+    const block = root?.querySelector<HTMLElement>(WORKFLOW_PERMISSION_SETTINGS_SELECTOR);
+    const controls = block?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+    const last = controls === undefined ? undefined : controls[controls.length - 1];
+    if (last === undefined) return false;
+    last.focus();
+    return true;
 }

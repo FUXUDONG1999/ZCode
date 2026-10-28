@@ -17,86 +17,86 @@ import type { TraceState } from "./causality-order-state.js";
  * the strand's frame is popped when the strand closes.
  */
 export interface Frame {
-  readonly region: string;
-  readonly settled: Set<string>;
+    readonly region: string;
+    readonly settled: Set<string>;
 }
 
 /** One strand the walk spawned, in spawn order. */
 export interface StrandRecord {
-  /** The `call` / `fanout` region that IS the strand. */
-  readonly region: string;
-  /**
-   * Spawn order: this record's own index in `state.strands`. A barrier joins every strand
-   * with `at >= the count it saw when it took its mark`, which is "spawned while the
-   * operand was evaluated". Deliberately NOT an event index: a strand that emits no event
-   * before the await inside it would then tie with that await's mark, and the barrier
-   * would join the very strand it stands in (`await ask()` as the first statement of an
-   * `async` helper settled the helper's own summary into its own frame).
-   */
-  readonly at: number;
-  /** Steps issued inside it (the innermost open strand at each issue) — the lift rule. */
-  readonly issued: Set<string>;
-  /** What the strand itself awaited: its frame's settled set at close. */
-  summary: ReadonlySet<string>;
-  /** False until the body finished. Only a CLOSED strand can be lifted. */
-  closed: boolean;
+    /** The `call` / `fanout` region that IS the strand. */
+    readonly region: string;
+    /**
+     * Spawn order: this record's own index in `state.strands`. A barrier joins every strand
+     * with `at >= the count it saw when it took its mark`, which is "spawned while the
+     * operand was evaluated". Deliberately NOT an event index: a strand that emits no event
+     * before the await inside it would then tie with that await's mark, and the barrier
+     * would join the very strand it stands in (`await ask()` as the first statement of an
+     * `async` helper settled the helper's own summary into its own frame).
+     */
+    readonly at: number;
+    /** Steps issued inside it (the innermost open strand at each issue) — the lift rule. */
+    readonly issued: Set<string>;
+    /** What the strand itself awaited: its frame's settled set at close. */
+    summary: ReadonlySet<string>;
+    /** False until the body finished. Only a CLOSED strand can be lifted. */
+    closed: boolean;
 }
 
 /** The awaited expression a barrier stands over, with the strand count it started at. */
 export interface AwaitedOperand {
-  /** `state.strands.length` where the operand's evaluation began. */
-  mark: number;
-  operand: ts.Expression;
+    /** `state.strands.length` where the operand's evaluation began. */
+    mark: number;
+    operand: ts.Expression;
 }
 
 /** The frame a fresh settle lands in: the innermost open one. */
 export function currentFrame(state: TraceState): Frame {
-  return state.frames[state.frames.length - 1] as Frame;
+    return state.frames[state.frames.length - 1] as Frame;
 }
 
 /** True iff some frame on the stack has settled `step` — the freshness test. */
 export function isVisiblySettled(state: TraceState, step: string): boolean {
-  return state.frames.some((frame) => frame.settled.has(step));
+    return state.frames.some((frame) => frame.settled.has(step));
 }
 
 /** The strand an `issue` belongs to: the innermost one still being walked. */
 export function innermostOpenStrand(state: TraceState): StrandRecord | undefined {
-  for (let i = state.strands.length - 1; i >= 0; i -= 1) {
-    const record = state.strands[i] as StrandRecord;
-    if (!record.closed) return record;
-  }
-  return undefined;
+    for (let i = state.strands.length - 1; i >= 0; i -= 1) {
+        const record = state.strands[i] as StrandRecord;
+        if (!record.closed) return record;
+    }
+    return undefined;
 }
 
 /** Spawn a strand on `region`: record it and push its frame. */
 export function openStrand(state: TraceState, region: string): StrandRecord {
-  const record: StrandRecord = {
-    at: state.strands.length,
-    closed: false,
-    issued: new Set<string>(),
-    region,
-    summary: new Set<string>(),
-  };
-  state.strands.push(record);
-  state.frames.push({ region, settled: new Set<string>() });
-  return record;
+    const record: StrandRecord = {
+        at: state.strands.length,
+        closed: false,
+        issued: new Set<string>(),
+        region,
+        summary: new Set<string>(),
+    };
+    state.strands.push(record);
+    state.frames.push({ region, settled: new Set<string>() });
+    return record;
 }
 
 /** Close a strand: pop its frame and keep what it awaited as the strand's summary. */
 export function closeStrand(state: TraceState, record: StrandRecord): void {
-  const frame = state.frames.pop();
-  record.summary = frame?.settled ?? new Set<string>();
-  record.closed = true;
+    const frame = state.frames.pop();
+    record.summary = frame?.settled ?? new Set<string>();
+    record.closed = true;
 }
 
 /** The walk's strand counter: the mark a caller takes before evaluating an expression. */
 export function strandMark(state: TraceState): number {
-  return state.strands.length;
+    return state.strands.length;
 }
 
 /** Strand regions spawned at or after `mark`, in spawn order. */
 export function strandsSince(state: TraceState, mark: number): string[] {
-  return state.strands.filter((record) => record.at >= mark).map((record) => record.region);
+    return state.strands.filter((record) => record.at >= mark).map((record) => record.region);
 }
 
 /**
@@ -106,33 +106,33 @@ export function strandsSince(state: TraceState, mark: number): string[] {
  * binding can tell a later `await Promise.all(work)` which strands `work` stands for.
  */
 export function bindStrands(
-  state: TraceState,
-  name: ts.BindingName,
-  regions: readonly string[],
+    state: TraceState,
+    name: ts.BindingName,
+    regions: readonly string[],
 ): void {
-  if (regions.length === 0) return;
-  for (const identifier of boundIdentifiers(name)) {
-    const symbol = state.checker.getSymbolAtLocation(identifier);
-    if (symbol === undefined) continue;
-    const set = state.strandsBySymbol.get(symbol) ?? new Set<string>();
-    for (const region of regions) set.add(region);
-    state.strandsBySymbol.set(symbol, set);
-  }
+    if (regions.length === 0) return;
+    for (const identifier of boundIdentifiers(name)) {
+        const symbol = state.checker.getSymbolAtLocation(identifier);
+        if (symbol === undefined) continue;
+        const set = state.strandsBySymbol.get(symbol) ?? new Set<string>();
+        for (const region of regions) set.add(region);
+        state.strandsBySymbol.set(symbol, set);
+    }
 }
 
 /** True iff the applied function carries the `async` modifier — what makes a body a strand. */
 export function isAsyncFunction(decl: ts.Node): boolean {
-  const { modifiers } = decl as { modifiers?: ts.NodeArray<ts.ModifierLike> };
-  return modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
+    const { modifiers } = decl as { modifiers?: ts.NodeArray<ts.ModifierLike> };
+    return modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.AsyncKeyword) ?? false;
 }
 
 /** The promise combinators that adopt each argument, so each argument is an awaited position. */
 const COMBINATORS: ReadonlySet<string> = new Set(["all", "allSettled", "race", "any"]);
 
 function isPromiseCombinator(state: TraceState, node: ts.CallExpression): boolean {
-  const callee = node.expression;
-  if (!ts.isPropertyAccessExpression(callee) || !COMBINATORS.has(callee.name.text)) return false;
-  return isGlobalLibValue(callee.expression, "Promise", state.checker, state.program);
+    const callee = node.expression;
+    if (!ts.isPropertyAccessExpression(callee) || !COMBINATORS.has(callee.name.text)) return false;
+    return isGlobalLibValue(callee.expression, "Promise", state.checker, state.program);
 }
 
 /**
@@ -143,32 +143,32 @@ function isPromiseCombinator(state: TraceState, node: ts.CallExpression): boolea
  * keeps `await f(aWork.length)` from joining the strands `aWork` holds.
  */
 function awaitedIdentifiers(state: TraceState, operand: ts.Expression): ts.Identifier[] {
-  const out: ts.Identifier[] = [];
-  const scan = (node: ts.Expression): void => {
-    if (
-      ts.isParenthesizedExpression(node) ||
-      ts.isAsExpression(node) ||
-      ts.isSatisfiesExpression(node) ||
-      ts.isNonNullExpression(node) ||
-      ts.isSpreadElement(node)
-    ) {
-      scan(node.expression);
-      return;
-    }
-    if (ts.isIdentifier(node)) {
-      out.push(node);
-      return;
-    }
-    if (ts.isArrayLiteralExpression(node)) {
-      for (const element of node.elements) scan(element);
-      return;
-    }
-    if (ts.isCallExpression(node) && isPromiseCombinator(state, node)) {
-      for (const argument of node.arguments) scan(argument);
-    }
-  };
-  scan(operand);
-  return out;
+    const out: ts.Identifier[] = [];
+    const scan = (node: ts.Expression): void => {
+        if (
+            ts.isParenthesizedExpression(node) ||
+            ts.isAsExpression(node) ||
+            ts.isSatisfiesExpression(node) ||
+            ts.isNonNullExpression(node) ||
+            ts.isSpreadElement(node)
+        ) {
+            scan(node.expression);
+            return;
+        }
+        if (ts.isIdentifier(node)) {
+            out.push(node);
+            return;
+        }
+        if (ts.isArrayLiteralExpression(node)) {
+            for (const element of node.elements) scan(element);
+            return;
+        }
+        if (ts.isCallExpression(node) && isPromiseCombinator(state, node)) {
+            for (const argument of node.arguments) scan(argument);
+        }
+    };
+    scan(operand);
+    return out;
 }
 
 /**
@@ -184,29 +184,29 @@ function awaitedIdentifiers(state: TraceState, operand: ts.Expression): ts.Ident
  * something the strand issued has settled.
  */
 export function joinStrands(
-  state: TraceState,
-  certain: readonly string[],
-  maybe: readonly string[],
-  awaited: AwaitedOperand | undefined,
+    state: TraceState,
+    certain: readonly string[],
+    maybe: readonly string[],
+    awaited: AwaitedOperand | undefined,
 ): { certain: string[]; maybe: string[] } {
-  const joins: { certain: string[]; maybe: string[] } = { certain: [], maybe: [] };
-  const take = (region: string, side: string[]): void => {
-    if (state.joined.has(region)) return;
-    state.joined.add(region);
-    side.push(region);
-  };
-  if (awaited !== undefined) {
-    for (const region of strandsSince(state, awaited.mark)) take(region, joins.certain);
-    for (const identifier of awaitedIdentifiers(state, awaited.operand)) {
-      const symbol = state.checker.getSymbolAtLocation(identifier);
-      const bound = symbol === undefined ? undefined : state.strandsBySymbol.get(symbol);
-      for (const region of bound ?? []) take(region, joins.certain);
+    const joins: { certain: string[]; maybe: string[] } = { certain: [], maybe: [] };
+    const take = (region: string, side: string[]): void => {
+        if (state.joined.has(region)) return;
+        state.joined.add(region);
+        side.push(region);
+    };
+    if (awaited !== undefined) {
+        for (const region of strandsSince(state, awaited.mark)) take(region, joins.certain);
+        for (const identifier of awaitedIdentifiers(state, awaited.operand)) {
+            const symbol = state.checker.getSymbolAtLocation(identifier);
+            const bound = symbol === undefined ? undefined : state.strandsBySymbol.get(symbol);
+            for (const region of bound ?? []) take(region, joins.certain);
+        }
     }
-  }
-  for (const record of state.strands) {
-    if (!record.closed || state.joined.has(record.region)) continue;
-    if (certain.some((step) => record.issued.has(step))) take(record.region, joins.certain);
-    else if (maybe.some((step) => record.issued.has(step))) take(record.region, joins.maybe);
-  }
-  return joins;
+    for (const record of state.strands) {
+        if (!record.closed || state.joined.has(record.region)) continue;
+        if (certain.some((step) => record.issued.has(step))) take(record.region, joins.certain);
+        else if (maybe.some((step) => record.issued.has(step))) take(record.region, joins.maybe);
+    }
+    return joins;
 }

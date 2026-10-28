@@ -15,21 +15,21 @@ import type { RunEvent } from "./types.js";
  * `run-launched` 的注释。
  */
 export interface RunLaunchConfig {
-  inputId: string;
-  phaseNames?: string[];
-  subagentModel?: string;
-  /** 脚本点名的模型名（逐字）→ 规范串（docs/dynamic-workflow/launch.md「Models the script names」）。 */
-  modelBindings?: Record<string, string>;
-  /**
-   * 本 run 子代理的权限模式（docs/dynamic-workflow/launch.md「Permissions inside a run」）：
-   * 发起会话的权限模式名。引擎不读，按不透明串记下；宿主读回时校验。
-   */
-  subagentPermissionMode?: string;
-  /** 本 run 脚本文件的绝对路径（docs/dynamic-workflow/launch.md「Script files」）。 */
-  scriptPath?: string;
-  phaseAlongside?: number[][];
-  /** `phaseNames` 里未补全留白的下标（docs/execution-engine.md「Holes」），同车同规。 */
-  holes?: number[];
+    inputId: string;
+    phaseNames?: string[];
+    subagentModel?: string;
+    /** 脚本点名的模型名（逐字）→ 规范串（docs/dynamic-workflow/launch.md「Models the script names」）。 */
+    modelBindings?: Record<string, string>;
+    /**
+     * 本 run 子代理的权限模式（docs/dynamic-workflow/launch.md「Permissions inside a run」）：
+     * 发起会话的权限模式名。引擎不读，按不透明串记下；宿主读回时校验。
+     */
+    subagentPermissionMode?: string;
+    /** 本 run 脚本文件的绝对路径（docs/dynamic-workflow/launch.md「Script files」）。 */
+    scriptPath?: string;
+    phaseAlongside?: number[][];
+    /** `phaseNames` 里未补全留白的下标（docs/execution-engine.md「Holes」），同车同规。 */
+    holes?: number[];
 }
 
 /**
@@ -37,30 +37,32 @@ export interface RunLaunchConfig {
  * （AmendWorkflow 的三态、投影）把「没设」与「设了个空」当两件事。
  */
 export function runLaunchedEvent(
-  launch: RunLaunchConfig,
-  origin: { toolCallId?: string | undefined; parentSessionId?: string | undefined },
+    launch: RunLaunchConfig,
+    origin: { toolCallId?: string | undefined; parentSessionId?: string | undefined },
 ): RunEvent {
-  const {
-    inputId,
-    phaseNames,
-    subagentModel,
-    subagentPermissionMode,
-    modelBindings,
-    scriptPath,
-    phaseAlongside,
-    holes,
-  } = launch;
-  return {
-    type: "run-launched",
-    inputId,
-    ...(origin.toolCallId === undefined ? {} : { toolCallId: origin.toolCallId }),
-    ...(origin.parentSessionId === undefined ? {} : { parentSessionId: origin.parentSessionId }),
-    ...(phaseNames === undefined ? {} : { phaseNames }),
-    ...(subagentModel === undefined ? {} : { subagentModel }),
-    ...(subagentPermissionMode === undefined ? {} : { subagentPermissionMode }),
-    ...(modelBindings === undefined ? {} : { modelBindings }),
-    ...(scriptPath === undefined ? {} : { scriptPath }),
-    ...(phaseAlongside === undefined ? {} : { phaseAlongside }),
-    ...(holes === undefined ? {} : { holes }),
-  };
+    const {
+        inputId,
+        phaseNames,
+        subagentModel,
+        subagentPermissionMode,
+        modelBindings,
+        scriptPath,
+        phaseAlongside,
+        holes,
+    } = launch;
+    return {
+        type: "run-launched",
+        inputId,
+        ...(origin.toolCallId === undefined ? {} : { toolCallId: origin.toolCallId }),
+        ...(origin.parentSessionId === undefined
+            ? {}
+            : { parentSessionId: origin.parentSessionId }),
+        ...(phaseNames === undefined ? {} : { phaseNames }),
+        ...(subagentModel === undefined ? {} : { subagentModel }),
+        ...(subagentPermissionMode === undefined ? {} : { subagentPermissionMode }),
+        ...(modelBindings === undefined ? {} : { modelBindings }),
+        ...(scriptPath === undefined ? {} : { scriptPath }),
+        ...(phaseAlongside === undefined ? {} : { phaseAlongside }),
+        ...(holes === undefined ? {} : { holes }),
+    };
 }

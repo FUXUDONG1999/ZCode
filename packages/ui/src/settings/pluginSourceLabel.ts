@@ -11,15 +11,15 @@ const MARKETPLACE_INSTALLED_SOURCE = "cache";
  * 纯函数，便于在目录标题栏与已安装来源标签间复用同一套命名。
  */
 export function resolveMarketplaceDisplayName(
-  marketplaceId: string,
-  marketplaces: readonly ZCodePluginMarketplaceSummary[],
-  claudeCodePluginsLabel: string,
+    marketplaceId: string,
+    marketplaces: readonly ZCodePluginMarketplaceSummary[],
+    claudeCodePluginsLabel: string,
 ): string {
-  if (marketplaceId === DEFAULT_MARKETPLACE_ID) {
-    return claudeCodePluginsLabel;
-  }
-  const matched = marketplaces.find((marketplace) => marketplace.id === marketplaceId);
-  return matched?.name ?? marketplaceId;
+    if (marketplaceId === DEFAULT_MARKETPLACE_ID) {
+        return claudeCodePluginsLabel;
+    }
+    const matched = marketplaces.find((marketplace) => marketplace.id === marketplaceId);
+    return matched?.name ?? marketplaceId;
 }
 
 /**
@@ -28,20 +28,20 @@ export function resolveMarketplaceDisplayName(
  * - 其它 (official / inline 等) → 「内置」。
  */
 export function resolvePluginSourceLabel(input: {
-  source: string;
-  marketplace: string;
-  marketplaces: readonly ZCodePluginMarketplaceSummary[];
-  builtinLabel: string;
-  claudeCodePluginsLabel: string;
-  formatFromMarketplace: (marketplaceName: string) => string;
+    source: string;
+    marketplace: string;
+    marketplaces: readonly ZCodePluginMarketplaceSummary[];
+    builtinLabel: string;
+    claudeCodePluginsLabel: string;
+    formatFromMarketplace: (marketplaceName: string) => string;
 }): string {
-  if (input.source !== MARKETPLACE_INSTALLED_SOURCE) {
-    return input.builtinLabel;
-  }
-  const marketplaceName = resolveMarketplaceDisplayName(
-    input.marketplace,
-    input.marketplaces,
-    input.claudeCodePluginsLabel,
-  );
-  return input.formatFromMarketplace(marketplaceName);
+    if (input.source !== MARKETPLACE_INSTALLED_SOURCE) {
+        return input.builtinLabel;
+    }
+    const marketplaceName = resolveMarketplaceDisplayName(
+        input.marketplace,
+        input.marketplaces,
+        input.claudeCodePluginsLabel,
+    );
+    return input.formatFromMarketplace(marketplaceName);
 }

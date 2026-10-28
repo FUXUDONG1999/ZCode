@@ -13,8 +13,8 @@ import type { WorkflowRunPendingQuestion } from "./workflow-runs.js";
 
 /** 一次有界 upsert 的结果。`truncated` = 这条记录**没能进表**（而不是「表里已有、原地更新」）。 */
 export interface BoundedUpsert<T> {
-  list: T[];
-  truncated: boolean;
+    list: T[];
+    truncated: boolean;
 }
 
 /**
@@ -25,23 +25,23 @@ export interface BoundedUpsert<T> {
  * 这条实例不在表里。调用方据此照常计数。
  */
 export function upsertBoundedByInstance<T extends { siteId: string; ordinal: number }>(
-  list: readonly T[],
-  entry: T,
-  limit: number,
-  options: { admitNew?: boolean } = {},
+    list: readonly T[],
+    entry: T,
+    limit: number,
+    options: { admitNew?: boolean } = {},
 ): BoundedUpsert<T> {
-  const index = list.findIndex(
-    (item) => item.siteId === entry.siteId && item.ordinal === entry.ordinal,
-  );
-  if (index >= 0) {
-    const next = [...list];
-    next[index] = entry;
-    return { list: next, truncated: false };
-  }
-  if (options.admitNew === false || list.length >= limit) {
-    return { list: [...list], truncated: true };
-  }
-  return { list: [...list, entry], truncated: false };
+    const index = list.findIndex(
+        (item) => item.siteId === entry.siteId && item.ordinal === entry.ordinal,
+    );
+    if (index >= 0) {
+        const next = [...list];
+        next[index] = entry;
+        return { list: next, truncated: false };
+    }
+    if (options.admitNew === false || list.length >= limit) {
+        return { list: [...list], truncated: true };
+    }
+    return { list: [...list, entry], truncated: false };
 }
 
 /**
@@ -52,16 +52,16 @@ export function upsertBoundedByInstance<T extends { siteId: string; ordinal: num
  * 唯一要说的事——合并之后调用点要传一个取键函数，读者反而看不出"这张表按什么去重"。
  */
 export function upsertBoundedByQid(
-  list: readonly WorkflowRunPendingQuestion[],
-  entry: WorkflowRunPendingQuestion,
-  limit: number,
+    list: readonly WorkflowRunPendingQuestion[],
+    entry: WorkflowRunPendingQuestion,
+    limit: number,
 ): BoundedUpsert<WorkflowRunPendingQuestion> {
-  const index = list.findIndex((item) => item.qid === entry.qid);
-  if (index >= 0) {
-    const next = [...list];
-    next[index] = entry;
-    return { list: next, truncated: false };
-  }
-  if (list.length >= limit) return { list: [...list], truncated: true };
-  return { list: [...list, entry], truncated: false };
+    const index = list.findIndex((item) => item.qid === entry.qid);
+    if (index >= 0) {
+        const next = [...list];
+        next[index] = entry;
+        return { list: next, truncated: false };
+    }
+    if (list.length >= limit) return { list: [...list], truncated: true };
+    return { list: [...list, entry], truncated: false };
 }

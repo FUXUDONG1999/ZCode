@@ -14,15 +14,15 @@
 // 只读靠提示）。
 
 import {
-  ENTER_PLAN_MODE_TOOL_NAME,
-  EXIT_PLAN_MODE_TOOL_NAME,
-  READ_SESSION_CONTEXT_TOOL_NAME,
-  RESOLVE_WORKFLOW_QUESTION_TOOL_NAME,
+    ENTER_PLAN_MODE_TOOL_NAME,
+    EXIT_PLAN_MODE_TOOL_NAME,
+    READ_SESSION_CONTEXT_TOOL_NAME,
+    RESOLVE_WORKFLOW_QUESTION_TOOL_NAME,
 } from "@zcode/contracts";
 
 /** AgentRuntimeConfig 的工具面切片。 */
 interface WorkflowActorToolPolicy {
-  toolDisallowlist: readonly string[];
+    toolDisallowlist: readonly string[];
 }
 
 /**
@@ -34,17 +34,17 @@ interface WorkflowActorToolPolicy {
  * 送达确认窗（docs/dynamic-workflow/launch.md「Permissions inside a run」），不再悬挂。
  */
 const ACTOR_DISALLOWED_TOOLS: readonly string[] = [
-  ENTER_PLAN_MODE_TOOL_NAME,
-  EXIT_PLAN_MODE_TOOL_NAME,
-  "CreateWorkflow",
-  // 修订入口与 CreateWorkflow 同一种嵌套编排，同一个根因入列。
-  "AmendWorkflow",
-  READ_SESSION_CONTEXT_TOOL_NAME,
-  // 子代理不许替主代理回答升级问题（apps/zcode-cli/packages/dynamic-workflow/docs/execution-engine.md「Escalation」）。
-  // 与上面几条的根因不同：这不是越权读，而是**身份**——升级的整个意义是把判断权
-  // 交给创建这条工作流的那一方；让另一个 actor 顺手作答，等于把它悄悄退化成 actor 之间的
-  // 互相说服。actor 提问用 `escalate`（恒注册），作答只属于主会话。
-  RESOLVE_WORKFLOW_QUESTION_TOOL_NAME,
+    ENTER_PLAN_MODE_TOOL_NAME,
+    EXIT_PLAN_MODE_TOOL_NAME,
+    "CreateWorkflow",
+    // 修订入口与 CreateWorkflow 同一种嵌套编排，同一个根因入列。
+    "AmendWorkflow",
+    READ_SESSION_CONTEXT_TOOL_NAME,
+    // 子代理不许替主代理回答升级问题（apps/zcode-cli/packages/dynamic-workflow/docs/execution-engine.md「Escalation」）。
+    // 与上面几条的根因不同：这不是越权读，而是**身份**——升级的整个意义是把判断权
+    // 交给创建这条工作流的那一方；让另一个 actor 顺手作答，等于把它悄悄退化成 actor 之间的
+    // 互相说服。actor 提问用 `escalate`（恒注册），作答只属于主会话。
+    RESOLVE_WORKFLOW_QUESTION_TOOL_NAME,
 ];
 
 /**
@@ -54,5 +54,5 @@ const ACTOR_DISALLOWED_TOOLS: readonly string[] = [
  * 只覆盖内建工具；MCP / plugin 工具的过滤留待生产接线时处理（同一个工厂 seam）。
  */
 export function workflowActorToolPolicy(): WorkflowActorToolPolicy {
-  return { toolDisallowlist: ACTOR_DISALLOWED_TOOLS };
+    return { toolDisallowlist: ACTOR_DISALLOWED_TOOLS };
 }

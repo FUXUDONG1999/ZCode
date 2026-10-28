@@ -15,28 +15,28 @@ Use large `spacing.before` to push content down for visual centering:
 // Total printable height ≈ 14000 twips
 // For title at ~40% from top: before = 5600
 const coverSection = {
-  properties: {
-    page: {
-      /* standard A4 */
+    properties: {
+        page: {
+            /* standard A4 */
+        },
+        // No headers/footers on cover page
     },
-    // No headers/footers on cover page
-  },
-  children: [
-    new Paragraph({ spacing: { before: 5600 } }), // spacer
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      children: [
-        new TextRun({
-          text: title,
-          font: { ascii: "Calibri", eastAsia: "SimHei" },
-          size: 52,
-          bold: true,
-          color: palette.primary,
+    children: [
+        new Paragraph({ spacing: { before: 5600 } }), // spacer
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+                new TextRun({
+                    text: title,
+                    font: { ascii: "Calibri", eastAsia: "SimHei" },
+                    size: 52,
+                    bold: true,
+                    color: palette.primary,
+                }),
+            ],
         }),
-      ],
-    }),
-    // ... subtitle, author, date
-  ],
+        // ... subtitle, author, date
+    ],
 };
 ```
 
@@ -48,47 +48,47 @@ For multi-section documents, put the cover in its own section so it can have dif
 const { FootnoteReferenceRun, Footnote } = require("docx");
 
 const doc = new Document({
-  footnotes: {
-    1: {
-      children: [
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "Smith, J. (2024). Research Methods. Academic Press, pp. 45-67.",
-              size: 18,
-            }),
-          ],
-        }),
-      ],
+    footnotes: {
+        1: {
+            children: [
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: "Smith, J. (2024). Research Methods. Academic Press, pp. 45-67.",
+                            size: 18,
+                        }),
+                    ],
+                }),
+            ],
+        },
+        2: {
+            children: [
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: "Zhang, W. (2023). \u201c数据分析方法研究\u201d. 科学通报, 68(12), 1234-1250.",
+                            size: 18,
+                        }),
+                    ],
+                }),
+            ],
+        },
     },
-    2: {
-      children: [
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "Zhang, W. (2023). \u201c数据分析方法研究\u201d. 科学通报, 68(12), 1234-1250.",
-              size: 18,
-            }),
-          ],
-        }),
-      ],
-    },
-  },
-  sections: [
-    {
-      children: [
-        new Paragraph({
-          children: [
-            new TextRun({ text: "According to recent studies" }),
-            new FootnoteReferenceRun(1), // superscript [1]
-            new TextRun({ text: ", data analysis methods have evolved" }),
-            new FootnoteReferenceRun(2), // superscript [2]
-            new TextRun({ text: "." }),
-          ],
-        }),
-      ],
-    },
-  ],
+    sections: [
+        {
+            children: [
+                new Paragraph({
+                    children: [
+                        new TextRun({ text: "According to recent studies" }),
+                        new FootnoteReferenceRun(1), // superscript [1]
+                        new TextRun({ text: ", data analysis methods have evolved" }),
+                        new FootnoteReferenceRun(2), // superscript [2]
+                        new TextRun({ text: "." }),
+                    ],
+                }),
+            ],
+        },
+    ],
 });
 ```
 
@@ -103,17 +103,17 @@ Prevent page breaks between related elements:
 ```js
 // Heading stays with next paragraph
 new Paragraph({
-  heading: HeadingLevel.HEADING_2,
-  keepNext: true, // don't break after this
-  children: [new TextRun({ text: "Table 1: Results" })],
+    heading: HeadingLevel.HEADING_2,
+    keepNext: true, // don't break after this
+    children: [new TextRun({ text: "Table 1: Results" })],
 });
 // Table immediately follows on same page
 
 // Caption stays with image
 new Paragraph({
-  keepNext: true,
-  alignment: AlignmentType.CENTER,
-  children: [new TextRun({ text: "Figure 1: Architecture Diagram", italics: true, size: 20 })],
+    keepNext: true,
+    alignment: AlignmentType.CENTER,
+    children: [new TextRun({ text: "Figure 1: Architecture Diagram", italics: true, size: 20 })],
 });
 // ImageRun paragraph follows
 ```
@@ -147,21 +147,21 @@ Follow the document type strategy defined in SOUL.md Rule 1.
 ```js
 // Heading stays with next paragraph
 new Paragraph({
-  heading: HeadingLevel.HEADING_1,
-  keepNext: true,
-  children: [new TextRun("Chapter Title")],
+    heading: HeadingLevel.HEADING_1,
+    keepNext: true,
+    children: [new TextRun("Chapter Title")],
 });
 
 // Table caption stays with table
 new Paragraph({
-  keepNext: true,
-  children: [new TextRun({ text: "Table 1: Summary", italics: true })],
+    keepNext: true,
+    children: [new TextRun({ text: "Table 1: Summary", italics: true })],
 });
 
 // Image caption stays with image
 new Paragraph({
-  keepNext: true,
-  children: [new TextRun({ text: "Figure 1: Architecture", italics: true })],
+    keepNext: true,
+    children: [new TextRun({ text: "Figure 1: Architecture", italics: true })],
 });
 ```
 
@@ -214,61 +214,61 @@ Different headers/footers per section:
 
 ```js
 const doc = new Document({
-  sections: [
-    {
-      // Section 1: Cover — no header/footer
-      properties: {
-        page: {
-          /* ... */
+    sections: [
+        {
+            // Section 1: Cover — no header/footer
+            properties: {
+                page: {
+                    /* ... */
+                },
+            },
+            children: coverChildren,
         },
-      },
-      children: coverChildren,
-    },
-    {
-      // Section 2: Front matter — Roman page numbers
-      properties: {
-        type: SectionType.NEXT_PAGE,
-        page: {
-          /* size, margin... */
-          pageNumbers: { start: 1, formatType: NumberFormat.UPPER_ROMAN },
+        {
+            // Section 2: Front matter — Roman page numbers
+            properties: {
+                type: SectionType.NEXT_PAGE,
+                page: {
+                    /* size, margin... */
+                    pageNumbers: { start: 1, formatType: NumberFormat.UPPER_ROMAN },
+                },
+            },
+            headers: { default: new Header({ children: [] }) },
+            footers: {
+                default: new Footer({
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })],
+                        }),
+                    ],
+                }),
+            },
+            children: tocAndAbstract,
         },
-      },
-      headers: { default: new Header({ children: [] }) },
-      footers: {
-        default: new Footer({
-          children: [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [new TextRun({ children: [PageNumber.CURRENT], size: 18 })],
-            }),
-          ],
-        }),
-      },
-      children: tocAndAbstract,
-    },
-    {
-      // Section 3: Main content — Arabic page numbers
-      properties: {
-        type: SectionType.NEXT_PAGE,
-        page: {
-          /* size, margin... */
-          pageNumbers: { start: 1, formatType: NumberFormat.DECIMAL },
+        {
+            // Section 3: Main content — Arabic page numbers
+            properties: {
+                type: SectionType.NEXT_PAGE,
+                page: {
+                    /* size, margin... */
+                    pageNumbers: { start: 1, formatType: NumberFormat.DECIMAL },
+                },
+            },
+            headers: {
+                default: new Header({
+                    children: [
+                        new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [new TextRun({ text: docTitle, size: 18, color: "888888" })],
+                        }),
+                    ],
+                }),
+            },
+            footers: { default: footerWithPageNumbers },
+            children: mainContent,
         },
-      },
-      headers: {
-        default: new Header({
-          children: [
-            new Paragraph({
-              alignment: AlignmentType.CENTER,
-              children: [new TextRun({ text: docTitle, size: 18, color: "888888" })],
-            }),
-          ],
-        }),
-      },
-      footers: { default: footerWithPageNumbers },
-      children: mainContent,
-    },
-  ],
+    ],
 });
 ```
 

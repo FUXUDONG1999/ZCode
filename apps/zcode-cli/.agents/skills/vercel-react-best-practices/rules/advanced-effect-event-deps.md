@@ -15,15 +15,15 @@ Effect Event functions do not have a stable identity. Their identity intentional
 import { useEffect, useEffectEvent } from "react";
 
 function ChatRoom({ roomId, onConnected }: { roomId: string; onConnected: () => void }) {
-  const handleConnected = useEffectEvent(onConnected);
+    const handleConnected = useEffectEvent(onConnected);
 
-  useEffect(() => {
-    const connection = createConnection(roomId);
-    connection.on("connected", handleConnected);
-    connection.connect();
+    useEffect(() => {
+        const connection = createConnection(roomId);
+        connection.on("connected", handleConnected);
+        connection.connect();
 
-    return () => connection.disconnect();
-  }, [roomId, handleConnected]);
+        return () => connection.disconnect();
+    }, [roomId, handleConnected]);
 }
 ```
 
@@ -35,15 +35,15 @@ Including the Effect Event in dependencies makes the effect re-run every render 
 import { useEffect, useEffectEvent } from "react";
 
 function ChatRoom({ roomId, onConnected }: { roomId: string; onConnected: () => void }) {
-  const handleConnected = useEffectEvent(onConnected);
+    const handleConnected = useEffectEvent(onConnected);
 
-  useEffect(() => {
-    const connection = createConnection(roomId);
-    connection.on("connected", handleConnected);
-    connection.connect();
+    useEffect(() => {
+        const connection = createConnection(roomId);
+        connection.on("connected", handleConnected);
+        connection.connect();
 
-    return () => connection.disconnect();
-  }, [roomId]);
+        return () => connection.disconnect();
+    }, [roomId]);
 }
 ```
 

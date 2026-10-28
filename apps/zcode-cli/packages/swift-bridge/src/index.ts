@@ -4,17 +4,17 @@
  */
 
 export const isSwiftAvailable = (): boolean => {
-  if (process.platform !== "darwin") {
+    if (process.platform !== "darwin") {
+        return false;
+    }
+    // TODO: Check for Swift availability
     return false;
-  }
-  // TODO: Check for Swift availability
-  return false;
 };
 
 export const detectSwiftVersion = async (): Promise<string | null> => {
-  if (!isSwiftAvailable()) {
+    if (!isSwiftAvailable()) {
+        return null;
+    }
+    // TODO: Run `swift --version` and parse output
     return null;
-  }
-  // TODO: Run `swift --version` and parse output
-  return null;
 };

@@ -9,19 +9,19 @@ const root = fileURLToPath(new URL("..", import.meta.url));
 const networkCapture = createNetworkCaptureServiceFromEnv();
 
 networkCapture?.subscribe((event) => {
-  if (event.type === "status" && event.status.running) {
-    console.log(
-      `[debug] Network proxy listening on ${event.status.proxyUrl}; CA ${event.status.certificate.caCertPath}`,
-    );
-  }
+    if (event.type === "status" && event.status.running) {
+        console.log(
+            `[debug] Network proxy listening on ${event.status.proxyUrl}; CA ${event.status.certificate.caCertPath}`,
+        );
+    }
 });
 
 const apiServer = startDebugServer({ port: apiPort, networkCapture });
 await once(apiServer, "listening");
 
 const vite = await createViteServer({
-  root,
-  configFile: fileURLToPath(new URL("../vite.config.ts", import.meta.url)),
+    root,
+    configFile: fileURLToPath(new URL("../vite.config.ts", import.meta.url)),
 });
 await vite.listen();
 
@@ -29,14 +29,14 @@ console.log(`[debug] API listening on http://127.0.0.1:${apiPort}`);
 vite.printUrls();
 
 async function shutdown(server: ReturnType<typeof startDebugServer>): Promise<void> {
-  await vite.close();
-  await new Promise<void>((resolve) => {
-    server.close(() => resolve());
-  });
+    await vite.close();
+    await new Promise<void>((resolve) => {
+        server.close(() => resolve());
+    });
 }
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
-  process.on(signal, () => {
-    void shutdown(apiServer).finally(() => process.exit(0));
-  });
+    process.on(signal, () => {
+        void shutdown(apiServer).finally(() => process.exit(0));
+    });
 }

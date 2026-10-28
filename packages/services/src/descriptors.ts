@@ -6,11 +6,11 @@
  */
 
 export interface ServiceDescriptor<T> {
-  readonly channelName: string;
-  /** Phantom type — 仅用于类型推断，运行时不存在 */
-  readonly _brand?: T;
+    readonly channelName: string;
+    /** Phantom type — 仅用于类型推断，运行时不存在 */
+    readonly _brand?: T;
 }
 
 export function createServiceDescriptor<T>(channelName: string): ServiceDescriptor<T> {
-  return { channelName };
+    return { channelName };
 }

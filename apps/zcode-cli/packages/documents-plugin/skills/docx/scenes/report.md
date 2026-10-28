@@ -23,13 +23,13 @@ Auto-select structure and expression style based on user intent. If not explicit
 
 ```js
 function selectReportType(keywords, topic) {
-  if (/analysis|competitor|industry|operations|data/.test(keywords)) return "analysis";
-  if (/experiment|lab|algorithm|engineering/.test(keywords)) return "experiment";
-  if (/test|QA|performance|security|compatibility/.test(keywords)) return "testing";
-  if (/survey|questionnaire|interview|market research/.test(keywords)) return "research";
-  if (/review|retrospective|post-mortem|summary/.test(keywords)) return "review";
-  if (/proposal|feasibility|implementation|optimization/.test(keywords)) return "proposal";
-  return "analysis"; // default
+    if (/analysis|competitor|industry|operations|data/.test(keywords)) return "analysis";
+    if (/experiment|lab|algorithm|engineering/.test(keywords)) return "experiment";
+    if (/test|QA|performance|security|compatibility/.test(keywords)) return "testing";
+    if (/survey|questionnaire|interview|market research/.test(keywords)) return "research";
+    if (/review|retrospective|post-mortem|summary/.test(keywords)) return "review";
+    if (/proposal|feasibility|implementation|optimization/.test(keywords)) return "proposal";
+    return "analysis"; // default
 }
 ```
 
@@ -315,8 +315,8 @@ See `references/design-system.md` for full palette definitions.
 ## Document Structure
 
 1. **Cover** — via `selectCoverRecipe()` (see design-system.md)
-   - Separate section, page margin typically 0
-   - Common: general R1, whitepaper R2, consulting R3, proposal R4
+    - Separate section, page margin typically 0
+    - Common: general R1, whitepaper R2, consulting R3, proposal R4
 
 2. **Table of Contents** — H1–H3, separate section
 

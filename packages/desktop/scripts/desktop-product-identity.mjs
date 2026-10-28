@@ -6,30 +6,30 @@
 export const ZCODE_PREVIEW_IDENTITY_ENV = "ZCODE_PREVIEW_IDENTITY";
 
 const PRODUCTION_IDENTITY = Object.freeze({
-  flavor: "production",
-  appId: "dev.zcode.app",
-  productName: "MyAgent",
-  linuxExecutableName: "zcode",
-  linuxPackageName: "zcode",
-  cuaHelperInstallVariant: null,
+    flavor: "production",
+    appId: "dev.zcode.app",
+    productName: "MyAgent",
+    linuxExecutableName: "zcode",
+    linuxPackageName: "zcode",
+    cuaHelperInstallVariant: null,
 });
 
 const PREVIEW_IDENTITY = Object.freeze({
-  flavor: "preview",
-  appId: "dev.zcode.app.preview",
-  productName: "MyAgent Preview",
-  linuxExecutableName: "zcode-preview",
-  linuxPackageName: "zcode-preview",
-  cuaHelperInstallVariant: "preview",
+    flavor: "preview",
+    appId: "dev.zcode.app.preview",
+    productName: "MyAgent Preview",
+    linuxExecutableName: "zcode-preview",
+    linuxPackageName: "zcode-preview",
+    cuaHelperInstallVariant: "preview",
 });
 
 export const desktopProductIdentities = Object.freeze({
-  production: PRODUCTION_IDENTITY,
-  preview: PREVIEW_IDENTITY,
+    production: PRODUCTION_IDENTITY,
+    preview: PREVIEW_IDENTITY,
 });
 
 function normalizeDesktopZCodeEnv(env) {
-  return env.ZCODE_ENV?.trim().toLowerCase() === "production" ? "production" : "test";
+    return env.ZCODE_ENV?.trim().toLowerCase() === "production" ? "production" : "test";
 }
 
 /**
@@ -38,16 +38,16 @@ function normalizeDesktopZCodeEnv(env) {
  * 避免 `true` 之类在 YAML 路由层漏匹配、却在脚本层被当成开启，把 Preview 包打进生产验收目录。
  */
 export function isPreviewIdentityRequested(env = process.env) {
-  const value = env[ZCODE_PREVIEW_IDENTITY_ENV]?.trim() ?? "";
-  if (value === "1") {
-    return true;
-  }
-  if (value === "" || value === "0") {
-    return false;
-  }
-  throw new Error(
-    `invalid ${ZCODE_PREVIEW_IDENTITY_ENV}=${env[ZCODE_PREVIEW_IDENTITY_ENV]}; expected 1 or 0`,
-  );
+    const value = env[ZCODE_PREVIEW_IDENTITY_ENV]?.trim() ?? "";
+    if (value === "1") {
+        return true;
+    }
+    if (value === "" || value === "0") {
+        return false;
+    }
+    throw new Error(
+        `invalid ${ZCODE_PREVIEW_IDENTITY_ENV}=${env[ZCODE_PREVIEW_IDENTITY_ENV]}; expected 1 or 0`,
+    );
 }
 
 /**
@@ -57,14 +57,14 @@ export function isPreviewIdentityRequested(env = process.env) {
  * 未知 `ZCODE_ENV` 继续按 test 处理，和共享层 normalizeZCodeEnv 的 fail-safe 默认值一致。
  */
 export function resolveDesktopProductFlavor(env = process.env) {
-  if (isPreviewIdentityRequested(env)) {
-    return "preview";
-  }
-  return normalizeDesktopZCodeEnv(env) === "production" ? "production" : "preview";
+    if (isPreviewIdentityRequested(env)) {
+        return "preview";
+    }
+    return normalizeDesktopZCodeEnv(env) === "production" ? "production" : "preview";
 }
 
 export function resolveDesktopProductIdentity(env = process.env) {
-  return desktopProductIdentities[resolveDesktopProductFlavor(env)];
+    return desktopProductIdentities[resolveDesktopProductFlavor(env)];
 }
 
 /**
@@ -72,7 +72,7 @@ export function resolveDesktopProductIdentity(env = process.env) {
  * 生产后端的 Preview 包靠 productName（`ZCode Preview-<version>-...`）与正式包区分。
  */
 export function resolveDesktopArtifactSuffix(env = process.env) {
-  return normalizeDesktopZCodeEnv(env) === "test" ? "_TEST" : "";
+    return normalizeDesktopZCodeEnv(env) === "test" ? "_TEST" : "";
 }
 
 /**
@@ -83,12 +83,12 @@ export function resolveDesktopArtifactSuffix(env = process.env) {
  * 避免本地调试快捷方式和正式/Preview 安装包互相污染。
  */
 export function resolveWindowsAppUserModelIdForFlavor(flavor, runtime = { isPackaged: true }) {
-  if (runtime.isPackaged === false) {
-    return "cn.aminer.zcode";
-  }
-  return desktopProductIdentities[flavor === "preview" ? "preview" : "production"].appId;
+    if (runtime.isPackaged === false) {
+        return "cn.aminer.zcode";
+    }
+    return desktopProductIdentities[flavor === "preview" ? "preview" : "production"].appId;
 }
 
 export function resolveWindowsAppUserModelId(env = process.env, runtime = { isPackaged: true }) {
-  return resolveWindowsAppUserModelIdForFlavor(resolveDesktopProductFlavor(env), runtime);
+    return resolveWindowsAppUserModelIdForFlavor(resolveDesktopProductFlavor(env), runtime);
 }

@@ -29,7 +29,7 @@ export const WIRE_FAULT_INVALID_PAYLOAD = "proto.frameAssemblyInvalidPayload";
  * 自愈的 gap 停在原地，那是比多一次无用重试更坏的失败。按证据逐个加，不按猜测扩大。
  */
 export function isDeterministicContentFault(reasonCode: string | undefined): boolean {
-  return reasonCode === WIRE_FAULT_INVALID_PAYLOAD;
+    return reasonCode === WIRE_FAULT_INVALID_PAYLOAD;
 }
 
 /**

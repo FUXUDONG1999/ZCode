@@ -9,8 +9,8 @@
 import type { SavedWorkflowArgDeclaration, SavedWorkflowArgsDeclaration } from "@zcode/contracts";
 
 export type WorkflowArgsValidation =
-  | { ok: true; args: Record<string, unknown> }
-  | { ok: false; errors: string[] };
+    | { ok: true; args: Record<string, unknown> }
+    | { ok: false; errors: string[] };
 
 /**
  * 把调用方传来的参数按声明校验并补齐默认值。
@@ -22,46 +22,46 @@ export type WorkflowArgsValidation =
  * 生效了。
  */
 export function validateWorkflowArgs(
-  declaration: SavedWorkflowArgsDeclaration | undefined,
-  provided: Record<string, unknown> | undefined,
+    declaration: SavedWorkflowArgsDeclaration | undefined,
+    provided: Record<string, unknown> | undefined,
 ): WorkflowArgsValidation {
-  const declared = declaration ?? {};
-  const given = provided ?? {};
-  const errors: string[] = [];
-  const args: Record<string, unknown> = {};
+    const declared = declaration ?? {};
+    const given = provided ?? {};
+    const errors: string[] = [];
+    const args: Record<string, unknown> = {};
 
-  const declaredNames = Object.keys(declared);
-  for (const key of Object.keys(given)) {
-    if (declared[key] !== undefined) continue;
-    errors.push(
-      declaredNames.length === 0
-        ? `unknown argument '${key}': this workflow declares no arguments`
-        : `unknown argument '${key}' (declared: ${declaredNames.join(", ")})`,
-    );
-  }
-
-  for (const [key, spec] of Object.entries(declared)) {
-    const supplied = given[key];
-    // 缺省与显式 undefined 一视同仁：JSON 里传不出 undefined，所以两者只能是同一件事。
-    if (supplied === undefined) {
-      if (spec.default !== undefined) {
-        // 默认值与传入值走**同一条**类型检查：一个声明成 number 却默认写成 "3" 的参数，
-        // 错在保存的那一刻，不该等到脚本读到它才炸。
-        const failure = typeMismatch(key, spec, spec.default, "default value");
-        if (failure === undefined) args[key] = spec.default;
-        else errors.push(failure);
-        continue;
-      }
-      if (spec.required === true) errors.push(`missing required argument '${key}'`);
-      continue;
+    const declaredNames = Object.keys(declared);
+    for (const key of Object.keys(given)) {
+        if (declared[key] !== undefined) continue;
+        errors.push(
+            declaredNames.length === 0
+                ? `unknown argument '${key}': this workflow declares no arguments`
+                : `unknown argument '${key}' (declared: ${declaredNames.join(", ")})`,
+        );
     }
 
-    const failure = typeMismatch(key, spec, supplied, "value");
-    if (failure === undefined) args[key] = supplied;
-    else errors.push(failure);
-  }
+    for (const [key, spec] of Object.entries(declared)) {
+        const supplied = given[key];
+        // 缺省与显式 undefined 一视同仁：JSON 里传不出 undefined，所以两者只能是同一件事。
+        if (supplied === undefined) {
+            if (spec.default !== undefined) {
+                // 默认值与传入值走**同一条**类型检查：一个声明成 number 却默认写成 "3" 的参数，
+                // 错在保存的那一刻，不该等到脚本读到它才炸。
+                const failure = typeMismatch(key, spec, spec.default, "default value");
+                if (failure === undefined) args[key] = spec.default;
+                else errors.push(failure);
+                continue;
+            }
+            if (spec.required === true) errors.push(`missing required argument '${key}'`);
+            continue;
+        }
 
-  return errors.length > 0 ? { ok: false, errors } : { ok: true, args };
+        const failure = typeMismatch(key, spec, supplied, "value");
+        if (failure === undefined) args[key] = supplied;
+        else errors.push(failure);
+    }
+
+    return errors.length > 0 ? { ok: false, errors } : { ok: true, args };
 }
 
 /**
@@ -72,30 +72,30 @@ export function validateWorkflowArgs(
  * 一个可读的错误挪到脚本里变成一个 `null`。
  */
 function typeMismatch(
-  key: string,
-  spec: SavedWorkflowArgDeclaration,
-  value: unknown,
-  what: string,
+    key: string,
+    spec: SavedWorkflowArgDeclaration,
+    value: unknown,
+    what: string,
 ): string | undefined {
-  const describe = (expected: string): string =>
-    `argument '${key}': expected ${expected}, got ${describeValue(value)} (${what})`;
+    const describe = (expected: string): string =>
+        `argument '${key}': expected ${expected}, got ${describeValue(value)} (${what})`;
 
-  switch (spec.type) {
-    case "string":
-      return typeof value === "string" ? undefined : describe("a string");
-    case "number":
-      return typeof value === "number" && Number.isFinite(value)
-        ? undefined
-        : describe("a finite number");
-    case "boolean":
-      return typeof value === "boolean" ? undefined : describe("a boolean");
-    case "json":
-      return undefined;
-  }
+    switch (spec.type) {
+        case "string":
+            return typeof value === "string" ? undefined : describe("a string");
+        case "number":
+            return typeof value === "number" && Number.isFinite(value)
+                ? undefined
+                : describe("a finite number");
+        case "boolean":
+            return typeof value === "boolean" ? undefined : describe("a boolean");
+        case "json":
+            return undefined;
+    }
 }
 
 function describeValue(value: unknown): string {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "an array";
-  return `a ${typeof value}`;
+    if (value === null) return "null";
+    if (Array.isArray(value)) return "an array";
+    return `a ${typeof value}`;
 }

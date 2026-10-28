@@ -5,10 +5,10 @@ import { DIFFS_PREFERRED_HIGHLIGHTER } from "@/lib/diffsHighlighterEngine.js";
 import type { ResolvedTheme } from "@/useTheme.js";
 
 interface PatchDiffSettings {
-  lightTheme: BundledTheme;
-  darkTheme: BundledTheme;
-  showLineNumbers: boolean;
-  wrapLongLines: boolean;
+    lightTheme: BundledTheme;
+    darkTheme: BundledTheme;
+    showLineNumbers: boolean;
+    wrapLongLines: boolean;
 }
 
 type PatchDiffSeparatorStyle = "line-info" | "simple";
@@ -56,28 +56,28 @@ pre {
 `;
 
 export function createPatchDiffOptions(
-  codePreviewSettings: PatchDiffSettings,
-  resolvedTheme: ResolvedTheme,
-  options?: {
-    separatorStyle?: PatchDiffSeparatorStyle;
-  },
-): FileDiffOptions<undefined> {
-  return {
-    diffStyle: "unified",
-    diffIndicators: "classic",
-    disableFileHeader: true,
-    disableLineNumbers: !codePreviewSettings.showLineNumbers,
-    // Bugfix: “上一轮更改”这类紧凑 diff 更关注快速定位修改点，
-    // 不需要额外展示“123 unmodified lines”标签。这里允许调用方切到 simple，
-    // 把大段未改动区域退化成轻量空白分隔，避免视觉上抢走改动本身的注意力。
-    hunkSeparators: options?.separatorStyle ?? "line-info",
-    overflow: codePreviewSettings.wrapLongLines ? "wrap" : "scroll",
-    theme: {
-      light: codePreviewSettings.lightTheme,
-      dark: codePreviewSettings.darkTheme,
+    codePreviewSettings: PatchDiffSettings,
+    resolvedTheme: ResolvedTheme,
+    options?: {
+        separatorStyle?: PatchDiffSeparatorStyle;
     },
-    themeType: resolvedTheme,
-    preferredHighlighter: DIFFS_PREFERRED_HIGHLIGHTER,
-    unsafeCSS: PATCH_DIFF_UNSAFE_CSS,
-  };
+): FileDiffOptions<undefined> {
+    return {
+        diffStyle: "unified",
+        diffIndicators: "classic",
+        disableFileHeader: true,
+        disableLineNumbers: !codePreviewSettings.showLineNumbers,
+        // Bugfix: “上一轮更改”这类紧凑 diff 更关注快速定位修改点，
+        // 不需要额外展示“123 unmodified lines”标签。这里允许调用方切到 simple，
+        // 把大段未改动区域退化成轻量空白分隔，避免视觉上抢走改动本身的注意力。
+        hunkSeparators: options?.separatorStyle ?? "line-info",
+        overflow: codePreviewSettings.wrapLongLines ? "wrap" : "scroll",
+        theme: {
+            light: codePreviewSettings.lightTheme,
+            dark: codePreviewSettings.darkTheme,
+        },
+        themeType: resolvedTheme,
+        preferredHighlighter: DIFFS_PREFERRED_HIGHLIGHTER,
+        unsafeCSS: PATCH_DIFF_UNSAFE_CSS,
+    };
 }

@@ -9,15 +9,15 @@ import type { IPlatformService } from "@zcode/shared";
 // 无法在同一进程内覆盖多平台（改 navigator.userAgent 对已求值的常量无效）。运行时行为等价——
 // 真实环境里 UA 不会中途变化。
 function isMacOsDesktopUserAgent(): boolean {
-  return (
-    typeof navigator !== "undefined" &&
-    /Macintosh|Mac OS X/.test(navigator.userAgent) &&
-    !/iPhone|iPad|iPod/.test(navigator.userAgent)
-  );
+    return (
+        typeof navigator !== "undefined" &&
+        /Macintosh|Mac OS X/.test(navigator.userAgent) &&
+        !/iPhone|iPad|iPod/.test(navigator.userAgent)
+    );
 }
 
 function isWindowsDesktopUserAgent(): boolean {
-  return typeof navigator !== "undefined" && /Windows/i.test(navigator.userAgent);
+    return typeof navigator !== "undefined" && /Windows/i.test(navigator.userAgent);
 }
 
 /**
@@ -27,9 +27,9 @@ function isWindowsDesktopUserAgent(): boolean {
  * desktop preload 只在具备该能力时注入 onboarding 方法，因此 UA + capability 必须同时满足。
  */
 export function supportsLocalMacCuaPermissionOnboarding(
-  platform: Pick<IPlatformService, "openCuaPermissionOnboarding"> | null | undefined,
+    platform: Pick<IPlatformService, "openCuaPermissionOnboarding"> | null | undefined,
 ): boolean {
-  return isMacOsDesktopUserAgent() && typeof platform?.openCuaPermissionOnboarding === "function";
+    return isMacOsDesktopUserAgent() && typeof platform?.openCuaPermissionOnboarding === "function";
 }
 
 /**
@@ -39,7 +39,7 @@ export function supportsLocalMacCuaPermissionOnboarding(
  * 改用 executeDesktopCommand——它只在 desktop preload 注入，能把 Windows 上的普通浏览器排除掉。
  */
 export function supportsLocalWindowsCuaEntry(
-  platform: Pick<IPlatformService, "executeDesktopCommand"> | null | undefined,
+    platform: Pick<IPlatformService, "executeDesktopCommand"> | null | undefined,
 ): boolean {
-  return isWindowsDesktopUserAgent() && typeof platform?.executeDesktopCommand === "function";
+    return isWindowsDesktopUserAgent() && typeof platform?.executeDesktopCommand === "function";
 }

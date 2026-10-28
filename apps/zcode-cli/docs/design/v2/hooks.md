@@ -75,27 +75,27 @@ P1 再考虑：
 
 ```json
 {
-  "hooks": {
-    "enabled": true,
-    "timeoutMs": 60000,
-    "maxOutputBytes": 32768,
-    "events": {
-      "PreToolUse": [
-        {
-          "matcher": "Bash|Write|Edit",
-          "hooks": [
-            {
-              "type": "process",
-              "command": "node",
-              "args": ["scripts/check-tool.mjs"],
-              "enabled": true,
-              "timeoutMs": 30000
-            }
-          ]
+    "hooks": {
+        "enabled": true,
+        "timeoutMs": 60000,
+        "maxOutputBytes": 32768,
+        "events": {
+            "PreToolUse": [
+                {
+                    "matcher": "Bash|Write|Edit",
+                    "hooks": [
+                        {
+                            "type": "process",
+                            "command": "node",
+                            "args": ["scripts/check-tool.mjs"],
+                            "enabled": true,
+                            "timeoutMs": 30000
+                        }
+                    ]
+                }
+            ]
         }
-      ]
     }
-  }
 }
 ```
 
@@ -144,40 +144,40 @@ P0 使用一个统一 JSON 输出：
 
 ```json
 {
-  "continue": true,
-  "reason": "optional human-readable reason",
-  "suppressOutput": false,
-  "systemMessage": "optional user-visible message",
-  "hookSpecificOutput": {
-    "hookEventName": "PreToolUse",
-    "permissionDecision": "allow",
-    "updatedInput": {}
-  }
+    "continue": true,
+    "reason": "optional human-readable reason",
+    "suppressOutput": false,
+    "systemMessage": "optional user-visible message",
+    "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "allow",
+        "updatedInput": {}
+    }
 }
 ```
 
 事件专属输出：
 
 - `PreToolUse`
-  - `permissionDecision`: `allow | ask | deny`
-  - `permissionDecisionReason`
-  - `updatedInput`: 完整替代 input，必须重新经过 tool input schema 校验。
-  - `additionalContext`
+    - `permissionDecision`: `allow | ask | deny`
+    - `permissionDecisionReason`
+    - `updatedInput`: 完整替代 input，必须重新经过 tool input schema 校验。
+    - `additionalContext`
 - `PermissionRequest`
-  - `decision.behavior`: `allow | deny`
-  - `decision.updatedInput`
-  - `decision.permissionUpdates`
+    - `decision.behavior`: `allow | deny`
+    - `decision.updatedInput`
+    - `decision.permissionUpdates`
 - `UserPromptSubmit`
-  - `additionalContext`
-  - `continue: false` 表示阻断本次 prompt。
+    - `additionalContext`
+    - `continue: false` 表示阻断本次 prompt。
 - `SessionStart`
-  - `additionalContext`
+    - `additionalContext`
 - `PostToolUse` / `PostToolUseFailure`
-  - `additionalContext`
+    - `additionalContext`
 - `Stop`
-  - `continue: false` 或未返回输出表示 turn 可以结束。
-  - `continue: true` 且带 `additionalContext` 表示把反馈注入下一轮模型请求。
-  - `continue: true` 但没有 `additionalContext` 视为 no-op，避免空循环。
+    - `continue: false` 或未返回输出表示 turn 可以结束。
+    - `continue: true` 且带 `additionalContext` 表示把反馈注入下一轮模型请求。
+    - `continue: true` 但没有 `additionalContext` 视为 no-op，避免空循环。
 
 非 JSON stdout 在 P0 不进入模型上下文，只作为 hook diagnostic event 记录。未知 JSON 字段
 忽略，不能导致整个 Hook 失败；已知字段类型错误仍归为单 Hook contract violation。
@@ -224,21 +224,21 @@ Tool 执行路径：
 模块边界：
 
 - `packages/contracts/src/hooks/`
-  - hook event enum
-  - hook input/output JSON schema
-  - hook config schema
-  - hook result/error 类型
+    - hook event enum
+    - hook input/output JSON schema
+    - hook config schema
+    - hook result/error 类型
 - `packages/core/src/hooks/`
-  - `HookRunner`
-  - `HookRegistry`
-  - matcher resolver
-  - decision aggregator
+    - `HookRunner`
+    - `HookRegistry`
+    - matcher resolver
+    - decision aggregator
 - `packages/adapters/src/hooks/`
-  - `NodeProcessHookExecutionAdapter`
-  - 后续 `HttpHookAdapter`
+    - `NodeProcessHookExecutionAdapter`
+    - 后续 `HttpHookAdapter`
 - `packages/bootstrap`
-  - 从 config 装配 hook registry 和 adapter
-  - 注入 `HookRunner` 到 `AgentRuntime`
+    - 从 config 装配 hook registry 和 adapter
+    - 注入 `HookRunner` 到 `AgentRuntime`
 
 核心边界：
 

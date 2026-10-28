@@ -6,6 +6,6 @@ export function hasRequiredSshE2EEnvironment(env: Record<string, string | undefi
 export function isSshFormalSpec(spec: string): boolean;
 
 export function resolveEnvironmentGatedFormalSpecExcludes(options: {
-  env: Record<string, string | undefined>;
-  targeted: boolean;
+    env: Record<string, string | undefined>;
+    targeted: boolean;
 }): string[];

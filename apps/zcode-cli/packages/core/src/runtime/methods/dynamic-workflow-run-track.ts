@@ -24,22 +24,22 @@ import { activateDynamicWorkflowTools } from "./dynamic-workflow-activation.js";
  * rootTraceContext 论证同源，见 dynamic-workflow-run-progress.ts）。
  */
 export async function trackResumedDynamicWorkflowRun(
-  this: AgentRuntimeInternal,
-  input: { runId: string; toolCallId?: string; name?: string; traceContext?: TraceContext },
+    this: AgentRuntimeInternal,
+    input: { runId: string; toolCallId?: string; name?: string; traceContext?: TraceContext },
 ): Promise<void> {
-  const traceContext = input.traceContext ?? this.rootTraceContext;
-  const toolCall: ExecutableToolCall = {
-    id: input.toolCallId ?? `resume-${input.runId}`,
-    name: CREATE_WORKFLOW_TOOL_NAME,
-    input: input.name === undefined ? {} : { name: input.name },
-  };
-  await this.executor.trackExternalBackgroundTask(
-    toolCall,
-    { backgroundTaskId: input.runId, status: "backgrounded" },
-    traceContext,
-    undefined,
-  );
-  // GUI Resume 成功即激活工具面（launch.md「On demand: activation」）：run 的终态通知会让模型
-  // 去调 GetWorkflowRun，没有那个工具它就卡住。
-  await activateDynamicWorkflowTools.call(this, { source: "run_control", traceContext });
+    const traceContext = input.traceContext ?? this.rootTraceContext;
+    const toolCall: ExecutableToolCall = {
+        id: input.toolCallId ?? `resume-${input.runId}`,
+        name: CREATE_WORKFLOW_TOOL_NAME,
+        input: input.name === undefined ? {} : { name: input.name },
+    };
+    await this.executor.trackExternalBackgroundTask(
+        toolCall,
+        { backgroundTaskId: input.runId, status: "backgrounded" },
+        traceContext,
+        undefined,
+    );
+    // GUI Resume 成功即激活工具面（launch.md「On demand: activation」）：run 的终态通知会让模型
+    // 去调 GetWorkflowRun，没有那个工具它就卡住。
+    await activateDynamicWorkflowTools.call(this, { source: "run_control", traceContext });
 }

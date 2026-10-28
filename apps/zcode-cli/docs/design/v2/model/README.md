@@ -112,23 +112,23 @@ AI SDK 文档入口：
 
 ```json
 {
-  "$schema": "https://zcode.ai/schema/config-v2.json",
-  "provider": {
-    "deepseek": {
-      "kind": "openai-compatible",
-      "name": "DeepSeek",
-      "options": {
-        "baseURL": "https://api.deepseek.com",
-        "apiKey": "sk-..."
-      },
-      "models": {
-        "deepseek-v4-pro": {
-          "name": "DeepSeek V4 Pro"
+    "$schema": "https://zcode.ai/schema/config-v2.json",
+    "provider": {
+        "deepseek": {
+            "kind": "openai-compatible",
+            "name": "DeepSeek",
+            "options": {
+                "baseURL": "https://api.deepseek.com",
+                "apiKey": "sk-..."
+            },
+            "models": {
+                "deepseek-v4-pro": {
+                    "name": "DeepSeek V4 Pro"
+                }
+            }
         }
-      }
-    }
-  },
-  "model": "deepseek/deepseek-v4-pro"
+    },
+    "model": "deepseek/deepseek-v4-pro"
 }
 ```
 
@@ -137,24 +137,24 @@ AI SDK 文档入口：
 
 ```json
 {
-  "provider": {
-    "deepseek": {
-      "kind": "openai-compatible",
-      "name": "DeepSeek",
-      "options": {
-        "baseURL": "https://api.deepseek.com",
-        "apiKey": "sk-..."
-      },
-      "models": {
-        "deepseek-v4-pro": {},
-        "deepseek-chat": {}
-      }
+    "provider": {
+        "deepseek": {
+            "kind": "openai-compatible",
+            "name": "DeepSeek",
+            "options": {
+                "baseURL": "https://api.deepseek.com",
+                "apiKey": "sk-..."
+            },
+            "models": {
+                "deepseek-v4-pro": {},
+                "deepseek-chat": {}
+            }
+        }
+    },
+    "model": {
+        "main": "deepseek/deepseek-v4-pro",
+        "lite": "deepseek/deepseek-chat"
     }
-  },
-  "model": {
-    "main": "deepseek/deepseek-v4-pro",
-    "lite": "deepseek/deepseek-chat"
-  }
 }
 ```
 
@@ -163,42 +163,42 @@ AI SDK 文档入口：
 
 ```json
 {
-  "$schema": "https://zcode.ai/schema/config-v2.json",
-  "provider": {
-    "provider-auth-zai": {
-      "kind": "openai-compatible",
-      "name": "Z.AI",
-      "options": {
-        "baseURL": "https://api.z.ai/api/coding/v1",
-        "apiKey": "sk-..."
-      },
-      "models": {
-        "glm-5": {
-          "name": "GLM-5",
-          "reasoning": {
-            "enabled": true,
-            "levels": ["low", "medium", "high"],
-            "defaultLevel": "medium"
-          },
-          "modalities": {
-            "input": ["text", "image"],
-            "output": ["text"]
-          },
-          "limit": {
-            "context": 200000,
-            "output": 8192
-          }
-        },
-        "glm-4.7": {
-          "name": "GLM-4.7"
+    "$schema": "https://zcode.ai/schema/config-v2.json",
+    "provider": {
+        "provider-auth-zai": {
+            "kind": "openai-compatible",
+            "name": "Z.AI",
+            "options": {
+                "baseURL": "https://api.z.ai/api/coding/v1",
+                "apiKey": "sk-..."
+            },
+            "models": {
+                "glm-5": {
+                    "name": "GLM-5",
+                    "reasoning": {
+                        "enabled": true,
+                        "levels": ["low", "medium", "high"],
+                        "defaultLevel": "medium"
+                    },
+                    "modalities": {
+                        "input": ["text", "image"],
+                        "output": ["text"]
+                    },
+                    "limit": {
+                        "context": 200000,
+                        "output": 8192
+                    }
+                },
+                "glm-4.7": {
+                    "name": "GLM-4.7"
+                }
+            }
         }
-      }
+    },
+    "model": {
+        "main": "provider-auth-zai/glm-5",
+        "lite": "provider-auth-zai/glm-4.7"
     }
-  },
-  "model": {
-    "main": "provider-auth-zai/glm-5",
-    "lite": "provider-auth-zai/glm-4.7"
-  }
 }
 ```
 
@@ -492,13 +492,13 @@ Model Config 主要是为了处理**不同模型的 API 兼容性差异**，代�
 
 ```typescript
 interface ModelConfig {
-  supportsTools?: boolean; // 默认 true
-  supportsStreaming?: boolean; // 默认 true
-  supportsReasoning?: boolean; // 默认 false
-  maxContextTokens?: number; // 用于 context window 计算
-  defaultMaxTokens?: number;
-  defaultTemperature?: number;
-  requiresThoughtTag?: boolean; // 某些模型需要在 prompt 里加 tag
+    supportsTools?: boolean; // 默认 true
+    supportsStreaming?: boolean; // 默认 true
+    supportsReasoning?: boolean; // 默认 false
+    maxContextTokens?: number; // 用于 context window 计算
+    defaultMaxTokens?: number;
+    defaultTemperature?: number;
+    requiresThoughtTag?: boolean; // 某些模型需要在 prompt 里加 tag
 }
 ```
 
@@ -515,23 +515,23 @@ Reasoning 能力同时保留两个层次：
 
 ```json
 {
-  "modelCatalog": {
-    "overrides": {
-      "openai/glm-4.7": {
-        "supportsReasoning": true,
-        "reasoning": {
-          "enabled": true,
-          "levels": ["low", "medium", "high"],
-          "defaultLevel": "medium",
-          "providerOptionsByLevel": {
-            "high": {
-              "reasoningEffort": "high"
+    "modelCatalog": {
+        "overrides": {
+            "openai/glm-4.7": {
+                "supportsReasoning": true,
+                "reasoning": {
+                    "enabled": true,
+                    "levels": ["low", "medium", "high"],
+                    "defaultLevel": "medium",
+                    "providerOptionsByLevel": {
+                        "high": {
+                            "reasoningEffort": "high"
+                        }
+                    }
+                }
             }
-          }
         }
-      }
     }
-  }
 }
 ```
 

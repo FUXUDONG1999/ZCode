@@ -1,8 +1,8 @@
 {
-  "recommendations": [
-    "aaron-bond.better-comments",
-    "vstirbu.vscode-mermaid-preview",
-    "oxc.oxc-vscode",
-    "bradlc.vscode-tailwindcss"
-  ]
+    "recommendations": [
+        "aaron-bond.better-comments",
+        "vstirbu.vscode-mermaid-preview",
+        "oxc.oxc-vscode",
+        "bradlc.vscode-tailwindcss"
+    ]
 }

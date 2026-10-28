@@ -11,15 +11,15 @@
 
 ```html
 <div class="viz-carousel" aria-label="Music player designs">
-  <section data-variant="Minimal" aria-label="Minimal music player">
-    <!-- Complete interactive player with product-specific styles -->
-  </section>
-  <section data-variant="Editorial" aria-label="Editorial music player" hidden>
-    <!-- A distinct design, with its own controls and state -->
-  </section>
-  <section data-variant="Studio" aria-label="Studio music player" hidden>
-    <!-- A third design -->
-  </section>
+    <section data-variant="Minimal" aria-label="Minimal music player">
+        <!-- Complete interactive player with product-specific styles -->
+    </section>
+    <section data-variant="Editorial" aria-label="Editorial music player" hidden>
+        <!-- A distinct design, with its own controls and state -->
+    </section>
+    <section data-variant="Studio" aria-label="Studio music player" hidden>
+        <!-- A third design -->
+    </section>
 </div>
 ```
 
@@ -34,17 +34,17 @@ const state = { radius: 18, accent: "#7c3aed", playing: true };
 const player = document.getElementById("music-player");
 
 function render() {
-  player.style.borderRadius = `${state.radius}px`;
-  player.style.setProperty("--player-accent", state.accent);
-  player.querySelector("button").textContent = state.playing ? "Pause" : "Play";
+    player.style.borderRadius = `${state.radius}px`;
+    player.style.setProperty("--player-accent", state.accent);
+    player.querySelector("button").textContent = state.playing ? "Pause" : "Play";
 }
 render();
 
 if (globalThis.Tweak) {
-  const tweak = new Tweak({ container: player, onChange: render });
-  tweak.addSlider(state, "radius", { label: "Corner radius", min: 0, max: 40, unit: "px" });
-  tweak.addColorPicker(state, "accent", { label: "Accent", reference: "--player-accent" });
-  tweak.addToggle(state, "playing", { label: "Playing" });
+    const tweak = new Tweak({ container: player, onChange: render });
+    tweak.addSlider(state, "radius", { label: "Corner radius", min: 0, max: 40, unit: "px" });
+    tweak.addColorPicker(state, "accent", { label: "Accent", reference: "--player-accent" });
+    tweak.addToggle(state, "playing", { label: "Playing" });
 }
 ```
 

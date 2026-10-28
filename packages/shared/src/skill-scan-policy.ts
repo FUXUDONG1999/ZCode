@@ -19,18 +19,18 @@ export const SKILL_FILE_NAME = "SKILL.md";
  * `skills.list` 放大到 69–256s。这些目录里不会存放用户技能，统一排除。
  */
 export const SKILL_SCAN_EXCLUDED_DIRECTORY_NAMES: ReadonlySet<string> = new Set([
-  "node_modules",
-  "dist",
-  "build",
-  "out",
-  "target",
-  "vendor",
-  "coverage",
-  ".cache",
-  ".next",
-  ".turbo",
-  ".venv",
-  "__pycache__",
+    "node_modules",
+    "dist",
+    "build",
+    "out",
+    "target",
+    "vendor",
+    "coverage",
+    ".cache",
+    ".next",
+    ".turbo",
+    ".venv",
+    "__pycache__",
 ]);
 
 /**
@@ -51,11 +51,11 @@ const SKILL_DISCOVERY_DOT_DIR_ALLOWLIST = new Set([".system"]);
 
 /** 判断递归扫描是否应进入某个子目录项。 */
 export function shouldWalkSkillDirectoryEntry(entryName: string): boolean {
-  if (SKILL_SCAN_EXCLUDED_DIRECTORY_NAMES.has(entryName)) {
-    return false;
-  }
-  if (!entryName.startsWith(".")) {
-    return true;
-  }
-  return SKILL_DISCOVERY_DOT_DIR_ALLOWLIST.has(entryName);
+    if (SKILL_SCAN_EXCLUDED_DIRECTORY_NAMES.has(entryName)) {
+        return false;
+    }
+    if (!entryName.startsWith(".")) {
+        return true;
+    }
+    return SKILL_DISCOVERY_DOT_DIR_ALLOWLIST.has(entryName);
 }

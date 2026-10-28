@@ -8,24 +8,24 @@
 import { roundMetric } from "./resourceMetricsStats.js";
 
 export interface AppResourceTotals {
-  /** 这批进程的 CPU 之和（整机归一化百分比）。 */
-  cpuPercent: number;
-  rssKbTotal: number;
-  processCount: number;
+    /** 这批进程的 CPU 之和（整机归一化百分比）。 */
+    cpuPercent: number;
+    rssKbTotal: number;
+    processCount: number;
 }
 
 export function createEmptyAppResourceTotals(): AppResourceTotals {
-  return { cpuPercent: 0, rssKbTotal: 0, processCount: 0 };
+    return { cpuPercent: 0, rssKbTotal: 0, processCount: 0 };
 }
 
 /** 相加两批合计；CPU 只在相加结束后取整，逐次 round 会让误差随进程数累积。 */
 export function addAppResourceTotals(
-  base: AppResourceTotals,
-  extra: AppResourceTotals,
+    base: AppResourceTotals,
+    extra: AppResourceTotals,
 ): AppResourceTotals {
-  return {
-    cpuPercent: roundMetric(base.cpuPercent + extra.cpuPercent),
-    rssKbTotal: base.rssKbTotal + extra.rssKbTotal,
-    processCount: base.processCount + extra.processCount,
-  };
+    return {
+        cpuPercent: roundMetric(base.cpuPercent + extra.cpuPercent),
+        rssKbTotal: base.rssKbTotal + extra.rssKbTotal,
+        processCount: base.processCount + extra.processCount,
+    };
 }

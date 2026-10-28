@@ -10,19 +10,19 @@
 import { useDeferredValue, useState, ViewTransition, Suspense } from "react";
 
 export default function SearchableGrid({ itemsPromise }) {
-  const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search);
+    const [search, setSearch] = useState("");
+    const deferredSearch = useDeferredValue(search);
 
-  return (
-    <>
-      <input value={search} onChange={(e) => setSearch(e.currentTarget.value)} />
-      <ViewTransition>
-        <Suspense fallback={<GridSkeleton />}>
-          <ItemGrid itemsPromise={itemsPromise} search={deferredSearch} />
-        </Suspense>
-      </ViewTransition>
-    </>
-  );
+    return (
+        <>
+            <input value={search} onChange={(e) => setSearch(e.currentTarget.value)} />
+            <ViewTransition>
+                <Suspense fallback={<GridSkeleton />}>
+                    <ItemGrid itemsPromise={itemsPromise} search={deferredSearch} />
+                </Suspense>
+            </ViewTransition>
+        </>
+    );
 }
 ```
 
@@ -30,11 +30,11 @@ Per-item `<ViewTransition name={...}>` inside a deferred list triggers cross-fad
 
 ```tsx
 {
-  filteredItems.map((item) => (
-    <ViewTransition key={item.id} name={`item-${item.id}`} share="morph" default="none">
-      <ItemCard item={item} />
-    </ViewTransition>
-  ));
+    filteredItems.map((item) => (
+        <ViewTransition key={item.id} name={`item-${item.id}`} share="morph" default="none">
+            <ItemCard item={item} />
+        </ViewTransition>
+    ));
 }
 ```
 
@@ -48,36 +48,39 @@ Toggle between grid and detail view with shared element morph:
 import { useState, useRef, startTransition, ViewTransition } from "react";
 
 export default function ItemGrid({ items }) {
-  const [expandedId, setExpandedId] = useState(null);
-  const scrollRef = useRef(0);
+    const [expandedId, setExpandedId] = useState(null);
+    const scrollRef = useRef(0);
 
-  return expandedId ? (
-    <ViewTransition enter="slide-in" name={`item-${expandedId}`}>
-      <ItemDetail
-        item={items.find((i) => i.id === expandedId)}
-        onClose={() => {
-          startTransition(() => {
-            setExpandedId(null);
-            setTimeout(() => window.scrollTo({ behavior: "smooth", top: scrollRef.current }), 100);
-          });
-        }}
-      />
-    </ViewTransition>
-  ) : (
-    <div className="grid grid-cols-3 gap-4">
-      {items.map((item) => (
-        <ViewTransition key={item.id} name={`item-${item.id}`}>
-          <ItemCard
-            item={item}
-            onSelect={() => {
-              scrollRef.current = window.scrollY;
-              startTransition(() => setExpandedId(item.id));
-            }}
-          />
+    return expandedId ? (
+        <ViewTransition enter="slide-in" name={`item-${expandedId}`}>
+            <ItemDetail
+                item={items.find((i) => i.id === expandedId)}
+                onClose={() => {
+                    startTransition(() => {
+                        setExpandedId(null);
+                        setTimeout(
+                            () => window.scrollTo({ behavior: "smooth", top: scrollRef.current }),
+                            100,
+                        );
+                    });
+                }}
+            />
         </ViewTransition>
-      ))}
-    </div>
-  );
+    ) : (
+        <div className="grid grid-cols-3 gap-4">
+            {items.map((item) => (
+                <ViewTransition key={item.id} name={`item-${item.id}`}>
+                    <ItemCard
+                        item={item}
+                        onSelect={() => {
+                            scrollRef.current = window.scrollY;
+                            startTransition(() => setExpandedId(item.id));
+                        }}
+                    />
+                </ViewTransition>
+            ))}
+        </div>
+    );
 }
 ```
 
@@ -88,32 +91,32 @@ Use `as const` arrays and derived types to prevent ID clashes:
 ```tsx
 const transitionTypes = ["default", "transition-to-detail", "transition-to-list"] as const;
 const animationTypes = [
-  "auto",
-  "none",
-  "animate-slide-from-left",
-  "animate-slide-from-right",
+    "auto",
+    "none",
+    "animate-slide-from-left",
+    "animate-slide-from-right",
 ] as const;
 
 type TransitionType = (typeof transitionTypes)[number];
 type AnimationType = (typeof animationTypes)[number];
 type TransitionMap = { default: AnimationType } & Partial<
-  Record<Exclude<TransitionType, "default">, AnimationType>
+    Record<Exclude<TransitionType, "default">, AnimationType>
 >;
 
 export function HorizontalTransition({
-  children,
-  enter,
-  exit,
+    children,
+    enter,
+    exit,
 }: {
-  children: React.ReactNode;
-  enter: TransitionMap;
-  exit: TransitionMap;
+    children: React.ReactNode;
+    enter: TransitionMap;
+    exit: TransitionMap;
 }) {
-  return (
-    <ViewTransition enter={enter} exit={exit}>
-      {children}
-    </ViewTransition>
-  );
+    return (
+        <ViewTransition enter={enter} exit={exit}>
+            {children}
+        </ViewTransition>
+    );
 }
 ```
 
@@ -123,7 +126,7 @@ Omit `key` to trigger an update (cross-fade) instead of exit + enter. Avoids Sus
 
 ```jsx
 <ViewTransition>
-  <TabPanel tab={activeTab} />
+    <TabPanel tab={activeTab} />
 </ViewTransition>
 ```
 
@@ -185,9 +188,9 @@ function AnimatedCollapse({ open, children }) {
 
 ```jsx
 <Activity mode={isVisible ? "visible" : "hidden"}>
-  <ViewTransition enter="slide-in" exit="slide-out">
-    <Sidebar />
-  </ViewTransition>
+    <ViewTransition enter="slide-in" exit="slide-out">
+        <Sidebar />
+    </ViewTransition>
 </Activity>
 ```
 
@@ -200,20 +203,20 @@ const [sort, setSort] = useState("newest");
 const [optimisticSort, setOptimisticSort] = useOptimistic(sort);
 
 function cycleSort() {
-  const nextSort = getNextSort(optimisticSort);
-  startTransition(() => {
-    setOptimisticSort(nextSort); // before snapshot — no animation
-    setSort(nextSort); // between snapshots — animates
-  });
+    const nextSort = getNextSort(optimisticSort);
+    startTransition(() => {
+        setOptimisticSort(nextSort); // before snapshot — no animation
+        setSort(nextSort); // between snapshots — animates
+    });
 }
 
 <button>Sort: {LABELS[optimisticSort]}</button>;
 {
-  items.sort(comparators[sort]).map((item) => (
-    <ViewTransition key={item.id}>
-      <ItemCard item={item} />
-    </ViewTransition>
-  ));
+    items.sort(comparators[sort]).map((item) => (
+        <ViewTransition key={item.id}>
+            <ItemCard item={item} />
+        </ViewTransition>
+    ));
 }
 ```
 
@@ -225,18 +228,18 @@ Imperative control via `onEnter`, `onExit`, `onUpdate`, `onShare`. Always return
 
 ```jsx
 <ViewTransition
-  onEnter={(instance, types) => {
-    const anim = instance.new.animate(
-      [
-        { transform: "scale(0.8)", opacity: 0 },
-        { transform: "scale(1)", opacity: 1 },
-      ],
-      { duration: 300, easing: "ease-out" },
-    );
-    return () => anim.cancel();
-  }}
+    onEnter={(instance, types) => {
+        const anim = instance.new.animate(
+            [
+                { transform: "scale(0.8)", opacity: 0 },
+                { transform: "scale(1)", opacity: 1 },
+            ],
+            { duration: 300, easing: "ease-out" },
+        );
+        return () => anim.cancel();
+    }}
 >
-  <Component />
+    <Component />
 </ViewTransition>
 ```
 

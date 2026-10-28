@@ -9,12 +9,12 @@
 import { z } from "zod";
 import { toToolJsonSchema } from "./json-schema.js";
 import {
-  WorkflowAdjustableSettingsSchema,
-  WorkflowModelBindingsSchema,
+    WorkflowAdjustableSettingsSchema,
+    WorkflowModelBindingsSchema,
 } from "./workflow-settings.js";
 import {
-  WORKFLOW_RUN_LIFECYCLE_STATUSES,
-  WORKFLOW_RUN_STOP_REASONS,
+    WORKFLOW_RUN_LIFECYCLE_STATUSES,
+    WORKFLOW_RUN_STOP_REASONS,
 } from "./list-workflow-runs.js";
 
 export const AMEND_WORKFLOW_TOOL_NAME = "AmendWorkflow";
@@ -24,78 +24,78 @@ export const AMEND_WORKFLOW_TOOL_NAME = "AmendWorkflow";
  * 与它不同的是两个都不给在这里**合法**——那是「沿用前驱的脚本」。
  */
 export const AMEND_WORKFLOW_SOURCE_ERROR =
-  "Provide at most one revised script: `path` for the script file you edited (the usual form), or `script` for the whole revised script inline. Passing both is ambiguous; omit both to keep the predecessor's script unchanged.";
+    "Provide at most one revised script: `path` for the script file you edited (the usual form), or `script` for the whole revised script inline. Passing both is ambiguous; omit both to keep the predecessor's script unchanged.";
 
 /**
  * 模型面入参。只有 `run_id` 必填，其余每个字段都守同一条规则：**省略即沿用前驱**。`predecessor` 不在这里——那是
  * resolveInput 回填的事实（下面），模型的 JSON schema 不列它。
  */
 const AmendWorkflowModelInputSchema = z.object({
-  run_id: z
-    .string()
-    .min(1)
-    .describe(
-      "ID of the run to amend (from a result, a notification, GetWorkflowRun or ListWorkflowRuns).",
-    ),
-  /**
-   * `script` 与 `path` 都省略 = 沿用前驱存档的脚本：
-   * 只改设定的修订不必把几千 token 的脚本再抄一遍。与两个设定同一个生命周期——`resolveInput` 读前驱
-   * 的脚本回填进来并盖上 `predecessor.script_inherited`，此后 hook、确认窗与 handler 面对的都是一份
-   * 脚本。运行时 schema 仍须接受缺席：hook 改写后 call-runner 会按模型的原始形状二次校验。
-   */
-  script: z
-    .string()
-    .min(1)
-    .optional()
-    .describe(
-      "The whole revised script, inline. This OR `path`, never both; omit both to keep the predecessor's script.",
-    ),
-  /**
-   * 修订的常态来源：前驱的脚本文件就地改一行，
-   * 再把同一个路径交回来。内联仍然收，但它要把整段脚本再流一遍——而那正是这条路径要省掉的。
-   */
-  path: z
-    .string()
-    .min(1)
-    .optional()
-    .describe(
-      "The revised script's file, usually the predecessor's own script file edited in place. This OR `script`, never both.",
-    ),
-  name: z
-    .string()
-    .min(1)
-    .optional()
-    .describe("Display label for the new run; defaults to the predecessor's."),
-  /**
-   * 三态（docs/dynamic-workflow/concurrency.md「Two bounds on a run」）：省略 = 沿用前驱的上界、
-   * `null` = 解除（回到默认并发）、数 = 设定（向下取整到至少 1，没有上限）。三态只活到 `resolveInput`：那里把它
-   * 归一成一个数或缺席，确认窗与 handler 读到的就是将要生效的值。运行时 schema 保留 `nullable`
-   * 是因为 hook 改写后 call-runner 会二次校验模型的原始形状。
-   */
-  max_concurrency: z
-    .number()
-    .int()
-    .positive()
-    .nullable()
-    .optional()
-    .describe(
-      "Omit to keep the predecessor's limit, null to return to the default, a number to set one above or below it (only when the user asks).",
-    ),
-  /**
-   * 三态，与 `max_concurrency` 逐字同规：
-   * 省略 = 沿用前驱的选型（`resolveInput` 从前驱快照回填后**重新解析一次**，好让一个已经被
-   * 删掉的模型现在就失败，而不是拖到子代理第一次开口）、`null` = 清除（回到会话模型）、
-   * 字符串 = 设定。三态只活到 `resolveInput`：那里归一成一个规范形字符串或缺席。
-   */
-  subagent_model: z
-    .string()
-    .trim()
-    .min(1)
-    .nullable()
-    .optional()
-    .describe(
-      "Omit to keep the predecessor's choice, null for the session model, a model id to set one (only when the user asks, never a model under another provider the user did not name — ask them first if one would help).",
-    ),
+    run_id: z
+        .string()
+        .min(1)
+        .describe(
+            "ID of the run to amend (from a result, a notification, GetWorkflowRun or ListWorkflowRuns).",
+        ),
+    /**
+     * `script` 与 `path` 都省略 = 沿用前驱存档的脚本：
+     * 只改设定的修订不必把几千 token 的脚本再抄一遍。与两个设定同一个生命周期——`resolveInput` 读前驱
+     * 的脚本回填进来并盖上 `predecessor.script_inherited`，此后 hook、确认窗与 handler 面对的都是一份
+     * 脚本。运行时 schema 仍须接受缺席：hook 改写后 call-runner 会按模型的原始形状二次校验。
+     */
+    script: z
+        .string()
+        .min(1)
+        .optional()
+        .describe(
+            "The whole revised script, inline. This OR `path`, never both; omit both to keep the predecessor's script.",
+        ),
+    /**
+     * 修订的常态来源：前驱的脚本文件就地改一行，
+     * 再把同一个路径交回来。内联仍然收，但它要把整段脚本再流一遍——而那正是这条路径要省掉的。
+     */
+    path: z
+        .string()
+        .min(1)
+        .optional()
+        .describe(
+            "The revised script's file, usually the predecessor's own script file edited in place. This OR `script`, never both.",
+        ),
+    name: z
+        .string()
+        .min(1)
+        .optional()
+        .describe("Display label for the new run; defaults to the predecessor's."),
+    /**
+     * 三态（docs/dynamic-workflow/concurrency.md「Two bounds on a run」）：省略 = 沿用前驱的上界、
+     * `null` = 解除（回到默认并发）、数 = 设定（向下取整到至少 1，没有上限）。三态只活到 `resolveInput`：那里把它
+     * 归一成一个数或缺席，确认窗与 handler 读到的就是将要生效的值。运行时 schema 保留 `nullable`
+     * 是因为 hook 改写后 call-runner 会二次校验模型的原始形状。
+     */
+    max_concurrency: z
+        .number()
+        .int()
+        .positive()
+        .nullable()
+        .optional()
+        .describe(
+            "Omit to keep the predecessor's limit, null to return to the default, a number to set one above or below it (only when the user asks).",
+        ),
+    /**
+     * 三态，与 `max_concurrency` 逐字同规：
+     * 省略 = 沿用前驱的选型（`resolveInput` 从前驱快照回填后**重新解析一次**，好让一个已经被
+     * 删掉的模型现在就失败，而不是拖到子代理第一次开口）、`null` = 清除（回到会话模型）、
+     * 字符串 = 设定。三态只活到 `resolveInput`：那里归一成一个规范形字符串或缺席。
+     */
+    subagent_model: z
+        .string()
+        .trim()
+        .min(1)
+        .nullable()
+        .optional()
+        .describe(
+            "Omit to keep the predecessor's choice, null for the session model, a model id to set one (only when the user asks, never a model under another provider the user did not name — ask them first if one would help).",
+        ),
 });
 
 /**
@@ -106,26 +106,26 @@ const AmendWorkflowModelInputSchema = z.object({
  * 归一化**无条件覆盖**：模型伪造它是无效的（saved.path 的同一条先例）。
  */
 export const AmendWorkflowPredecessorSchema = z
-  .object({
-    name: z.string().min(1).optional(),
-    status: z.enum(WORKFLOW_RUN_LIFECYCLE_STATUSES),
-    stop_reason: z.enum(WORKFLOW_RUN_STOP_REASONS).optional(),
-    owned_by_this_session: z.boolean(),
-    /**
-     * 这次调用 `script` 与 `path` 都没给，入参里的 `script` 是 resolveInput 从前驱存档读来的。只有「在场即真」一种值：
-     * 确认窗据它在 lineage 行说「脚本不变」，handler 据它换成「沿用」的文案与诊断首句。与整块一起
-     * 被无条件覆盖，模型伪造无效。
-     */
-    script_inherited: z.literal(true).optional(),
-    /**
-     * 这次修订会让子代理用上的、前驱与会话都没用过的 provider（去重、按字母序），只在有新的时在场。
-     * 由 resolveInput 从会话模型、前驱 `run-launched` 上的模型与这次归一化后的模型算出，与整块一起
-     * 被无条件覆盖：模型既不能伪造它，也不能抹掉它。在场即退出本会话 run 的免确认
-     * （{@link isAmendWorkflowOwnedPredecessor}）：全称模型名只证明写法明确，不证明用户点过名。
-     */
-    introduces_providers: z.array(z.string().min(1)).nonempty().optional(),
-  })
-  .strict();
+    .object({
+        name: z.string().min(1).optional(),
+        status: z.enum(WORKFLOW_RUN_LIFECYCLE_STATUSES),
+        stop_reason: z.enum(WORKFLOW_RUN_STOP_REASONS).optional(),
+        owned_by_this_session: z.boolean(),
+        /**
+         * 这次调用 `script` 与 `path` 都没给，入参里的 `script` 是 resolveInput 从前驱存档读来的。只有「在场即真」一种值：
+         * 确认窗据它在 lineage 行说「脚本不变」，handler 据它换成「沿用」的文案与诊断首句。与整块一起
+         * 被无条件覆盖，模型伪造无效。
+         */
+        script_inherited: z.literal(true).optional(),
+        /**
+         * 这次修订会让子代理用上的、前驱与会话都没用过的 provider（去重、按字母序），只在有新的时在场。
+         * 由 resolveInput 从会话模型、前驱 `run-launched` 上的模型与这次归一化后的模型算出，与整块一起
+         * 被无条件覆盖：模型既不能伪造它，也不能抹掉它。在场即退出本会话 run 的免确认
+         * （{@link isAmendWorkflowOwnedPredecessor}）：全称模型名只证明写法明确，不证明用户点过名。
+         */
+        introduces_providers: z.array(z.string().min(1)).nonempty().optional(),
+    })
+    .strict();
 
 export type AmendWorkflowPredecessor = z.infer<typeof AmendWorkflowPredecessorSchema>;
 
@@ -141,16 +141,16 @@ export type AmendWorkflowPredecessor = z.infer<typeof AmendWorkflowPredecessorSc
  * 收 `unknown`：权限服务拿到的是还没解析的工具入参，handler 拿到的是解析好的事实块。
  */
 export function isAmendWorkflowOwnedPredecessor(predecessor: unknown): boolean {
-  if (!predecessor || typeof predecessor !== "object") return false;
-  const facts = predecessor as Record<string, unknown>;
-  // 引入新 provider 的修订不在免确认之内：键在场即照常 ask（docs/dynamic-workflow/launch.md
-  // 「Amending this session's runs」）。Bugfix：原先只看归属，主代理写一个别家 provider 的全称
-  // 模型名，就能不经用户把子代理换到另一张账单上。
-  return (
-    facts.owned_by_this_session === true &&
-    facts.stop_reason !== "user" &&
-    facts.introduces_providers === undefined
-  );
+    if (!predecessor || typeof predecessor !== "object") return false;
+    const facts = predecessor as Record<string, unknown>;
+    // 引入新 provider 的修订不在免确认之内：键在场即照常 ask（docs/dynamic-workflow/launch.md
+    // 「Amending this session's runs」）。Bugfix：原先只看归属，主代理写一个别家 provider 的全称
+    // 模型名，就能不经用户把子代理换到另一张账单上。
+    return (
+        facts.owned_by_this_session === true &&
+        facts.stop_reason !== "user" &&
+        facts.introduces_providers === undefined
+    );
 }
 
 /**
@@ -158,21 +158,21 @@ export function isAmendWorkflowOwnedPredecessor(predecessor: unknown): boolean {
  * `resume_from` 这类旧拼写在这里也是可见错误。
  */
 export const AmendWorkflowInputSchema = AmendWorkflowModelInputSchema.extend({
-  predecessor: AmendWorkflowPredecessorSchema.optional(),
-  /**
-   * 正文行 → 文件行的偏移，`path` 文件带 `/* zcode-workflow` 块时才非零。与 `predecessor`
-   * 同一个姿态：解析结果，不是可填的参数，模型的 JSON schema 不列它。
-   */
-  script_line_offset: z.number().int().nonnegative().optional(),
-  /** 确认窗可调的两项设置，与 CreateWorkflow 同一块、同一条回填规则（workflow-settings.ts）。 */
-  adjustable_settings: WorkflowAdjustableSettingsSchema.optional(),
-  /** 新脚本点名的模型解析成的绑定表，与 CreateWorkflow 同一块（同名沿用前驱的绑定，见 launch.md）。 */
-  model_bindings: WorkflowModelBindingsSchema.optional(),
+    predecessor: AmendWorkflowPredecessorSchema.optional(),
+    /**
+     * 正文行 → 文件行的偏移，`path` 文件带 `/* zcode-workflow` 块时才非零。与 `predecessor`
+     * 同一个姿态：解析结果，不是可填的参数，模型的 JSON schema 不列它。
+     */
+    script_line_offset: z.number().int().nonnegative().optional(),
+    /** 确认窗可调的两项设置，与 CreateWorkflow 同一块、同一条回填规则（workflow-settings.ts）。 */
+    adjustable_settings: WorkflowAdjustableSettingsSchema.optional(),
+    /** 新脚本点名的模型解析成的绑定表，与 CreateWorkflow 同一块（同名沿用前驱的绑定，见 launch.md）。 */
+    model_bindings: WorkflowModelBindingsSchema.optional(),
 }).strict();
 
 export type AmendWorkflowInput = z.infer<typeof AmendWorkflowInputSchema>;
 
 /** 交给模型的 JSON schema：不含 `predecessor`、`script_line_offset`、`adjustable_settings` 与 `model_bindings`。 */
 export const AmendWorkflowInputJsonSchema = toToolJsonSchema(
-  AmendWorkflowModelInputSchema.strict(),
+    AmendWorkflowModelInputSchema.strict(),
 );

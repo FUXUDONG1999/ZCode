@@ -6,4 +6,4 @@ import { createMemoryDiagnosticsRegistry, type MemoryDiagnosticsRegistry } from 
  * `desktopResourceTelemetry.ts` 每 60 秒 collect 一次写主日志。
  */
 export const mainMemoryDiagnosticsRegistry: MemoryDiagnosticsRegistry =
-  createMemoryDiagnosticsRegistry();
+    createMemoryDiagnosticsRegistry();

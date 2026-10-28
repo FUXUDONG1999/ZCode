@@ -157,16 +157,16 @@ Add a reusable pure result type in `packages/contracts/src/rewind`:
 
 ```ts
 export interface RewindTargetSummary {
-  checkpointId?: string;
-  compactBoundaryId?: string;
-  coveredByCompact: boolean;
-  createdAt: number;
-  disabledReason?: string;
-  fileCount?: number;
-  messageId: MessageId;
-  modeAvailability: Record<RewindMode, boolean>;
-  preview?: string;
-  strategy: RewindStrategy;
+    checkpointId?: string;
+    compactBoundaryId?: string;
+    coveredByCompact: boolean;
+    createdAt: number;
+    disabledReason?: string;
+    fileCount?: number;
+    messageId: MessageId;
+    modeAvailability: Record<RewindMode, boolean>;
+    preview?: string;
+    strategy: RewindStrategy;
 }
 ```
 
@@ -198,12 +198,12 @@ lets runtime persist a logical active-chain override:
 
 ```ts
 interface SessionConversationRewind {
-  rewindId: string;
-  targetMessageId: MessageId;
-  keepBeforeMessageId: MessageId;
-  removedMessageCount: number;
-  compactBoundaryId?: string;
-  createdAt: number;
+    rewindId: string;
+    targetMessageId: MessageId;
+    keepBeforeMessageId: MessageId;
+    removedMessageCount: number;
+    compactBoundaryId?: string;
+    createdAt: number;
 }
 ```
 

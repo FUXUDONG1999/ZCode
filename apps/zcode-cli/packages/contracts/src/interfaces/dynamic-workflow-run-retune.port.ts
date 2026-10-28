@@ -11,13 +11,13 @@
  * 的请求。
  */
 export interface DynamicWorkflowRunRetuneRequest {
-  runId: string;
-  /**
-   * 新的并发上界。`null` = 天花板 = 解除本 run 自己的限制（与 `AmendWorkflow` 的
-   * `max_concurrency: null` 同义）。给了数就钳到 `[1, 天花板]`——钳制用的是端口自己那一份实现，
-   * 工具层无须、也不该再钳一次得到第二个答案。
-   */
-  maxConcurrency: number | null;
+    runId: string;
+    /**
+     * 新的并发上界。`null` = 天花板 = 解除本 run 自己的限制（与 `AmendWorkflow` 的
+     * `max_concurrency: null` 同义）。给了数就钳到 `[1, 天花板]`——钳制用的是端口自己那一份实现，
+     * 工具层无须、也不该再钳一次得到第二个答案。
+     */
+    maxConcurrency: number | null;
 }
 
 /**
@@ -40,10 +40,10 @@ export type DynamicWorkflowRunRetuneRefusalReason = "not_live" | "unchanged";
  * 从单个新值推不出前一个。两者都只有端口这一侧知道，留给调用方重算就是第二份默认并发实现。
  */
 export type DynamicWorkflowRunRetuneResult =
-  | { ok: true; maxConcurrency: number; previous: number; defaultConcurrency: number }
-  | {
-      ok: false;
-      reason: DynamicWorkflowRunRetuneRefusalReason;
-      /** 此刻生效的上界；`unchanged` 恒在场，`not_live` 只在还读得到时在场。 */
-      current?: number;
-    };
+    | { ok: true; maxConcurrency: number; previous: number; defaultConcurrency: number }
+    | {
+          ok: false;
+          reason: DynamicWorkflowRunRetuneRefusalReason;
+          /** 此刻生效的上界；`unchanged` 恒在场，`not_live` 只在还读得到时在场。 */
+          current?: number;
+      };

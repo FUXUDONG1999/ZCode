@@ -14,19 +14,19 @@ import type { PersonaSpec } from "./types.js";
  * 的键）不该一路搬下去。`model` 缺席即「跑 run 的子代理模型」。
  */
 export function normalizePersona(
-  name: string | undefined,
-  persona: string | PersonaSpec | undefined,
+    name: string | undefined,
+    persona: string | PersonaSpec | undefined,
 ): PersonaSpec {
-  const base: PersonaSpec = {};
-  if (typeof persona === "string") {
-    base.system = persona;
-  } else if (persona !== null && typeof persona === "object") {
-    if (typeof persona.name === "string") base.name = persona.name;
-    if (typeof persona.system === "string") base.system = persona.system;
-    if (typeof persona.model === "string") base.model = persona.model;
-  }
-  if (base.name === undefined && name !== undefined) base.name = name;
-  return base;
+    const base: PersonaSpec = {};
+    if (typeof persona === "string") {
+        base.system = persona;
+    } else if (persona !== null && typeof persona === "object") {
+        if (typeof persona.name === "string") base.name = persona.name;
+        if (typeof persona.system === "string") base.system = persona.system;
+        if (typeof persona.model === "string") base.model = persona.model;
+    }
+    if (base.name === undefined && name !== undefined) base.name = name;
+    return base;
 }
 
 /**
@@ -39,7 +39,7 @@ export function normalizePersona(
  * 下一次 live ask 跑在新模型上。把 model 算进身份，改一个裁判的模型就会让它整段重跑。
  */
 export function personaIdentity(persona: PersonaSpec): PersonaSpec {
-  const { model: _model, ...identity } = persona;
-  void _model;
-  return identity;
+    const { model: _model, ...identity } = persona;
+    void _model;
+    return identity;
 }

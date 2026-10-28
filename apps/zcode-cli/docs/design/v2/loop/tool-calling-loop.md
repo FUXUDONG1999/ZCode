@@ -81,56 +81,56 @@
 
 ```typescript
 export interface MessageHistory {
-  messages: ModelMessage[];
+    messages: ModelMessage[];
 
-  // 初始化（可选：加载历史消息）
-  init(systemPrompt?: string): void;
+    // 初始化（可选：加载历史消息）
+    init(systemPrompt?: string): void;
 
-  // 追加用户消息
-  addUser(content: string): void;
+    // 追加用户消息
+    addUser(content: string): void;
 
-  // 追加必要的 runtime context；不得用于 tool call 数量硬停
-  addSystem(content: string): void;
+    // 追加必要的 runtime context；不得用于 tool call 数量硬停
+    addSystem(content: string): void;
 
-  // 追加助手消息（可能包含 tool_calls）
-  addAssistant(content: string, toolCalls?: ToolCall[]): void;
+    // 追加助手消息（可能包含 tool_calls）
+    addAssistant(content: string, toolCalls?: ToolCall[]): void;
 
-  // 追加工具结果
-  addToolResult(toolCallId: string, toolName: string, content: string, success: boolean): void;
+    // 追加工具结果
+    addToolResult(toolCallId: string, toolName: string, content: string, success: boolean): void;
 
-  // 转为模型格式
-  toModelMessages(): ModelInputMessage[];
+    // 转为模型格式
+    toModelMessages(): ModelInputMessage[];
 
-  // 获取当前消息数
-  getMessageCount(): number;
+    // 获取当前消息数
+    getMessageCount(): number;
 
-  // 获取可缓存的消息（用于缓存优化）
-  getCacheableMessages(): ModelMessage[];
+    // 获取可缓存的消息（用于缓存优化）
+    getCacheableMessages(): ModelMessage[];
 }
 
 export class MessageHistoryImpl implements MessageHistory {
-  private messages: ModelMessage[] = [];
+    private messages: ModelMessage[] = [];
 
-  addAssistant(content: string, toolCalls?: ToolCall[]): void {
-    this.messages.push({
-      role: "assistant",
-      content,
-      toolCalls: toolCalls?.map((tc) => ({
-        id: tc.id,
-        name: tc.name,
-        input: tc.input,
-      })),
-    });
-  }
+    addAssistant(content: string, toolCalls?: ToolCall[]): void {
+        this.messages.push({
+            role: "assistant",
+            content,
+            toolCalls: toolCalls?.map((tc) => ({
+                id: tc.id,
+                name: tc.name,
+                input: tc.input,
+            })),
+        });
+    }
 
-  addToolResult(toolCallId: string, toolName: string, content: string, success: boolean): void {
-    this.messages.push({
-      role: "tool",
-      content: success ? content : JSON.stringify({ error: content }),
-      toolCallId,
-      toolName,
-    });
-  }
+    addToolResult(toolCallId: string, toolName: string, content: string, success: boolean): void {
+        this.messages.push({
+            role: "tool",
+            content: success ? content : JSON.stringify({ error: content }),
+            toolCallId,
+            toolName,
+        });
+    }
 }
 ```
 
@@ -274,21 +274,21 @@ async executeTurn(input: string, attachments?: TurnAttachment[]): Promise<TurnRe
 import type { ToolCall } from "@zcode/core";
 
 export function extractToolCalls(result: GenerateTextResult): ToolCall[] {
-  const calls: ToolCall[] = [];
+    const calls: ToolCall[] = [];
 
-  for (const response of result.responses ?? []) {
-    if (response.role === "assistant" && response.toolCalls) {
-      for (const tc of response.toolCalls) {
-        calls.push({
-          id: tc.id,
-          name: tc.name,
-          input: tc.input,
-        });
-      }
+    for (const response of result.responses ?? []) {
+        if (response.role === "assistant" && response.toolCalls) {
+            for (const tc of response.toolCalls) {
+                calls.push({
+                    id: tc.id,
+                    name: tc.name,
+                    input: tc.input,
+                });
+            }
+        }
     }
-  }
 
-  return calls;
+    return calls;
 }
 ```
 
@@ -298,24 +298,24 @@ export function extractToolCalls(result: GenerateTextResult): ToolCall[] {
 
 ```typescript
 export class AgentRuntime {
-  private cachedTools: ModelToolContract[] | null = null;
+    private cachedTools: ModelToolContract[] | null = null;
 
-  private getTools(): ModelToolContract[] {
-    if (this.cachedTools === null) {
-      this.cachedTools = this.registry.toContracts();
+    private getTools(): ModelToolContract[] {
+        if (this.cachedTools === null) {
+            this.cachedTools = this.registry.toContracts();
+        }
+        return this.cachedTools;
     }
-    return this.cachedTools;
-  }
 
-  getToolRegistry(): ToolRegistry {
-    return this.registry;
-  }
+    getToolRegistry(): ToolRegistry {
+        return this.registry;
+    }
 
-  // 工具注册变更时 invalidate
-  registerTool(entry: ToolEntry): void {
-    this.registry.register(entry);
-    this.cachedTools = null;
-  }
+    // 工具注册变更时 invalidate
+    registerTool(entry: ToolEntry): void {
+        this.registry.register(entry);
+        this.cachedTools = null;
+    }
 }
 ```
 
@@ -406,19 +406,19 @@ private toScheduleState(schedule: ToolSchedule): ToolScheduleState {
 
 ```typescript
 export interface MessageHistory {
-  // 获取当前缓存前缀大小（用于判断 cache hit）
-  getCachedMessageCount(): number;
+    // 获取当前缓存前缀大小（用于判断 cache hit）
+    getCachedMessageCount(): number;
 
-  // 标记已缓存的消息数
-  setCachedMessageCount(count: number): void;
+    // 标记已缓存的消息数
+    setCachedMessageCount(count: number): void;
 }
 
 export class MessageHistoryImpl implements MessageHistory {
-  private cachedMessageCount = 0;
+    private cachedMessageCount = 0;
 
-  setCachedMessageCount(count: number): void {
-    this.cachedMessageCount = count;
-  }
+    setCachedMessageCount(count: number): void {
+        this.cachedMessageCount = count;
+    }
 }
 ```
 

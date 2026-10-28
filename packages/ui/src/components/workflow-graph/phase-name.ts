@@ -12,23 +12,23 @@ import type { LaneNameFormatter } from "./lane-name.js";
 
 /** 做一个阶段显示名所需的全部输入——不含 id 之外的身份信息。 */
 export interface PhaseNaming {
-  id: string;
-  /** 脚本里 `phase("preflight")` 给出的名字；`unphased` 没有。 */
-  name?: string;
+    id: string;
+    /** 脚本里 `phase("preflight")` 给出的名字；`unphased` 没有。 */
+    name?: string;
 }
 
 export function phaseDisplayName(phase: PhaseNaming, formatMessage: LaneNameFormatter): string {
-  if (phase.name !== undefined) return phase.name;
-  if (phase.id === UNPHASED_PHASE_ID) {
-    return formatMessage({ id: "chat.toolCall.workflow.graph.phase.unphased" });
-  }
-  // 无标记脚本的隐式唯一模块（participant-model.ts）：整个脚本就是一个阶段。
-  if (phase.id === IMPLICIT_PHASE_ID) {
-    return formatMessage({ id: "chat.toolCall.workflow.graph.phase.workflow" });
-  }
-  // 到不了这里：`unphased` 之外的阶段都带作者原词。真出现时报 id（身份）而不是「未分组」——
-  // 把一个有名字的阶段说成兜底阶段是撒谎，露出 id 至少是可排查的。
-  return phase.id;
+    if (phase.name !== undefined) return phase.name;
+    if (phase.id === UNPHASED_PHASE_ID) {
+        return formatMessage({ id: "chat.toolCall.workflow.graph.phase.unphased" });
+    }
+    // 无标记脚本的隐式唯一模块（participant-model.ts）：整个脚本就是一个阶段。
+    if (phase.id === IMPLICIT_PHASE_ID) {
+        return formatMessage({ id: "chat.toolCall.workflow.graph.phase.workflow" });
+    }
+    // 到不了这里：`unphased` 之外的阶段都带作者原词。真出现时报 id（身份）而不是「未分组」——
+    // 把一个有名字的阶段说成兜底阶段是撒谎，露出 id 至少是可排查的。
+    return phase.id;
 }
 
 /**
@@ -47,10 +47,10 @@ export const DISPLAY_PHASE_NAME_BOUND = 128;
  * （`unphased` / 隐式 `workflow`）与无戳实例的配对是另一条规则，由 `phasesOf` 显式处理。
  */
 export function phaseNameMatches(
-  displayName: string | undefined,
-  runtimeName: string | undefined,
+    displayName: string | undefined,
+    runtimeName: string | undefined,
 ): boolean {
-  if (displayName === undefined || runtimeName === undefined) return false;
-  if (displayName === runtimeName) return true;
-  return displayName.length >= DISPLAY_PHASE_NAME_BOUND && runtimeName.startsWith(displayName);
+    if (displayName === undefined || runtimeName === undefined) return false;
+    if (displayName === runtimeName) return true;
+    return displayName.length >= DISPLAY_PHASE_NAME_BOUND && runtimeName.startsWith(displayName);
 }

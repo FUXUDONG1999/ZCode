@@ -4,8 +4,8 @@
  * 页面 ↔ 宿主的线协议由官方 `@modelcontextprotocol/ext-apps` 承担，本模块不再持有状态机。
  */
 export const mcpAppsProtocolModule = {
-  id: "mcp-apps-protocol",
-  requires: [],
-  provides: ["mcp-apps-protocol"],
-  publicEntrypoints: ["index.ts", "contract.ts"],
+    id: "mcp-apps-protocol",
+    requires: [],
+    provides: ["mcp-apps-protocol"],
+    publicEntrypoints: ["index.ts", "contract.ts"],
 } as const;

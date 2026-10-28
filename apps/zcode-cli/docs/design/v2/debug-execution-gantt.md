@@ -20,34 +20,34 @@
 
 ```ts
 type TraceSpanLane =
-  | "turn"
-  | "model"
-  | "tool"
-  | "network"
-  | "permission"
-  | "storage"
-  | "subagent"
-  | "event"
-  | "log";
+    | "turn"
+    | "model"
+    | "tool"
+    | "network"
+    | "permission"
+    | "storage"
+    | "subagent"
+    | "event"
+    | "log";
 
 type TraceSpanStatus = "running" | "ok" | "error" | "cancelled" | "unknown";
 
 interface TraceSpan {
-  id: string;
-  traceId?: string;
-  sessionId?: string;
-  turnId?: string;
-  spanId?: string;
-  parentSpanId?: string;
-  toolCallId?: string;
-  lane: TraceSpanLane;
-  label: string;
-  source: "log" | "eventlog" | "sqlite" | "network";
-  startAt: string;
-  endAt?: string;
-  status: TraceSpanStatus;
-  summary?: string;
-  payload?: unknown;
+    id: string;
+    traceId?: string;
+    sessionId?: string;
+    turnId?: string;
+    spanId?: string;
+    parentSpanId?: string;
+    toolCallId?: string;
+    lane: TraceSpanLane;
+    label: string;
+    source: "log" | "eventlog" | "sqlite" | "network";
+    startAt: string;
+    endAt?: string;
+    status: TraceSpanStatus;
+    summary?: string;
+    payload?: unknown;
 }
 ```
 

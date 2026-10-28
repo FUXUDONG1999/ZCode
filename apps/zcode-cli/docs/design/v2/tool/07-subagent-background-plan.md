@@ -76,13 +76,13 @@ run_in_background?: boolean
 type AgentOutput = AgentCompletedOutput | AgentBackgroundedOutput;
 
 interface AgentBackgroundedOutput {
-  status: "backgrounded";
-  agentId: string;
-  agentType: "Explore";
-  description: string;
-  prompt: string;
-  childSessionId: SessionId;
-  backgroundTaskId: string;
+    status: "backgrounded";
+    agentId: string;
+    agentType: "Explore";
+    description: string;
+    prompt: string;
+    childSessionId: SessionId;
+    backgroundTaskId: string;
 }
 ```
 
@@ -97,12 +97,12 @@ interface AgentBackgroundedOutput {
 
 ```ts
 interface SubagentPort {
-  run(request: SubagentRunRequest, options?: SubagentRunOptions): Promise<AgentOutput>;
-  start?(
-    request: SubagentStartRequest,
-    options?: SubagentStartOptions,
-  ): Promise<AgentBackgroundedOutput>;
-  getTask?(agentId: string): Promise<SubagentTaskSnapshot | undefined>;
+    run(request: SubagentRunRequest, options?: SubagentRunOptions): Promise<AgentOutput>;
+    start?(
+        request: SubagentStartRequest,
+        options?: SubagentStartOptions,
+    ): Promise<AgentBackgroundedOutput>;
+    getTask?(agentId: string): Promise<SubagentTaskSnapshot | undefined>;
 }
 ```
 
@@ -148,12 +148,12 @@ interface SubagentPort {
 
 - 新增 `SubagentTaskService` 或在 `core/src/subagent` 下实现 `startExploreSubagentTask()`。
 - start 流程：
-  1. 创建稳定 `agentId` 和 `childSessionId`。
-  2. 写 parent `subagent_spawned`，并让 tool executor 通过 `getTask()` 写 `background_task_started`。
-  3. fire-and-forget 运行 child `AgentRuntime`。
-  4. 运行期间维护最小 progress：tool call count、last tool、token usage。
-  5. 终态写 `subagent_stopped`，并让 tool executor 轮询写 `background_task_completed`。
-  6. enqueue 父会话 task notification。
+    1. 创建稳定 `agentId` 和 `childSessionId`。
+    2. 写 parent `subagent_spawned`，并让 tool executor 通过 `getTask()` 写 `background_task_started`。
+    3. fire-and-forget 运行 child `AgentRuntime`。
+    4. 运行期间维护最小 progress：tool call count、last tool、token usage。
+    5. 终态写 `subagent_stopped`，并让 tool executor 轮询写 `background_task_completed`。
+    6. enqueue 父会话 task notification。
 - 后台 task 的 `AbortController` 独立于父 turn；进程 shutdown 时 best-effort cancel。
 
 ### M2: Agent tool 接入

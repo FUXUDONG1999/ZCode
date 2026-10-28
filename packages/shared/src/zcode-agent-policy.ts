@@ -12,37 +12,37 @@ export const ZCODE_COMMAND_AGENT_SOURCE = "zcodeAgent" satisfies CommandAgentSou
  * 其它非法值保持拒绝，与收窄前的校验边界一致。
  */
 export const legacyZCodeProviderSchema = z
-  .enum(["claude", "opencode", "gemini", "codex", "glm"])
-  .transform((): typeof ZCODE_AGENT_PROVIDER => ZCODE_AGENT_PROVIDER);
+    .enum(["claude", "opencode", "gemini", "codex", "glm"])
+    .transform((): typeof ZCODE_AGENT_PROVIDER => ZCODE_AGENT_PROVIDER);
 
 export const ZCODE_ENABLED_AGENT_PROVIDERS = [
-  ZCODE_AGENT_PROVIDER,
+    ZCODE_AGENT_PROVIDER,
 ] as const satisfies readonly ZCodeProvider[];
 
 export const ZCODE_COMMAND_AGENT_SOURCES = [
-  ZCODE_COMMAND_AGENT_SOURCE,
+    ZCODE_COMMAND_AGENT_SOURCE,
 ] as const satisfies readonly CommandAgentSource[];
 
 export function normalizeAgentProviderToZCodeAgent(
-  _provider?: ZCodeProvider | null,
+    _provider?: ZCodeProvider | null,
 ): ZCodeProvider {
-  return ZCODE_AGENT_PROVIDER;
+    return ZCODE_AGENT_PROVIDER;
 }
 
 export function normalizeAgentProvidersToZCodeAgent(
-  _providers?: ReadonlyArray<ZCodeProvider> | null,
+    _providers?: ReadonlyArray<ZCodeProvider> | null,
 ): ZCodeProvider[] {
-  return [...ZCODE_ENABLED_AGENT_PROVIDERS];
+    return [...ZCODE_ENABLED_AGENT_PROVIDERS];
 }
 
 export function normalizeCommandAgentSourceToZCodeAgent(
-  _agentSource?: CommandAgentSource | null,
+    _agentSource?: CommandAgentSource | null,
 ): CommandAgentSource {
-  return ZCODE_COMMAND_AGENT_SOURCE;
+    return ZCODE_COMMAND_AGENT_SOURCE;
 }
 
 export function isZCodeAgentProvider(
-  provider: ZCodeProvider | null | undefined,
+    provider: ZCodeProvider | null | undefined,
 ): provider is typeof ZCODE_AGENT_PROVIDER {
-  return provider === ZCODE_AGENT_PROVIDER;
+    return provider === ZCODE_AGENT_PROVIDER;
 }

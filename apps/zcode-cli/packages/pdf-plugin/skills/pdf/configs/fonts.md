@@ -8,8 +8,8 @@ Fonts are loaded via Google Fonts CDN in the HTML `<head>`:
 
 ```html
 <link
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap"
-  rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap"
+    rel="stylesheet"
 />
 ```
 
@@ -19,8 +19,8 @@ When `tension_score` is used on `Glass_Canvas`, the engine switches to **Inter V
 
 ```html
 <link
-  href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
-  rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap"
+    rel="stylesheet"
 />
 ```
 

@@ -5,22 +5,22 @@
  * 用户输入、模板草稿和已保存任务标题都是业务数据，不能因切换界面语言而被覆盖。
  */
 export function resolveLocalizedAutomationCreateTitle({
-  currentTitle,
-  hasInitialDraft,
-  isEditing,
-  nextDefaultTitle,
-  previousDefaultTitle,
-  titleTouched,
+    currentTitle,
+    hasInitialDraft,
+    isEditing,
+    nextDefaultTitle,
+    previousDefaultTitle,
+    titleTouched,
 }: {
-  currentTitle: string;
-  hasInitialDraft: boolean;
-  isEditing: boolean;
-  nextDefaultTitle: string;
-  previousDefaultTitle: string;
-  titleTouched: boolean;
+    currentTitle: string;
+    hasInitialDraft: boolean;
+    isEditing: boolean;
+    nextDefaultTitle: string;
+    previousDefaultTitle: string;
+    titleTouched: boolean;
 }): string {
-  if (isEditing || hasInitialDraft || titleTouched || currentTitle !== previousDefaultTitle) {
-    return currentTitle;
-  }
-  return nextDefaultTitle;
+    if (isEditing || hasInitialDraft || titleTouched || currentTitle !== previousDefaultTitle) {
+        return currentTitle;
+    }
+    return nextDefaultTitle;
 }

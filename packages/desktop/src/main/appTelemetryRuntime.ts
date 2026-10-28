@@ -1,122 +1,125 @@
 import type { TelemetryRendererContext } from "@zcode/shared";
 
 interface StartupCoordinatorLike {
-  onRendererReady(input: { hasPendingOAuthCallback: boolean; rendererId: number }): boolean;
-  onOAuthCallbackHandled(input: { rendererId: number }): boolean;
+    onRendererReady(input: { hasPendingOAuthCallback: boolean; rendererId: number }): boolean;
+    onOAuthCallbackHandled(input: { rendererId: number }): boolean;
 }
 
 interface TelemetryCoreLike {
-  reportAppLaunch(context: TelemetryRendererContext): Promise<void>;
-  reportAppDailyActive(context: TelemetryRendererContext): Promise<void>;
+    reportAppLaunch(context: TelemetryRendererContext): Promise<void>;
+    reportAppDailyActive(context: TelemetryRendererContext): Promise<void>;
 }
 
 type DailyActiveInterval = ReturnType<typeof setInterval> | number;
 
 interface AppTelemetryRuntimeDependencies {
-  telemetryCore: TelemetryCoreLike;
-  appLaunchCoordinator: StartupCoordinatorLike;
-  onError?: (error: unknown) => void;
-  dailyActiveHeartbeatIntervalMs?: number;
-  setInterval?: (handler: () => void, timeout: number) => DailyActiveInterval;
-  clearInterval?: (interval: DailyActiveInterval) => void;
+    telemetryCore: TelemetryCoreLike;
+    appLaunchCoordinator: StartupCoordinatorLike;
+    onError?: (error: unknown) => void;
+    dailyActiveHeartbeatIntervalMs?: number;
+    setInterval?: (handler: () => void, timeout: number) => DailyActiveInterval;
+    clearInterval?: (interval: DailyActiveInterval) => void;
 }
 
 const DEFAULT_DAILY_ACTIVE_HEARTBEAT_INTERVAL_MS = 15 * 60 * 1000;
 
 export function createAppTelemetryRuntime({
-  telemetryCore,
-  appLaunchCoordinator,
-  onError,
-  dailyActiveHeartbeatIntervalMs = DEFAULT_DAILY_ACTIVE_HEARTBEAT_INTERVAL_MS,
-  setInterval: setIntervalFn = setInterval,
-  clearInterval: clearIntervalFn = clearInterval,
+    telemetryCore,
+    appLaunchCoordinator,
+    onError,
+    dailyActiveHeartbeatIntervalMs = DEFAULT_DAILY_ACTIVE_HEARTBEAT_INTERVAL_MS,
+    setInterval: setIntervalFn = setInterval,
+    clearInterval: clearIntervalFn = clearInterval,
 }: AppTelemetryRuntimeDependencies) {
-  const rendererContexts = new Map<number, TelemetryRendererContext>();
-  let pendingStartupTelemetryRendererId: number | null = null;
-  let latestRendererContext: TelemetryRendererContext | null = null;
-  let interactive = false;
+    const rendererContexts = new Map<number, TelemetryRendererContext>();
+    let pendingStartupTelemetryRendererId: number | null = null;
+    let latestRendererContext: TelemetryRendererContext | null = null;
+    let interactive = false;
 
-  function reportDailyActive(context: TelemetryRendererContext): void {
-    void telemetryCore.reportAppDailyActive(context).catch((error) => {
-      onError?.(error);
-    });
-  }
-
-  function maybeReportDailyActive(): void {
-    if (!interactive || latestRendererContext == null) {
-      return;
+    function reportDailyActive(context: TelemetryRendererContext): void {
+        void telemetryCore.reportAppDailyActive(context).catch((error) => {
+            onError?.(error);
+        });
     }
 
-    reportDailyActive(latestRendererContext);
-  }
+    function maybeReportDailyActive(): void {
+        if (!interactive || latestRendererContext == null) {
+            return;
+        }
 
-  const dailyActiveHeartbeat = setIntervalFn(
-    maybeReportDailyActive,
-    dailyActiveHeartbeatIntervalMs,
-  );
-  if (typeof dailyActiveHeartbeat === "object") {
-    dailyActiveHeartbeat.unref?.();
-  }
-
-  function flushStartupTelemetry(): void {
-    if (pendingStartupTelemetryRendererId == null) {
-      return;
+        reportDailyActive(latestRendererContext);
     }
 
-    const context = rendererContexts.get(pendingStartupTelemetryRendererId);
-    if (context == null) {
-      return;
+    const dailyActiveHeartbeat = setIntervalFn(
+        maybeReportDailyActive,
+        dailyActiveHeartbeatIntervalMs,
+    );
+    if (typeof dailyActiveHeartbeat === "object") {
+        dailyActiveHeartbeat.unref?.();
     }
 
-    pendingStartupTelemetryRendererId = null;
-    void telemetryCore.reportAppLaunch(context).catch((error) => {
-      onError?.(error);
-    });
-    reportDailyActive(context);
-  }
+    function flushStartupTelemetry(): void {
+        if (pendingStartupTelemetryRendererId == null) {
+            return;
+        }
 
-  function markStartupTelemetryPending(rendererId: number): void {
-    pendingStartupTelemetryRendererId = rendererId;
-    flushStartupTelemetry();
-  }
+        const context = rendererContexts.get(pendingStartupTelemetryRendererId);
+        if (context == null) {
+            return;
+        }
 
-  return {
-    syncRendererContext(input: { rendererId: number; context: TelemetryRendererContext }): void {
-      rendererContexts.set(input.rendererId, input.context);
-      latestRendererContext = input.context;
-      flushStartupTelemetry();
-    },
+        pendingStartupTelemetryRendererId = null;
+        void telemetryCore.reportAppLaunch(context).catch((error) => {
+            onError?.(error);
+        });
+        reportDailyActive(context);
+    }
 
-    getLatestRendererContext(): TelemetryRendererContext | null {
-      return latestRendererContext;
-    },
+    function markStartupTelemetryPending(rendererId: number): void {
+        pendingStartupTelemetryRendererId = rendererId;
+        flushStartupTelemetry();
+    }
 
-    getRendererContext(rendererId: number): TelemetryRendererContext | null {
-      return rendererContexts.get(rendererId) ?? null;
-    },
+    return {
+        syncRendererContext(input: {
+            rendererId: number;
+            context: TelemetryRendererContext;
+        }): void {
+            rendererContexts.set(input.rendererId, input.context);
+            latestRendererContext = input.context;
+            flushStartupTelemetry();
+        },
 
-    setInteractive(nextInteractive: boolean): void {
-      const becameInteractive = !interactive && nextInteractive;
-      interactive = nextInteractive;
-      if (becameInteractive) {
-        maybeReportDailyActive();
-      }
-    },
+        getLatestRendererContext(): TelemetryRendererContext | null {
+            return latestRendererContext;
+        },
 
-    onRendererReady(input: { hasPendingOAuthCallback: boolean; rendererId: number }): void {
-      if (appLaunchCoordinator.onRendererReady(input)) {
-        markStartupTelemetryPending(input.rendererId);
-      }
-    },
+        getRendererContext(rendererId: number): TelemetryRendererContext | null {
+            return rendererContexts.get(rendererId) ?? null;
+        },
 
-    onOAuthCallbackHandled(input: { rendererId: number }): void {
-      if (appLaunchCoordinator.onOAuthCallbackHandled(input)) {
-        markStartupTelemetryPending(input.rendererId);
-      }
-    },
+        setInteractive(nextInteractive: boolean): void {
+            const becameInteractive = !interactive && nextInteractive;
+            interactive = nextInteractive;
+            if (becameInteractive) {
+                maybeReportDailyActive();
+            }
+        },
 
-    dispose(): void {
-      clearIntervalFn(dailyActiveHeartbeat);
-    },
-  };
+        onRendererReady(input: { hasPendingOAuthCallback: boolean; rendererId: number }): void {
+            if (appLaunchCoordinator.onRendererReady(input)) {
+                markStartupTelemetryPending(input.rendererId);
+            }
+        },
+
+        onOAuthCallbackHandled(input: { rendererId: number }): void {
+            if (appLaunchCoordinator.onOAuthCallbackHandled(input)) {
+                markStartupTelemetryPending(input.rendererId);
+            }
+        },
+
+        dispose(): void {
+            clearIntervalFn(dailyActiveHeartbeat);
+        },
+    };
 }

@@ -32,69 +32,69 @@ import { refToString, WorkflowError } from "./types.js";
  * 4. **一次写**：`completed`、无 actor 字段。
  */
 export function publishReport(
-  state: EngineState,
-  siteId: string,
-  item: unknown,
-  artifactId?: string,
+    state: EngineState,
+    siteId: string,
+    item: unknown,
+    artifactId?: string,
 ): void {
-  if (state.isRunSettled()) return; // 与 log 同：结算之后不再受理
-  const ordinal = state.nextOrdinal(siteId);
-  const instance: InstanceRef = { siteId, ordinal };
+    if (state.isRunSettled()) return; // 与 log 同：结算之后不再受理
+    const ordinal = state.nextOrdinal(siteId);
+    const instance: InstanceRef = { siteId, ordinal };
 
-  const serialized = probeReportItem(state, instance, item);
-  if (serialized === undefined) return; // 探针已 failRun
-  // inputHash 刻意**只覆盖 item**，标签不进哈希：标签是站点上的编译期字面量，而 resume
-  // 要求脚本逐字节相同（script_hash），所以同一 (siteId, ordinal) 的标签不可能变。把它加进
-  // 哈希输入的唯一效果，是让**每一条**既有 journal 里的无标签 report 在 resume 时
-  // InputHashMismatch——一次没有任何收益的破坏性载荷形变。
-  const hash = inputHash(item);
+    const serialized = probeReportItem(state, instance, item);
+    if (serialized === undefined) return; // 探针已 failRun
+    // inputHash 刻意**只覆盖 item**，标签不进哈希：标签是站点上的编译期字面量，而 resume
+    // 要求脚本逐字节相同（script_hash），所以同一 (siteId, ordinal) 的标签不可能变。把它加进
+    // 哈希输入的唯一效果，是让**每一条**既有 journal 里的无标签 report 在 resume 时
+    // InputHashMismatch——一次没有任何收益的破坏性载荷形变。
+    const hash = inputHash(item);
 
-  // 只比对哈希，不读 item（docs/execution-engine.md「Reading the journal」）：resume 重放一个
-  // 报了 65,536 条的脚本时，每一次命中都去解一条 ≤1 MiB 的 item 再扔掉，是按总字节数付的钱。
-  const recorded = state.journal.getNode(state.runId, siteId, ordinal, { withResult: false });
-  if (recorded !== undefined) {
-    if (recorded.inputHash !== hash) {
-      state.failRun(hashMismatch(instance, recorded.inputHash, hash));
-      return;
+    // 只比对哈希，不读 item（docs/execution-engine.md「Reading the journal」）：resume 重放一个
+    // 报了 65,536 条的脚本时，每一次命中都去解一条 ≤1 MiB 的 item 再扔掉，是按总字节数付的钱。
+    const recorded = state.journal.getNode(state.runId, siteId, ordinal, { withResult: false });
+    if (recorded !== undefined) {
+        if (recorded.inputHash !== hash) {
+            state.failRun(hashMismatch(instance, recorded.inputHash, hash));
+            return;
+        }
+        return; // replay 去重：静默跳过（无事件、不重复 append）
     }
-    return; // replay 去重：静默跳过（无事件、不重复 append）
-  }
 
-  // 标签在场：它必须已经被声明为**预置**产物。查在上限之前——一个指向不存在看板的标签
-  // 是脚本写错了，不是容量事件，两者混在一起会让错误码骗人。
-  // failRun 而不是拒绝，理由与 report 的两个上限完全相同：void 返回没有拒绝通道。
-  if (artifactId !== undefined && !isDeclaredPreset(state, artifactId)) {
-    state.failRun(
-      new WorkflowError(
-        "ArtifactUndeclared",
-        `report() tag "${artifactId}" is not a declared preset artifact ` +
-          `(at ${refToString(instance)}). Declare it once at the top of the script, e.g. ` +
-          `artifact.chart("${artifactId}", …), before tagging reports with it. Declared presets: ` +
-          `${declaredPresetIds(state).join(", ") || "(none)"}.`,
-      ),
-    );
-    return;
-  }
+    // 标签在场：它必须已经被声明为**预置**产物。查在上限之前——一个指向不存在看板的标签
+    // 是脚本写错了，不是容量事件，两者混在一起会让错误码骗人。
+    // failRun 而不是拒绝，理由与 report 的两个上限完全相同：void 返回没有拒绝通道。
+    if (artifactId !== undefined && !isDeclaredPreset(state, artifactId)) {
+        state.failRun(
+            new WorkflowError(
+                "ArtifactUndeclared",
+                `report() tag "${artifactId}" is not a declared preset artifact ` +
+                    `(at ${refToString(instance)}). Declare it once at the top of the script, e.g. ` +
+                    `artifact.chart("${artifactId}", …), before tagging reports with it. Declared presets: ` +
+                    `${declaredPresetIds(state).join(", ") || "(none)"}.`,
+            ),
+        );
+        return;
+    }
 
-  if (!reserveReport(state, instance, serialized)) return;
-  state.journal.putNode({
-    runId: state.runId,
-    siteId,
-    ordinal,
-    kind: "report",
-    inputHash: hash,
-    status: "completed",
-    result: item,
-    // 打了标签的 report 行是「看板 = journal 的投影」这条不变式的落点：一个看板的每个点
-    // 就是一行 kind = report ∧ artifact_id = 该 id。
-    ...(artifactId === undefined ? {} : { artifactId }),
-  });
-  state.record({
-    type: "report",
-    instance,
-    item,
-    ...(artifactId === undefined ? {} : { artifactId }),
-  });
+    if (!reserveReport(state, instance, serialized)) return;
+    state.journal.putNode({
+        runId: state.runId,
+        siteId,
+        ordinal,
+        kind: "report",
+        inputHash: hash,
+        status: "completed",
+        result: item,
+        // 打了标签的 report 行是「看板 = journal 的投影」这条不变式的落点：一个看板的每个点
+        // 就是一行 kind = report ∧ artifact_id = 该 id。
+        ...(artifactId === undefined ? {} : { artifactId }),
+    });
+    state.record({
+        type: "report",
+        instance,
+        item,
+        ...(artifactId === undefined ? {} : { artifactId }),
+    });
 }
 
 /**
@@ -112,36 +112,36 @@ export function publishReport(
  * 让 `ReportCapExceeded` 只表示上限，读者才能据码行动。
  */
 function probeReportItem(
-  state: EngineState,
-  instance: InstanceRef,
-  item: unknown,
+    state: EngineState,
+    instance: InstanceRef,
+    item: unknown,
 ): string | undefined {
-  let serialized: string | undefined;
-  try {
-    serialized = JSON.stringify(item);
-  } catch (cause) {
-    state.failRun(
-      new WorkflowError(
-        "DriverError",
-        `report() item cannot be serialized to JSON (a cycle or a bigint) at ` +
-          `${refToString(instance)}. Report a plain JSON value.`,
-        { cause },
-      ),
-    );
-    return undefined;
-  }
-  if (serialized === undefined) {
-    // JSON.stringify 对 undefined / 函数 / symbol 返回 undefined。
-    state.failRun(
-      new WorkflowError(
-        "DriverError",
-        `report() item is not a JSON value (undefined, a function or a symbol) at ` +
-          `${refToString(instance)}. Report a plain JSON value.`,
-      ),
-    );
-    return undefined;
-  }
-  return serialized;
+    let serialized: string | undefined;
+    try {
+        serialized = JSON.stringify(item);
+    } catch (cause) {
+        state.failRun(
+            new WorkflowError(
+                "DriverError",
+                `report() item cannot be serialized to JSON (a cycle or a bigint) at ` +
+                    `${refToString(instance)}. Report a plain JSON value.`,
+                { cause },
+            ),
+        );
+        return undefined;
+    }
+    if (serialized === undefined) {
+        // JSON.stringify 对 undefined / 函数 / symbol 返回 undefined。
+        state.failRun(
+            new WorkflowError(
+                "DriverError",
+                `report() item is not a JSON value (undefined, a function or a symbol) at ` +
+                    `${refToString(instance)}. Report a plain JSON value.`,
+            ),
+        );
+        return undefined;
+    }
+    return serialized;
 }
 
 /**
@@ -151,41 +151,41 @@ function probeReportItem(
  * run 级上限在后，且都在计数之前——被拒的那条不进计数，失败信息里的数字才是真的。
  */
 function reserveReport(state: EngineState, instance: InstanceRef, serialized: string): boolean {
-  const bytes = utf8ByteLength(serialized);
-  if (bytes > REPORT_CAPS.maxItemSerializedBytes) {
-    state.failRun(
-      new WorkflowError(
-        "ReportCapExceeded",
-        `report() item at ${refToString(instance)} is ${bytes} bytes, over the ` +
-          `${REPORT_CAPS.maxItemSerializedBytes}-byte limit. Report a summary instead.`,
-      ),
-    );
-    return false;
-  }
-  const tally = state.reportTally();
-  if (tally.count >= REPORT_CAPS.maxItemsPerRun) {
-    state.failRun(
-      new WorkflowError(
-        "ReportCapExceeded",
-        `This run already reported ${REPORT_CAPS.maxItemsPerRun} items, the maximum. ` +
-          `Report findings, not chatter.`,
-      ),
-    );
-    return false;
-  }
-  if (tally.bytes + bytes > REPORT_CAPS.maxBytesPerRun) {
-    state.failRun(
-      new WorkflowError(
-        "ReportCapExceeded",
-        `report() item at ${refToString(instance)} would take this run's reports to ` +
-          `${tally.bytes + bytes} bytes, over the ${REPORT_CAPS.maxBytesPerRun}-byte limit per run. ` +
-          `Report summaries, and publish large results with artifact.file.`,
-      ),
-    );
-    return false;
-  }
-  state.countReport(bytes);
-  return true;
+    const bytes = utf8ByteLength(serialized);
+    if (bytes > REPORT_CAPS.maxItemSerializedBytes) {
+        state.failRun(
+            new WorkflowError(
+                "ReportCapExceeded",
+                `report() item at ${refToString(instance)} is ${bytes} bytes, over the ` +
+                    `${REPORT_CAPS.maxItemSerializedBytes}-byte limit. Report a summary instead.`,
+            ),
+        );
+        return false;
+    }
+    const tally = state.reportTally();
+    if (tally.count >= REPORT_CAPS.maxItemsPerRun) {
+        state.failRun(
+            new WorkflowError(
+                "ReportCapExceeded",
+                `This run already reported ${REPORT_CAPS.maxItemsPerRun} items, the maximum. ` +
+                    `Report findings, not chatter.`,
+            ),
+        );
+        return false;
+    }
+    if (tally.bytes + bytes > REPORT_CAPS.maxBytesPerRun) {
+        state.failRun(
+            new WorkflowError(
+                "ReportCapExceeded",
+                `report() item at ${refToString(instance)} would take this run's reports to ` +
+                    `${tally.bytes + bytes} bytes, over the ${REPORT_CAPS.maxBytesPerRun}-byte limit per run. ` +
+                    `Report summaries, and publish large results with artifact.file.`,
+            ),
+        );
+        return false;
+    }
+    state.countReport(bytes);
+    return true;
 }
 
 /**
@@ -194,5 +194,5 @@ function reserveReport(state: EngineState, instance: InstanceRef, serialized: st
  * 字符——一份中文 findings 的字符数只有字节数的三分之一，按字符计会让上限形同虚设。
  */
 function utf8ByteLength(value: string): number {
-  return new TextEncoder().encode(value).length;
+    return new TextEncoder().encode(value).length;
 }

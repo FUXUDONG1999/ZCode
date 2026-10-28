@@ -3,8 +3,8 @@ import { link, mkdir, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { getZCodeDataRootDir } from "@zcode/services/node";
 import type {
-  MaterializeWorkflowArtifactFileRequest,
-  MaterializeWorkflowArtifactFileResult,
+    MaterializeWorkflowArtifactFileRequest,
+    MaterializeWorkflowArtifactFileResult,
 } from "@zcode/shared";
 
 /**
@@ -36,57 +36,57 @@ const WINDOWS_RESERVED_NAME = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/iu;
  * 崩掉的进程不会在最终路径上留下半个文件（那样它会因为「已存在」而永远不被重写）。
  */
 export async function materializeWorkflowArtifactFile(
-  payload: MaterializeWorkflowArtifactFileRequest,
+    payload: MaterializeWorkflowArtifactFileRequest,
 ): Promise<MaterializeWorkflowArtifactFileResult> {
-  const request = parseRequest(payload);
-  const dir = join(
-    getZCodeDataRootDir(),
-    "tmp",
-    WORKFLOW_ARTIFACT_DIR,
-    identitySegment(request.runId),
-    identitySegment(request.artifactId),
-    `v${request.version}`,
-  );
-  const localPath = join(dir, sanitizeFileName(request.fileName, request.artifactId));
+    const request = parseRequest(payload);
+    const dir = join(
+        getZCodeDataRootDir(),
+        "tmp",
+        WORKFLOW_ARTIFACT_DIR,
+        identitySegment(request.runId),
+        identitySegment(request.artifactId),
+        `v${request.version}`,
+    );
+    const localPath = join(dir, sanitizeFileName(request.fileName, request.artifactId));
 
-  await mkdir(dir, { recursive: true });
-  const temporaryPath = join(dir, `.${randomUUID()}.partial`);
-  await writeFile(temporaryPath, request.bytes, { flag: "wx" });
-  try {
-    await link(temporaryPath, localPath);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
-  } finally {
-    await unlink(temporaryPath).catch(() => undefined);
-  }
-  return { localPath };
+    await mkdir(dir, { recursive: true });
+    const temporaryPath = join(dir, `.${randomUUID()}.partial`);
+    await writeFile(temporaryPath, request.bytes, { flag: "wx" });
+    try {
+        await link(temporaryPath, localPath);
+    } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+    } finally {
+        await unlink(temporaryPath).catch(() => undefined);
+    }
+    return { localPath };
 }
 
 /** 请求来自 renderer（IPC 边界），形状与上限在碰磁盘之前再校验一次。 */
 function parseRequest(payload: unknown): MaterializeWorkflowArtifactFileRequest {
-  const fields = (payload ?? {}) as Partial<
-    Record<keyof MaterializeWorkflowArtifactFileRequest, unknown>
-  >;
-  const { runId, artifactId, version, fileName, bytes } = fields;
-  if (
-    typeof runId !== "string" ||
-    runId.trim().length === 0 ||
-    typeof artifactId !== "string" ||
-    artifactId.trim().length === 0 ||
-    typeof version !== "number" ||
-    !Number.isInteger(version) ||
-    version < 1 ||
-    typeof fileName !== "string" ||
-    !(bytes instanceof Uint8Array)
-  ) {
-    throw new Error("Workflow artifact file request is invalid");
-  }
-  if (bytes.byteLength > WORKFLOW_ARTIFACT_FILE_MAX_BYTES) {
-    throw new Error(
-      `Workflow artifact is too large to open as a file (${bytes.byteLength} bytes, cap ${WORKFLOW_ARTIFACT_FILE_MAX_BYTES})`,
-    );
-  }
-  return { runId, artifactId, version, fileName, bytes };
+    const fields = (payload ?? {}) as Partial<
+        Record<keyof MaterializeWorkflowArtifactFileRequest, unknown>
+    >;
+    const { runId, artifactId, version, fileName, bytes } = fields;
+    if (
+        typeof runId !== "string" ||
+        runId.trim().length === 0 ||
+        typeof artifactId !== "string" ||
+        artifactId.trim().length === 0 ||
+        typeof version !== "number" ||
+        !Number.isInteger(version) ||
+        version < 1 ||
+        typeof fileName !== "string" ||
+        !(bytes instanceof Uint8Array)
+    ) {
+        throw new Error("Workflow artifact file request is invalid");
+    }
+    if (bytes.byteLength > WORKFLOW_ARTIFACT_FILE_MAX_BYTES) {
+        throw new Error(
+            `Workflow artifact is too large to open as a file (${bytes.byteLength} bytes, cap ${WORKFLOW_ARTIFACT_FILE_MAX_BYTES})`,
+        );
+    }
+    return { runId, artifactId, version, fileName, bytes };
 }
 
 /**
@@ -99,17 +99,17 @@ function parseRequest(payload: unknown): MaterializeWorkflowArtifactFileRequest 
  * 但 IPC 边界只校验它非空，目录的唯一性不该依赖那条约定，所以两段同一规则。
  */
 function identitySegment(id: string): string {
-  const digest = createHash("sha256").update(id, "utf8").digest("hex").slice(0, 8);
-  return `${sanitizeSegment(id)}-${digest}`;
+    const digest = createHash("sha256").update(id, "utf8").digest("hex").slice(0, 8);
+    return `${sanitizeSegment(id)}-${digest}`;
 }
 
 /** 目录片段（runId / artifactId）：只留 `[A-Za-z0-9._-]`，去掉开头的点（不留 `.` / `..`、不做隐藏目录）。 */
 function sanitizeSegment(value: string): string {
-  const cleaned = value
-    .replace(/[^A-Za-z0-9._-]/gu, "_")
-    .replace(/^\.+/u, "")
-    .slice(0, MAX_SEGMENT_LENGTH);
-  return cleaned.length === 0 ? "_" : cleaned;
+    const cleaned = value
+        .replace(/[^A-Za-z0-9._-]/gu, "_")
+        .replace(/^\.+/u, "")
+        .slice(0, MAX_SEGMENT_LENGTH);
+    return cleaned.length === 0 ? "_" : cleaned;
 }
 
 /**
@@ -118,19 +118,19 @@ function sanitizeSegment(value: string): string {
  * 点和空格（Windows 会静默吞掉它们），Windows 保留名前加 `_`。清洗后为空则用产物 id。
  */
 function sanitizeFileName(fileName: string, artifactId: string): string {
-  const leaf = fileName.split(/[\\/]/u).at(-1) ?? "";
-  let cleaned = leaf
-    // oxlint-disable-next-line no-control-regex -- 控制字符正是要替换掉的东西。
-    .replace(/[<>:"|?*\u0000-\u001f]/gu, "_")
-    .trim()
-    .replace(/^\.+/u, "")
-    .replace(/[. ]+$/u, "");
-  if (cleaned.length === 0) cleaned = sanitizeSegment(artifactId);
-  if (WINDOWS_RESERVED_NAME.test(cleaned)) cleaned = `_${cleaned}`;
-  if (cleaned.length > MAX_SEGMENT_LENGTH) {
-    const dot = cleaned.lastIndexOf(".");
-    const extension = dot > 0 && cleaned.length - dot <= 16 ? cleaned.slice(dot) : "";
-    cleaned = cleaned.slice(0, MAX_SEGMENT_LENGTH - extension.length) + extension;
-  }
-  return cleaned;
+    const leaf = fileName.split(/[\\/]/u).at(-1) ?? "";
+    let cleaned = leaf
+        // oxlint-disable-next-line no-control-regex -- 控制字符正是要替换掉的东西。
+        .replace(/[<>:"|?*\u0000-\u001f]/gu, "_")
+        .trim()
+        .replace(/^\.+/u, "")
+        .replace(/[. ]+$/u, "");
+    if (cleaned.length === 0) cleaned = sanitizeSegment(artifactId);
+    if (WINDOWS_RESERVED_NAME.test(cleaned)) cleaned = `_${cleaned}`;
+    if (cleaned.length > MAX_SEGMENT_LENGTH) {
+        const dot = cleaned.lastIndexOf(".");
+        const extension = dot > 0 && cleaned.length - dot <= 16 ? cleaned.slice(dot) : "";
+        cleaned = cleaned.slice(0, MAX_SEGMENT_LENGTH - extension.length) + extension;
+    }
+    return cleaned;
 }

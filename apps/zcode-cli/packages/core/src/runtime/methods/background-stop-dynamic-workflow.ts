@@ -15,9 +15,9 @@
 
 import type { AgentRuntimeInternal } from "../internal.js";
 import type {
-  RuntimeBackgroundStopInitiator,
-  RuntimeBackgroundStopResult,
-  TypedRuntimeBackgroundStopTarget,
+    RuntimeBackgroundStopInitiator,
+    RuntimeBackgroundStopResult,
+    TypedRuntimeBackgroundStopTarget,
 } from "./background-stop-types.js";
 
 /**
@@ -33,41 +33,41 @@ import type {
  *   - 端口对未知/已结算的 run 回 false → not_found。
  */
 export async function stopDynamicWorkflowBackgroundTask(
-  this: AgentRuntimeInternal,
-  target: TypedRuntimeBackgroundStopTarget,
-  unsupported: (target: TypedRuntimeBackgroundStopTarget) => RuntimeBackgroundStopResult,
-  initiator?: RuntimeBackgroundStopInitiator,
+    this: AgentRuntimeInternal,
+    target: TypedRuntimeBackgroundStopTarget,
+    unsupported: (target: TypedRuntimeBackgroundStopTarget) => RuntimeBackgroundStopResult,
+    initiator?: RuntimeBackgroundStopInitiator,
 ): Promise<RuntimeBackgroundStopResult> {
-  const port = this.dynamicWorkflowRunPort;
-  if (!port) {
-    return unsupported(target);
-  }
-  // 先记「是谁停的」再 abort：终态通知是稍后 waiter 结算时铸造的，registry 条目是两者之间
-  // 唯一的共享状态。写在 abort 之前，
-  // 否则结算可能抢先一步读到空值。
-  if (initiator !== undefined && target.registryTask !== undefined) {
-    this.runtimeTaskRegistry.update(target.taskId, (current) => ({
-      ...current,
-      stopInitiator: initiator,
-    }));
-  }
-  // 原因随 cancel 落库：run 结算成 `stopped(user|model)`，
-  // 终态通知与 GetWorkflowRun 从 journal 读到「谁停的」，而不再只靠上面那条 registry 兜底。
-  // 用户亲手停下的事实也是 AmendWorkflow 免确认规则读的那一位：用户刚表达了「停下」，模型接着修订就该重新问。
-  const cancelled = await port.cancel(target.taskId, initiator);
-  if (!cancelled) {
+    const port = this.dynamicWorkflowRunPort;
+    if (!port) {
+        return unsupported(target);
+    }
+    // 先记「是谁停的」再 abort：终态通知是稍后 waiter 结算时铸造的，registry 条目是两者之间
+    // 唯一的共享状态。写在 abort 之前，
+    // 否则结算可能抢先一步读到空值。
+    if (initiator !== undefined && target.registryTask !== undefined) {
+        this.runtimeTaskRegistry.update(target.taskId, (current) => ({
+            ...current,
+            stopInitiator: initiator,
+        }));
+    }
+    // 原因随 cancel 落库：run 结算成 `stopped(user|model)`，
+    // 终态通知与 GetWorkflowRun 从 journal 读到「谁停的」，而不再只靠上面那条 registry 兜底。
+    // 用户亲手停下的事实也是 AmendWorkflow 免确认规则读的那一位：用户刚表达了「停下」，模型接着修订就该重新问。
+    const cancelled = await port.cancel(target.taskId, initiator);
+    if (!cancelled) {
+        return {
+            ok: false,
+            reason: "background_task_not_found",
+            status: "lost",
+            taskId: target.taskId,
+            type: "local_dynamic_workflow",
+        };
+    }
     return {
-      ok: false,
-      reason: "background_task_not_found",
-      status: "lost",
-      taskId: target.taskId,
-      type: "local_dynamic_workflow",
+        ok: true,
+        status: "cancelled",
+        taskId: target.taskId,
+        type: "local_dynamic_workflow",
     };
-  }
-  return {
-    ok: true,
-    status: "cancelled",
-    taskId: target.taskId,
-    type: "local_dynamic_workflow",
-  };
 }

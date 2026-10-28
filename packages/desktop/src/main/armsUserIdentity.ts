@@ -1,13 +1,13 @@
 export interface ArmsUserIdentitySyncDeps {
-  /** 设备维度 id，直接作为 ARMS user.name 上报 */
-  deviceMid: string;
-  /** 写入 ARMS user 配置（默认包装 armsRum.setConfig("user", ...)） */
-  setUser: (user: { name: string }) => void;
+    /** 设备维度 id，直接作为 ARMS user.name 上报 */
+    deviceMid: string;
+    /** 写入 ARMS user 配置（默认包装 armsRum.setConfig("user", ...)） */
+    setUser: (user: { name: string }) => void;
 }
 
 export interface ArmsUserIdentitySync {
-  /** 将 deviceMid 写入 ARMS user.name（带去重） */
-  refresh: () => void;
+    /** 将 deviceMid 写入 ARMS user.name（带去重） */
+    refresh: () => void;
 }
 
 /**
@@ -19,15 +19,15 @@ export interface ArmsUserIdentitySync {
  * user.name 写法一致，避免反复覆盖。
  */
 export function createArmsUserIdentitySync(deps: ArmsUserIdentitySyncDeps): ArmsUserIdentitySync {
-  let lastWrittenName: string | null = null;
+    let lastWrittenName: string | null = null;
 
-  function refresh(): void {
-    if (deps.deviceMid === lastWrittenName) {
-      return;
+    function refresh(): void {
+        if (deps.deviceMid === lastWrittenName) {
+            return;
+        }
+        lastWrittenName = deps.deviceMid;
+        deps.setUser({ name: deps.deviceMid });
     }
-    lastWrittenName = deps.deviceMid;
-    deps.setUser({ name: deps.deviceMid });
-  }
 
-  return { refresh };
+    return { refresh };
 }

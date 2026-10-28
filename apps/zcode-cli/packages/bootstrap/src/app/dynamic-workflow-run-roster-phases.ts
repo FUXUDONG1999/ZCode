@@ -23,40 +23,40 @@ const WORLD_NODE_KIND = "world-read";
  * 发一个空数组读起来像「阶段表是空的」，是另一句话。
  */
 export function buildPhaseViews(input: {
-  run: WorkflowRunState | undefined;
-  index: RosterEventIndex;
-  terminal: boolean;
+    run: WorkflowRunState | undefined;
+    index: RosterEventIndex;
+    terminal: boolean;
 }): DynamicWorkflowRunPhaseView[] | undefined {
-  const { run, index, terminal } = input;
-  const declared = run?.phaseNames ?? [];
-  const entered = run?.phases ?? [];
-  if (declared.length === 0 && entered.length === 0) return undefined;
+    const { run, index, terminal } = input;
+    const declared = run?.phaseNames ?? [];
+    const entered = run?.phases ?? [];
+    if (declared.length === 0 && entered.length === 0) return undefined;
 
-  const names = [...declared];
-  const seen = new Set(declared);
-  for (const phase of entered) {
-    if (seen.has(phase.name)) continue;
-    seen.add(phase.name);
-    names.push(phase.name);
-  }
+    const names = [...declared];
+    const seen = new Set(declared);
+    for (const phase of entered) {
+        if (seen.has(phase.name)) continue;
+        seen.add(phase.name);
+        names.push(phase.name);
+    }
 
-  const nodes = run?.nodes ?? [];
-  return names.map((name) => {
-    const rounds = entered.find((phase) => phase.name === name)?.rounds ?? 0;
-    const owned = nodes.filter((node) => node.phaseName === name);
-    const settled = owned.filter((node) => node.phase === "settled").length;
-    const running = owned.length - settled;
-    const trace = index.phases.get(name);
-    return {
-      name,
-      state: phaseStateOf({ rounds, terminal, owned, isCurrent: run?.currentPhase === name }),
-      rounds,
-      nodesSettled: settled,
-      nodesRunning: running,
-      ...(trace?.enteredAt === undefined ? {} : { enteredAt: trace.enteredAt }),
-      ...(trace?.exitedAt === undefined ? {} : { exitedAt: trace.exitedAt }),
-    };
-  });
+    const nodes = run?.nodes ?? [];
+    return names.map((name) => {
+        const rounds = entered.find((phase) => phase.name === name)?.rounds ?? 0;
+        const owned = nodes.filter((node) => node.phaseName === name);
+        const settled = owned.filter((node) => node.phase === "settled").length;
+        const running = owned.length - settled;
+        const trace = index.phases.get(name);
+        return {
+            name,
+            state: phaseStateOf({ rounds, terminal, owned, isCurrent: run?.currentPhase === name }),
+            rounds,
+            nodesSettled: settled,
+            nodesRunning: running,
+            ...(trace?.enteredAt === undefined ? {} : { enteredAt: trace.enteredAt }),
+            ...(trace?.exitedAt === undefined ? {} : { exitedAt: trace.exitedAt }),
+        };
+    });
 }
 
 /**
@@ -66,18 +66,18 @@ export function buildPhaseViews(input: {
  * 的常态，不是烂尾——它有几个在飞，`nodesRunning` 已经如实说了。
  */
 function phaseStateOf(input: {
-  rounds: number;
-  terminal: boolean;
-  owned: readonly WorkflowRunNode[];
-  isCurrent: boolean;
+    rounds: number;
+    terminal: boolean;
+    owned: readonly WorkflowRunNode[];
+    isCurrent: boolean;
 }): DynamicWorkflowRunPhaseView["state"] {
-  const { rounds, terminal, owned, isCurrent } = input;
-  if (rounds === 0) return "ahead";
-  if (terminal) {
-    const leftover = owned.some(
-      (node) => node.phase !== "settled" && node.kind !== WORLD_NODE_KIND,
-    );
-    return leftover ? "unfinished" : "done";
-  }
-  return isCurrent ? "current" : "done";
+    const { rounds, terminal, owned, isCurrent } = input;
+    if (rounds === 0) return "ahead";
+    if (terminal) {
+        const leftover = owned.some(
+            (node) => node.phase !== "settled" && node.kind !== WORLD_NODE_KIND,
+        );
+        return leftover ? "unfinished" : "done";
+    }
+    return isCurrent ? "current" : "done";
 }

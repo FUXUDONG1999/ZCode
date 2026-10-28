@@ -13,25 +13,25 @@ import { WorkflowArtifactStrip } from "@/components/workflow-timeline/WorkflowAr
  * 能不能打开是能力。事件在条这一层止步——头部整条是折叠开关，药丸不是它的一部分。
  */
 export function WorkflowNotificationArtifactChips({
-  artifacts,
-  truncated,
-  onOpenArtifact,
+    artifacts,
+    truncated,
+    onOpenArtifact,
 }: {
-  artifacts: NonNullable<Extract<WorkflowNotificationMeta, { kind: "terminal" }>["artifacts"]>;
-  /** 发射侧砍过（超 8 或被过滤）——「+N」因此可能少报，用「…」而不是数字。 */
-  truncated?: boolean;
-  onOpenArtifact?: (artifactId: string) => void;
+    artifacts: NonNullable<Extract<WorkflowNotificationMeta, { kind: "terminal" }>["artifacts"]>;
+    /** 发射侧砍过（超 8 或被过滤）——「+N」因此可能少报，用「…」而不是数字。 */
+    truncated?: boolean;
+    onOpenArtifact?: (artifactId: string) => void;
 }) {
-  return (
-    <WorkflowArtifactStrip
-      artifacts={artifacts}
-      moreTestId="workflow-notification-artifacts-more"
-      pillTestId={TID_CHAT_WORKFLOW_ARTIFACT_CHIP}
-      size="sm"
-      variant="link"
-      testId="workflow-notification-artifacts"
-      {...(truncated === undefined ? {} : { truncated })}
-      {...(onOpenArtifact === undefined ? {} : { onOpenArtifact })}
-    />
-  );
+    return (
+        <WorkflowArtifactStrip
+            artifacts={artifacts}
+            moreTestId="workflow-notification-artifacts-more"
+            pillTestId={TID_CHAT_WORKFLOW_ARTIFACT_CHIP}
+            size="sm"
+            variant="link"
+            testId="workflow-notification-artifacts"
+            {...(truncated === undefined ? {} : { truncated })}
+            {...(onOpenArtifact === undefined ? {} : { onOpenArtifact })}
+        />
+    );
 }

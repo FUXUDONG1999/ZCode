@@ -65,12 +65,12 @@ failure.
   `AbortError`, or Node `ABORT_ERR` maps to `turn_cancelled` when it belongs to
   the active turn signal.
 - Runtime checks the turn signal at these boundaries:
-  - before context/model work starts;
-  - before each model request;
-  - after a model step returns and before tool scheduling;
-  - before each tool execution batch;
-  - before follow-up model requests after tool results;
-  - during retry sleeps and permission waits.
+    - before context/model work starts;
+    - before each model request;
+    - after a model step returns and before tool scheduling;
+    - before each tool execution batch;
+    - before follow-up model requests after tool results;
+    - during retry sleeps and permission waits.
 
 Once cancellation is observed, runtime stops scheduling new work. Already
 running adapters receive the abort signal and perform their own best-effort

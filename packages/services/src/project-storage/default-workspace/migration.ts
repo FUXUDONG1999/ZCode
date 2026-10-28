@@ -13,18 +13,16 @@ WHERE p.host_id=? AND p.deleted=0 AND p.name_overridden=0
 `;
 
 export function migrateDefaultWorkspaceTasks(db: DatabaseSync, context: ProjectMigrationContext) {
-  const ids = db.prepare(DEFAULT_WORKSPACE_CANDIDATES_SQL).all(context.hostId ?? "local");
-  const now = (context.now ?? Date.now)();
-  for (const { project_id } of ids) {
-    // 只交接组织归属；保留归档、置顶、未读、CLI 镜像及已固化的执行目录。
-    db.prepare("UPDATE tasks SET project_id=NULL WHERE project_id=? AND host_id=?").run(
-      String(project_id),
-      context.hostId ?? "local",
-    );
-    db.prepare("UPDATE projects SET deleted=1,deleted_at=?,updated_at=? WHERE project_id=?").run(
-      now,
-      now,
-      String(project_id),
-    );
-  }
+    const ids = db.prepare(DEFAULT_WORKSPACE_CANDIDATES_SQL).all(context.hostId ?? "local");
+    const now = (context.now ?? Date.now)();
+    for (const { project_id } of ids) {
+        // 只交接组织归属；保留归档、置顶、未读、CLI 镜像及已固化的执行目录。
+        db.prepare("UPDATE tasks SET project_id=NULL WHERE project_id=? AND host_id=?").run(
+            String(project_id),
+            context.hostId ?? "local",
+        );
+        db.prepare(
+            "UPDATE projects SET deleted=1,deleted_at=?,updated_at=? WHERE project_id=?",
+        ).run(now, now, String(project_id));
+    }
 }

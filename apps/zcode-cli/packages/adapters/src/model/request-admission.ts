@@ -1,7 +1,7 @@
 import type {
-  ModelRequestAdmission,
-  ModelRequestAdmissionTicket,
-  ModelRequestTarget,
+    ModelRequestAdmission,
+    ModelRequestAdmissionTicket,
+    ModelRequestTarget,
 } from "@zcode/contracts";
 
 /**
@@ -15,10 +15,10 @@ import type {
  * 请求没有 `modelRequestAdmission` 时返回一个空实现：调用点不必分叉，runner 行为逐字不变。
  */
 export interface AttemptAdmission {
-  /** 准入票据；请求没有准入端口时缺席（此时 publish 不转投）。 */
-  readonly ticket?: ModelRequestAdmissionTicket;
-  /** 归还槽位；幂等（finally 与「退避 sleep 之前」两处都会调）。 */
-  release(): void;
+    /** 准入票据；请求没有准入端口时缺席（此时 publish 不转投）。 */
+    readonly ticket?: ModelRequestAdmissionTicket;
+    /** 归还槽位；幂等（finally 与「退避 sleep 之前」两处都会调）。 */
+    release(): void;
 }
 
 const NO_ADMISSION: AttemptAdmission = { release() {} };
@@ -30,31 +30,31 @@ const NO_ADMISSION: AttemptAdmission = { release() {} };
  * abort 错误同一形状，由调用方按 cancelled 归类）。
  */
 export async function admitAttempt(input: {
-  admission?: ModelRequestAdmission;
-  model: ModelRequestTarget;
-  signal?: AbortSignal;
-  onQueued?: () => Promise<void>;
-  onAdmitted?: (queuedMs: number) => Promise<void>;
+    admission?: ModelRequestAdmission;
+    model: ModelRequestTarget;
+    signal?: AbortSignal;
+    onQueued?: () => Promise<void>;
+    onAdmitted?: (queuedMs: number) => Promise<void>;
 }): Promise<AttemptAdmission> {
-  if (input.admission === undefined) return NO_ADMISSION;
-  const hasFastPath = typeof input.admission.tryAcquire === "function";
-  let ticket = hasFastPath ? input.admission.tryAcquire!({ model: input.model }) : undefined;
-  if (ticket === undefined) {
-    const queuedAt = Date.now();
-    if (hasFastPath) await input.onQueued?.();
-    ticket = await input.admission.acquire({
-      model: input.model,
-      ...(input.signal === undefined ? {} : { signal: input.signal }),
-    });
-    if (hasFastPath) await input.onAdmitted?.(Date.now() - queuedAt);
-  }
-  let released = false;
-  return {
-    ticket,
-    release() {
-      if (released) return;
-      released = true;
-      ticket.release();
-    },
-  };
+    if (input.admission === undefined) return NO_ADMISSION;
+    const hasFastPath = typeof input.admission.tryAcquire === "function";
+    let ticket = hasFastPath ? input.admission.tryAcquire!({ model: input.model }) : undefined;
+    if (ticket === undefined) {
+        const queuedAt = Date.now();
+        if (hasFastPath) await input.onQueued?.();
+        ticket = await input.admission.acquire({
+            model: input.model,
+            ...(input.signal === undefined ? {} : { signal: input.signal }),
+        });
+        if (hasFastPath) await input.onAdmitted?.(Date.now() - queuedAt);
+    }
+    let released = false;
+    return {
+        ticket,
+        release() {
+            if (released) return;
+            released = true;
+            ticket.release();
+        },
+    };
 }

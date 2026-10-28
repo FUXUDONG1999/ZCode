@@ -10,9 +10,9 @@
 // 认不出就缺席——合成一个「(unknown)」占位串只会让读者以为那是真的目标。
 
 import {
-  LAST_TOOL_NAME_MAX_CHARS,
-  LAST_TOOL_TARGET_MAX_CHARS,
-  type AskLastTool,
+    LAST_TOOL_NAME_MAX_CHARS,
+    LAST_TOOL_TARGET_MAX_CHARS,
+    type AskLastTool,
 } from "@zcode/dynamic-workflow";
 
 /**
@@ -20,13 +20,13 @@ import {
  * 其余保头（命令、pattern、url 的开头才是分辨点）。
  */
 const TARGET_KEYS: readonly { key: string; keep: "head" | "tail" }[] = [
-  { key: "file_path", keep: "tail" },
-  { key: "notebook_path", keep: "tail" },
-  { key: "path", keep: "tail" },
-  { key: "command", keep: "head" },
-  { key: "pattern", keep: "head" },
-  { key: "url", keep: "head" },
-  { key: "query", keep: "head" },
+    { key: "file_path", keep: "tail" },
+    { key: "notebook_path", keep: "tail" },
+    { key: "path", keep: "tail" },
+    { key: "command", keep: "head" },
+    { key: "pattern", keep: "head" },
+    { key: "url", keep: "head" },
+    { key: "query", keep: "head" },
 ];
 
 /** 省略号标记（保尾时前置）：读者要能看出这条线索被截过。 */
@@ -34,41 +34,41 @@ const ELLIPSIS = "…";
 
 /** 一次工具调用的窄视图：名字 + 入参。两者都可能缺席（老事件、空名调用）。 */
 export interface ToolCallSummaryInput {
-  toolName?: string;
-  input?: unknown;
+    toolName?: string;
+    input?: unknown;
 }
 
 /**
  * 把一次工具调用压成 `lastTool`。名字缺席即整条缺席——一个没有名字的「最近工具」什么也没说。
  */
 export function summarizeToolCall(call: ToolCallSummaryInput): AskLastTool | undefined {
-  const name = typeof call.toolName === "string" ? call.toolName.trim() : "";
-  if (name.length === 0) return undefined;
-  const target = deriveToolTarget(call.input);
-  return {
-    name: name.slice(0, LAST_TOOL_NAME_MAX_CHARS),
-    ...(target === undefined ? {} : { target }),
-  };
+    const name = typeof call.toolName === "string" ? call.toolName.trim() : "";
+    if (name.length === 0) return undefined;
+    const target = deriveToolTarget(call.input);
+    return {
+        name: name.slice(0, LAST_TOOL_NAME_MAX_CHARS),
+        ...(target === undefined ? {} : { target }),
+    };
 }
 
 /** 从入参里取目标线索；不是对象、没有已知键、或该键不是非空字符串时缺席。 */
 export function deriveToolTarget(input: unknown): string | undefined {
-  if (typeof input !== "object" || input === null || Array.isArray(input)) return undefined;
-  const record = input as Record<string, unknown>;
-  for (const { key, keep } of TARGET_KEYS) {
-    const value = record[key];
-    if (typeof value !== "string") continue;
-    // 多行命令只取第一行并压掉连续空白：命令头才是「在跑什么」，整段 heredoc 不是。
-    const flattened = value.split("\n", 1)[0]!.replace(/\s+/g, " ").trim();
-    if (flattened.length === 0) continue;
-    return bound(flattened, keep);
-  }
-  return undefined;
+    if (typeof input !== "object" || input === null || Array.isArray(input)) return undefined;
+    const record = input as Record<string, unknown>;
+    for (const { key, keep } of TARGET_KEYS) {
+        const value = record[key];
+        if (typeof value !== "string") continue;
+        // 多行命令只取第一行并压掉连续空白：命令头才是「在跑什么」，整段 heredoc 不是。
+        const flattened = value.split("\n", 1)[0]!.replace(/\s+/g, " ").trim();
+        if (flattened.length === 0) continue;
+        return bound(flattened, keep);
+    }
+    return undefined;
 }
 
 /** 截到 {@link LAST_TOOL_TARGET_MAX_CHARS}：保头直接切，保尾前置省略号后切。 */
 function bound(text: string, keep: "head" | "tail"): string {
-  if (text.length <= LAST_TOOL_TARGET_MAX_CHARS) return text;
-  if (keep === "head") return text.slice(0, LAST_TOOL_TARGET_MAX_CHARS);
-  return ELLIPSIS + text.slice(text.length - (LAST_TOOL_TARGET_MAX_CHARS - ELLIPSIS.length));
+    if (text.length <= LAST_TOOL_TARGET_MAX_CHARS) return text;
+    if (keep === "head") return text.slice(0, LAST_TOOL_TARGET_MAX_CHARS);
+    return ELLIPSIS + text.slice(text.length - (LAST_TOOL_TARGET_MAX_CHARS - ELLIPSIS.length));
 }

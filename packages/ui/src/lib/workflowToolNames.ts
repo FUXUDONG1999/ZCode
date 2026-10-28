@@ -15,61 +15,61 @@
  */
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function normalizeToolToken(value: unknown): string {
-  // 照 cron-create.tsx 的同款归一：抹掉大小写与分隔符，`SaveWorkflow` / `save_workflow`
-  // 两种 wire 写法都命中。
-  return typeof value === "string" ? value.toLowerCase().replace(/[^a-z0-9]/gu, "") : "";
+    // 照 cron-create.tsx 的同款归一：抹掉大小写与分隔符，`SaveWorkflow` / `save_workflow`
+    // 两种 wire 写法都命中。
+    return typeof value === "string" ? value.toLowerCase().replace(/[^a-z0-9]/gu, "") : "";
 }
 
 interface WorkflowToolNameSource {
-  toolName?: string | null;
-  kind?: string | null;
-  title?: string | null;
-  raw?: unknown;
+    toolName?: string | null;
+    kind?: string | null;
+    title?: string | null;
+    raw?: unknown;
 }
 
 function matchesToolName(source: WorkflowToolNameSource, token: string): boolean {
-  const rawNames = isPlainRecord(source.raw)
-    ? [source.raw.toolName, source.raw.tool_name, source.raw.name]
-    : [];
-  return [source.toolName, source.kind, source.title, ...rawNames].some(
-    (value) => normalizeToolToken(value) === token,
-  );
+    const rawNames = isPlainRecord(source.raw)
+        ? [source.raw.toolName, source.raw.tool_name, source.raw.name]
+        : [];
+    return [source.toolName, source.kind, source.title, ...rawNames].some(
+        (value) => normalizeToolToken(value) === token,
+    );
 }
 
 export function isSaveWorkflowToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "saveworkflow");
+    return matchesToolName(source, "saveworkflow");
 }
 
 export function isListSavedWorkflowsToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "listsavedworkflows");
+    return matchesToolName(source, "listsavedworkflows");
 }
 
 export function isEscalateToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "escalate");
+    return matchesToolName(source, "escalate");
 }
 
 export function isResolveWorkflowQuestionToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "resolveworkflowquestion");
+    return matchesToolName(source, "resolveworkflowquestion");
 }
 
 export function isGetWorkflowRunToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "getworkflowrun");
+    return matchesToolName(source, "getworkflowrun");
 }
 
 export function isListWorkflowRunsToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "listworkflowruns");
+    return matchesToolName(source, "listworkflowruns");
 }
 
 export function isEvalWorkflowSnippetToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "evalworkflowsnippet");
+    return matchesToolName(source, "evalworkflowsnippet");
 }
 
 export function isResumeWorkflowRunToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "resumeworkflowrun");
+    return matchesToolName(source, "resumeworkflowrun");
 }
 
 /**
@@ -77,7 +77,7 @@ export function isResumeWorkflowRunToolCall(source: WorkflowToolNameSource): boo
  * `ListModels` 也不在已知工具表里，兜底卡会把那段以 providerId 开头的模型面文本原样摊开。
  */
 export function isListModelsToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "listmodels");
+    return matchesToolName(source, "listmodels");
 }
 
 /**
@@ -86,7 +86,7 @@ export function isListModelsToolCall(source: WorkflowToolNameSource): boolean {
  * 每一次创建，而 family 会把修订也算进来。
  */
 export function isCreateWorkflowToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "createworkflow");
+    return matchesToolName(source, "createworkflow");
 }
 
 /**
@@ -95,7 +95,7 @@ export function isCreateWorkflowToolCall(source: WorkflowToolNameSource): boolea
  * 一套修订词汇，而不是让 family 兜底把它画成一张普通的「创建工作流」卡。
  */
 export function isAmendWorkflowToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "amendworkflow");
+    return matchesToolName(source, "amendworkflow");
 }
 
 /**
@@ -104,5 +104,5 @@ export function isAmendWorkflowToolCall(source: WorkflowToolNameSource): boolean
  * ——「正在补全留白 / 留白补全草稿 / 留白已补全」（docs/dynamic-workflow/presentation.md「The fill row」）。
  */
 export function isFillWorkflowHoleToolCall(source: WorkflowToolNameSource): boolean {
-  return matchesToolName(source, "fillworkflowhole");
+    return matchesToolName(source, "fillworkflowhole");
 }

@@ -83,8 +83,8 @@ provider-native contract 转成 SDK provider tool 的地方。
 
 ```json
 {
-  "type": "web_search_20260209",
-  "name": "web_search"
+    "type": "web_search_20260209",
+    "name": "web_search"
 }
 ```
 

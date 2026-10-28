@@ -9,18 +9,18 @@
 export const REMOTE_AGENT_BUNDLE_NAME = "zcode.cjs";
 
 export function buildRemoteAgentBundleWrapper(runtimeResourceDir: string): string {
-  return [
-    "#!/bin/sh",
-    "set -eu",
-    'runtime_root="${ZCODE_SERVER_RUNTIME_ROOT:-$HOME/.zcode/server}"',
-    `exec "$runtime_root/node" "$HOME/.zcode/server/agents/${runtimeResourceDir}/${REMOTE_AGENT_BUNDLE_NAME}" "$@"`,
-    "",
-  ].join("\n");
+    return [
+        "#!/bin/sh",
+        "set -eu",
+        'runtime_root="${ZCODE_SERVER_RUNTIME_ROOT:-$HOME/.zcode/server}"',
+        `exec "$runtime_root/node" "$HOME/.zcode/server/agents/${runtimeResourceDir}/${REMOTE_AGENT_BUNDLE_NAME}" "$@"`,
+        "",
+    ].join("\n");
 }
 
 export function isRemoteAgentBundleWrapperCurrent(
-  content: string,
-  runtimeResourceDir: string,
+    content: string,
+    runtimeResourceDir: string,
 ): boolean {
-  return content.replace(/\r\n/g, "\n") === buildRemoteAgentBundleWrapper(runtimeResourceDir);
+    return content.replace(/\r\n/g, "\n") === buildRemoteAgentBundleWrapper(runtimeResourceDir);
 }

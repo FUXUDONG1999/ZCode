@@ -7,27 +7,27 @@ import { useServices } from "./useServices.js";
 
 /** 读取目录内容，自带 loading/error/refresh 状态管理 */
 export function useReaddir(path: string) {
-  const { fileService } = useServices();
-  const [entries, setEntries] = useState<FileEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+    const { fileService } = useServices();
+    const [entries, setEntries] = useState<FileEntry[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await fileService.readdir({ path });
-      setEntries(result);
-    } catch (e) {
-      setError(e instanceof Error ? e : new Error(String(e)));
-    } finally {
-      setLoading(false);
-    }
-  }, [fileService, path]);
+    const refresh = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const result = await fileService.readdir({ path });
+            setEntries(result);
+        } catch (e) {
+            setError(e instanceof Error ? e : new Error(String(e)));
+        } finally {
+            setLoading(false);
+        }
+    }, [fileService, path]);
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+    useEffect(() => {
+        refresh();
+    }, [refresh]);
 
-  return { entries, loading, error, refresh };
+    return { entries, loading, error, refresh };
 }

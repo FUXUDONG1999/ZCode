@@ -15,8 +15,8 @@
 7. [WebFetch](05-webfetch.md)
 8. [AskUserQuestion](06-ask-user-question.md)
 9. [Subagent](07-subagent.md)
-   - [Background Subagent 第一版实施规划（历史）](07-subagent-background-plan.md)
-   - [RespondToCoordinator 当前契约](../../../../../../docs/subagent-respond-to-coordinator.md)
+    - [Background Subagent 第一版实施规划（历史）](07-subagent-background-plan.md)
+    - [RespondToCoordinator 当前契约](../../../../../../docs/subagent-respond-to-coordinator.md)
 10. [TodoRead / TodoWrite](10-todo.md)
 11. [Tool Input Normalization](12-input-normalization.md)
 12. [WebSearch](13-websearch.md)
@@ -105,32 +105,32 @@ provider-visible `<tool_use_error>`，不得按 tool name 分支或解析英文 
 这里的“声明”不是一整段发给模型的提示文本，而是一份结构化契约。provider adapter 只把模型需要的部分投影出去，例如 `name`、`description`、`capability`、`inputSchema`、`outputSchema`；`permission`、`resultBudget`、`timeout`、`cancellation`、`trace` 主要由 ZCode runtime、executor、permission、scheduler、artifact/storage 和观测链路消费。
 
 1. 模型可见投影：
-   - `name`
-   - `description`
-   - `capability`
-   - `inputSchema`
-   - `outputSchema`（即使当前 provider 不消费，也必须在 ZCode 契约中存在）
+    - `name`
+    - `description`
+    - `capability`
+    - `inputSchema`
+    - `outputSchema`（即使当前 provider 不消费，也必须在 ZCode 契约中存在）
 
 2. runtime 可消费声明：
-   - `runtimeInputSchema`
-   - `runtimeOutputSchema`
-   - `readOnly`
-   - `destructive`
-   - `sideEffectScope`
-   - `concurrentSafe`
-   - `timeout`
-   - `cancellation`
-   - `resultBudget`
-   - `trace`
+    - `runtimeInputSchema`
+    - `runtimeOutputSchema`
+    - `readOnly`
+    - `destructive`
+    - `sideEffectScope`
+    - `concurrentSafe`
+    - `timeout`
+    - `cancellation`
+    - `resultBudget`
+    - `trace`
 
 3. 权限声明：
-   - `permission.permission`
-   - `permission.reason`
-   - `permission.riskLevel`
-   - `permission.sideEffectScope`
-   - `permission.needsApproval`
-   - `permission.patternSources`
-   - `permission.denyPriority`
+    - `permission.permission`
+    - `permission.reason`
+    - `permission.riskLevel`
+    - `permission.sideEffectScope`
+    - `permission.needsApproval`
+    - `permission.patternSources`
+    - `permission.denyPriority`
 
 `inputSchema` 和 `outputSchema` 是 provider-neutral JSON Schema，不是 Zod 对象；但内置 tool 的 JSON Schema 不应再手写维护。内置 tool 必须以 Zod runtime schema 作为唯一源，通过 `packages/contracts/src/tools/json-schema.ts` 的统一转换入口派生 provider-neutral JSON Schema。这样可以避免 `enum` 缺少 `type`、optional 字段 required 漂移、嵌套 object 约束不一致等问题。
 

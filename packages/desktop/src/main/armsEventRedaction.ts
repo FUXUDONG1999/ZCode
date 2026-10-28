@@ -27,66 +27,66 @@ const CLICK_NAME_PATTERN = /^(click on [a-z0-9-]+)(?::[\s\S]*)?$/iu;
 const CLICK_NAME_FALLBACK = "click";
 
 function isClickEvent(event: Record<string, unknown>): boolean {
-  return event.event_type === "click" || event.type === "click";
+    return event.event_type === "click" || event.type === "click";
 }
 
 function isExceptionEvent(event: Record<string, unknown>): boolean {
-  return event.event_type === "exception";
+    return event.event_type === "exception";
 }
 
 function isNativeDumpEvent(event: Record<string, unknown>): boolean {
-  // 原生 dump 由 crash collector 解析产生，其 binary_images / threads 已是结构化取证数据，
-  // 且 filterAndEnrichNativeCrashEvents 依赖 binary_images 判定产品二进制，不能在这里改写。
-  return event.type === "crash" && event.source === "crashReporter";
+    // 原生 dump 由 crash collector 解析产生，其 binary_images / threads 已是结构化取证数据，
+    // 且 filterAndEnrichNativeCrashEvents 依赖 binary_images 判定产品二进制，不能在这里改写。
+    return event.type === "crash" && event.source === "crashReporter";
 }
 
 function isResourceEvent(event: Record<string, unknown>): boolean {
-  const eventType = String(event.event_type ?? "").toLowerCase();
-  return eventType === "api" || eventType === "resource" || eventType.includes("resource");
+    const eventType = String(event.event_type ?? "").toLowerCase();
+    return eventType === "api" || eventType === "resource" || eventType.includes("resource");
 }
 
 function redactTextField(event: Record<string, unknown>, key: string, maxLength: number): void {
-  const value = event[key];
-  if (typeof value !== "string" || !value) {
-    return;
-  }
-  event[key] = redactTelemetryText(value, { maxLength });
+    const value = event[key];
+    if (typeof value !== "string" || !value) {
+        return;
+    }
+    event[key] = redactTelemetryText(value, { maxLength });
 }
 
 function redactUrlField(event: Record<string, unknown>, key: string): void {
-  const value = event[key];
-  if (typeof value !== "string" || !value) {
-    return;
-  }
-  event[key] = redactTelemetryUrl(value);
+    const value = event[key];
+    if (typeof value !== "string" || !value) {
+        return;
+    }
+    event[key] = redactTelemetryUrl(value);
 }
 
 function redactClickEvent(event: Record<string, unknown>): void {
-  const name = event.name;
-  event.name =
-    typeof name === "string"
-      ? (CLICK_NAME_PATTERN.exec(name)?.[1] ?? CLICK_NAME_FALLBACK)
-      : CLICK_NAME_FALLBACK;
-  // snapshots 的 href / src 可能是本地文件路径，id / className 对诊断没有增量价值。
-  delete event.snapshots;
+    const name = event.name;
+    event.name =
+        typeof name === "string"
+            ? (CLICK_NAME_PATTERN.exec(name)?.[1] ?? CLICK_NAME_FALLBACK)
+            : CLICK_NAME_FALLBACK;
+    // snapshots 的 href / src 可能是本地文件路径，id / className 对诊断没有增量价值。
+    delete event.snapshots;
 }
 
 function redactExceptionEvent(event: Record<string, unknown>): void {
-  if (isNativeDumpEvent(event)) {
-    return;
-  }
-  redactTextField(event, "message", EXCEPTION_MESSAGE_MAX_LENGTH);
-  redactTextField(event, "stack", EXCEPTION_STACK_MAX_LENGTH);
-  // 修复原因：jsError collector 把 ErrorEvent.filename 写进 file；Windows 安装版脚本位于
-  // C:\Users\<用户名>\AppData\...，与 stack 同规则处理，line / column 等结构化字段不动。
-  redactTextField(event, "file", EXCEPTION_MESSAGE_MAX_LENGTH);
-  redactTextField(event, "snapshots", EXCEPTION_STACK_MAX_LENGTH);
+    if (isNativeDumpEvent(event)) {
+        return;
+    }
+    redactTextField(event, "message", EXCEPTION_MESSAGE_MAX_LENGTH);
+    redactTextField(event, "stack", EXCEPTION_STACK_MAX_LENGTH);
+    // 修复原因：jsError collector 把 ErrorEvent.filename 写进 file；Windows 安装版脚本位于
+    // C:\Users\<用户名>\AppData\...，与 stack 同规则处理，line / column 等结构化字段不动。
+    redactTextField(event, "file", EXCEPTION_MESSAGE_MAX_LENGTH);
+    redactTextField(event, "snapshots", EXCEPTION_STACK_MAX_LENGTH);
 }
 
 function redactResourceEvent(event: Record<string, unknown>): void {
-  redactUrlField(event, "url");
-  redactUrlField(event, "name");
-  redactTextField(event, "message", EXCEPTION_MESSAGE_MAX_LENGTH);
+    redactUrlField(event, "url");
+    redactUrlField(event, "name");
+    redactTextField(event, "message", EXCEPTION_MESSAGE_MAX_LENGTH);
 }
 
 /**
@@ -96,23 +96,23 @@ function redactResourceEvent(event: Record<string, unknown>): void {
  * 构造处负责脱敏，不在这里二次改写，避免同一字段被两套规则处理后失去可读性。
  */
 export function redactArmsEventBatch(
-  events: Array<Record<string, unknown>>,
+    events: Array<Record<string, unknown>>,
 ): Array<Record<string, unknown>> {
-  for (const event of events) {
-    if (!event || typeof event !== "object") {
-      continue;
+    for (const event of events) {
+        if (!event || typeof event !== "object") {
+            continue;
+        }
+        if (isClickEvent(event)) {
+            redactClickEvent(event);
+            continue;
+        }
+        if (isExceptionEvent(event)) {
+            redactExceptionEvent(event);
+            continue;
+        }
+        if (isResourceEvent(event)) {
+            redactResourceEvent(event);
+        }
     }
-    if (isClickEvent(event)) {
-      redactClickEvent(event);
-      continue;
-    }
-    if (isExceptionEvent(event)) {
-      redactExceptionEvent(event);
-      continue;
-    }
-    if (isResourceEvent(event)) {
-      redactResourceEvent(event);
-    }
-  }
-  return events;
+    return events;
 }

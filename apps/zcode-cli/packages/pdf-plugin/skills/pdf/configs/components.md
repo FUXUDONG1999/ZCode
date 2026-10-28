@@ -15,9 +15,9 @@ The primary container for readable body text. Simulates printed text on frosted 
 
 ```json
 {
-  "type": "Glass_Canvas",
-  "markdown_content": "### The Divide\nYour text goes here. Supports standard Markdown.",
-  "tension_score": 0.8
+    "type": "Glass_Canvas",
+    "markdown_content": "### The Divide\nYour text goes here. Supports standard Markdown.",
+    "tension_score": 0.8
 }
 ```
 
@@ -36,11 +36,11 @@ Massive, page-dominating title text that physically interacts with the backgroun
 
 ```json
 {
-  "type": "Hero_Typography",
-  "content": "THE WEIGHT<br>OF SILENCE",
-  "weight": "black",
-  "variant": "standard",
-  "scale": 6
+    "type": "Hero_Typography",
+    "content": "THE WEIGHT<br>OF SILENCE",
+    "weight": "black",
+    "variant": "standard",
+    "scale": 6
 }
 ```
 
@@ -50,13 +50,13 @@ Massive, page-dominating title text that physically interacts with the backgroun
 - `weight`: (Required) `"black"` (900 weight, dominating) or `"thin"` (100 weight, whisper-quiet/elegant).
 - `variant`: (Optional) `"standard"` (default) only. ~~`"vertical_accent"`~~ is **NOT implemented** in `design_engine.py` — the engine silently ignores this parameter. Use `Floating_Meta` component instead for rotated/vertical decorative text.
 - `scale`: (Optional, integer 1–6) Typographic scale level. The engine maps this to fluid CSS `clamp()` sizes:
-  - `6` → `clamp(64px, 12vw, 150px)` — Hero/Display, maximum impact
-  - `5` → `clamp(48px, 8vw, 96px)` — Primary Title
-  - `4` → `clamp(32px, 5vw, 56px)` — Subheadline
-  - `3` → `clamp(20px, 3vw, 32px)` — Lead Paragraph
-  - `2` → `16px` — Body
-  - `1` → `10px` — Meta/Caption
-    If omitted, the engine uses the default hero font size from CSS.
+    - `6` → `clamp(64px, 12vw, 150px)` — Hero/Display, maximum impact
+    - `5` → `clamp(48px, 8vw, 96px)` — Primary Title
+    - `4` → `clamp(32px, 5vw, 56px)` — Subheadline
+    - `3` → `clamp(20px, 3vw, 32px)` — Lead Paragraph
+    - `2` → `16px` — Body
+    - `1` → `10px` — Meta/Caption
+      If omitted, the engine uses the default hero font size from CSS.
 
 ---
 
@@ -68,9 +68,9 @@ Small-text metadata positioned vertically in corners, mimicking art monograph in
 
 ```json
 {
-  "type": "Floating_Meta",
-  "position": "bottom-right",
-  "items": ["CATALOG NO. 2026.031", "EDITION 1/500"]
+    "type": "Floating_Meta",
+    "position": "bottom-right",
+    "items": ["CATALOG NO. 2026.031", "EDITION 1/500"]
 }
 ```
 
@@ -89,10 +89,10 @@ Data sculpture. Transforms boring numbers into massive visual objects.
 
 ```json
 {
-  "type": "Stat_Block",
-  "number": "97.3",
-  "unit": "%",
-  "label": "COMPLETION RATE"
+    "type": "Stat_Block",
+    "number": "97.3",
+    "unit": "%",
+    "label": "COMPLETION RATE"
 }
 ```
 
@@ -112,8 +112,8 @@ Ultra-thin separator lines. Structural, like fold lines in print.
 
 ```json
 {
-  "type": "Hairline_Divider",
-  "style": "accent"
+    "type": "Hairline_Divider",
+    "style": "accent"
 }
 ```
 
@@ -131,8 +131,8 @@ Giant, 4% opacity watermark numbers that become part of the page's atmosphere.
 
 ```json
 {
-  "type": "Page_Ghost_Number",
-  "number": "03"
+    "type": "Page_Ghost_Number",
+    "number": "03"
 }
 ```
 
@@ -146,20 +146,20 @@ A container where text flows around a non-rectangular shape. The empty space cre
 
 ```json
 {
-  "type": "Shaped_Canvas",
-  "shape_keyword": "wave",
-  "markdown_content": "The ocean stretched endlessly... (recommended under 150 words, absolute max 250)"
+    "type": "Shaped_Canvas",
+    "shape_keyword": "wave",
+    "markdown_content": "The ocean stretched endlessly... (recommended under 150 words, absolute max 250)"
 }
 ```
 
 **Parameters & Shape Presets:**
 
 - `shape_keyword`: MUST be one of the following:
-  - `"circle"`: Unity, spotlight, focus.
-  - `"wave"`: Ocean, flow, fluidity.
-  - `"diagonal_slash"`: Disruption, change, energy.
-  - `"diamond"`: Luxury, precision, crystalline.
-  - `"wedge_right"`: Direction, progress, forward motion.
+    - `"circle"`: Unity, spotlight, focus.
+    - `"wave"`: Ocean, flow, fluidity.
+    - `"diagonal_slash"`: Disruption, change, energy.
+    - `"diamond"`: Luxury, precision, crystalline.
+    - `"wedge_right"`: Direction, progress, forward motion.
 - `markdown_content`: Text to wrap around the shape.
 
 **CRITICAL Layout Constraint:**

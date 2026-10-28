@@ -1,6 +1,6 @@
 import type {
-  V4InteractionAnswer,
-  V4InteractionRegistrationOptions,
+    V4InteractionAnswer,
+    V4InteractionRegistrationOptions,
 } from "../zcode-protocol-v4/interaction-registry.js";
 import type { ZCodeProtocolAgentServerContext } from "./server-types.js";
 
@@ -18,85 +18,85 @@ import type { ZCodeProtocolAgentServerContext } from "./server-types.js";
  *   （resolveInteraction handler 幂等收口）。
  */
 export async function raceClientRequestWithV4Interaction<T>(
-  context: ZCodeProtocolAgentServerContext,
-  interactionId: string,
-  outerSignal: AbortSignal | undefined,
-  startRequest: (signal: AbortSignal) => Promise<T>,
-  mapAnswer: (answer: V4InteractionAnswer) => T,
-  registrationOptions?: V4InteractionRegistrationOptions,
-  onRegistered?: () => void,
+    context: ZCodeProtocolAgentServerContext,
+    interactionId: string,
+    outerSignal: AbortSignal | undefined,
+    startRequest: (signal: AbortSignal) => Promise<T>,
+    mapAnswer: (answer: V4InteractionAnswer) => T,
+    registrationOptions?: V4InteractionRegistrationOptions,
+    onRegistered?: () => void,
 ): Promise<T> {
-  const controller = new AbortController();
-  // 每次尝试独立等待失败通知；成功仍由 registry 的 V4 answer 解除等待。
-  // 仅复位布尔值唤不醒已经 await 的 legacy 应答；复用一次性通知又会让重试提前放行。
-  let fullAccessFailure: Promise<void> | undefined;
-  let finishAnswer!: () => void;
-  const answerReady = new Promise<void>((resolve) => {
-    finishAnswer = resolve;
-  });
-  const forwardAbort = () => {
-    controller.abort();
-    finishAnswer();
-  };
-  if (outerSignal?.aborted) {
-    controller.abort();
-  } else {
-    outerSignal?.addEventListener("abort", forwardAbort, { once: true });
-  }
+    const controller = new AbortController();
+    // 每次尝试独立等待失败通知；成功仍由 registry 的 V4 answer 解除等待。
+    // 仅复位布尔值唤不醒已经 await 的 legacy 应答；复用一次性通知又会让重试提前放行。
+    let fullAccessFailure: Promise<void> | undefined;
+    let finishAnswer!: () => void;
+    const answerReady = new Promise<void>((resolve) => {
+        finishAnswer = resolve;
+    });
+    const forwardAbort = () => {
+        controller.abort();
+        finishAnswer();
+    };
+    if (outerSignal?.aborted) {
+        controller.abort();
+    } else {
+        outerSignal?.addEventListener("abort", forwardAbort, { once: true });
+    }
 
-  // 用容器而非裸值区分"应答就是 undefined 字段"与"尚未应答"。
-  let v4Answer: { answer: V4InteractionAnswer } | undefined;
-  const unregister = context.v4Interactions.register(
-    interactionId,
-    (answer) => {
-      v4Answer = { answer };
-      controller.abort();
-      finishAnswer();
-    },
-    registrationOptions?.fullAccess
-      ? {
-          ...registrationOptions,
-          fullAccess: async () => {
-            let notifyFailure!: () => void;
-            const failure = new Promise<void>((resolve) => {
-              notifyFailure = resolve;
-            });
-            fullAccessFailure = failure;
-            try {
-              await registrationOptions.fullAccess!();
-            } catch (error) {
-              if (fullAccessFailure === failure) fullAccessFailure = undefined;
-              notifyFailure();
-              throw error;
-            }
-          },
+    // 用容器而非裸值区分"应答就是 undefined 字段"与"尚未应答"。
+    let v4Answer: { answer: V4InteractionAnswer } | undefined;
+    const unregister = context.v4Interactions.register(
+        interactionId,
+        (answer) => {
+            v4Answer = { answer };
+            controller.abort();
+            finishAnswer();
+        },
+        registrationOptions?.fullAccess
+            ? {
+                  ...registrationOptions,
+                  fullAccess: async () => {
+                      let notifyFailure!: () => void;
+                      const failure = new Promise<void>((resolve) => {
+                          notifyFailure = resolve;
+                      });
+                      fullAccessFailure = failure;
+                      try {
+                          await registrationOptions.fullAccess!();
+                      } catch (error) {
+                          if (fullAccessFailure === failure) fullAccessFailure = undefined;
+                          notifyFailure();
+                          throw error;
+                      }
+                  },
+              }
+            : registrationOptions,
+    );
+
+    const waitForFullAccess = async () => {
+        while (fullAccessFailure && !v4Answer && !outerSignal?.aborted) {
+            await Promise.race([fullAccessFailure, answerReady]);
         }
-      : registrationOptions,
-  );
+    };
 
-  const waitForFullAccess = async () => {
-    while (fullAccessFailure && !v4Answer && !outerSignal?.aborted) {
-      await Promise.race([fullAccessFailure, answerReady]);
+    try {
+        onRegistered?.();
+        const result = await startRequest(controller.signal);
+        if (fullAccessFailure) {
+            await waitForFullAccess();
+            if (v4Answer) return mapAnswer(v4Answer.answer);
+            outerSignal?.throwIfAborted();
+        }
+        return result;
+    } catch (error) {
+        if (fullAccessFailure) await waitForFullAccess();
+        if (v4Answer) {
+            return mapAnswer(v4Answer.answer);
+        }
+        throw error;
+    } finally {
+        unregister();
+        outerSignal?.removeEventListener("abort", forwardAbort);
     }
-  };
-
-  try {
-    onRegistered?.();
-    const result = await startRequest(controller.signal);
-    if (fullAccessFailure) {
-      await waitForFullAccess();
-      if (v4Answer) return mapAnswer(v4Answer.answer);
-      outerSignal?.throwIfAborted();
-    }
-    return result;
-  } catch (error) {
-    if (fullAccessFailure) await waitForFullAccess();
-    if (v4Answer) {
-      return mapAnswer(v4Answer.answer);
-    }
-    throw error;
-  } finally {
-    unregister();
-    outerSignal?.removeEventListener("abort", forwardAbort);
-  }
 }

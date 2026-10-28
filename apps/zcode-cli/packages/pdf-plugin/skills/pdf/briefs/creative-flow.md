@@ -34,29 +34,29 @@ node "$PDF_SKILL_DIR/scripts/html2pdf-next.js" input.html --output output.pdf --
 ```css
 /* Cover: fixed height, standalone page */
 .cover {
-  width: 720px;
-  height: 1020px;
-  box-sizing: border-box;
-  break-after: page;
-  overflow: hidden; /* OK here — clips decorative elements on cover only */
-  /* ⚠️ Use justify-content: center (NOT flex-end) to avoid top-heavy blank */
-  /* Add decorative elements (circles, lines) + bottom edition label for visual balance */
+    width: 720px;
+    height: 1020px;
+    box-sizing: border-box;
+    break-after: page;
+    overflow: hidden; /* OK here — clips decorative elements on cover only */
+    /* ⚠️ Use justify-content: center (NOT flex-end) to avoid top-heavy blank */
+    /* Add decorative elements (circles, lines) + bottom edition label for visual balance */
 }
 
 /* Ending: fixed height, standalone page */
 .ending {
-  width: 720px;
-  height: 1020px;
-  box-sizing: border-box;
-  break-before: page;
-  overflow: hidden;
+    width: 720px;
+    height: 1020px;
+    box-sizing: border-box;
+    break-before: page;
+    overflow: hidden;
 }
 
 /* Content: flows naturally, NO fixed height */
 .main-content {
-  padding: 60px 65px 40px 65px;
-  /* NO height property */
-  /* NO overflow: hidden */
+    padding: 60px 65px 40px 65px;
+    /* NO height property */
+    /* NO overflow: hidden */
 }
 ```
 
@@ -78,34 +78,34 @@ node "$PDF_SKILL_DIR/scripts/html2pdf-next.js" input.html --output output.pdf --
 
 ```css
 @page {
-  size: 720px 1020px; /* Concrete px values — CSS variables NOT supported in @page */
-  margin: 0;
+    size: 720px 1020px; /* Concrete px values — CSS variables NOT supported in @page */
+    margin: 0;
 }
 :root {
-  --c-bg: #0d0d0d;
-  --c-text: #e8e6e3;
-  --c-accent: #ff4757;
+    --c-bg: #0d0d0d;
+    --c-text: #e8e6e3;
+    --c-accent: #ff4757;
 }
 html,
 body {
-  margin: 0;
-  padding: 0;
-  width: 720px;
-  background: var(--c-bg);
-  color: var(--c-text);
-  font-family: "Noto Sans SC", sans-serif;
+    margin: 0;
+    padding: 0;
+    width: 720px;
+    background: var(--c-bg);
+    color: var(--c-text);
+    font-family: "Noto Sans SC", sans-serif;
 }
 @media screen {
-  html {
-    height: auto;
-    display: flex;
-    justify-content: center;
-    background: #222;
-  }
-  body {
-    transform-origin: top center;
-    margin: 20px auto;
-  }
+    html {
+        height: auto;
+        display: flex;
+        justify-content: center;
+        background: #222;
+    }
+    body {
+        transform-origin: top center;
+        margin: 20px auto;
+    }
 }
 ```
 
@@ -117,38 +117,38 @@ body {
 
 ```html
 <body>
-  <!-- Cover: fixed height, occupies one full page -->
-  <div class="cover">
-    <div class="tag">CATEGORY</div>
-    <div class="title">Document Title</div>
-    <div class="subtitle">Description text</div>
-  </div>
-
-  <!-- All body content in ONE continuous container -->
-  <div class="main-content">
-    <!-- Chapter 1 -->
-    <div class="section-tag">Chapter 1</div>
-    <div class="section-title">Title</div>
-    <div class="divider"></div>
-    <div class="body-text">Paragraph content...</div>
-    <div class="body-text">More paragraphs...</div>
-
-    <!-- Chapter 2: separated by margin-top, NOT break-before -->
-    <div class="chapter-header">
-      <div class="section-tag">Chapter 2</div>
-      <div class="section-title">Title</div>
-      <div class="divider"></div>
+    <!-- Cover: fixed height, occupies one full page -->
+    <div class="cover">
+        <div class="tag">CATEGORY</div>
+        <div class="title">Document Title</div>
+        <div class="subtitle">Description text</div>
     </div>
 
-    <!-- Cards / items with break-inside: avoid -->
-    <div class="card">Card content...</div>
-    <div class="card">Card content...</div>
-  </div>
+    <!-- All body content in ONE continuous container -->
+    <div class="main-content">
+        <!-- Chapter 1 -->
+        <div class="section-tag">Chapter 1</div>
+        <div class="section-title">Title</div>
+        <div class="divider"></div>
+        <div class="body-text">Paragraph content...</div>
+        <div class="body-text">More paragraphs...</div>
 
-  <!-- Ending: fixed height, occupies one full page -->
-  <div class="ending">
-    <div class="big-text">Closing text</div>
-  </div>
+        <!-- Chapter 2: separated by margin-top, NOT break-before -->
+        <div class="chapter-header">
+            <div class="section-tag">Chapter 2</div>
+            <div class="section-title">Title</div>
+            <div class="divider"></div>
+        </div>
+
+        <!-- Cards / items with break-inside: avoid -->
+        <div class="card">Card content...</div>
+        <div class="card">Card content...</div>
+    </div>
+
+    <!-- Ending: fixed height, occupies one full page -->
+    <div class="ending">
+        <div class="big-text">Closing text</div>
+    </div>
 </body>
 ```
 
@@ -156,13 +156,13 @@ Key CSS for chapter headers and cards:
 
 ```css
 .chapter-header {
-  break-after: avoid; /* Keep header with first content block */
-  break-inside: avoid;
-  margin-top: 28px; /* ≤ 30px! Larger values compound with break-inside: avoid → blank pages */
+    break-after: avoid; /* Keep header with first content block */
+    break-inside: avoid;
+    margin-top: 28px; /* ≤ 30px! Larger values compound with break-inside: avoid → blank pages */
 }
 .card {
-  break-inside: avoid; /* Don't split a single card across pages */
-  margin-bottom: 14px; /* ≤ 16px! Every px of margin is lost space if card is pushed to next page */
+    break-inside: avoid; /* Don't split a single card across pages */
+    margin-bottom: 14px; /* ≤ 16px! Every px of margin is lost space if card is pushed to next page */
 }
 ```
 
@@ -203,8 +203,8 @@ For CJK content, always load Google Fonts via `<link>` tag in `<head>` (NOT `@im
 
 ```html
 <link
-  href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;700;900&display=swap"
-  rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;700;900&display=swap"
+    rel="stylesheet"
 />
 ```
 

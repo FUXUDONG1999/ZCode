@@ -28,35 +28,35 @@ export type InstancePhases = ReadonlyMap<string, string>;
  * 而出生时刻在上一个阶段；派发更是可能卡在并发上界后面，等到脚本已走过好几个标记。
  */
 export function stampBirthPhase(event: RunEvent, instancePhases: InstancePhases): RunEvent {
-  if (event.type === "actor-created") {
-    const phaseName = instancePhases.get(refToString(event.actor));
-    return phaseName === undefined ? event : { ...event, phaseName };
-  }
-  if (event.type === "node-queued") {
-    const phaseName = instancePhases.get(refToString(event.instance));
-    return phaseName === undefined ? event : { ...event, phaseName };
-  }
-  if (event.type === "node-dispatched" && event.actor !== undefined) {
-    const phaseName = instancePhases.get(refToString(event.instance));
-    const actorPhaseName = instancePhases.get(refToString(event.actor));
-    if (phaseName === undefined && actorPhaseName === undefined) return event;
-    return {
-      ...event,
-      ...(phaseName === undefined ? {} : { phaseName }),
-      ...(actorPhaseName === undefined ? {} : { actorPhaseName }),
-    };
-  }
-  if (event.type === "node-settled" && event.cached === true) {
-    const phaseName = instancePhases.get(refToString(event.instance));
-    return phaseName === undefined ? event : { ...event, phaseName };
-  }
-  // 留白的到达也是一次出生（docs/execution-engine.md「Holes」）：序号与节点同族铸造，出生
-  // 阶段同一张表——没有行，事件是它唯一的坐标。
-  if (event.type === "hole-reached") {
-    const phaseName = instancePhases.get(refToString(event.instance));
-    return phaseName === undefined ? event : { ...event, phaseName };
-  }
-  return event;
+    if (event.type === "actor-created") {
+        const phaseName = instancePhases.get(refToString(event.actor));
+        return phaseName === undefined ? event : { ...event, phaseName };
+    }
+    if (event.type === "node-queued") {
+        const phaseName = instancePhases.get(refToString(event.instance));
+        return phaseName === undefined ? event : { ...event, phaseName };
+    }
+    if (event.type === "node-dispatched" && event.actor !== undefined) {
+        const phaseName = instancePhases.get(refToString(event.instance));
+        const actorPhaseName = instancePhases.get(refToString(event.actor));
+        if (phaseName === undefined && actorPhaseName === undefined) return event;
+        return {
+            ...event,
+            ...(phaseName === undefined ? {} : { phaseName }),
+            ...(actorPhaseName === undefined ? {} : { actorPhaseName }),
+        };
+    }
+    if (event.type === "node-settled" && event.cached === true) {
+        const phaseName = instancePhases.get(refToString(event.instance));
+        return phaseName === undefined ? event : { ...event, phaseName };
+    }
+    // 留白的到达也是一次出生（docs/execution-engine.md「Holes」）：序号与节点同族铸造，出生
+    // 阶段同一张表——没有行，事件是它唯一的坐标。
+    if (event.type === "hole-reached") {
+        const phaseName = instancePhases.get(refToString(event.instance));
+        return phaseName === undefined ? event : { ...event, phaseName };
+    }
+    return event;
 }
 
 /**
@@ -66,17 +66,17 @@ export function stampBirthPhase(event: RunEvent, instancePhases: InstancePhases)
  * 标记之前 → 原样返回。
  */
 export function enrichProviderStopPhase(
-  error: WorkflowError,
-  instancePhases: InstancePhases,
+    error: WorkflowError,
+    instancePhases: InstancePhases,
 ): WorkflowError {
-  const details = error.providerStop;
-  if (details === undefined || details.subagent === undefined || details.phase !== undefined) {
-    return error;
-  }
-  const phase = instancePhases.get(details.subagent);
-  if (phase === undefined) return error;
-  return new WorkflowError(error.code, error.message, {
-    providerStop: { ...details, phase },
-    cause: (error as { cause?: unknown }).cause,
-  });
+    const details = error.providerStop;
+    if (details === undefined || details.subagent === undefined || details.phase !== undefined) {
+        return error;
+    }
+    const phase = instancePhases.get(details.subagent);
+    if (phase === undefined) return error;
+    return new WorkflowError(error.code, error.message, {
+        providerStop: { ...details, phase },
+        cause: (error as { cause?: unknown }).cause,
+    });
 }

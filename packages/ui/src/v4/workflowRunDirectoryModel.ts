@@ -1,6 +1,6 @@
 import type {
-  V4ConversationWorkflowRunSummary,
-  WorkflowRunState,
+    V4ConversationWorkflowRunSummary,
+    WorkflowRunState,
 } from "@zcode/shared/zcode-protocol-v4";
 
 /**
@@ -28,15 +28,15 @@ export const WORKFLOW_RUN_DIRECTORY_LIMIT = 64;
 export type WorkflowRunDirectoryRow = V4ConversationWorkflowRunSummary & { toolCallId: string };
 
 interface WorkflowRunDirectory {
-  /** `pending` / `running`：还在动的。 */
-  running: WorkflowRunDirectoryRow[];
-  /** `completed` / `errored` / `stopped`：一个桶，行上的状态词负责说清结局。 */
-  ended: WorkflowRunDirectoryRow[];
-  /**
-   * 这一页是否已经取满（后面可能还有）。按**查询返回的条数**判，不按过滤后的行数判：
-   * 一页全是缺 `toolCallId` 的老 run 时，屏幕上零行、但「就这些」是假话。
-   */
-  truncated: boolean;
+    /** `pending` / `running`：还在动的。 */
+    running: WorkflowRunDirectoryRow[];
+    /** `completed` / `errored` / `stopped`：一个桶，行上的状态词负责说清结局。 */
+    ended: WorkflowRunDirectoryRow[];
+    /**
+     * 这一页是否已经取满（后面可能还有）。按**查询返回的条数**判，不按过滤后的行数判：
+     * 一页全是缺 `toolCallId` 的老 run 时，屏幕上零行、但「就这些」是假话。
+     */
+    truncated: boolean;
 }
 
 /**
@@ -45,13 +45,13 @@ interface WorkflowRunDirectory {
  * 的老 run 因此在 GUI 里不可达。
  */
 function hasDetailAnchor(
-  summary: V4ConversationWorkflowRunSummary,
+    summary: V4ConversationWorkflowRunSummary,
 ): summary is WorkflowRunDirectoryRow {
-  return summary.toolCallId !== undefined;
+    return summary.toolCallId !== undefined;
 }
 
 function isEnded(summary: V4ConversationWorkflowRunSummary): boolean {
-  return summary.status !== "pending" && summary.status !== "running";
+    return summary.status !== "pending" && summary.status !== "running";
 }
 
 /**
@@ -62,14 +62,14 @@ function isEnded(summary: V4ConversationWorkflowRunSummary): boolean {
  * 抢同一个决定，而两处一旦不一致，列表会在每次重取时跳位。
  */
 export function buildWorkflowRunDirectory(
-  summaries: readonly V4ConversationWorkflowRunSummary[] | null | undefined,
+    summaries: readonly V4ConversationWorkflowRunSummary[] | null | undefined,
 ): WorkflowRunDirectory {
-  const rows = (summaries ?? []).filter(hasDetailAnchor);
-  return {
-    running: rows.filter((row) => !isEnded(row)),
-    ended: rows.filter(isEnded),
-    truncated: (summaries?.length ?? 0) >= WORKFLOW_RUN_DIRECTORY_LIMIT,
-  };
+    const rows = (summaries ?? []).filter(hasDetailAnchor);
+    return {
+        running: rows.filter((row) => !isEnded(row)),
+        ended: rows.filter(isEnded),
+        truncated: (summaries?.length ?? 0) >= WORKFLOW_RUN_DIRECTORY_LIMIT,
+    };
 }
 
 /**
@@ -77,9 +77,9 @@ export function buildWorkflowRunDirectory(
  * 这条不变量是这个模块存在的理由，别在调用点用 `summaries.filter(...)` 抄近路。
  */
 export function countEndedWorkflowRuns(
-  summaries: readonly V4ConversationWorkflowRunSummary[] | null | undefined,
+    summaries: readonly V4ConversationWorkflowRunSummary[] | null | undefined,
 ): number {
-  return buildWorkflowRunDirectory(summaries).ended.length;
+    return buildWorkflowRunDirectory(summaries).ended.length;
 }
 
 /**
@@ -97,9 +97,11 @@ export function countEndedWorkflowRuns(
  * 口径一致还不够，新鲜度也必须一致——实测过的失效正是「岛更新了、它开出来的页面没更新」。
  */
 export function workflowRunDirectoryRefreshKey(
-  runs: readonly WorkflowRunState[] | null | undefined,
+    runs: readonly WorkflowRunState[] | null | undefined,
 ): string {
-  const all = runs ?? [];
-  const settled = all.filter((run) => run.status !== "pending" && run.status !== "running").length;
-  return `${all.length}:${settled}`;
+    const all = runs ?? [];
+    const settled = all.filter(
+        (run) => run.status !== "pending" && run.status !== "running",
+    ).length;
+    return `${all.length}:${settled}`;
 }

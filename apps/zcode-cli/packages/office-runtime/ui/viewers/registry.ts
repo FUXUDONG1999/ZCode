@@ -10,14 +10,14 @@ import { PptxView } from "#ui/viewers/PptxView.tsx"; // kind:pptx
 import { XlsxView, loadXlsxWasm } from "#ui/viewers/XlsxView.tsx"; // kind:xlsx
 
 export interface ViewerEntry {
-  view: ComponentType<ViewerProps & RefAttributes<ViewerHandle>>;
-  /** Loads what the viewer needs besides the file (fetched alongside the file's bytes). */
-  prepare?: () => Promise<unknown>;
+    view: ComponentType<ViewerProps & RefAttributes<ViewerHandle>>;
+    /** Loads what the viewer needs besides the file (fetched alongside the file's bytes). */
+    prepare?: () => Promise<unknown>;
 }
 
 export const VIEWERS: Partial<Record<DocKind, ViewerEntry>> = {
-  docx: { view: DocxView }, // kind:docx
-  pdf: { view: PdfView, prepare: prepareCjkFonts }, // kind:pdf
-  pptx: { view: PptxView }, // kind:pptx
-  xlsx: { view: XlsxView, prepare: loadXlsxWasm }, // kind:xlsx
+    docx: { view: DocxView }, // kind:docx
+    pdf: { view: PdfView, prepare: prepareCjkFonts }, // kind:pdf
+    pptx: { view: PptxView }, // kind:pptx
+    xlsx: { view: XlsxView, prepare: loadXlsxWasm }, // kind:xlsx
 };

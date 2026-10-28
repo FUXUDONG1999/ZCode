@@ -23,7 +23,7 @@ export const WORKFLOW_SKILL_NOT_LOADED_CODE = 428;
 
 /** 门在场时的判据；单独导出给探针实现与测试复用。 */
 export function isDynamicWorkflowSkillLoaded(context: ToolInputResolutionContext): boolean {
-  return context.hasLoadedSkill?.(DYNAMIC_WORKFLOW_SKILL_NAME) ?? true;
+    return context.hasLoadedSkill?.(DYNAMIC_WORKFLOW_SKILL_NAME) ?? true;
 }
 
 /**
@@ -32,35 +32,35 @@ export function isDynamicWorkflowSkillLoaded(context: ToolInputResolutionContext
  * @param toolName 拒绝文案里点名的工具，让模型知道重试哪一个。
  */
 export function requireDynamicWorkflowSkill(
-  context: ToolInputResolutionContext,
-  toolName: string,
+    context: ToolInputResolutionContext,
+    toolName: string,
 ): ToolHandlerFailure | undefined {
-  if (isDynamicWorkflowSkillLoaded(context)) return undefined;
-  return {
-    result: false,
-    errorCode: WORKFLOW_SKILL_NOT_LOADED_CODE,
-    message: `${toolName} needs the \`${DYNAMIC_WORKFLOW_SKILL_NAME}\` skill loaded in this session before it accepts a script. Call the Skill tool with skill "${DYNAMIC_WORKFLOW_SKILL_NAME}" first — it carries the facade declarations the script is checked against, the authoring rules and this tool's full contract — then call ${toolName} again. Nothing was started.`,
-  };
+    if (isDynamicWorkflowSkillLoaded(context)) return undefined;
+    return {
+        result: false,
+        errorCode: WORKFLOW_SKILL_NOT_LOADED_CODE,
+        message: `${toolName} needs the \`${DYNAMIC_WORKFLOW_SKILL_NAME}\` skill loaded in this session before it accepts a script. Call the Skill tool with skill "${DYNAMIC_WORKFLOW_SKILL_NAME}" first — it carries the facade declarations the script is checked against, the authoring rules and this tool's full contract — then call ${toolName} again. Nothing was started.`,
+    };
 }
 
 /** CreateWorkflow 的例外：按名字跑一个保存的工作流不是写脚本，不需要技能。 */
 export function createWorkflowNeedsSkill(input: unknown): boolean {
-  const fields = asRecord(input);
-  if (fields === undefined) return true;
-  const runsSavedOnly =
-    fields.saved !== undefined && fields.script === undefined && fields.path === undefined;
-  return !runsSavedOnly;
+    const fields = asRecord(input);
+    if (fields === undefined) return true;
+    const runsSavedOnly =
+        fields.saved !== undefined && fields.script === undefined && fields.path === undefined;
+    return !runsSavedOnly;
 }
 
 /** AmendWorkflow 的例外：只改设定（`path` 与 `script` 都不带）沿用前驱的脚本，不是写脚本。 */
 export function amendWorkflowNeedsSkill(input: unknown): boolean {
-  const fields = asRecord(input);
-  if (fields === undefined) return true;
-  return fields.script !== undefined || fields.path !== undefined;
+    const fields = asRecord(input);
+    if (fields === undefined) return true;
+    return fields.script !== undefined || fields.path !== undefined;
 }
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
+    return value !== null && typeof value === "object" && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : undefined;
 }

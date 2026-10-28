@@ -15,15 +15,15 @@ export type { AccountProviderUnavailableReason } from "@zcode/shared/account-pro
  * current 表示匹配当前账号访问上下文：Start 可与当前付费套餐同时为 true；Off-Peak 不定义。
  */
 export interface AccountProviderState {
-  readonly availability: "available" | "pending" | "unavailable" | "unknown";
-  readonly entitled: boolean;
-  /** 仅在 availability === "unavailable" 时有意义；unknown 表示本轮无法判定原因。 */
-  readonly unavailableReason?: AccountProviderUnavailableReason;
-  readonly current?: boolean;
-  /** 同一快照的账号/连接身份，仅供状态变化隔离；不持久化、不包含凭据。 */
-  readonly connectionKey?: string;
-  /** Unix 秒；与 billing effective_at 的单位一致。 */
-  readonly effectiveAt?: number;
+    readonly availability: "available" | "pending" | "unavailable" | "unknown";
+    readonly entitled: boolean;
+    /** 仅在 availability === "unavailable" 时有意义；unknown 表示本轮无法判定原因。 */
+    readonly unavailableReason?: AccountProviderUnavailableReason;
+    readonly current?: boolean;
+    /** 同一快照的账号/连接身份，仅供状态变化隔离；不持久化、不包含凭据。 */
+    readonly connectionKey?: string;
+    /** Unix 秒；与 billing effective_at 的单位一致。 */
+    readonly effectiveAt?: number;
 }
 
 export type AccountProviderStates = Readonly<Record<string, AccountProviderState>>;

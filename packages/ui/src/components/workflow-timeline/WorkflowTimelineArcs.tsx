@@ -1,15 +1,15 @@
 import type { ReactNode } from "react";
 import type { TimelineArc, TimelineBand, TimelineInk, TimelineStation } from "./timeline-model.js";
 import {
-  ARC_BASE,
-  ARC_LANE,
-  arcEnds,
-  arcTerminalOffsets,
-  bandAt,
-  bandForkX,
-  bandMergeX,
-  lampX,
-  type TimelineLayout,
+    ARC_BASE,
+    ARC_LANE,
+    arcEnds,
+    arcTerminalOffsets,
+    bandAt,
+    bandForkX,
+    bandMergeX,
+    lampX,
+    type TimelineLayout,
 } from "./timeline-geometry.js";
 import { MarchLight } from "./WorkflowMarchLight.js";
 import { STREAM_GAP, StreamChevrons } from "./WorkflowStreamChevrons.js";
@@ -32,127 +32,127 @@ import { STREAM_GAP, StreamChevrons } from "./WorkflowStreamChevrons.js";
  * 读起来是断开的。设计画布的生成器停在 `rowY[R−1]` 是省事，不是设计。
  */
 const INK_STROKE: Record<TimelineInk, string> = {
-  faint: "var(--color-workflow-trace)",
-  march: "var(--color-workflow-trace-strong)",
-  strong: "var(--color-workflow-trace-strong)",
+    faint: "var(--color-workflow-trace)",
+    march: "var(--color-workflow-trace-strong)",
+    strong: "var(--color-workflow-trace-strong)",
 };
 
 export function WorkflowTimelineArcs({
-  arcs,
-  bands,
-  children,
-  height,
-  layout,
-  markerId,
-  stations,
-  width,
+    arcs,
+    bands,
+    children,
+    height,
+    layout,
+    markerId,
+    stations,
+    width,
 }: {
-  arcs: readonly TimelineArc[];
-  bands: readonly TimelineBand[];
-  /** 全部的站（不是草稿切过的那一段）：弧的下标指向它，要读每一站的轨道。 */
-  stations: readonly TimelineStation[];
-  layout: TimelineLayout;
-  width: number;
-  height: number;
-  markerId: string;
-  children?: ReactNode;
+    arcs: readonly TimelineArc[];
+    bands: readonly TimelineBand[];
+    /** 全部的站（不是草稿切过的那一段）：弧的下标指向它，要读每一站的轨道。 */
+    stations: readonly TimelineStation[];
+    layout: TimelineLayout;
+    width: number;
+    height: number;
+    markerId: string;
+    children?: ReactNode;
 }) {
-  const terminals = arcTerminalOffsets(arcs, bands, stations);
-  const { inset, rowY } = layout;
-  const rowOf = (track: number): number => rowY[track] ?? rowY[0]!;
-  const trackOf = (index: number): number => stations[index]?.track ?? 0;
-  // 整层是装饰，不接指针。修复原因（2026-09-29 实测）：这层 SVG 铺满整张时间线、又画在补全的头之后，
-  // 头那一行的悬停与点击全被它吞掉——框点不亮，点头也开不了侧板。站与药丸画在它之上，所以此前没人发现。
-  return (
-    <svg
-      aria-hidden
-      className="pointer-events-none absolute left-0 top-0 overflow-visible"
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      width={width}
-    >
-      <defs>
-        {(["faint", "strong"] as const).map((ink) => (
-          <marker
-            id={`${markerId}-${ink}`}
-            key={ink}
-            markerHeight="6"
-            markerWidth="6"
-            orient="auto-start-reverse"
-            refX="7"
-            refY="4"
-            viewBox="0 0 8 8"
-          >
-            <path d="M0,0.5 L7,4 L0,7.5 Z" fill={INK_STROKE[ink]} />
-          </marker>
-        ))}
-      </defs>
-      {children}
-      {arcs.map((arc, j) => {
-        // 带内同一条轨道的弧整条住在那条轨道的空里，两端仍是灯；其余的弧把带当一个节点（`arcEnds`）。
-        const { fromBand, toBand } = arcEnds(arc, bands, stations);
-        const source = bandAt(bands, arc.from);
-        const target = bandAt(bands, arc.to);
-        const ly = rowOf(arc.air) - ARC_BASE - ARC_LANE * arc.lane;
-        // 灯上的两端各就各的槽；分叉点与汇合点是一个点，不是一排灯，不占槽（偏移恒为 0）。
-        const xa =
-          fromBand && source !== undefined
-            ? bandMergeX(source, inset)
-            : lampX(arc.from, inset) + terminals.takeoff[j]!;
-        const xb =
-          toBand && target !== undefined
-            ? bandForkX(target, inset)
-            : lampX(arc.to, inset) + terminals.landing[j]!;
-        const sign = xb < xa ? -1 : 1;
-        // 起飞与落地都贴着**端点自己的行**：带是主线上的汇合点 / 分叉点，站是它的灯那一行。
-        const ya = fromBand ? rowY[0]! - 3 : rowOf(trackOf(arc.from)) - 7;
-        const yb = toBand ? rowY[0]! - 4 : rowOf(trackOf(arc.to)) - 9;
-        const tail = `V${yb}`;
-        // 流弧（presentation.md「Stream rails」）：横段在正中断开，让出朝弧的方向的一组 chevron。
-        const mid = (xa + xb) / 2;
-        const across = arc.stream
-          ? `H${mid - (STREAM_GAP / 2) * sign} M${mid + (STREAM_GAP / 2) * sign},${ly} H${xb - 8 * sign}`
-          : `H${xb - 8 * sign}`;
-        const path = `M${xa},${ya} V${ly + 8} Q${xa},${ly} ${xa + 8 * sign},${ly} ${across} Q${xb},${ly} ${xb},${ly + 8} ${tail}`;
-        const ink = arc.ink === "march" ? "strong" : arc.ink;
-        return (
-          <g
-            data-arc-from={arc.from}
-            data-arc-ink={arc.ink}
-            data-arc-stream={arc.stream ? "true" : undefined}
-            data-arc-to={arc.to}
-            data-testid="workflow-timeline-arc"
-            key={`${arc.from}-${arc.to}-${arc.air}`}
-          >
-            <path
-              className="wf-ink wf-draw"
-              d={path}
-              fill="none"
-              markerEnd={`url(#${markerId}-${ink})`}
-              pathLength={1}
-              stroke={INK_STROKE[ink]}
-              strokeWidth={1}
-            />
-            {arc.stream ? (
-              <StreamChevrons
-                direction={sign < 0 ? "left" : "right"}
-                ink={arc.ink}
-                x={mid}
-                y={ly}
-              />
-            ) : null}
-            {arc.ink === "march" && !arc.stream ? (
-              // 行进边的光短 6px 收住，停在箭头根部。
-              <MarchLight
-                d={`${path.slice(0, -tail.length)}V${yb - 6}`}
-                from={{ x: xa, y: ya }}
-                id={`${markerId}-lit-${j}`}
-                to={{ x: xb, y: yb - 6 }}
-              />
-            ) : null}
-          </g>
-        );
-      })}
-    </svg>
-  );
+    const terminals = arcTerminalOffsets(arcs, bands, stations);
+    const { inset, rowY } = layout;
+    const rowOf = (track: number): number => rowY[track] ?? rowY[0]!;
+    const trackOf = (index: number): number => stations[index]?.track ?? 0;
+    // 整层是装饰，不接指针。修复原因（2026-09-29 实测）：这层 SVG 铺满整张时间线、又画在补全的头之后，
+    // 头那一行的悬停与点击全被它吞掉——框点不亮，点头也开不了侧板。站与药丸画在它之上，所以此前没人发现。
+    return (
+        <svg
+            aria-hidden
+            className="pointer-events-none absolute left-0 top-0 overflow-visible"
+            height={height}
+            viewBox={`0 0 ${width} ${height}`}
+            width={width}
+        >
+            <defs>
+                {(["faint", "strong"] as const).map((ink) => (
+                    <marker
+                        id={`${markerId}-${ink}`}
+                        key={ink}
+                        markerHeight="6"
+                        markerWidth="6"
+                        orient="auto-start-reverse"
+                        refX="7"
+                        refY="4"
+                        viewBox="0 0 8 8"
+                    >
+                        <path d="M0,0.5 L7,4 L0,7.5 Z" fill={INK_STROKE[ink]} />
+                    </marker>
+                ))}
+            </defs>
+            {children}
+            {arcs.map((arc, j) => {
+                // 带内同一条轨道的弧整条住在那条轨道的空里，两端仍是灯；其余的弧把带当一个节点（`arcEnds`）。
+                const { fromBand, toBand } = arcEnds(arc, bands, stations);
+                const source = bandAt(bands, arc.from);
+                const target = bandAt(bands, arc.to);
+                const ly = rowOf(arc.air) - ARC_BASE - ARC_LANE * arc.lane;
+                // 灯上的两端各就各的槽；分叉点与汇合点是一个点，不是一排灯，不占槽（偏移恒为 0）。
+                const xa =
+                    fromBand && source !== undefined
+                        ? bandMergeX(source, inset)
+                        : lampX(arc.from, inset) + terminals.takeoff[j]!;
+                const xb =
+                    toBand && target !== undefined
+                        ? bandForkX(target, inset)
+                        : lampX(arc.to, inset) + terminals.landing[j]!;
+                const sign = xb < xa ? -1 : 1;
+                // 起飞与落地都贴着**端点自己的行**：带是主线上的汇合点 / 分叉点，站是它的灯那一行。
+                const ya = fromBand ? rowY[0]! - 3 : rowOf(trackOf(arc.from)) - 7;
+                const yb = toBand ? rowY[0]! - 4 : rowOf(trackOf(arc.to)) - 9;
+                const tail = `V${yb}`;
+                // 流弧（presentation.md「Stream rails」）：横段在正中断开，让出朝弧的方向的一组 chevron。
+                const mid = (xa + xb) / 2;
+                const across = arc.stream
+                    ? `H${mid - (STREAM_GAP / 2) * sign} M${mid + (STREAM_GAP / 2) * sign},${ly} H${xb - 8 * sign}`
+                    : `H${xb - 8 * sign}`;
+                const path = `M${xa},${ya} V${ly + 8} Q${xa},${ly} ${xa + 8 * sign},${ly} ${across} Q${xb},${ly} ${xb},${ly + 8} ${tail}`;
+                const ink = arc.ink === "march" ? "strong" : arc.ink;
+                return (
+                    <g
+                        data-arc-from={arc.from}
+                        data-arc-ink={arc.ink}
+                        data-arc-stream={arc.stream ? "true" : undefined}
+                        data-arc-to={arc.to}
+                        data-testid="workflow-timeline-arc"
+                        key={`${arc.from}-${arc.to}-${arc.air}`}
+                    >
+                        <path
+                            className="wf-ink wf-draw"
+                            d={path}
+                            fill="none"
+                            markerEnd={`url(#${markerId}-${ink})`}
+                            pathLength={1}
+                            stroke={INK_STROKE[ink]}
+                            strokeWidth={1}
+                        />
+                        {arc.stream ? (
+                            <StreamChevrons
+                                direction={sign < 0 ? "left" : "right"}
+                                ink={arc.ink}
+                                x={mid}
+                                y={ly}
+                            />
+                        ) : null}
+                        {arc.ink === "march" && !arc.stream ? (
+                            // 行进边的光短 6px 收住，停在箭头根部。
+                            <MarchLight
+                                d={`${path.slice(0, -tail.length)}V${yb - 6}`}
+                                from={{ x: xa, y: ya }}
+                                id={`${markerId}-lit-${j}`}
+                                to={{ x: xb, y: yb - 6 }}
+                            />
+                        ) : null}
+                    </g>
+                );
+            })}
+        </svg>
+    );
 }

@@ -8,10 +8,10 @@ const ICON = <Library className="size-4 shrink-0 text-foreground-subtle" />;
 
 // 桌面 fallback 依赖宿主服务，分享页只引用纯展示组件。
 export function ListSavedWorkflowsToolCallBlock(context: ToolCallBlockRenderContext) {
-  return (
-    <ListSavedWorkflowsPresentation
-      {...context}
-      fallback={<FallbackToolCallBlock {...context} iconOverride={ICON} />}
-    />
-  );
+    return (
+        <ListSavedWorkflowsPresentation
+            {...context}
+            fallback={<FallbackToolCallBlock {...context} iconOverride={ICON} />}
+        />
+    );
 }

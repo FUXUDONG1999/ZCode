@@ -69,21 +69,21 @@ Follow this priority order. Explicit user preference always beats observed files
 
 2. **Check for an existing project-local worktree directory:**
 
-   ```bash
-   ls -d .worktrees 2>/dev/null     # Preferred (hidden)
-   ls -d worktrees 2>/dev/null      # Alternative
-   ```
+    ```bash
+    ls -d .worktrees 2>/dev/null     # Preferred (hidden)
+    ls -d worktrees 2>/dev/null      # Alternative
+    ```
 
-   If found, use it. If both exist, `.worktrees` wins.
+    If found, use it. If both exist, `.worktrees` wins.
 
 3. **Check for an existing global directory:**
 
-   ```bash
-   project=$(basename "$(git rev-parse --show-toplevel)")
-   ls -d ~/.config/superpowers/worktrees/$project 2>/dev/null
-   ```
+    ```bash
+    project=$(basename "$(git rev-parse --show-toplevel)")
+    ls -d ~/.config/superpowers/worktrees/$project 2>/dev/null
+    ```
 
-   If found, use it (backward compatibility with legacy global path).
+    If found, use it (backward compatibility with legacy global path).
 
 4. **If there is no other guidance available**, default to `.worktrees/` at the project root.
 

@@ -1,8 +1,8 @@
 import type {
-  ConversationRow,
-  TurnHeaderRow,
-  UserInputRow,
-  WorkflowLaunchMeta,
+    ConversationRow,
+    TurnHeaderRow,
+    UserInputRow,
+    WorkflowLaunchMeta,
 } from "@zcode/shared/zcode-protocol-v4";
 
 /**
@@ -14,17 +14,17 @@ import type {
  * 即退回普通渲染（那句话成气泡）。
  */
 export function resolveWorkflowLaunchMeta(
-  header: TurnHeaderRow | undefined,
-  userInputs: readonly UserInputRow[],
+    header: TurnHeaderRow | undefined,
+    userInputs: readonly UserInputRow[],
 ): WorkflowLaunchMeta | undefined {
-  if (header?.origin !== "workflowLaunch") return undefined;
-  return (
-    header.workflowLaunch ??
-    userInputs.find((row) => row.workflowLaunch !== undefined)?.workflowLaunch
-  );
+    if (header?.origin !== "workflowLaunch") return undefined;
+    return (
+        header.workflowLaunch ??
+        userInputs.find((row) => row.workflowLaunch !== undefined)?.workflowLaunch
+    );
 }
 
 /** 启动轮的用户行：元数据在场时由 run 卡代言，不进可见输入也不进流。 */
 export function isWorkflowLaunchUserInputRow(row: ConversationRow): boolean {
-  return row.kind === "userInput" && row.origin === "workflowLaunch";
+    return row.kind === "userInput" && row.origin === "workflowLaunch";
 }

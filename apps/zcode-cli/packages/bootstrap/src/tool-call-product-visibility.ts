@@ -6,17 +6,17 @@ const EMPTY_TOOL_NAME_PLACEHOLDER = "empty_tool_name";
  * live 只识别原始空名；cold/legacy 还要求占位名与持久化原名 metadata 同时存在。
  */
 export function shouldHideInvalidToolCallFromProduct(
-  toolName: unknown,
-  metadata?: Record<string, unknown>,
+    toolName: unknown,
+    metadata?: Record<string, unknown>,
 ): boolean {
-  if (typeof toolName !== "string") return false;
-  if (toolName.trim().length === 0) return true;
+    if (typeof toolName !== "string") return false;
+    if (toolName.trim().length === 0) return true;
 
-  const providerToolName = metadata?.providerToolName;
-  return (
-    toolName === EMPTY_TOOL_NAME_PLACEHOLDER &&
-    providerToolName !== undefined &&
-    typeof providerToolName === "string" &&
-    providerToolName.trim().length === 0
-  );
+    const providerToolName = metadata?.providerToolName;
+    return (
+        toolName === EMPTY_TOOL_NAME_PLACEHOLDER &&
+        providerToolName !== undefined &&
+        typeof providerToolName === "string" &&
+        providerToolName.trim().length === 0
+    );
 }

@@ -161,22 +161,22 @@ type CustomCommandScope = "project" | "user" | "system" | "admin";
 type CustomCommandSource = "zcode" | "agents" | "claude" | "plugin";
 
 interface CustomCommandMetadata {
-  name: string;
-  description: string;
-  argumentHint?: string;
-  path: string;
-  rootPath: string;
-  scope: CustomCommandScope;
-  source: CustomCommandSource;
-  allowedTools: string[];
-  model?: string;
-  disableNonInteractive: boolean;
-  frontmatterKeys: string[];
+    name: string;
+    description: string;
+    argumentHint?: string;
+    path: string;
+    rootPath: string;
+    scope: CustomCommandScope;
+    source: CustomCommandSource;
+    allowedTools: string[];
+    model?: string;
+    disableNonInteractive: boolean;
+    frontmatterKeys: string[];
 }
 
 interface CustomCommandPort {
-  discoverCommands(request, options): Promise<CustomCommandLoadOutcome>;
-  loadCommand(request, options): Promise<CustomCommandContent>;
+    discoverCommands(request, options): Promise<CustomCommandLoadOutcome>;
+    loadCommand(request, options): Promise<CustomCommandContent>;
 }
 ```
 

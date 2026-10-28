@@ -6,11 +6,11 @@
 
 ```js
 const palette = {
-  primary: "#000000", // Title — pure black
-  body: "#000000", // Body — pure black
-  secondary: "#333333", // Header/caption — dark grey
-  accent: "#8B7E5A", // Cover decoration line — cover only
-  surface: "#F5F7FA", // Table header light bg — three-line tables only
+    primary: "#000000", // Title — pure black
+    body: "#000000", // Body — pure black
+    secondary: "#333333", // Header/caption — dark grey
+    accent: "#8B7E5A", // Cover decoration line — cover only
+    surface: "#F5F7FA", // Table header light bg — three-line tables only
 };
 ```
 
@@ -113,26 +113,26 @@ styles: {
 ```js
 // ✅ Correct
 new Paragraph({
-  heading: HeadingLevel.HEADING_1,
-  children: [
-    new TextRun({
-      text: "第一章 绪论",
-      bold: true,
-      size: 32,
-      font: { eastAsia: "SimHei", ascii: "Times New Roman" },
-    }),
-  ],
+    heading: HeadingLevel.HEADING_1,
+    children: [
+        new TextRun({
+            text: "第一章 绪论",
+            bold: true,
+            size: 32,
+            font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+        }),
+    ],
 });
 new Paragraph({
-  heading: HeadingLevel.HEADING_2,
-  children: [
-    new TextRun({
-      text: "1.1 研究背景",
-      bold: true,
-      size: 30,
-      font: { eastAsia: "SimHei", ascii: "Times New Roman" },
-    }),
-  ],
+    heading: HeadingLevel.HEADING_2,
+    children: [
+        new TextRun({
+            text: "1.1 研究背景",
+            bold: true,
+            size: 30,
+            font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+        }),
+    ],
 });
 ```
 
@@ -224,37 +224,37 @@ const { NumberFormat } = require("docx");
 
 ```js
 function buildHeader(title) {
-  return new Header({
-    children: [
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" } },
+    return new Header({
         children: [
-          new TextRun({
-            text: title,
-            size: 18,
-            color: "333333",
-            font: { ascii: "Times New Roman", eastAsia: "SimSun" },
-          }),
+            new Paragraph({
+                alignment: AlignmentType.CENTER,
+                border: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" } },
+                children: [
+                    new TextRun({
+                        text: title,
+                        size: 18,
+                        color: "333333",
+                        font: { ascii: "Times New Roman", eastAsia: "SimSun" },
+                    }),
+                ],
+            }),
         ],
-      }),
-    ],
-  });
+    });
 }
 
 function buildPageNumberFooter() {
-  return new Footer({
-    children: [
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
+    return new Footer({
         children: [
-          new TextRun({ text: "- ", size: 21 }),
-          new TextRun({ children: [PageNumber.CURRENT], size: 21 }),
-          new TextRun({ text: " -", size: 21 }),
+            new Paragraph({
+                alignment: AlignmentType.CENTER,
+                children: [
+                    new TextRun({ text: "- ", size: 21 }),
+                    new TextRun({ children: [PageNumber.CURRENT], size: 21 }),
+                    new TextRun({ text: " -", size: 21 }),
+                ],
+            }),
         ],
-      }),
-    ],
-  });
+    });
 }
 ```
 
@@ -307,124 +307,141 @@ The visual order on academic covers must follow this hierarchy from top to botto
 
 ```js
 function buildAcademicCover(info) {
-  const { school, title, titleEN, college, major, author, studentId, advisor, date } = info;
+    const { school, title, titleEN, college, major, author, studentId, advisor, date } = info;
 
-  // ⚠️ Use safeText() for all values — never output "undefined"
-  const infoRows = [
-    ["College", safeText(college, "【College】")],
-    ["Major", safeText(major, "【Major】")],
-    ["Author", safeText(author, "【Author】")],
-    ["Student ID", safeText(studentId, "【Student ID】")],
-    ["Advisor", safeText(advisor, "【Advisor】")],
-  ];
+    // ⚠️ Use safeText() for all values — never output "undefined"
+    const infoRows = [
+        ["College", safeText(college, "【College】")],
+        ["Major", safeText(major, "【Major】")],
+        ["Author", safeText(author, "【Author】")],
+        ["Student ID", safeText(studentId, "【Student ID】")],
+        ["Advisor", safeText(advisor, "【Advisor】")],
+    ];
 
-  const infoTable = new Table({
-    width: { size: 60, type: WidthType.PERCENTAGE },
-    alignment: AlignmentType.CENTER,
-    borders: { top: NB, bottom: NB, left: NB, right: NB, insideHorizontal: NB, insideVertical: NB },
-    rows: infoRows.map(
-      ([label, value]) =>
-        new TableRow({
-          cantSplit: true,
-          children: [
-            new TableCell({
-              width: { size: 35, type: WidthType.PERCENTAGE },
-              borders: {
-                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                top: NB,
-                left: NB,
-                right: NB,
-              },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
-              children: [
-                new Paragraph({
-                  alignment: AlignmentType.RIGHT,
-                  children: [
-                    new TextRun({
-                      text: label + ":",
-                      size: 28,
-                      font: { eastAsia: "SimHei", ascii: "Times New Roman" },
-                    }),
-                  ],
+    const infoTable = new Table({
+        width: { size: 60, type: WidthType.PERCENTAGE },
+        alignment: AlignmentType.CENTER,
+        borders: {
+            top: NB,
+            bottom: NB,
+            left: NB,
+            right: NB,
+            insideHorizontal: NB,
+            insideVertical: NB,
+        },
+        rows: infoRows.map(
+            ([label, value]) =>
+                new TableRow({
+                    cantSplit: true,
+                    children: [
+                        new TableCell({
+                            width: { size: 35, type: WidthType.PERCENTAGE },
+                            borders: {
+                                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                top: NB,
+                                left: NB,
+                                right: NB,
+                            },
+                            margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.RIGHT,
+                                    children: [
+                                        new TextRun({
+                                            text: label + ":",
+                                            size: 28,
+                                            font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+                                        }),
+                                    ],
+                                }),
+                            ],
+                        }),
+                        new TableCell({
+                            borders: {
+                                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                top: NB,
+                                left: NB,
+                                right: NB,
+                            },
+                            margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    children: [
+                                        new TextRun({
+                                            text: value,
+                                            size: 28,
+                                            font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+                                        }),
+                                    ],
+                                }),
+                            ],
+                        }),
+                    ],
                 }),
-              ],
-            }),
-            new TableCell({
-              borders: {
-                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                top: NB,
-                left: NB,
-                right: NB,
-              },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
-              children: [
-                new Paragraph({
+        ),
+    });
+
+    // ⚠️ Correct order: school → doc type → TITLE → info table → date
+    // ★ Rule 8: All large-font paragraphs must set explicit line spacing
+    return [
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 1200, after: 400, line: Math.ceil(22 * 23), lineRule: "atLeast" },
+            children: [
+                new TextRun({
+                    text: safeText(school, "【University Name】"),
+                    size: 44,
+                    bold: true,
+                    font: { eastAsia: "SimHei" },
+                }),
+            ],
+        }),
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 800, line: Math.ceil(18 * 23), lineRule: "atLeast" },
+            children: [
+                new TextRun({
+                    text: "Undergraduate Thesis",
+                    size: 36,
+                    font: { eastAsia: "SimHei" },
+                }),
+            ],
+        }),
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200, line: Math.ceil(18 * 23), lineRule: "atLeast" },
+            children: [
+                new TextRun({
+                    text: safeText(title, "【Thesis Title】"),
+                    size: 36,
+                    bold: true,
+                    font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+                }),
+            ],
+        }),
+        titleEN
+            ? new Paragraph({
                   alignment: AlignmentType.CENTER,
+                  spacing: { after: 1200, line: Math.ceil(16 * 23), lineRule: "atLeast" },
                   children: [
-                    new TextRun({
-                      text: value,
-                      size: 28,
-                      font: { eastAsia: "SimSun", ascii: "Times New Roman" },
-                    }),
+                      new TextRun({ text: titleEN, size: 32, font: { ascii: "Times New Roman" } }),
                   ],
+              })
+            : new Paragraph({ spacing: { after: 1200 }, children: [] }),
+        infoTable,
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 1200, line: Math.ceil(14 * 23), lineRule: "atLeast" },
+            children: [
+                new TextRun({
+                    text: safeText(date, "2026/XX"),
+                    size: 28,
+                    font: { eastAsia: "SimSun" },
                 }),
-              ],
-            }),
-          ],
+            ],
         }),
-    ),
-  });
-
-  // ⚠️ Correct order: school → doc type → TITLE → info table → date
-  // ★ Rule 8: All large-font paragraphs must set explicit line spacing
-  return [
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 1200, after: 400, line: Math.ceil(22 * 23), lineRule: "atLeast" },
-      children: [
-        new TextRun({
-          text: safeText(school, "【University Name】"),
-          size: 44,
-          bold: true,
-          font: { eastAsia: "SimHei" },
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 800, line: Math.ceil(18 * 23), lineRule: "atLeast" },
-      children: [
-        new TextRun({ text: "Undergraduate Thesis", size: 36, font: { eastAsia: "SimHei" } }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 200, line: Math.ceil(18 * 23), lineRule: "atLeast" },
-      children: [
-        new TextRun({
-          text: safeText(title, "【Thesis Title】"),
-          size: 36,
-          bold: true,
-          font: { eastAsia: "SimHei", ascii: "Times New Roman" },
-        }),
-      ],
-    }),
-    titleEN
-      ? new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 1200, line: Math.ceil(16 * 23), lineRule: "atLeast" },
-          children: [new TextRun({ text: titleEN, size: 32, font: { ascii: "Times New Roman" } })],
-        })
-      : new Paragraph({ spacing: { after: 1200 }, children: [] }),
-    infoTable,
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 1200, line: Math.ceil(14 * 23), lineRule: "atLeast" },
-      children: [
-        new TextRun({ text: safeText(date, "2026/XX"), size: 28, font: { eastAsia: "SimSun" } }),
-      ],
-    }),
-  ];
+    ];
 }
 ```
 
@@ -438,147 +455,155 @@ The proposal cover MUST be placed in its **own section** (with margin: 0 and a 1
 ```js
 // ✅ Correct — cover and body in separate sections
 sections: [
-  {
-    properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
-    children: buildProposalCover(info), // standalone cover section
-  },
-  {
-    properties: { page: { margin: { top: 1440, bottom: 1440, left: 1701, right: 1417 } } },
-    children: [...bodyContent], // body starts here
-  },
+    {
+        properties: { page: { margin: { top: 0, bottom: 0, left: 0, right: 0 } } },
+        children: buildProposalCover(info), // standalone cover section
+    },
+    {
+        properties: { page: { margin: { top: 1440, bottom: 1440, left: 1701, right: 1417 } } },
+        children: [...bodyContent], // body starts here
+    },
 ];
 
 // ❌ WRONG — cover and body in same section (no page separation!)
 sections: [
-  {
-    children: [...coverElements, ...bodyContent], // everything on one continuous flow
-  },
+    {
+        children: [...coverElements, ...bodyContent], // everything on one continuous flow
+    },
 ];
 ```
 
 ```js
 function buildProposalCover(info) {
-  const { school, year, title, subtitle, college, major, author, studentId, advisor, date } = info;
+    const { school, year, title, subtitle, college, major, author, studentId, advisor, date } =
+        info;
 
-  // ⚠️ Use safeText() for all values
-  const infoRows = [
-    ["姓名 (Name)", safeText(author, "XXX")],
-    ["专业 (Major)", safeText(major, "XXX")],
-    ["入学时间 (Enrollment)", safeText(info.enrollment, "XXX")],
-  ];
+    // ⚠️ Use safeText() for all values
+    const infoRows = [
+        ["姓名 (Name)", safeText(author, "XXX")],
+        ["专业 (Major)", safeText(major, "XXX")],
+        ["入学时间 (Enrollment)", safeText(info.enrollment, "XXX")],
+    ];
 
-  const infoTable = new Table({
-    width: { size: 60, type: WidthType.PERCENTAGE },
-    alignment: AlignmentType.CENTER,
-    borders: { top: NB, bottom: NB, left: NB, right: NB, insideHorizontal: NB, insideVertical: NB },
-    rows: infoRows.map(
-      ([label, value]) =>
-        new TableRow({
-          children: [
-            new TableCell({
-              width: { size: 35, type: WidthType.PERCENTAGE },
-              borders: {
-                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                top: NB,
-                left: NB,
-                right: NB,
-              },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
-              children: [
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  children: [
-                    new TextRun({
-                      text: label,
-                      size: 28,
-                      bold: true,
-                      font: { eastAsia: "SimHei", ascii: "Times New Roman" },
-                    }),
-                  ],
+    const infoTable = new Table({
+        width: { size: 60, type: WidthType.PERCENTAGE },
+        alignment: AlignmentType.CENTER,
+        borders: {
+            top: NB,
+            bottom: NB,
+            left: NB,
+            right: NB,
+            insideHorizontal: NB,
+            insideVertical: NB,
+        },
+        rows: infoRows.map(
+            ([label, value]) =>
+                new TableRow({
+                    children: [
+                        new TableCell({
+                            width: { size: 35, type: WidthType.PERCENTAGE },
+                            borders: {
+                                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                top: NB,
+                                left: NB,
+                                right: NB,
+                            },
+                            margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    children: [
+                                        new TextRun({
+                                            text: label,
+                                            size: 28,
+                                            bold: true,
+                                            font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+                                        }),
+                                    ],
+                                }),
+                            ],
+                        }),
+                        new TableCell({
+                            borders: {
+                                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                                top: NB,
+                                left: NB,
+                                right: NB,
+                            },
+                            margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                            children: [
+                                new Paragraph({
+                                    alignment: AlignmentType.CENTER,
+                                    children: [
+                                        new TextRun({
+                                            text: value,
+                                            size: 28,
+                                            font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+                                        }),
+                                    ],
+                                }),
+                            ],
+                        }),
+                    ],
                 }),
-              ],
-            }),
-            new TableCell({
-              borders: {
-                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
-                top: NB,
-                left: NB,
-                right: NB,
-              },
-              margins: { top: 60, bottom: 60, left: 120, right: 120 },
-              children: [
-                new Paragraph({
-                  alignment: AlignmentType.CENTER,
-                  children: [
-                    new TextRun({
-                      text: value,
-                      size: 28,
-                      font: { eastAsia: "SimSun", ascii: "Times New Roman" },
-                    }),
-                  ],
-                }),
-              ],
-            }),
-          ],
-        }),
-    ),
-  });
+        ),
+    });
 
-  // ⚠️ Correct order: doc type label → info table → "论文题目" label → TITLE → subtitle
-  // Layout balanced: upper 40% for header + info, middle 20% for title, lower 40% for whitespace
-  // ★ Rule 8: All large-font paragraphs must set explicit line spacing
-  return [
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 1500, after: 600, line: Math.ceil(18 * 23), lineRule: "atLeast" },
-      children: [
-        new TextRun({
-          text: safeText(year, "2025") + " 届本科毕业论文开题报告",
-          size: 36,
-          bold: true,
-          font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+    // ⚠️ Correct order: doc type label → info table → "论文题目" label → TITLE → subtitle
+    // Layout balanced: upper 40% for header + info, middle 20% for title, lower 40% for whitespace
+    // ★ Rule 8: All large-font paragraphs must set explicit line spacing
+    return [
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 1500, after: 600, line: Math.ceil(18 * 23), lineRule: "atLeast" },
+            children: [
+                new TextRun({
+                    text: safeText(year, "2025") + " 届本科毕业论文开题报告",
+                    size: 36,
+                    bold: true,
+                    font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+                }),
+            ],
         }),
-      ],
-    }),
-    infoTable,
-    new Paragraph({ spacing: { before: 1200 } }), // Balanced whitespace
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 200 },
-      children: [
-        new TextRun({
-          text: "论文题目",
-          size: 28,
-          font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+        infoTable,
+        new Paragraph({ spacing: { before: 1200 } }), // Balanced whitespace
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200 },
+            children: [
+                new TextRun({
+                    text: "论文题目",
+                    size: 28,
+                    font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+                }),
+            ],
         }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 200, line: Math.ceil(16 * 23), lineRule: "atLeast" },
-      children: [
-        new TextRun({
-          text: safeText(title, "【Thesis Title】"),
-          size: 32,
-          bold: true,
-          font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+        new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { after: 200, line: Math.ceil(16 * 23), lineRule: "atLeast" },
+            children: [
+                new TextRun({
+                    text: safeText(title, "【Thesis Title】"),
+                    size: 32,
+                    bold: true,
+                    font: { eastAsia: "SimHei", ascii: "Times New Roman" },
+                }),
+            ],
         }),
-      ],
-    }),
-    subtitle
-      ? new Paragraph({
-          alignment: AlignmentType.CENTER,
-          spacing: { after: 800 },
-          children: [
-            new TextRun({
-              text: "——" + subtitle,
-              size: 28,
-              font: { eastAsia: "SimSun", ascii: "Times New Roman" },
-            }),
-          ],
-        })
-      : new Paragraph({ spacing: { after: 800 }, children: [] }),
-  ];
+        subtitle
+            ? new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  spacing: { after: 800 },
+                  children: [
+                      new TextRun({
+                          text: "——" + subtitle,
+                          size: 28,
+                          font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+                      }),
+                  ],
+              })
+            : new Paragraph({ spacing: { after: 800 }, children: [] }),
+    ];
 }
 ```
 
@@ -838,47 +863,47 @@ All tables in academic papers **must use three-line tables** — no full-border 
 
 ```js
 const threeLineTable = new Table({
-  width: { size: 100, type: WidthType.PERCENTAGE },
-  borders: {
-    top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-    bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
-    left: { style: BorderStyle.NONE },
-    right: { style: BorderStyle.NONE },
-    insideHorizontal: { style: BorderStyle.NONE },
-    insideVertical: { style: BorderStyle.NONE },
-  },
-  rows: [
-    new TableRow({
-      tableHeader: true,
-      cantSplit: true,
-      children: headerCells.map(
-        (text) =>
-          new TableCell({
-            borders: {
-              bottom: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
-              top: { style: BorderStyle.NONE },
-              left: { style: BorderStyle.NONE },
-              right: { style: BorderStyle.NONE },
-            },
-            margins: { top: 60, bottom: 60, left: 120, right: 120 },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text,
-                    bold: true,
-                    size: 21,
-                    font: { eastAsia: "SimSun", ascii: "Times New Roman" },
-                  }),
-                ],
-              }),
-            ],
-          }),
-      ),
-    }),
-    ...dataRows, // All borders NONE
-  ],
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: {
+        top: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+        bottom: { style: BorderStyle.SINGLE, size: 4, color: "000000" },
+        left: { style: BorderStyle.NONE },
+        right: { style: BorderStyle.NONE },
+        insideHorizontal: { style: BorderStyle.NONE },
+        insideVertical: { style: BorderStyle.NONE },
+    },
+    rows: [
+        new TableRow({
+            tableHeader: true,
+            cantSplit: true,
+            children: headerCells.map(
+                (text) =>
+                    new TableCell({
+                        borders: {
+                            bottom: { style: BorderStyle.SINGLE, size: 2, color: "000000" },
+                            top: { style: BorderStyle.NONE },
+                            left: { style: BorderStyle.NONE },
+                            right: { style: BorderStyle.NONE },
+                        },
+                        margins: { top: 60, bottom: 60, left: 120, right: 120 },
+                        children: [
+                            new Paragraph({
+                                alignment: AlignmentType.CENTER,
+                                children: [
+                                    new TextRun({
+                                        text,
+                                        bold: true,
+                                        size: 21,
+                                        font: { eastAsia: "SimSun", ascii: "Times New Roman" },
+                                    }),
+                                ],
+                            }),
+                        ],
+                    }),
+            ),
+        }),
+        ...dataRows, // All borders NONE
+    ],
 });
 ```
 

@@ -18,18 +18,18 @@ import { toToolJsonSchema } from "./json-schema.js";
 export const RESUME_WORKFLOW_RUN_TOOL_NAME = "ResumeWorkflowRun";
 
 export const ResumeWorkflowRunInputSchema = z
-  .object({
-    // snake_case 照 GetWorkflowRun 的 run_id（它又照 TaskOutput 的 task_id）：在模型眼里这
-    // 三个键是同一族的 run/task 标识。可恢复集（cancelled ∪ failed+Interrupted）写在
-    // describe 里，判定权威在 port.resume 服务端——这里只是路由引导。
-    run_id: z
-      .string()
-      .min(1)
-      .describe(
-        "The workflow run ID to resume — a cancelled run or one that failed with code `Interrupted`, as seen with GetWorkflowRun or ListWorkflowRuns",
-      ),
-  })
-  .strict();
+    .object({
+        // snake_case 照 GetWorkflowRun 的 run_id（它又照 TaskOutput 的 task_id）：在模型眼里这
+        // 三个键是同一族的 run/task 标识。可恢复集（cancelled ∪ failed+Interrupted）写在
+        // describe 里，判定权威在 port.resume 服务端——这里只是路由引导。
+        run_id: z
+            .string()
+            .min(1)
+            .describe(
+                "The workflow run ID to resume — a cancelled run or one that failed with code `Interrupted`, as seen with GetWorkflowRun or ListWorkflowRuns",
+            ),
+    })
+    .strict();
 
 export type ResumeWorkflowRunInput = z.infer<typeof ResumeWorkflowRunInputSchema>;
 
@@ -46,14 +46,14 @@ export const ResumeWorkflowRunInputJsonSchema = toToolJsonSchema(ResumeWorkflowR
  *   契约字段，schema 只保证在场。
  */
 export const ResumeWorkflowRunOutputSchema = z
-  .object({
-    ok: z.literal(true),
-    runId: z.string().min(1),
-    response: z.string(),
-    status: z.literal("backgrounded"),
-    backgroundTaskId: z.string().min(1),
-  })
-  .strict();
+    .object({
+        ok: z.literal(true),
+        runId: z.string().min(1),
+        response: z.string(),
+        status: z.literal("backgrounded"),
+        backgroundTaskId: z.string().min(1),
+    })
+    .strict();
 
 export type ResumeWorkflowRunOutput = z.infer<typeof ResumeWorkflowRunOutputSchema>;
 

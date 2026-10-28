@@ -10,18 +10,18 @@
 
 import { readFile } from "node:fs/promises";
 import {
-  FILL_WORKFLOW_HOLE_SOURCE_ERROR,
-  FillWorkflowHoleInputSchema,
-  type DynamicWorkflowRunHole,
-  type DynamicWorkflowRunPort,
-  type DynamicWorkflowRunSnapshot,
-  type FillWorkflowHoleHole,
-  type FillWorkflowHoleInput,
+    FILL_WORKFLOW_HOLE_SOURCE_ERROR,
+    FillWorkflowHoleInputSchema,
+    type DynamicWorkflowRunHole,
+    type DynamicWorkflowRunPort,
+    type DynamicWorkflowRunSnapshot,
+    type FillWorkflowHoleHole,
+    type FillWorkflowHoleInput,
 } from "@zcode/contracts";
 import type {
-  ToolHandlerFailure,
-  ToolInputResolutionContext,
-  ToolInputResolutionResult,
+    ToolHandlerFailure,
+    ToolInputResolutionContext,
+    ToolInputResolutionResult,
 } from "../types.js";
 import { spliceHoleBodyPreview } from "./fill-workflow-hole-splice.js";
 import { resolveWorkflowScriptFilePath } from "./workflow-path-source.js";
@@ -34,12 +34,12 @@ import { describeWorkflowScriptPath } from "./workflow-script-path.js";
  * ResolveWorkflowQuestion（21–24）、AmendWorkflow（21–29）视觉不撞车——各表的数值空间互相独立。
  */
 export const FILL_WORKFLOW_HOLE_ERROR_CODE = {
-  FILL_UNAVAILABLE: 31,
-  HOLE_NOT_WAITING: 32,
-  FILL_UNCHANGED: 33,
-  FILL_FILE: 34,
-  IDS_UNSTABLE: 35,
-  BODY_UNAVAILABLE: 36,
+    FILL_UNAVAILABLE: 31,
+    HOLE_NOT_WAITING: 32,
+    FILL_UNCHANGED: 33,
+    FILL_FILE: 34,
+    IDS_UNSTABLE: 35,
+    BODY_UNAVAILABLE: 36,
 } as const;
 
 /** 入参级违规（来源不是恰好一个）的码，与 CreateWorkflow / AmendWorkflow 的同一个 400。 */
@@ -50,17 +50,17 @@ const FILL_WORKFLOW_HOLE_INPUT_FAILURE_CODE = 400;
  * 执行态：`path` 的字节读进了 `script`）。两个都不给也是违规——没有可沿用的函数体。
  */
 export function validateFillWorkflowHoleSource(
-  input: unknown,
+    input: unknown,
 ): { result: true } | ToolHandlerFailure {
-  const parsed = FillWorkflowHoleInputSchema.safeParse(input);
-  if (!parsed.success) return { result: true };
-  const sources = [parsed.data.script, parsed.data.path].filter((value) => value !== undefined);
-  if (sources.length === 1) return { result: true };
-  return {
-    result: false,
-    errorCode: FILL_WORKFLOW_HOLE_INPUT_FAILURE_CODE,
-    message: FILL_WORKFLOW_HOLE_SOURCE_ERROR,
-  };
+    const parsed = FillWorkflowHoleInputSchema.safeParse(input);
+    if (!parsed.success) return { result: true };
+    const sources = [parsed.data.script, parsed.data.path].filter((value) => value !== undefined);
+    if (sources.length === 1) return { result: true };
+    return {
+        result: false,
+        errorCode: FILL_WORKFLOW_HOLE_INPUT_FAILURE_CODE,
+        message: FILL_WORKFLOW_HOLE_SOURCE_ERROR,
+    };
 }
 
 // ------------------------------------------------------------
@@ -73,22 +73,22 @@ export function validateFillWorkflowHoleSource(
 const rejectedFills = new Map<string, string>();
 
 function rejectionKey(sessionId: string | undefined, runId: string, holeId: string): string {
-  return `${sessionId ?? ""}\u0000${runId}\u0000${holeId}`;
+    return `${sessionId ?? ""}\u0000${runId}\u0000${holeId}`;
 }
 
 export function rememberRejectedFill(
-  sessionId: string | undefined,
-  runId: string,
-  holeId: string,
-  body: string,
+    sessionId: string | undefined,
+    runId: string,
+    holeId: string,
+    body: string,
 ): void {
-  rejectedFills.set(rejectionKey(sessionId, runId, holeId), body);
+    rejectedFills.set(rejectionKey(sessionId, runId, holeId), body);
 }
 
 /** 测试用：清空「上一次被拒」表，让用例之间互不看见。 */
 export function resetFillWorkflowHoleRejectionsForTests(): void {
-  rejectedFills.clear();
-  preview = undefined;
+    rejectedFills.clear();
+    preview = undefined;
 }
 
 // ------------------------------------------------------------
@@ -100,22 +100,22 @@ export function resetFillWorkflowHoleRejectionsForTests(): void {
 
 /** 单槽里的一份预览：有效脚本，加上 run 的模型绑定表（prepareApproval 据它判断函数体点名的模型）。 */
 export interface FillPreview {
-  effectiveScript: string;
-  modelBindings: Record<string, string>;
+    effectiveScript: string;
+    modelBindings: Record<string, string>;
 }
 
 let preview: ({ runId: string; holeId: string; body: string } & FillPreview) | undefined;
 
 /** prepareApproval 取预览：入参对得上就给有效脚本与绑定表，否则 `undefined`（窗照开，只是没图）。 */
 export function takeFillPreview(
-  runId: string,
-  holeId: string,
-  body: string,
+    runId: string,
+    holeId: string,
+    body: string,
 ): FillPreview | undefined {
-  if (preview === undefined) return undefined;
-  if (preview.runId !== runId || preview.holeId !== holeId || preview.body !== body)
-    return undefined;
-  return { effectiveScript: preview.effectiveScript, modelBindings: preview.modelBindings };
+    if (preview === undefined) return undefined;
+    if (preview.runId !== runId || preview.holeId !== holeId || preview.body !== body)
+        return undefined;
+    return { effectiveScript: preview.effectiveScript, modelBindings: preview.modelBindings };
 }
 
 // ------------------------------------------------------------
@@ -133,56 +133,59 @@ export function takeFillPreview(
  * 权限侧读不到 `hole` 就照常 ask。
  */
 export async function resolveFillWorkflowHoleInput(
-  input: unknown,
-  context: ToolInputResolutionContext,
+    input: unknown,
+    context: ToolInputResolutionContext,
 ): Promise<ToolInputResolutionResult> {
-  const parsed = FillWorkflowHoleInputSchema.safeParse(input);
-  if (!parsed.success) return { result: true, input };
-  const cwd = context.workingDirectory ?? ".";
-  const { hole: _forged, ...model } = parsed.data;
-  void _forged;
-  const port = context.dynamicWorkflowRunPort;
-  if (port === undefined) {
+    const parsed = FillWorkflowHoleInputSchema.safeParse(input);
+    if (!parsed.success) return { result: true, input };
+    const cwd = context.workingDirectory ?? ".";
+    const { hole: _forged, ...model } = parsed.data;
+    void _forged;
+    const port = context.dynamicWorkflowRunPort;
+    if (port === undefined) {
+        const body = await resolveFillBody(model, cwd);
+        if (!body.result) return body;
+        return {
+            result: true,
+            input: { ...model, ...body.fields } satisfies FillWorkflowHoleInput,
+        };
+    }
+
+    const snapshot = await port.getTask(model.run_id);
+    if (snapshot === undefined) return runNotFoundFailure(model.run_id);
+    const waiting = findWaitingHole(snapshot, model.run_id, model.hole_id);
+    if (waiting !== undefined && "result" in waiting) return waiting;
+
     const body = await resolveFillBody(model, cwd);
     if (!body.result) return body;
-    return { result: true, input: { ...model, ...body.fields } satisfies FillWorkflowHoleInput };
-  }
-
-  const snapshot = await port.getTask(model.run_id);
-  if (snapshot === undefined) return runNotFoundFailure(model.run_id);
-  const waiting = findWaitingHole(snapshot, model.run_id, model.hole_id);
-  if (waiting !== undefined && "result" in waiting) return waiting;
-
-  const body = await resolveFillBody(model, cwd);
-  if (!body.result) return body;
-  if (model.path !== undefined) {
-    const rejected = rejectedFills.get(
-      rejectionKey(context.sessionId, model.run_id, model.hole_id),
-    );
-    if (rejected !== undefined && rejected === body.fields.script) {
-      return unchangedFillFailure(body.described ?? model.path, model.run_id, model.hole_id);
+    if (model.path !== undefined) {
+        const rejected = rejectedFills.get(
+            rejectionKey(context.sessionId, model.run_id, model.hole_id),
+        );
+        if (rejected !== undefined && rejected === body.fields.script) {
+            return unchangedFillFailure(body.described ?? model.path, model.run_id, model.hole_id);
+        }
     }
-  }
 
-  const hole =
-    waiting === undefined ? undefined : describeHole(snapshot, waiting, context.sessionId);
-  await rememberFillPreview(port, model.run_id, model.hole_id, body.fields.script, snapshot);
-  return {
-    result: true,
-    input: {
-      ...model,
-      ...body.fields,
-      ...(hole === undefined ? {} : { hole }),
-    } satisfies FillWorkflowHoleInput,
-  };
+    const hole =
+        waiting === undefined ? undefined : describeHole(snapshot, waiting, context.sessionId);
+    await rememberFillPreview(port, model.run_id, model.hole_id, body.fields.script, snapshot);
+    return {
+        result: true,
+        input: {
+            ...model,
+            ...body.fields,
+            ...(hole === undefined ? {} : { hole }),
+        } satisfies FillWorkflowHoleInput,
+    };
 }
 
 function runNotFoundFailure(runId: string): ToolHandlerFailure {
-  const base = workflowRunNotFoundFailure(runId);
-  return {
-    ...base,
-    message: `${base.message} Nothing was filled: \`run_id\` pointed at a run that does not exist — take it from the hole notification or from ListWorkflowRuns.`,
-  };
+    const base = workflowRunNotFoundFailure(runId);
+    return {
+        ...base,
+        message: `${base.message} Nothing was filled: \`run_id\` pointed at a run that does not exist — take it from the hole notification or from ListWorkflowRuns.`,
+    };
 }
 
 /**
@@ -192,55 +195,55 @@ function runNotFoundFailure(runId: string): ToolHandlerFailure {
  * 无从判断，交给端口。
  */
 function findWaitingHole(
-  snapshot: DynamicWorkflowRunSnapshot,
-  runId: string,
-  holeId: string,
+    snapshot: DynamicWorkflowRunSnapshot,
+    runId: string,
+    holeId: string,
 ): DynamicWorkflowRunHole | ToolHandlerFailure | undefined {
-  const status = snapshot.runStatus;
-  if (status === "stopped") {
-    return notWaitingFailure(
-      `run ${runId} is stopped (${snapshot.stopReason ?? "unknown reason"}), so nothing is waiting at ${holeId}. Continue it with ResumeWorkflowRun first; the hole will ask again once the script reaches it.`,
-    );
-  }
-  if (status === "completed" || status === "errored") {
-    return notWaitingFailure(
-      `run ${runId} has already ${status}, so nothing is waiting at ${holeId}.`,
-    );
-  }
-  const holes = snapshot.holes;
-  if (holes === undefined) return undefined;
-  const entry = holes.find((hole) => hole.siteId === holeId);
-  if (entry === undefined) {
-    return notWaitingFailure(
-      `run ${runId} is not waiting at ${holeId}: no hole with that id has been reached (unknown id, or the script has not got there yet). GetWorkflowRun lists the holes it is waiting at.`,
-    );
-  }
-  if (entry.state !== "waiting") {
-    return notWaitingFailure(
-      `hole ${holeId} ("${entry.name}") of run ${runId} is already filled; the branch has resumed with that body. To change what it does, edit the run's draft and use AmendWorkflow.`,
-    );
-  }
-  return entry;
+    const status = snapshot.runStatus;
+    if (status === "stopped") {
+        return notWaitingFailure(
+            `run ${runId} is stopped (${snapshot.stopReason ?? "unknown reason"}), so nothing is waiting at ${holeId}. Continue it with ResumeWorkflowRun first; the hole will ask again once the script reaches it.`,
+        );
+    }
+    if (status === "completed" || status === "errored") {
+        return notWaitingFailure(
+            `run ${runId} has already ${status}, so nothing is waiting at ${holeId}.`,
+        );
+    }
+    const holes = snapshot.holes;
+    if (holes === undefined) return undefined;
+    const entry = holes.find((hole) => hole.siteId === holeId);
+    if (entry === undefined) {
+        return notWaitingFailure(
+            `run ${runId} is not waiting at ${holeId}: no hole with that id has been reached (unknown id, or the script has not got there yet). GetWorkflowRun lists the holes it is waiting at.`,
+        );
+    }
+    if (entry.state !== "waiting") {
+        return notWaitingFailure(
+            `hole ${holeId} ("${entry.name}") of run ${runId} is already filled; the branch has resumed with that body. To change what it does, edit the run's draft and use AmendWorkflow.`,
+        );
+    }
+    return entry;
 }
 
 function notWaitingFailure(detail: string): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: FILL_WORKFLOW_HOLE_ERROR_CODE.HOLE_NOT_WAITING,
-    message: `hole_not_waiting: ${detail} Nothing was filled.`,
-  };
+    return {
+        result: false,
+        errorCode: FILL_WORKFLOW_HOLE_ERROR_CODE.HOLE_NOT_WAITING,
+        message: `hole_not_waiting: ${detail} Nothing was filled.`,
+    };
 }
 
 function unchangedFillFailure(
-  described: string,
-  runId: string,
-  holeId: string,
+    described: string,
+    runId: string,
+    holeId: string,
 ): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: FILL_WORKFLOW_HOLE_ERROR_CODE.FILL_UNCHANGED,
-    message: `fill_unchanged: ${described} is byte-for-byte the body that was just rejected for hole ${holeId} of run ${runId}, so resubmitting it would fail the same way. Edit the file first (the diagnostics name the lines), then call FillWorkflowHole again with the same \`path\`. Nothing was filled.`,
-  };
+    return {
+        result: false,
+        errorCode: FILL_WORKFLOW_HOLE_ERROR_CODE.FILL_UNCHANGED,
+        message: `fill_unchanged: ${described} is byte-for-byte the body that was just rejected for hole ${holeId} of run ${runId}, so resubmitting it would fail the same way. Edit the file first (the diagnostics name the lines), then call FillWorkflowHole again with the same \`path\`. Nothing was filled.`,
+    };
 }
 
 /**
@@ -248,84 +251,84 @@ function unchangedFillFailure(
  * 停下的）——权限服务只读这一位（docs/dynamic-workflow/launch.md「Approval」）。
  */
 function describeHole(
-  snapshot: DynamicWorkflowRunSnapshot,
-  entry: DynamicWorkflowRunHole,
-  sessionId: string | undefined,
+    snapshot: DynamicWorkflowRunSnapshot,
+    entry: DynamicWorkflowRunHole,
+    sessionId: string | undefined,
 ): FillWorkflowHoleHole {
-  const owned =
-    sessionId !== undefined &&
-    snapshot.parentSessionId !== undefined &&
-    snapshot.parentSessionId === sessionId &&
-    snapshot.stopReason !== "user";
-  return {
-    name: entry.name,
-    type: entry.type,
-    ...(snapshot.scriptPath === undefined ? {} : { draft_path: snapshot.scriptPath }),
-    ...(entry.line === undefined ? {} : { line: entry.line }),
-    owned_by_this_session: owned,
-  };
+    const owned =
+        sessionId !== undefined &&
+        snapshot.parentSessionId !== undefined &&
+        snapshot.parentSessionId === sessionId &&
+        snapshot.stopReason !== "user";
+    return {
+        name: entry.name,
+        type: entry.type,
+        ...(snapshot.scriptPath === undefined ? {} : { draft_path: snapshot.scriptPath }),
+        ...(entry.line === undefined ? {} : { line: entry.line }),
+        owned_by_this_session: owned,
+    };
 }
 
 /** 归一化出来的函数体字段（两条来源同形），外加模型面该看到的文件写法。 */
 type FillBodyResolution =
-  | { result: true; fields: { script: string; path?: string }; described?: string }
-  | ToolHandlerFailure;
+    | { result: true; fields: { script: string; path?: string }; described?: string }
+    | ToolHandlerFailure;
 
 /**
  * 两条来源归一成同一组字段。`path` 逐字节读（不剥任何元数据块：fill 文件装的就是语句本身），
  * 读在 resolveInput 而不在 handler——确认窗要画将要拼入的那份字节，hook 与项目规则也要匹配到它。
  */
 async function resolveFillBody(
-  model: FillWorkflowHoleInput,
-  cwd: string,
+    model: FillWorkflowHoleInput,
+    cwd: string,
 ): Promise<FillBodyResolution> {
-  if (model.path !== undefined) {
-    const absolute = resolveWorkflowScriptFilePath(cwd, model.path);
-    const described = describeWorkflowScriptPath(absolute, cwd);
-    try {
-      const script = await readFile(absolute, "utf8");
-      if (script.length === 0) return fillFileFailure(`${described} is empty`);
-      return { result: true, described, fields: { script, path: absolute } };
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : String(error);
-      return fillFileFailure(`${described} could not be read: ${reason}`);
+    if (model.path !== undefined) {
+        const absolute = resolveWorkflowScriptFilePath(cwd, model.path);
+        const described = describeWorkflowScriptPath(absolute, cwd);
+        try {
+            const script = await readFile(absolute, "utf8");
+            if (script.length === 0) return fillFileFailure(`${described} is empty`);
+            return { result: true, described, fields: { script, path: absolute } };
+        } catch (error) {
+            const reason = error instanceof Error ? error.message : String(error);
+            return fillFileFailure(`${described} could not be read: ${reason}`);
+        }
     }
-  }
-  if (model.script !== undefined) return { result: true, fields: { script: model.script } };
-  return {
-    result: false,
-    errorCode: FILL_WORKFLOW_HOLE_ERROR_CODE.BODY_UNAVAILABLE,
-    message: `workflow_fill_body_unavailable: ${FILL_WORKFLOW_HOLE_SOURCE_ERROR}`,
-  };
+    if (model.script !== undefined) return { result: true, fields: { script: model.script } };
+    return {
+        result: false,
+        errorCode: FILL_WORKFLOW_HOLE_ERROR_CODE.BODY_UNAVAILABLE,
+        message: `workflow_fill_body_unavailable: ${FILL_WORKFLOW_HOLE_SOURCE_ERROR}`,
+    };
 }
 
 function fillFileFailure(detail: string): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: FILL_WORKFLOW_HOLE_ERROR_CODE.FILL_FILE,
-    message: `workflow_fill_file_unreadable: ${detail}. Pass \`path\` for the fill file a previous result named, or submit the body inline as \`script\`. Nothing was filled.`,
-  };
+    return {
+        result: false,
+        errorCode: FILL_WORKFLOW_HOLE_ERROR_CODE.FILL_FILE,
+        message: `workflow_fill_file_unreadable: ${detail}. Pass \`path\` for the fill file a previous result named, or submit the body inline as \`script\`. Nothing was filled.`,
+    };
 }
 
 /** 拼一次有效脚本记进单槽（读不到 run 的脚本、拼不了都只是没有预览，绝不失败）。 */
 async function rememberFillPreview(
-  port: DynamicWorkflowRunPort,
-  runId: string,
-  holeId: string,
-  body: string,
-  snapshot: DynamicWorkflowRunSnapshot,
+    port: DynamicWorkflowRunPort,
+    runId: string,
+    holeId: string,
+    body: string,
+    snapshot: DynamicWorkflowRunSnapshot,
 ): Promise<void> {
-  preview = undefined;
-  if (typeof port.getScript !== "function") return;
-  let stored: string | undefined;
-  try {
-    stored = await port.getScript(runId);
-  } catch {
-    return;
-  }
-  if (stored === undefined || stored.length === 0) return;
-  const effectiveScript = spliceHoleBodyPreview(stored, holeId, body);
-  if (effectiveScript === undefined) return;
-  // 绑定表缺席即 run 没点名过模型（快照的 `modelBindings` 只在点名过时在场）。
-  preview = { runId, holeId, body, effectiveScript, modelBindings: snapshot.modelBindings ?? {} };
+    preview = undefined;
+    if (typeof port.getScript !== "function") return;
+    let stored: string | undefined;
+    try {
+        stored = await port.getScript(runId);
+    } catch {
+        return;
+    }
+    if (stored === undefined || stored.length === 0) return;
+    const effectiveScript = spliceHoleBodyPreview(stored, holeId, body);
+    if (effectiveScript === undefined) return;
+    // 绑定表缺席即 run 没点名过模型（快照的 `modelBindings` 只在点名过时在场）。
+    preview = { runId, holeId, body, effectiveScript, modelBindings: snapshot.modelBindings ?? {} };
 }

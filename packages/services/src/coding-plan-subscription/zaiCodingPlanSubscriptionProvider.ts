@@ -1,8 +1,8 @@
 import { BUILTIN_MODEL_PROVIDER_IDS, resolveZaiBusinessBaseUrl } from "@zcode/shared";
 import type { CodingPlanSubscriptionProviderId } from "@zcode/shared";
 import {
-  BigModelCodingPlanSubscriptionProvider,
-  createZaiLoginAuthHeaders,
+    BigModelCodingPlanSubscriptionProvider,
+    createZaiLoginAuthHeaders,
 } from "./bigmodelCodingPlanSubscriptionProvider.js";
 
 /**
@@ -31,22 +31,22 @@ import {
  *   - staticConfigs 是平台级 client/configs，与 family 无关。
  */
 export class ZaiCodingPlanSubscriptionProvider extends BigModelCodingPlanSubscriptionProvider {
-  protected codingPlanProviderId(): CodingPlanSubscriptionProviderId {
-    return BUILTIN_MODEL_PROVIDER_IDS.zaiIndividualCodingPlan;
-  }
+    protected codingPlanProviderId(): CodingPlanSubscriptionProviderId {
+        return BUILTIN_MODEL_PROVIDER_IDS.zaiIndividualCodingPlan;
+    }
 
-  protected resolveFamilyEnterpriseHost(): string {
-    return resolveZaiCodingPlanHost();
-  }
+    protected resolveFamilyEnterpriseHost(): string {
+        return resolveZaiCodingPlanHost();
+    }
 
-  protected async loadFamilyEnterpriseToken(): Promise<string> {
-    // 复用父类 loadZaiAuthorization：credential key = oauth:zai:access_token。
-    return this.loadZaiAuthorization();
-  }
+    protected async loadFamilyEnterpriseToken(): Promise<string> {
+        // 复用父类 loadZaiAuthorization：credential key = oauth:zai:access_token。
+        return this.loadZaiAuthorization();
+    }
 
-  protected createFamilyEnterpriseAuthHeaders(token: string): Record<string, string> {
-    return createZaiLoginAuthHeaders(token);
-  }
+    protected createFamilyEnterpriseAuthHeaders(token: string): Record<string, string> {
+        return createZaiLoginAuthHeaders(token);
+    }
 }
 
 /**
@@ -55,5 +55,5 @@ export class ZaiCodingPlanSubscriptionProvider extends BigModelCodingPlanSubscri
  * 必须与父类实现保持一致：跟随产品环境（测试 配置的 ZAI Business origin / 线上 api.z.ai）。
  */
 function resolveZaiCodingPlanHost(): string {
-  return resolveZaiBusinessBaseUrl(process.env);
+    return resolveZaiBusinessBaseUrl(process.env);
 }

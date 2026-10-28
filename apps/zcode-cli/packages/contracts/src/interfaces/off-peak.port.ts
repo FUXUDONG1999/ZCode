@@ -10,41 +10,44 @@ import type { OffPeakCreateInput, OffPeakTaskSummary } from "../tools/off-peak.j
 export type OffPeakCreateFailureStage = "client_validation" | "ticket_request" | "local_persist";
 
 export type OffPeakCreateErrorCategory =
-  | "client_validation"
-  | "eligibility_3101"
-  | "quota_3103"
-  | "network"
-  | "invalid_response"
-  | "local_persist"
-  | "unknown";
+    | "client_validation"
+    | "eligibility_3101"
+    | "quota_3103"
+    | "network"
+    | "invalid_response"
+    | "local_persist"
+    | "unknown";
 
 export type OffPeakCreateOutcome =
-  | { ok: true; task: OffPeakTaskSummary }
-  | {
-      ok: false;
-      failureStage: OffPeakCreateFailureStage;
-      errorCategory: OffPeakCreateErrorCategory;
-      errorCode: string;
-    };
+    | { ok: true; task: OffPeakTaskSummary }
+    | {
+          ok: false;
+          failureStage: OffPeakCreateFailureStage;
+          errorCategory: OffPeakCreateErrorCategory;
+          errorCode: string;
+      };
 
 export function isOffPeakQuotaFailure(
-  outcome: OffPeakCreateOutcome,
+    outcome: OffPeakCreateOutcome,
 ): outcome is Extract<OffPeakCreateOutcome, { ok: false }> {
-  return !outcome.ok && outcome.errorCategory === "quota_3103";
+    return !outcome.ok && outcome.errorCategory === "quota_3103";
 }
 
 export function isOffPeakEligibilityFailure(
-  outcome: OffPeakCreateOutcome,
+    outcome: OffPeakCreateOutcome,
 ): outcome is Extract<OffPeakCreateOutcome, { ok: false }> {
-  return !outcome.ok && outcome.errorCategory === "eligibility_3101";
+    return !outcome.ok && outcome.errorCategory === "eligibility_3101";
 }
 
 export interface OffPeakCreateContext {
-  /** 当前工具调用所在 session；作为闲时任务的绑定会话（首跑 resume 该会话，对齐 CronCreate targetTaskId）。 */
-  sessionId?: string;
+    /** 当前工具调用所在 session；作为闲时任务的绑定会话（首跑 resume 该会话，对齐 CronCreate targetTaskId）。 */
+    sessionId?: string;
 }
 
 export interface OffPeakPort {
-  create(input: OffPeakCreateInput, context?: OffPeakCreateContext): Promise<OffPeakCreateOutcome>;
-  list(): Promise<OffPeakTaskSummary[]>;
+    create(
+        input: OffPeakCreateInput,
+        context?: OffPeakCreateContext,
+    ): Promise<OffPeakCreateOutcome>;
+    list(): Promise<OffPeakTaskSummary[]>;
 }

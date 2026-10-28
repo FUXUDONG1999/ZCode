@@ -6,7 +6,7 @@
 import { useZCodeSessionStore, selectWorkspaceZCodeState } from "../store/zcodeSessionStore.js";
 
 export function useSlashCommands(workspacePath: string, workspaceIdentity?: string) {
-  return useZCodeSessionStore(
-    (state) => selectWorkspaceZCodeState(state, workspacePath, workspaceIdentity).slashCommands,
-  );
+    return useZCodeSessionStore(
+        (state) => selectWorkspaceZCodeState(state, workspacePath, workspaceIdentity).slashCommands,
+    );
 }

@@ -14,26 +14,26 @@ GLM uses **LaTeX as the formula input syntax**, internally converting to docx-js
 
 ```js
 const {
-  Math: OoxmlMath,
-  MathRun,
-  MathFraction,
-  MathSuperScript,
-  MathSubScript,
-  MathRadical,
-  MathSum,
-  MathSubSuperScript,
+    Math: OoxmlMath,
+    MathRun,
+    MathFraction,
+    MathSuperScript,
+    MathSubScript,
+    MathRadical,
+    MathSum,
+    MathSubSuperScript,
 } = require("docx");
 
 // Embed formula in paragraph
 new Paragraph({
-  alignment: AlignmentType.CENTER,
-  children: [
-    new OoxmlMath({
-      children: [
-        /* Math components */
-      ],
-    }),
-  ],
+    alignment: AlignmentType.CENTER,
+    children: [
+        new OoxmlMath({
+            children: [
+                /* Math components */
+            ],
+        }),
+    ],
 });
 ```
 
@@ -87,39 +87,39 @@ Use Unicode characters directly:
 ```js
 // LaTeX → Unicode mapping
 const GREEK = {
-  "\\alpha": "α",
-  "\\beta": "β",
-  "\\gamma": "γ",
-  "\\delta": "δ",
-  "\\epsilon": "ε",
-  "\\zeta": "ζ",
-  "\\eta": "η",
-  "\\theta": "θ",
-  "\\iota": "ι",
-  "\\kappa": "κ",
-  "\\lambda": "λ",
-  "\\mu": "μ",
-  "\\nu": "ν",
-  "\\xi": "ξ",
-  "\\pi": "π",
-  "\\rho": "ρ",
-  "\\sigma": "σ",
-  "\\tau": "τ",
-  "\\phi": "φ",
-  "\\chi": "χ",
-  "\\psi": "ψ",
-  "\\omega": "ω",
-  "\\Alpha": "Α",
-  "\\Beta": "Β",
-  "\\Gamma": "Γ",
-  "\\Delta": "Δ",
-  "\\Theta": "Θ",
-  "\\Lambda": "Λ",
-  "\\Pi": "Π",
-  "\\Sigma": "Σ",
-  "\\Phi": "Φ",
-  "\\Psi": "Ψ",
-  "\\Omega": "Ω",
+    "\\alpha": "α",
+    "\\beta": "β",
+    "\\gamma": "γ",
+    "\\delta": "δ",
+    "\\epsilon": "ε",
+    "\\zeta": "ζ",
+    "\\eta": "η",
+    "\\theta": "θ",
+    "\\iota": "ι",
+    "\\kappa": "κ",
+    "\\lambda": "λ",
+    "\\mu": "μ",
+    "\\nu": "ν",
+    "\\xi": "ξ",
+    "\\pi": "π",
+    "\\rho": "ρ",
+    "\\sigma": "σ",
+    "\\tau": "τ",
+    "\\phi": "φ",
+    "\\chi": "χ",
+    "\\psi": "ψ",
+    "\\omega": "ω",
+    "\\Alpha": "Α",
+    "\\Beta": "Β",
+    "\\Gamma": "Γ",
+    "\\Delta": "Δ",
+    "\\Theta": "Θ",
+    "\\Lambda": "Λ",
+    "\\Pi": "Π",
+    "\\Sigma": "Σ",
+    "\\Phi": "Φ",
+    "\\Psi": "Ψ",
+    "\\Omega": "Ω",
 };
 ```
 
@@ -131,24 +131,24 @@ LaTeX: `x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}`
 
 ```js
 new OoxmlMath({
-  children: [
-    new MathRun("x = "),
-    new MathFraction({
-      numerator: [
-        new MathRun("−b ± "),
-        new MathRadical({
-          children: [
-            new MathSuperScript({
-              children: [new MathRun("b")],
-              superScript: [new MathRun("2")],
-            }),
-            new MathRun(" − 4ac"),
-          ],
+    children: [
+        new MathRun("x = "),
+        new MathFraction({
+            numerator: [
+                new MathRun("−b ± "),
+                new MathRadical({
+                    children: [
+                        new MathSuperScript({
+                            children: [new MathRun("b")],
+                            superScript: [new MathRun("2")],
+                        }),
+                        new MathRun(" − 4ac"),
+                    ],
+                }),
+            ],
+            denominator: [new MathRun("2a")],
         }),
-      ],
-      denominator: [new MathRun("2a")],
-    }),
-  ],
+    ],
 });
 ```
 
@@ -158,13 +158,13 @@ LaTeX: `a^2 + b^2 = c^2`
 
 ```js
 new OoxmlMath({
-  children: [
-    new MathSuperScript({ children: [new MathRun("a")], superScript: [new MathRun("2")] }),
-    new MathRun(" + "),
-    new MathSuperScript({ children: [new MathRun("b")], superScript: [new MathRun("2")] }),
-    new MathRun(" = "),
-    new MathSuperScript({ children: [new MathRun("c")], superScript: [new MathRun("2")] }),
-  ],
+    children: [
+        new MathSuperScript({ children: [new MathRun("a")], superScript: [new MathRun("2")] }),
+        new MathRun(" + "),
+        new MathSuperScript({ children: [new MathRun("b")], superScript: [new MathRun("2")] }),
+        new MathRun(" = "),
+        new MathSuperScript({ children: [new MathRun("c")], superScript: [new MathRun("2")] }),
+    ],
 });
 ```
 
@@ -174,12 +174,12 @@ LaTeX: `\sin^2\theta + \cos^2\theta = 1`
 
 ```js
 new OoxmlMath({
-  children: [
-    new MathSuperScript({ children: [new MathRun("sin")], superScript: [new MathRun("2")] }),
-    new MathRun("θ + "),
-    new MathSuperScript({ children: [new MathRun("cos")], superScript: [new MathRun("2")] }),
-    new MathRun("θ = 1"),
-  ],
+    children: [
+        new MathSuperScript({ children: [new MathRun("sin")], superScript: [new MathRun("2")] }),
+        new MathRun("θ + "),
+        new MathSuperScript({ children: [new MathRun("cos")], superScript: [new MathRun("2")] }),
+        new MathRun("θ = 1"),
+    ],
 });
 ```
 
@@ -190,19 +190,19 @@ new OoxmlMath({
 ```js
 // Quadratic discriminant
 const discriminant = new OoxmlMath({
-  children: [
-    new MathRun("Δ = "),
-    new MathSuperScript({ children: [new MathRun("b")], superScript: [new MathRun("2")] }),
-    new MathRun(" − 4ac"),
-  ],
+    children: [
+        new MathRun("Δ = "),
+        new MathSuperScript({ children: [new MathRun("b")], superScript: [new MathRun("2")] }),
+        new MathRun(" − 4ac"),
+    ],
 });
 
 // Circle area
 const circleArea = new OoxmlMath({
-  children: [
-    new MathRun("S = π"),
-    new MathSuperScript({ children: [new MathRun("r")], superScript: [new MathRun("2")] }),
-  ],
+    children: [
+        new MathRun("S = π"),
+        new MathSuperScript({ children: [new MathRun("r")], superScript: [new MathRun("2")] }),
+    ],
 });
 ```
 
@@ -211,32 +211,32 @@ const circleArea = new OoxmlMath({
 ```js
 // Logarithm change of base
 const logChange = new OoxmlMath({
-  children: [
-    new MathSubScript({ children: [new MathRun("log")], subScript: [new MathRun("a")] }),
-    new MathRun("b = "),
-    new MathFraction({
-      numerator: [new MathRun("ln b")],
-      denominator: [new MathRun("ln a")],
-    }),
-  ],
+    children: [
+        new MathSubScript({ children: [new MathRun("log")], subScript: [new MathRun("a")] }),
+        new MathRun("b = "),
+        new MathFraction({
+            numerator: [new MathRun("ln b")],
+            denominator: [new MathRun("ln a")],
+        }),
+    ],
 });
 
 // Arithmetic series sum
 const arithmeticSum = new OoxmlMath({
-  children: [
-    new MathSubScript({ children: [new MathRun("S")], subScript: [new MathRun("n")] }),
-    new MathRun(" = "),
-    new MathFraction({
-      numerator: [
-        new MathRun("n("),
-        new MathSubScript({ children: [new MathRun("a")], subScript: [new MathRun("1")] }),
-        new MathRun(" + "),
-        new MathSubScript({ children: [new MathRun("a")], subScript: [new MathRun("n")] }),
-        new MathRun(")"),
-      ],
-      denominator: [new MathRun("2")],
-    }),
-  ],
+    children: [
+        new MathSubScript({ children: [new MathRun("S")], subScript: [new MathRun("n")] }),
+        new MathRun(" = "),
+        new MathFraction({
+            numerator: [
+                new MathRun("n("),
+                new MathSubScript({ children: [new MathRun("a")], subScript: [new MathRun("1")] }),
+                new MathRun(" + "),
+                new MathSubScript({ children: [new MathRun("a")], subScript: [new MathRun("n")] }),
+                new MathRun(")"),
+            ],
+            denominator: [new MathRun("2")],
+        }),
+    ],
 });
 ```
 
@@ -245,21 +245,21 @@ const arithmeticSum = new OoxmlMath({
 ```js
 // Newton's second law
 const newton2 = new OoxmlMath({
-  children: [new MathRun("F = ma")],
+    children: [new MathRun("F = ma")],
 });
 
 // Kinetic energy
 const kineticEnergy = new OoxmlMath({
-  children: [
-    new MathSubScript({ children: [new MathRun("E")], subScript: [new MathRun("k")] }),
-    new MathRun(" = "),
-    new MathFraction({
-      numerator: [new MathRun("1")],
-      denominator: [new MathRun("2")],
-    }),
-    new MathRun("m"),
-    new MathSuperScript({ children: [new MathRun("v")], superScript: [new MathRun("2")] }),
-  ],
+    children: [
+        new MathSubScript({ children: [new MathRun("E")], subScript: [new MathRun("k")] }),
+        new MathRun(" = "),
+        new MathFraction({
+            numerator: [new MathRun("1")],
+            denominator: [new MathRun("2")],
+        }),
+        new MathRun("m"),
+        new MathSuperScript({ children: [new MathRun("v")], superScript: [new MathRun("2")] }),
+    ],
 });
 ```
 
@@ -294,14 +294,14 @@ Then embed the PNG in the document:
 ```js
 const formulaImg = fs.readFileSync("formula.png");
 new Paragraph({
-  alignment: AlignmentType.CENTER,
-  children: [
-    new ImageRun({
-      data: formulaImg,
-      transformation: { width: 300, height: 40 }, // adjust based on actual size
-      type: "png",
-    }),
-  ],
+    alignment: AlignmentType.CENTER,
+    children: [
+        new ImageRun({
+            data: formulaImg,
+            transformation: { width: 300, height: 40 }, // adjust based on actual size
+            type: "png",
+        }),
+    ],
 });
 ```
 

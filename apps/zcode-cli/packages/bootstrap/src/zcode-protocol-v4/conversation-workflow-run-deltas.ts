@@ -24,7 +24,7 @@ import type { ConversationDelta, WorkflowRunsState } from "@zcode/shared/zcode-p
 import { clampWorkflowRunsForLegacy, utf8JsonByteLength } from "@zcode/shared/zcode-protocol-v4";
 
 function isWorkflowRunDelta(delta: ConversationDelta): boolean {
-  return delta.op === "workflowRun.updated" || delta.op === "workflowRun.removed";
+    return delta.op === "workflowRun.updated" || delta.op === "workflowRun.removed";
 }
 
 /**
@@ -35,32 +35,35 @@ function isWorkflowRunDelta(delta: ConversationDelta): boolean {
  * 产出侧不会走到（有增量就必有状态），这里只是不让它变成一条 `{workflowRuns: undefined}`。
  */
 export function encodeConversationDeltasForLegacy(
-  deltas: readonly ConversationDelta[],
-  workflowRuns: WorkflowRunsState | undefined,
+    deltas: readonly ConversationDelta[],
+    workflowRuns: WorkflowRunsState | undefined,
 ): readonly ConversationDelta[] {
-  let lastIndex = -1;
-  for (let index = deltas.length - 1; index >= 0; index -= 1) {
-    if (isWorkflowRunDelta(deltas[index]!)) {
-      lastIndex = index;
-      break;
+    let lastIndex = -1;
+    for (let index = deltas.length - 1; index >= 0; index -= 1) {
+        if (isWorkflowRunDelta(deltas[index]!)) {
+            lastIndex = index;
+            break;
+        }
     }
-  }
-  if (lastIndex < 0) return deltas;
+    if (lastIndex < 0) return deltas;
 
-  const replacement: ConversationDelta | null =
-    workflowRuns === undefined
-      ? null
-      : { op: "state.updated", patch: { workflowRuns: clampWorkflowRunsForLegacy(workflowRuns) } };
-  const encoded: ConversationDelta[] = [];
-  for (let index = 0; index < deltas.length; index += 1) {
-    const delta = deltas[index]!;
-    if (!isWorkflowRunDelta(delta)) {
-      encoded.push(delta);
-      continue;
+    const replacement: ConversationDelta | null =
+        workflowRuns === undefined
+            ? null
+            : {
+                  op: "state.updated",
+                  patch: { workflowRuns: clampWorkflowRunsForLegacy(workflowRuns) },
+              };
+    const encoded: ConversationDelta[] = [];
+    for (let index = 0; index < deltas.length; index += 1) {
+        const delta = deltas[index]!;
+        if (!isWorkflowRunDelta(delta)) {
+            encoded.push(delta);
+            continue;
+        }
+        if (index === lastIndex && replacement !== null) encoded.push(replacement);
     }
-    if (index === lastIndex && replacement !== null) encoded.push(replacement);
-  }
-  return encoded;
+    return encoded;
 }
 
 // ── 二、ingest 快路径的增长上界 ──
@@ -89,10 +92,10 @@ const WORKFLOW_RUN_DELTA_ENVELOPE_SLACK_BYTES = 64;
  * 余量是**每批**一份而不是每条一份：这一份既盖 JSON 外壳，也盖 `seq` 十进制位数的增长。
  */
 export function workflowRunDeltaGrowthUpperBound(
-  deltas: readonly ConversationDelta[],
+    deltas: readonly ConversationDelta[],
 ): number | null {
-  for (const delta of deltas) {
-    if (delta.op !== "workflowRun.updated" && delta.op !== "workflowRun.removed") return null;
-  }
-  return utf8JsonByteLength(deltas) + WORKFLOW_RUN_DELTA_ENVELOPE_SLACK_BYTES;
+    for (const delta of deltas) {
+        if (delta.op !== "workflowRun.updated" && delta.op !== "workflowRun.removed") return null;
+    }
+    return utf8JsonByteLength(deltas) + WORKFLOW_RUN_DELTA_ENVELOPE_SLACK_BYTES;
 }

@@ -32,24 +32,24 @@ const MAX_REMEMBERED_EVENT_IDS = 2_048;
  * 拿不到主 sessionId 时放行：宁可多渲染一点，也不要因为缺一个 id 就让转写整片空白。
  */
 export function isMainSessionEvent(
-  event: SessionEvent,
-  mainSessionId: string | undefined,
+    event: SessionEvent,
+    mainSessionId: string | undefined,
 ): boolean {
-  // Tool mirrors deliberately carry the parent's sessionId. They are activity
-  // metadata, not parent transcript/tool/usage facts.
-  if (isSubagentToolMirror(event)) return false;
-  if (!mainSessionId) return true;
-  const eventSessionId = typeof event.sessionId === "string" ? event.sessionId : undefined;
-  if (eventSessionId === undefined) return true;
-  return eventSessionId === mainSessionId;
+    // Tool mirrors deliberately carry the parent's sessionId. They are activity
+    // metadata, not parent transcript/tool/usage facts.
+    if (isSubagentToolMirror(event)) return false;
+    if (!mainSessionId) return true;
+    const eventSessionId = typeof event.sessionId === "string" ? event.sessionId : undefined;
+    if (eventSessionId === undefined) return true;
+    return eventSessionId === mainSessionId;
 }
 
 type SessionEventApplierInput = SessionEventHandlers & {
-  subscribeSessionEvents?: (sink: (event: SessionEvent) => void) => () => void;
-  observeSessionEvent?: (event: SessionEvent) => void;
-  copy: TuiCopy;
-  getMainSessionId?: () => string | undefined;
-  setLastEvent: (event: string) => void;
+    subscribeSessionEvents?: (sink: (event: SessionEvent) => void) => () => void;
+    observeSessionEvent?: (event: SessionEvent) => void;
+    copy: TuiCopy;
+    getMainSessionId?: () => string | undefined;
+    setLastEvent: (event: string) => void;
 };
 
 /**
@@ -63,40 +63,40 @@ type SessionEventApplierInput = SessionEventHandlers & {
  * 会让主会话的重复投递漏过去）。
  */
 export function applyMainSessionEvent(
-  event: SessionEvent,
-  applied: Set<string>,
-  input: SessionEventApplierInput,
+    event: SessionEvent,
+    applied: Set<string>,
+    input: SessionEventApplierInput,
 ): boolean {
-  if (!isMainSessionEvent(event, input.getMainSessionId?.())) return false;
-  if (!rememberSessionEvent(applied, event)) return false;
-  input.setLastEvent(describeSessionEvent(event));
-  applySessionEventToState(event, input, input.copy);
-  return true;
+    if (!isMainSessionEvent(event, input.getMainSessionId?.())) return false;
+    if (!rememberSessionEvent(applied, event)) return false;
+    input.setLastEvent(describeSessionEvent(event));
+    applySessionEventToState(event, input, input.copy);
+    return true;
 }
 
 export function useSessionEventApplier(
-  input: SessionEventApplierInput,
+    input: SessionEventApplierInput,
 ): (event: SessionEvent) => void {
-  const appliedEventIdsRef = React.useRef<Set<string>>(new Set());
-  const applyEvent = React.useCallback(
-    (event: SessionEvent) => {
-      input.observeSessionEvent?.(event);
-      applyMainSessionEvent(event, appliedEventIdsRef.current, input);
-    },
-    [input],
-  );
-  useSessionEventSubscription(input.subscribeSessionEvents, applyEvent);
-  return applyEvent;
+    const appliedEventIdsRef = React.useRef<Set<string>>(new Set());
+    const applyEvent = React.useCallback(
+        (event: SessionEvent) => {
+            input.observeSessionEvent?.(event);
+            applyMainSessionEvent(event, appliedEventIdsRef.current, input);
+        },
+        [input],
+    );
+    useSessionEventSubscription(input.subscribeSessionEvents, applyEvent);
+    return applyEvent;
 }
 
 /** A stable subscription survives renders; both event sources share the applier. */
 export function useSessionEventSubscription(
-  subscribe: ((sink: (event: SessionEvent) => void) => () => void) | undefined,
-  applyEvent: (event: SessionEvent) => void,
+    subscribe: ((sink: (event: SessionEvent) => void) => () => void) | undefined,
+    applyEvent: (event: SessionEvent) => void,
 ): void {
-  const latest = React.useRef(applyEvent);
-  latest.current = applyEvent;
-  React.useEffect(() => subscribe?.((event) => latest.current(event)), [subscribe]);
+    const latest = React.useRef(applyEvent);
+    latest.current = applyEvent;
+    React.useEffect(() => subscribe?.((event) => latest.current(event)), [subscribe]);
 }
 
 /**
@@ -105,19 +105,19 @@ export function useSessionEventSubscription(
  * 没有 id 的事件一律放行：宁可重复渲染一次，也不要因为缺一个 key 就把事件整条吞掉。
  */
 export function rememberSessionEvent(applied: Set<string>, event: SessionEvent): boolean {
-  const eventId = typeof event.id === "string" && event.id.length > 0 ? event.id : undefined;
-  if (eventId === undefined) return true;
-  if (applied.has(eventId)) return false;
-  applied.add(eventId);
-  if (applied.size > MAX_REMEMBERED_EVENT_IDS) {
-    // Set 保持插入序，最旧的一批先出。
-    const excess = applied.size - MAX_REMEMBERED_EVENT_IDS;
-    let removed = 0;
-    for (const id of applied) {
-      applied.delete(id);
-      removed += 1;
-      if (removed >= excess) break;
+    const eventId = typeof event.id === "string" && event.id.length > 0 ? event.id : undefined;
+    if (eventId === undefined) return true;
+    if (applied.has(eventId)) return false;
+    applied.add(eventId);
+    if (applied.size > MAX_REMEMBERED_EVENT_IDS) {
+        // Set 保持插入序，最旧的一批先出。
+        const excess = applied.size - MAX_REMEMBERED_EVENT_IDS;
+        let removed = 0;
+        for (const id of applied) {
+            applied.delete(id);
+            removed += 1;
+            if (removed >= excess) break;
+        }
     }
-  }
-  return true;
+    return true;
 }

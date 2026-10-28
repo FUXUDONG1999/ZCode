@@ -60,12 +60,12 @@ Memory 与 compact 分工固定：compact 维持当前 session 连续性；Memor
 
 ```json
 {
-  "features": {
-    "memory": true
-  },
-  "memory": {
-    "use": true
-  }
+    "features": {
+        "memory": true
+    },
+    "memory": {
+        "use": true
+    }
 }
 ```
 
@@ -262,9 +262,9 @@ fixture 一致；只有 root 允许动态变化。
 name: concise-memory-name
 description: one-line recall description
 metadata:
-  node_type: memory
-  type: user
-  originSessionId: sess_0123456789abcdef
+    node_type: memory
+    type: user
+    originSessionId: sess_0123456789abcdef
 ---
 One durable fact.
 ```
@@ -394,19 +394,19 @@ cache-control 和以下 structured output：
 
 ```json
 {
-  "type": "object",
-  "properties": {
-    "selected_memories": {
-      "type": "array",
-      "items": { "type": "string" }
+    "type": "object",
+    "properties": {
+        "selected_memories": {
+            "type": "array",
+            "items": { "type": "string" }
+        },
+        "selected_knowledge_ids": {
+            "type": "array",
+            "items": { "type": "string" }
+        }
     },
-    "selected_knowledge_ids": {
-      "type": "array",
-      "items": { "type": "string" }
-    }
-  },
-  "required": ["selected_memories"],
-  "additionalProperties": false
+    "required": ["selected_memories"],
+    "additionalProperties": false
 }
 ```
 
@@ -763,15 +763,15 @@ Memory 域内部源码、类型、fixture helper 和测试名使用 ZCode 语义
 
 ```ts
 interface ModelTextRequest {
-  responseJsonSchema?: JsonSchema;
+    responseJsonSchema?: JsonSchema;
 }
 
 interface AgentProfile {
-  memory?: "user" | "project" | "local";
+    memory?: "user" | "project" | "local";
 }
 
 interface CreateModelAdapterOptions {
-  modelIoDir?: string;
+    modelIoDir?: string;
 }
 ```
 

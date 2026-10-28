@@ -3,15 +3,15 @@
 // ============================================================
 
 export function createEnterPlanModeProviderDescription(
-  options: {
-    embeddedSearchEnabled?: boolean;
-  } = {},
+    options: {
+        embeddedSearchEnabled?: boolean;
+    } = {},
 ): string {
-  const explorationTools = options.embeddedSearchEnabled
-    ? "`find`/Glob, `grep`/Grep, and Read"
-    : "Glob, Grep, and Read";
+    const explorationTools = options.embeddedSearchEnabled
+        ? "`find`/Glob, `grep`/Grep, and Read"
+        : "Glob, Grep, and Read";
 
-  return `Use this tool proactively when you're about to start a non-trivial implementation task. Getting user sign-off on your approach before writing code prevents wasted effort and ensures alignment. This tool transitions you into plan mode where you can explore the codebase and design an implementation approach for user approval.
+    return `Use this tool proactively when you're about to start a non-trivial implementation task. Getting user sign-off on your approach before writing code prevents wasted effort and ensures alignment. This tool transitions you into plan mode where you can explore the codebase and design an implementation approach for user approval.
 
 ## When to Use This Tool
 
@@ -102,7 +102,7 @@ User: "What files handle routing?"
 export const ENTER_PLAN_MODE_PROVIDER_DESCRIPTION = createEnterPlanModeProviderDescription();
 
 export const EXIT_PLAN_MODE_MODEL_INSTRUCTIONS = [
-  `Use this tool when you are in plan mode and have finished writing your plan and are ready for user approval.
+    `Use this tool when you are in plan mode and have finished writing your plan and are ready for user approval.
 
 ## How This Tool Works
 - You should have already explored the codebase and finalized the plan you want the user to review

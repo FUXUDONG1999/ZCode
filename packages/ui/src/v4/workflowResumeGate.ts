@@ -11,12 +11,12 @@
  * 已经存在的 run 照常渲染：卡片、摘要、run 面板与产物一件不少，只是按不动。
  */
 export function resolveWorkflowResumeHandler<THandler>(options: {
-  readOnly: boolean | undefined;
-  /** 灰度快照未就绪时传 false：未知即不提供（fail-closed）。 */
-  dynamicWorkflowEnabled: boolean;
-  handler: THandler;
+    readOnly: boolean | undefined;
+    /** 灰度快照未就绪时传 false：未知即不提供（fail-closed）。 */
+    dynamicWorkflowEnabled: boolean;
+    handler: THandler;
 }): THandler | undefined {
-  if (options.readOnly === true) return undefined;
-  if (!options.dynamicWorkflowEnabled) return undefined;
-  return options.handler;
+    if (options.readOnly === true) return undefined;
+    if (!options.dynamicWorkflowEnabled) return undefined;
+    return options.handler;
 }

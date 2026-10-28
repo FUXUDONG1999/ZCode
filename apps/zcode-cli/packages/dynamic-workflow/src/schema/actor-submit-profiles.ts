@@ -20,9 +20,9 @@ import type { JsonSchema } from "./types.js";
  * 在编译期可判定时，typed 工具才是免费的；判定不了就退回 generic，行为逐字节保持等价。
  */
 export type ActorSubmitProfile =
-  | { kind: "untyped" }
-  | { kind: "mono"; schema: JsonSchema }
-  | { kind: "generic" };
+    | { kind: "untyped" }
+    | { kind: "mono"; schema: JsonSchema }
+    | { kind: "generic" };
 
 /** 缺席 / 无法判定时的 profile：今天的行为。 */
 export const GENERIC_SUBMIT_PROFILE: ActorSubmitProfile = { kind: "generic" };
@@ -42,46 +42,46 @@ export const GENERIC_SUBMIT_PROFILE: ActorSubmitProfile = { kind: "generic" };
  * 返回表覆盖 `graph.actors` 里的每一个 actor 站点。
  */
 export function deriveActorSubmitProfiles(
-  graph: SiteGraph,
-  askSpecs: ReadonlyMap<string, AskSpec>,
+    graph: SiteGraph,
+    askSpecs: ReadonlyMap<string, AskSpec>,
 ): Map<string, ActorSubmitProfile> {
-  const profiles = new Map<string, ActorSubmitProfile>();
-  const actorIds = graph.actors.map((actor) => actor.id);
+    const profiles = new Map<string, ActorSubmitProfile>();
+    const actorIds = graph.actors.map((actor) => actor.id);
 
-  // 每个 actor 收集到的 typed schema，按规范 JSON 去重（同一份 schema 对象在不同 ask 站点上各合成
-  // 一次，引用不同但内容相同，必须按内容比较）。
-  const schemasByActor = new Map<string, Map<string, JsonSchema>>();
-  for (const id of actorIds) schemasByActor.set(id, new Map());
+    // 每个 actor 收集到的 typed schema，按规范 JSON 去重（同一份 schema 对象在不同 ask 站点上各合成
+    // 一次，引用不同但内容相同，必须按内容比较）。
+    const schemasByActor = new Map<string, Map<string, JsonSchema>>();
+    for (const id of actorIds) schemasByActor.set(id, new Map());
 
-  for (const node of graph.nodes) {
-    if (node.kind !== "ask") continue;
-    const actors = node.actors ?? [];
-    const spec = askSpecs.get(node.id);
-    if (actors.length === 0 || spec === undefined) {
-      for (const id of actorIds) profiles.set(id, GENERIC_SUBMIT_PROFILE);
-      return profiles;
+    for (const node of graph.nodes) {
+        if (node.kind !== "ask") continue;
+        const actors = node.actors ?? [];
+        const spec = askSpecs.get(node.id);
+        if (actors.length === 0 || spec === undefined) {
+            for (const id of actorIds) profiles.set(id, GENERIC_SUBMIT_PROFILE);
+            return profiles;
+        }
+        if (!spec.typed) continue;
+        const schema = spec.schema as JsonSchema;
+        const key = canonicalJson(schema);
+        for (const actorId of actors) {
+            // 站点图里的 actor id 必然在 graph.actors 内；防御性地补一个桶，而不是静默跳过。
+            let bucket = schemasByActor.get(actorId);
+            if (bucket === undefined) {
+                bucket = new Map();
+                schemasByActor.set(actorId, bucket);
+            }
+            bucket.set(key, schema);
+        }
     }
-    if (!spec.typed) continue;
-    const schema = spec.schema as JsonSchema;
-    const key = canonicalJson(schema);
-    for (const actorId of actors) {
-      // 站点图里的 actor id 必然在 graph.actors 内；防御性地补一个桶，而不是静默跳过。
-      let bucket = schemasByActor.get(actorId);
-      if (bucket === undefined) {
-        bucket = new Map();
-        schemasByActor.set(actorId, bucket);
-      }
-      bucket.set(key, schema);
-    }
-  }
 
-  for (const [actorId, bucket] of schemasByActor) {
-    if (bucket.size === 0) profiles.set(actorId, { kind: "untyped" });
-    else if (bucket.size === 1)
-      profiles.set(actorId, { kind: "mono", schema: [...bucket.values()][0]! });
-    else profiles.set(actorId, GENERIC_SUBMIT_PROFILE);
-  }
-  return profiles;
+    for (const [actorId, bucket] of schemasByActor) {
+        if (bucket.size === 0) profiles.set(actorId, { kind: "untyped" });
+        else if (bucket.size === 1)
+            profiles.set(actorId, { kind: "mono", schema: [...bucket.values()][0]! });
+        else profiles.set(actorId, GENERIC_SUBMIT_PROFILE);
+    }
+    return profiles;
 }
 
 /**
@@ -90,9 +90,9 @@ export function deriveActorSubmitProfiles(
  * 不必自己拼装 interpret + projectSiteGraph（两者不在包的公开面上）。
  */
 export function deriveActorSubmitProfilesFor(
-  workflow: WorkflowProgram,
-  table: SiteTable,
-  askSpecs: ReadonlyMap<string, AskSpec>,
+    workflow: WorkflowProgram,
+    table: SiteTable,
+    askSpecs: ReadonlyMap<string, AskSpec>,
 ): Map<string, ActorSubmitProfile> {
-  return deriveActorSubmitProfiles(projectSiteGraph(interpret(workflow, table)), askSpecs);
+    return deriveActorSubmitProfiles(projectSiteGraph(interpret(workflow, table)), askSpecs);
 }

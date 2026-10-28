@@ -30,18 +30,18 @@ import { pageEventRows } from "./dwf-journal-pages.js";
  * 再靠「多取一条」去猜。
  */
 export interface DwfArtifactItemsQuery {
-  /**
-   * 只返回 sequence **严格大于**该值的条目。游标是「已读到的最后一个 sequence」而不是偏移量，
-   * 与 `listEvents` 逐字同一套语义——看板 hook 用的正是它已经在用的那个游标。
-   */
-  afterSequence?: number;
-  limit: number;
-  maxBytes: number;
-  /**
-   * 只取这些字段路径（dwf-journal-fields.ts），每个值至多 `maxValueBytes`；给了它，条目带
-   * `fields` 而不带 `item`，`maxBytes` 按取出的字段值计。缺省 = 整条 item。
-   */
-  fields?: { paths: readonly string[]; maxValueBytes: number };
+    /**
+     * 只返回 sequence **严格大于**该值的条目。游标是「已读到的最后一个 sequence」而不是偏移量，
+     * 与 `listEvents` 逐字同一套语义——看板 hook 用的正是它已经在用的那个游标。
+     */
+    afterSequence?: number;
+    limit: number;
+    maxBytes: number;
+    /**
+     * 只取这些字段路径（dwf-journal-fields.ts），每个值至多 `maxValueBytes`；给了它，条目带
+     * `fields` 而不带 `item`，`maxBytes` 按取出的字段值计。缺省 = 整条 item。
+     */
+    fields?: { paths: readonly string[]; maxValueBytes: number };
 }
 
 /**
@@ -52,13 +52,13 @@ export interface DwfArtifactItemsQuery {
  * 揭示动画要一个跨重取稳定的 React key，而 sequence 与坐标都满足。
  */
 export interface DwfArtifactItem {
-  /** 被报告的 item 原值（任意 JSON；`REPORT_CAPS` 在写入侧已保证有界）。只取字段时缺席。 */
-  item?: unknown;
-  /** 只取字段时：路径 → 值，走不通的路径不在表里。 */
-  fields?: Record<string, unknown>;
-  ordinal: number;
-  sequence: number;
-  siteId: string;
+    /** 被报告的 item 原值（任意 JSON；`REPORT_CAPS` 在写入侧已保证有界）。只取字段时缺席。 */
+    item?: unknown;
+    /** 只取字段时：路径 → 值，走不通的路径不在表里。 */
+    fields?: Record<string, unknown>;
+    ordinal: number;
+    sequence: number;
+    siteId: string;
 }
 
 /**
@@ -73,10 +73,10 @@ export interface DwfArtifactItem {
  * 功」，把它筛掉等于让一个用户可见的失败在每张表面上都不存在。
  */
 export function listArtifactRows(db: DatabaseSync, runId: string): NodeRecord[] {
-  const rows = db
-    .prepare("select * from dwf_node where run_id = ? and kind = 'artifact' order by id")
-    .all(runId) as unknown as DwfNodeRow[];
-  return rows.map(decodeNode);
+    const rows = db
+        .prepare("select * from dwf_node where run_id = ? and kind = 'artifact' order by id")
+        .all(runId) as unknown as DwfNodeRow[];
+    return rows.map(decodeNode);
 }
 
 /**
@@ -86,16 +86,16 @@ export function listArtifactRows(db: DatabaseSync, runId: string): NodeRecord[] 
  * 解码一遍全部 item（docs/execution-engine.md「Reading the journal」）。
  */
 export function countTaggedReports(db: DatabaseSync, runId: string): ReadonlyMap<string, number> {
-  const rows = db
-    .prepare(
-      `
+    const rows = db
+        .prepare(
+            `
       select artifact_id, count(*) as total from dwf_node
       where run_id = ? and kind = 'report' and artifact_id is not null
       group by artifact_id
       `,
-    )
-    .all(runId) as unknown as { artifact_id: string; total: number | bigint }[];
-  return new Map(rows.map((row) => [row.artifact_id, Number(row.total)]));
+        )
+        .all(runId) as unknown as { artifact_id: string; total: number | bigint }[];
+    return new Map(rows.map((row) => [row.artifact_id, Number(row.total)]));
 }
 
 /**
@@ -115,37 +115,37 @@ export function countTaggedReports(db: DatabaseSync, runId: string): ReadonlyMap
  * 给 NULL，而 SQL 的 `= ?` 不匹配 NULL。
  */
 export function listArtifactItems(
-  db: DatabaseSync,
-  runId: string,
-  artifactId: string,
-  query: DwfArtifactItemsQuery,
+    db: DatabaseSync,
+    runId: string,
+    artifactId: string,
+    query: DwfArtifactItemsQuery,
 ): { items: DwfArtifactItem[]; hasMore: boolean } {
-  if (query.fields !== undefined) {
-    return listArtifactFieldItems(db, runId, artifactId, {
-      ...(query.afterSequence === undefined ? {} : { afterSequence: query.afterSequence }),
-      fields: query.fields.paths,
-      limit: query.limit,
-      maxBytes: query.maxBytes,
-      maxValueBytes: query.fields.maxValueBytes,
+    if (query.fields !== undefined) {
+        return listArtifactFieldItems(db, runId, artifactId, {
+            ...(query.afterSequence === undefined ? {} : { afterSequence: query.afterSequence }),
+            fields: query.fields.paths,
+            limit: query.limit,
+            maxBytes: query.maxBytes,
+            maxValueBytes: query.fields.maxValueBytes,
+        });
+    }
+    const { rows, hasMore } = pageEventRows(db, runId, query, {
+        sql: " and type = 'report' and json_extract(payload_json, '$.artifactId') = ?",
+        params: [artifactId],
     });
-  }
-  const { rows, hasMore } = pageEventRows(db, runId, query, {
-    sql: " and type = 'report' and json_extract(payload_json, '$.artifactId') = ?",
-    params: [artifactId],
-  });
-  const items = rows.map((row) => {
-    // payload 是被 appendEvent 原样 stringify 的 `RunEvent`，因此这里的窄形状与
-    // `{ type: "report"; instance: InstanceRef; item: unknown; artifactId?: string }` 同源。
-    const payload = JSON.parse(row.payload_json) as {
-      instance: { ordinal: number; siteId: string };
-      item: unknown;
-    };
-    return {
-      sequence: row.sequence,
-      siteId: payload.instance.siteId,
-      ordinal: payload.instance.ordinal,
-      item: payload.item,
-    };
-  });
-  return { items, hasMore };
+    const items = rows.map((row) => {
+        // payload 是被 appendEvent 原样 stringify 的 `RunEvent`，因此这里的窄形状与
+        // `{ type: "report"; instance: InstanceRef; item: unknown; artifactId?: string }` 同源。
+        const payload = JSON.parse(row.payload_json) as {
+            instance: { ordinal: number; siteId: string };
+            item: unknown;
+        };
+        return {
+            sequence: row.sequence,
+            siteId: payload.instance.siteId,
+            ordinal: payload.instance.ordinal,
+            item: payload.item,
+        };
+    });
+    return { items, hasMore };
 }

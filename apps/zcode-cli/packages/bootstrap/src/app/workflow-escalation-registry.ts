@@ -18,8 +18,8 @@
 // **所有在飞 run**，这正是 qid 必须全局唯一的原因。
 
 import type {
-  DynamicWorkflowResolveQuestionResult,
-  DynamicWorkflowRunPendingQuestion,
+    DynamicWorkflowResolveQuestionResult,
+    DynamicWorkflowRunPendingQuestion,
 } from "@zcode/contracts";
 
 /**
@@ -31,132 +31,132 @@ const RETIRED_HISTORY_LIMIT = 256;
 
 /** 一次停驻登记所需的事实（driver 提供；qid 已由 driver 铸好）。 */
 export interface ParkedQuestionInput {
-  qid: string;
-  runId: string;
-  /** 提问的 actor，`refToString` 形态（如 `actor#1@1`）。 */
-  actor: string;
-  /** actor 的有效名（`agent("poet")` 的 `"poet"`）；匿名 actor 缺席，不合成兜底标签。 */
-  actorName?: string;
-  question: string;
-  context?: string;
-  askedAt: number;
+    qid: string;
+    runId: string;
+    /** 提问的 actor，`refToString` 形态（如 `actor#1@1`）。 */
+    actor: string;
+    /** actor 的有效名（`agent("poet")` 的 `"poet"`）；匿名 actor 缺席，不合成兜底标签。 */
+    actorName?: string;
+    question: string;
+    context?: string;
+    askedAt: number;
 }
 
 /** 一个 qid 退场的原因：决定后来的 resolve 收到哪一条结构化拒绝。 */
 type RetiredReason = "resolved" | "withdrawn";
 
 export interface WorkflowEscalationRegistry {
-  /**
-   * 登记一个停驻中的问题。`settle` 由 driver 提供，收到答案时解开那个 deferred。
-   *
-   * 调用方必须先用 {@link isTaken} 保证 qid 未被占用（driver 的铸造循环做这件事）——
-   * 重复登记会静默覆盖前一个停驻项，那正是错配答案的成因。
-   */
-  park(entry: ParkedQuestionInput, settle: (answer: string) => void): void;
-  /** qid 是否已被占用（停驻中或已退场）。driver 铸造 qid 时据它保证全局唯一。 */
-  isTaken(qid: string): boolean;
-  /**
-   * 撤下一个停驻项而**不作答**：ask 被取消 / turn 失败时由 driver 调用（deferred 那一侧
-   * 由 driver 自己拒绝）。之后对该 qid 的 resolve 得到 `run_not_in_flight`。
-   */
-  withdraw(qid: string): void;
-  /** 结算一个停驻项。三类结构化拒绝各自陈述现状与下一步。 */
-  resolve(qid: string, answer: string): DynamicWorkflowResolveQuestionResult;
-  /** 某个 run 上此刻停驻的问题，按提问顺序。快照 `pendingQuestions` 的投影源。 */
-  pendingFor(runId: string): DynamicWorkflowRunPendingQuestion[];
+    /**
+     * 登记一个停驻中的问题。`settle` 由 driver 提供，收到答案时解开那个 deferred。
+     *
+     * 调用方必须先用 {@link isTaken} 保证 qid 未被占用（driver 的铸造循环做这件事）——
+     * 重复登记会静默覆盖前一个停驻项，那正是错配答案的成因。
+     */
+    park(entry: ParkedQuestionInput, settle: (answer: string) => void): void;
+    /** qid 是否已被占用（停驻中或已退场）。driver 铸造 qid 时据它保证全局唯一。 */
+    isTaken(qid: string): boolean;
+    /**
+     * 撤下一个停驻项而**不作答**：ask 被取消 / turn 失败时由 driver 调用（deferred 那一侧
+     * 由 driver 自己拒绝）。之后对该 qid 的 resolve 得到 `run_not_in_flight`。
+     */
+    withdraw(qid: string): void;
+    /** 结算一个停驻项。三类结构化拒绝各自陈述现状与下一步。 */
+    resolve(qid: string, answer: string): DynamicWorkflowResolveQuestionResult;
+    /** 某个 run 上此刻停驻的问题，按提问顺序。快照 `pendingQuestions` 的投影源。 */
+    pendingFor(runId: string): DynamicWorkflowRunPendingQuestion[];
 }
 
 interface ParkedQuestion extends ParkedQuestionInput {
-  settle: (answer: string) => void;
+    settle: (answer: string) => void;
 }
 
 export function createWorkflowEscalationRegistry(): WorkflowEscalationRegistry {
-  // Map 的插入序即提问序（pendingFor 直接依赖它，不另存序号）。
-  const parked = new Map<string, ParkedQuestion>();
-  const retired = new Map<string, RetiredReason>();
+    // Map 的插入序即提问序（pendingFor 直接依赖它，不另存序号）。
+    const parked = new Map<string, ParkedQuestion>();
+    const retired = new Map<string, RetiredReason>();
 
-  const retire = (qid: string, reason: RetiredReason): void => {
-    parked.delete(qid);
-    retired.set(qid, reason);
-    while (retired.size > RETIRED_HISTORY_LIMIT) {
-      // Map 的迭代序是插入序，所以第一个键就是最老的那条。
-      const oldest = retired.keys().next();
-      if (oldest.done === true) break;
-      retired.delete(oldest.value);
-    }
-  };
-
-  return {
-    park(entry, settle) {
-      parked.set(entry.qid, { ...entry, settle });
-    },
-
-    isTaken(qid) {
-      return parked.has(qid) || retired.has(qid);
-    },
-
-    withdraw(qid) {
-      // 只对停驻中的项有意义：已 resolved 的 qid 不该被降级成 `run_not_in_flight`
-      // （那会把「答案已送达」改写成「没人在等」，对主代理是两个不同的事实）。
-      if (!parked.has(qid)) return;
-      retire(qid, "withdrawn");
-    },
-
-    resolve(qid, answer) {
-      const entry = parked.get(qid);
-      if (entry === undefined) {
-        const reason = retired.get(qid);
-        if (reason === "resolved") {
-          return {
-            ok: false,
-            reason: "already_resolved",
-            message:
-              `Question ${qid} was already answered and the subagent has moved on with that ` +
-              `answer. No need to answer again; if you have more to add, wait for its next ` +
-              `escalation.`,
-          };
+    const retire = (qid: string, reason: RetiredReason): void => {
+        parked.delete(qid);
+        retired.set(qid, reason);
+        while (retired.size > RETIRED_HISTORY_LIMIT) {
+            // Map 的迭代序是插入序，所以第一个键就是最老的那条。
+            const oldest = retired.keys().next();
+            if (oldest.done === true) break;
+            retired.delete(oldest.value);
         }
-        if (reason === "withdrawn") {
-          return {
-            ok: false,
-            reason: "run_not_in_flight",
-            message:
-              `The ask that raised question ${qid} is no longer in flight (the run was ` +
-              `cancelled, or that ask already failed), so nobody is waiting for this answer. ` +
-              `Use GetWorkflowRun to see the run's current state before deciding what to do next.`,
-          };
-        }
-        return {
-          ok: false,
-          reason: "unknown_question",
-          message:
-            `Unknown question id ${qid}. It may be misspelled, or it may come from a process ` +
-            `that is gone: parked questions are not persisted, so they vanish on restart (a ` +
-            `resume makes the subagent ask again under a new id). Use GetWorkflowRun to read ` +
-            `the run's pendingQuestions for the ids that are actually awaiting an answer.`,
-        };
-      }
-      retire(qid, "resolved");
-      // settle 在退场之后调用：它会同步解开 actor 那一侧的 deferred，而那条链上的任何再入
-      // （例如同一轮里紧接着又一次 escalate）都必须看到一张已经不含本 qid 的表。
-      entry.settle(answer);
-      return { ok: true, qid };
-    },
+    };
 
-    pendingFor(runId) {
-      const out: DynamicWorkflowRunPendingQuestion[] = [];
-      for (const entry of parked.values()) {
-        if (entry.runId !== runId) continue;
-        out.push({
-          qid: entry.qid,
-          actor: entry.actor,
-          ...(entry.actorName === undefined ? {} : { actorName: entry.actorName }),
-          question: entry.question,
-          ...(entry.context === undefined ? {} : { context: entry.context }),
-          askedAt: entry.askedAt,
-        });
-      }
-      return out;
-    },
-  };
+    return {
+        park(entry, settle) {
+            parked.set(entry.qid, { ...entry, settle });
+        },
+
+        isTaken(qid) {
+            return parked.has(qid) || retired.has(qid);
+        },
+
+        withdraw(qid) {
+            // 只对停驻中的项有意义：已 resolved 的 qid 不该被降级成 `run_not_in_flight`
+            // （那会把「答案已送达」改写成「没人在等」，对主代理是两个不同的事实）。
+            if (!parked.has(qid)) return;
+            retire(qid, "withdrawn");
+        },
+
+        resolve(qid, answer) {
+            const entry = parked.get(qid);
+            if (entry === undefined) {
+                const reason = retired.get(qid);
+                if (reason === "resolved") {
+                    return {
+                        ok: false,
+                        reason: "already_resolved",
+                        message:
+                            `Question ${qid} was already answered and the subagent has moved on with that ` +
+                            `answer. No need to answer again; if you have more to add, wait for its next ` +
+                            `escalation.`,
+                    };
+                }
+                if (reason === "withdrawn") {
+                    return {
+                        ok: false,
+                        reason: "run_not_in_flight",
+                        message:
+                            `The ask that raised question ${qid} is no longer in flight (the run was ` +
+                            `cancelled, or that ask already failed), so nobody is waiting for this answer. ` +
+                            `Use GetWorkflowRun to see the run's current state before deciding what to do next.`,
+                    };
+                }
+                return {
+                    ok: false,
+                    reason: "unknown_question",
+                    message:
+                        `Unknown question id ${qid}. It may be misspelled, or it may come from a process ` +
+                        `that is gone: parked questions are not persisted, so they vanish on restart (a ` +
+                        `resume makes the subagent ask again under a new id). Use GetWorkflowRun to read ` +
+                        `the run's pendingQuestions for the ids that are actually awaiting an answer.`,
+                };
+            }
+            retire(qid, "resolved");
+            // settle 在退场之后调用：它会同步解开 actor 那一侧的 deferred，而那条链上的任何再入
+            // （例如同一轮里紧接着又一次 escalate）都必须看到一张已经不含本 qid 的表。
+            entry.settle(answer);
+            return { ok: true, qid };
+        },
+
+        pendingFor(runId) {
+            const out: DynamicWorkflowRunPendingQuestion[] = [];
+            for (const entry of parked.values()) {
+                if (entry.runId !== runId) continue;
+                out.push({
+                    qid: entry.qid,
+                    actor: entry.actor,
+                    ...(entry.actorName === undefined ? {} : { actorName: entry.actorName }),
+                    question: entry.question,
+                    ...(entry.context === undefined ? {} : { context: entry.context }),
+                    askedAt: entry.askedAt,
+                });
+            }
+            return out;
+        },
+    };
 }

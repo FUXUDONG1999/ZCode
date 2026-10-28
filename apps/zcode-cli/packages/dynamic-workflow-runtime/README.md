@@ -18,13 +18,13 @@ three boundaries" 里点名本包）。
 import { runWorkflowScript } from "@zcode/dynamic-workflow-runtime";
 
 const settlement = await runWorkflowScript({
-  scriptText, // 或 lowered: <async 函数体>
-  caps: { maxConcurrency: 16 },
-  askSpecs, // site id ∈ 合成 schemas 记录即 typed
-  validate, // @zcode/dynamic-workflow 的 validate（适配到 ValidateFn）
-  makeDriver: (sink) => driver, // driver 自带 journal + emit；sink 是引擎的向上回报面
-  signal, // 可选：AbortSignal
-  timeoutMs, // 可选：墙钟超时
+    scriptText, // 或 lowered: <async 函数体>
+    caps: { maxConcurrency: 16 },
+    askSpecs, // site id ∈ 合成 schemas 记录即 typed
+    validate, // @zcode/dynamic-workflow 的 validate（适配到 ValidateFn）
+    makeDriver: (sink) => driver, // driver 自带 journal + emit；sink 是引擎的向上回报面
+    signal, // 可选：AbortSignal
+    timeoutMs, // 可选：墙钟超时
 });
 // settlement: { status: "completed", artifact } | { status: "failed", error } | { status: "cancelled" }
 ```

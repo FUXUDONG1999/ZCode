@@ -2,10 +2,10 @@
 // 旧对象不删除、不覆盖，历史消息来源只换结构，当前 Session 选择才使用既有身份映射。
 const value = (path: string) => `json_extract(data, '$.${path}')`;
 const text = (expression: string) =>
-  `(typeof(${expression}) = 'text' and length(trim(${expression})) > 0)`;
+    `(typeof(${expression}) = 'text' and length(trim(${expression})) > 0)`;
 
 function selection(provider: string, model: string, level: string, label = "NULL"): string {
-  return `case when ${text(provider)} and ${text(model)} then
+    return `case when ${text(provider)} and ${text(model)} then
     json_patch(
       json_patch(json_object('providerId', ${provider}, 'modelId', ${model}),
         case when ${text(level)} then json_object('options', json_object('reasoningLevel', ${level})) else '{}' end),
@@ -14,9 +14,9 @@ function selection(provider: string, model: string, level: string, label = "NULL
 }
 
 function migratedProvider(input: string): string {
-  const provider = `trim(${input})`;
-  // 与已裁决的 migrateLegacyModelProviderId 对照测试；不可按当前连接改写。
-  return `case ${provider}
+    const provider = `trim(${input})`;
+    // 与已裁决的 migrateLegacyModelProviderId 对照测试；不可按当前连接改写。
+    return `case ${provider}
     when 'builtin:bigmodel' then 'bigmodel-api'
     when 'builtin:zai' then 'zai-api'
     when 'builtin:bigmodel-start-plan' then 'account:bigmodel-start-plan'
@@ -27,15 +27,15 @@ function migratedProvider(input: string): string {
 }
 
 const legacyUserSelection = selection(
-  value("model.providerID"),
-  value("model.modelID"),
-  value("model.variant"),
+    value("model.providerID"),
+    value("model.modelID"),
+    value("model.variant"),
 );
 const legacyAssistantSelection = selection(value("providerID"), value("modelID"), value("variant"));
 const entrySelection = selection(
-  migratedProvider(value("providerId")),
-  `trim(${value("modelId")})`,
-  `trim(${value("thoughtLevel")})`,
+    migratedProvider(value("providerId")),
+    `trim(${value("modelId")})`,
+    `trim(${value("thoughtLevel")})`,
 );
 const messageCandidate = `case
   when ${value("role")} = 'user' then
@@ -50,13 +50,13 @@ const messageCandidate = `case
     else ${legacyAssistantSelection} end end`;
 
 function migratePartMember(source: string, target: string): string {
-  const converted = selection(
-    value(`${source}.providerID`),
-    value(`${source}.modelID`),
-    value(`${source}.variant`),
-    value(`${source}.label`),
-  );
-  return `update part set data = json_set(data, '$.${target}', json(${converted}))
+    const converted = selection(
+        value(`${source}.providerID`),
+        value(`${source}.modelID`),
+        value(`${source}.variant`),
+        value(`${source}.label`),
+    );
+    return `update part set data = json_set(data, '$.${target}', json(${converted}))
     where json_valid(data) and json_type(data) = 'object'
       and ((${value("type")} = 'timeline' and ${value("timelineType")} = 'model_change' and '${source}' in ('fromModel','toModel'))
         or (${value("type")} = 'subtask' and '${source}' = 'model'))
@@ -80,9 +80,9 @@ export const PROVIDER_MODEL_SELECTION_MIGRATION_SQL = `
     select *, ${messageCandidate} as candidate from ranked where rank = 1
   ), migrated as (
     select *, ${selection(
-      migratedProvider("json_extract(candidate, '$.providerId')"),
-      "trim(json_extract(candidate, '$.modelId'))",
-      "trim(json_extract(candidate, '$.options.reasoningLevel'))",
+        migratedProvider("json_extract(candidate, '$.providerId')"),
+        "trim(json_extract(candidate, '$.modelId'))",
+        "trim(json_extract(candidate, '$.options.reasoningLevel'))",
     )} as normalized from candidates
   )
   insert into session_entry(id, session_id, type, time_created, time_updated, data)

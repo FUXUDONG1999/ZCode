@@ -19,22 +19,22 @@
 
 /** 产物的数量、体积与文本上限。数字即契约（见本模块顶部）。 */
 export const ARTIFACT_CAPS = {
-  /** 一个 run 内最多能有几个不同的产物 id。 */
-  maxArtifactsPerRun: 32,
-  /** 单个 id 最多能发布几版（内容成员每次成功发布 = 一版）。 */
-  maxVersionsPerArtifact: 16,
-  /** `artifact.file` 的最大字节数（与 PROTOCOL_V4_LIMITS.attachmentMaxBytes 同值）。 */
-  maxFileBytes: 20 * 1024 * 1024,
-  /** `artifact.markdown` 的最大字节数（UTF-8）。 */
-  maxMarkdownBytes: 256 * 1024,
-  /** `opts.title` 的最大字符数。 */
-  maxTitleLength: 120,
-  /** `opts.description` 的最大字符数。 */
-  maxDescriptionLength: 500,
-  /** 预置 spec 规范化 JSON 后的最大字节数。 */
-  maxSpecSerializedBytes: 8 * 1024,
-  /** 产物 id 的最大字符数。 */
-  maxIdLength: 64,
+    /** 一个 run 内最多能有几个不同的产物 id。 */
+    maxArtifactsPerRun: 32,
+    /** 单个 id 最多能发布几版（内容成员每次成功发布 = 一版）。 */
+    maxVersionsPerArtifact: 16,
+    /** `artifact.file` 的最大字节数（与 PROTOCOL_V4_LIMITS.attachmentMaxBytes 同值）。 */
+    maxFileBytes: 20 * 1024 * 1024,
+    /** `artifact.markdown` 的最大字节数（UTF-8）。 */
+    maxMarkdownBytes: 256 * 1024,
+    /** `opts.title` 的最大字符数。 */
+    maxTitleLength: 120,
+    /** `opts.description` 的最大字符数。 */
+    maxDescriptionLength: 500,
+    /** 预置 spec 规范化 JSON 后的最大字节数。 */
+    maxSpecSerializedBytes: 8 * 1024,
+    /** 产物 id 的最大字符数。 */
+    maxIdLength: 64,
 } as const;
 
 /**

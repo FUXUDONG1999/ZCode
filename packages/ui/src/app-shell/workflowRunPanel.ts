@@ -5,8 +5,8 @@
  * 不必渲染一张 React Flow 画布。组件只负责把这里的结果贴到 DOM 上。
  */
 import {
-  readWorkflowRunStopReason,
-  type WorkflowRunStopReason,
+    readWorkflowRunStopReason,
+    type WorkflowRunStopReason,
 } from "@/components/workflow-graph/run-status-presentation.js";
 import type { WorkflowRunActor, WorkflowRunState } from "@zcode/shared/zcode-protocol-v4";
 import { workflowRunConcurrencyEventLine } from "@/app-shell/workflowRunThrottle.js";
@@ -23,7 +23,7 @@ const UNKNOWN_PAYLOAD_MAX_LENGTH = 200;
  * 尚未投影）时同样不可取消：此时我们对它的在飞状态一无所知。
  */
 export function isWorkflowRunCancellable(run: WorkflowRunState | undefined): boolean {
-  return run?.status === "running";
+    return run?.status === "running";
 }
 
 /**
@@ -34,99 +34,101 @@ export function isWorkflowRunCancellable(run: WorkflowRunState | undefined): boo
  * 投影缺席（被 8-run 上限淘汰）一律不可恢复：宁可少一个按钮，不给出一个点下去必被拒的控件。
  */
 export function isWorkflowRunResumable(run: WorkflowRunState | undefined): boolean {
-  return run?.resumable === true;
+    return run?.resumable === true;
 }
 
 type WorkflowRunResultView =
-  /** run 不在投影里：不可能有结果可言。 */
-  | { kind: "absent" }
-  /** pending / running：还没有结果面板。 */
-  | { kind: "none" }
-  /**
-   * 完成。`preview` 本阶段**恒缺席**——脚本产物只在 `RunSettlement.artifact` 里，既不在
-   * `run-settled` 事件上（它只携 status 与 error），也不在 journal 里。所以完成态只能指向
-   * 会话里那条后台结果轮，绝不编造一个结果视图。schema 保留了该字段，真填上时如实展示。
-   */
-  | { kind: "completed"; preview?: string }
-  /**
-   * errored / stopped。`message` 是投影给出的预格式化
-   * 原文（schema 里就是一个 string）；`stopReason` 只在 stopped 且投影带该键时在场。
-   */
-  | {
-      kind: "error";
-      status: "errored" | "stopped";
-      stopReason?: WorkflowRunStopReason;
-      message?: string;
-    };
+    /** run 不在投影里：不可能有结果可言。 */
+    | { kind: "absent" }
+    /** pending / running：还没有结果面板。 */
+    | { kind: "none" }
+    /**
+     * 完成。`preview` 本阶段**恒缺席**——脚本产物只在 `RunSettlement.artifact` 里，既不在
+     * `run-settled` 事件上（它只携 status 与 error），也不在 journal 里。所以完成态只能指向
+     * 会话里那条后台结果轮，绝不编造一个结果视图。schema 保留了该字段，真填上时如实展示。
+     */
+    | { kind: "completed"; preview?: string }
+    /**
+     * errored / stopped。`message` 是投影给出的预格式化
+     * 原文（schema 里就是一个 string）；`stopReason` 只在 stopped 且投影带该键时在场。
+     */
+    | {
+          kind: "error";
+          status: "errored" | "stopped";
+          stopReason?: WorkflowRunStopReason;
+          message?: string;
+      };
 
 export function workflowRunResultView(run: WorkflowRunState | undefined): WorkflowRunResultView {
-  if (!run) return { kind: "absent" };
-  if (run.status === "errored" || run.status === "stopped") {
-    const stopReason = readWorkflowRunStopReason(run);
-    return {
-      kind: "error",
-      status: run.status,
-      ...(stopReason === undefined ? {} : { stopReason }),
-      ...(run.error ? { message: run.error } : {}),
-    };
-  }
-  if (run.status === "completed") {
-    return { kind: "completed", ...(run.resultPreview ? { preview: run.resultPreview } : {}) };
-  }
-  return { kind: "none" };
+    if (!run) return { kind: "absent" };
+    if (run.status === "errored" || run.status === "stopped") {
+        const stopReason = readWorkflowRunStopReason(run);
+        return {
+            kind: "error",
+            status: run.status,
+            ...(stopReason === undefined ? {} : { stopReason }),
+            ...(run.error ? { message: run.error } : {}),
+        };
+    }
+    if (run.status === "completed") {
+        return { kind: "completed", ...(run.resultPreview ? { preview: run.resultPreview } : {}) };
+    }
+    return { kind: "none" };
 }
 
 /** 事件日志的一条输入（= v4 query 结果里的一项）。 */
 export interface WorkflowRunEventItem {
-  sequence: number;
-  type: string;
-  payload: Record<string, unknown>;
-  truncated?: boolean;
+    sequence: number;
+    type: string;
+    payload: Record<string, unknown>;
+    truncated?: boolean;
 }
 
 export interface WorkflowRunEventLine {
-  sequence: number;
-  type: string;
-  /** 已本地化的主标签。 */
-  label: string;
-  /** 身份与数据（站点实例、actor 名、日志正文、错误原文）；不需要本地化。 */
-  detail?: string;
-  /** 失败/取消着色；其余一律 default（叠加视图的四值词汇表之外不新增视觉词汇）。 */
-  tone: "default" | "failed";
-  truncated?: boolean;
+    sequence: number;
+    type: string;
+    /** 已本地化的主标签。 */
+    label: string;
+    /** 身份与数据（站点实例、actor 名、日志正文、错误原文）；不需要本地化。 */
+    detail?: string;
+    /** 失败/取消着色；其余一律 default（叠加视图的四值词汇表之外不新增视觉词汇）。 */
+    tone: "default" | "failed";
+    truncated?: boolean;
 }
 
 type FormatMessage = (descriptor: { id: string }, values?: Record<string, string>) => string;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 /** `{siteId, ordinal}` → `site@ordinal`（与引擎的 refToString 同形，便于和日志对照）。 */
 function refText(value: unknown): string | undefined {
-  if (!isRecord(value)) return undefined;
-  const { siteId, ordinal } = value;
-  if (typeof siteId !== "string" || siteId.length === 0) return undefined;
-  return typeof ordinal === "number" ? `${siteId}@${ordinal}` : siteId;
+    if (!isRecord(value)) return undefined;
+    const { siteId, ordinal } = value;
+    if (typeof siteId !== "string" || siteId.length === 0) return undefined;
+    return typeof ordinal === "number" ? `${siteId}@${ordinal}` : siteId;
 }
 
 /** 非空字符串，否则 undefined（joinDetail 会把它整段丢掉，而不是留一截空分隔符）。 */
 function nonEmptyText(value: unknown): string | undefined {
-  return typeof value === "string" && value.length > 0 ? value : undefined;
+    return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
 function errorMessage(value: unknown): string | undefined {
-  if (!isRecord(value)) return undefined;
-  return typeof value.message === "string" && value.message.length > 0 ? value.message : undefined;
+    if (!isRecord(value)) return undefined;
+    return typeof value.message === "string" && value.message.length > 0
+        ? value.message
+        : undefined;
 }
 
 function joinDetail(...parts: (string | undefined)[]): string | undefined {
-  const kept = parts.filter((part): part is string => part !== undefined && part.length > 0);
-  return kept.length > 0 ? kept.join(" · ") : undefined;
+    const kept = parts.filter((part): part is string => part !== undefined && part.length > 0);
+    return kept.length > 0 ? kept.join(" · ") : undefined;
 }
 
 function truncate(text: string, max: number): string {
-  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
+    return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 }
 
 /**
@@ -137,30 +139,32 @@ function truncate(text: string, max: number): string {
  * `workflowRuns.reports[].preview` 上，Results 区渲染的是那一份。
  */
 function reportItemSummary(item: unknown): string | undefined {
-  if (item === undefined) return undefined;
-  if (typeof item === "string") {
-    return item.length > 0 ? truncate(item, UNKNOWN_PAYLOAD_MAX_LENGTH) : undefined;
-  }
-  try {
-    const serialized = JSON.stringify(item);
-    return serialized === undefined ? undefined : truncate(serialized, UNKNOWN_PAYLOAD_MAX_LENGTH);
-  } catch {
-    // 载荷已在 CLI 侧规范化成可 JSON 序列化的形态；真到不了这里也不能打挂一整页日志。
-    return undefined;
-  }
+    if (item === undefined) return undefined;
+    if (typeof item === "string") {
+        return item.length > 0 ? truncate(item, UNKNOWN_PAYLOAD_MAX_LENGTH) : undefined;
+    }
+    try {
+        const serialized = JSON.stringify(item);
+        return serialized === undefined
+            ? undefined
+            : truncate(serialized, UNKNOWN_PAYLOAD_MAX_LENGTH);
+    } catch {
+        // 载荷已在 CLI 侧规范化成可 JSON 序列化的形态；真到不了这里也不能打挂一整页日志。
+        return undefined;
+    }
 }
 
 /** 未知种类的兜底：type + 截断 JSON。既不崩，也不假装认识它。 */
 function unknownDetail(payload: Record<string, unknown>): string | undefined {
-  let serialized: string;
-  try {
-    serialized = JSON.stringify(payload);
-  } catch {
-    // 载荷已在 CLI 侧规范化成可 JSON 序列化的形态；真到不了这里也不能让一行日志打挂面板。
-    return undefined;
-  }
-  if (serialized === undefined || serialized === "{}") return undefined;
-  return truncate(serialized, UNKNOWN_PAYLOAD_MAX_LENGTH);
+    let serialized: string;
+    try {
+        serialized = JSON.stringify(payload);
+    } catch {
+        // 载荷已在 CLI 侧规范化成可 JSON 序列化的形态；真到不了这里也不能让一行日志打挂面板。
+        return undefined;
+    }
+    if (serialized === undefined || serialized === "{}") return undefined;
+    return truncate(serialized, UNKNOWN_PAYLOAD_MAX_LENGTH);
 }
 
 const EVENT_KEY_PREFIX = "chat.toolCall.workflow.run.event.";
@@ -180,231 +184,246 @@ const EVENT_KEY_PREFIX = "chat.toolCall.workflow.run.event.";
  * 而一条读不动的事件绝不能打挂整个事件日志。
  */
 export function workflowRunEventLines(
-  events: readonly WorkflowRunEventItem[],
-  formatMessage: FormatMessage,
+    events: readonly WorkflowRunEventItem[],
+    formatMessage: FormatMessage,
 ): WorkflowRunEventLine[] {
-  return events.map((event) => {
-    const { payload } = event;
-    const base = {
-      sequence: event.sequence,
-      type: event.type,
-      ...(event.truncated ? { truncated: event.truncated as true } : {}),
-    };
-    const key = (suffix: string) => ({ id: `${EVENT_KEY_PREFIX}${suffix}` });
-
-    switch (event.type) {
-      case "run-started":
-        // caps 不进这一行：并发度不是可操作信息。
-        return { ...base, label: formatMessage(key("runStarted")), tone: "default" };
-
-      case "actor-created": {
-        const name = typeof payload.name === "string" ? payload.name : undefined;
-        return {
-          ...base,
-          label: formatMessage(key("actorCreated")),
-          ...(joinDetail(name, refText(payload.actor)) === undefined
-            ? {}
-            : { detail: joinDetail(name, refText(payload.actor))! }),
-          tone: "default",
+    return events.map((event) => {
+        const { payload } = event;
+        const base = {
+            sequence: event.sequence,
+            type: event.type,
+            ...(event.truncated ? { truncated: event.truncated as true } : {}),
         };
-      }
+        const key = (suffix: string) => ({ id: `${EVENT_KEY_PREFIX}${suffix}` });
 
-      case "node-queued": {
-        const kind = typeof payload.kind === "string" ? payload.kind : undefined;
-        const detail = joinDetail(refText(payload.instance), kind);
-        return {
-          ...base,
-          label: formatMessage(key("nodeQueued")),
-          ...(detail === undefined ? {} : { detail }),
-          tone: "default",
-        };
-      }
+        switch (event.type) {
+            case "run-started":
+                // caps 不进这一行：并发度不是可操作信息。
+                return { ...base, label: formatMessage(key("runStarted")), tone: "default" };
 
-      case "node-dispatched":
-      case "node-nudged": {
-        const detail = refText(payload.instance);
-        return {
-          ...base,
-          label: formatMessage(key(event.type === "node-nudged" ? "nodeNudged" : "nodeDispatched")),
-          ...(detail === undefined ? {} : { detail }),
-          tone: "default",
-        };
-      }
+            case "actor-created": {
+                const name = typeof payload.name === "string" ? payload.name : undefined;
+                return {
+                    ...base,
+                    label: formatMessage(key("actorCreated")),
+                    ...(joinDetail(name, refText(payload.actor)) === undefined
+                        ? {}
+                        : { detail: joinDetail(name, refText(payload.actor))! }),
+                    tone: "default",
+                };
+            }
 
-      case "node-repairing": {
-        const attempt = typeof payload.attempt === "number" ? String(payload.attempt) : "?";
-        const detail = refText(payload.instance);
-        return {
-          ...base,
-          label: formatMessage(key("nodeRepairing"), { attempt }),
-          ...(detail === undefined ? {} : { detail }),
-          tone: "default",
-        };
-      }
+            case "node-queued": {
+                const kind = typeof payload.kind === "string" ? payload.kind : undefined;
+                const detail = joinDetail(refText(payload.instance), kind);
+                return {
+                    ...base,
+                    label: formatMessage(key("nodeQueued")),
+                    ...(detail === undefined ? {} : { detail }),
+                    tone: "default",
+                };
+            }
 
-      case "node-settled": {
-        const outcome =
-          payload.outcome === "ok" ||
-          payload.outcome === "failed" ||
-          payload.outcome === "cancelled"
-            ? payload.outcome
-            : undefined;
-        const outcomeLabel = outcome
-          ? formatMessage({ id: `chat.toolCall.workflow.run.outcome.${outcome}` })
-          : "";
-        const detail = joinDetail(refText(payload.instance), errorMessage(payload.error));
-        return {
-          ...base,
-          label: formatMessage(key(payload.cached === true ? "nodeSettledCached" : "nodeSettled"), {
-            outcome: outcomeLabel,
-          }),
-          ...(detail === undefined ? {} : { detail }),
-          // journal 里 failed 与 cancelled 语义不同，但这一行只需要「这步没成」。
-          tone: outcome === "failed" || outcome === "cancelled" ? "failed" : "default",
-        };
-      }
+            case "node-dispatched":
+            case "node-nudged": {
+                const detail = refText(payload.instance);
+                return {
+                    ...base,
+                    label: formatMessage(
+                        key(event.type === "node-nudged" ? "nodeNudged" : "nodeDispatched"),
+                    ),
+                    ...(detail === undefined ? {} : { detail }),
+                    tone: "default",
+                };
+            }
 
-      case "usage-updated": {
-        // 事件直接携带已花总量；权威值在状态头的用量行上。
-        const spentTokens =
-          typeof payload.spentTokens === "number" ? payload.spentTokens : undefined;
-        return {
-          ...base,
-          label: formatMessage(key("usageUpdated")),
-          ...(spentTokens === undefined
-            ? {}
-            : { detail: `${spentTokens.toLocaleString()} tokens` }),
-          tone: "default",
-        };
-      }
+            case "node-repairing": {
+                const attempt = typeof payload.attempt === "number" ? String(payload.attempt) : "?";
+                const detail = refText(payload.instance);
+                return {
+                    ...base,
+                    label: formatMessage(key("nodeRepairing"), { attempt }),
+                    ...(detail === undefined ? {} : { detail }),
+                    tone: "default",
+                };
+            }
 
-      case "log": {
-        const message = typeof payload.message === "string" ? payload.message : undefined;
-        return {
-          ...base,
-          label: formatMessage(key("log")),
-          ...(message === undefined ? {} : { detail: message }),
-          tone: "default",
-        };
-      }
+            case "node-settled": {
+                const outcome =
+                    payload.outcome === "ok" ||
+                    payload.outcome === "failed" ||
+                    payload.outcome === "cancelled"
+                        ? payload.outcome
+                        : undefined;
+                const outcomeLabel = outcome
+                    ? formatMessage({ id: `chat.toolCall.workflow.run.outcome.${outcome}` })
+                    : "";
+                const detail = joinDetail(refText(payload.instance), errorMessage(payload.error));
+                return {
+                    ...base,
+                    label: formatMessage(
+                        key(payload.cached === true ? "nodeSettledCached" : "nodeSettled"),
+                        {
+                            outcome: outcomeLabel,
+                        },
+                    ),
+                    ...(detail === undefined ? {} : { detail }),
+                    // journal 里 failed 与 cancelled 语义不同，但这一行只需要「这步没成」。
+                    tone: outcome === "failed" || outcome === "cancelled" ? "failed" : "default",
+                };
+            }
 
-      /** 控制流经过了一个 `phase("…")` 标记：给名字与第几次进入（回放导出仍用这条格式化器）。 */
-      case "import-cache-closed": {
-        // amend-resume 的导入缓存关门：谁的第一笔写入关的门。
-        // detail = 子代理名（有则）+ 实例；world.run 关的门没有名字，只有实例。
-        const actorName = typeof payload.actorName === "string" ? payload.actorName : undefined;
-        const detail = joinDetail(actorName, refText(payload.instance));
-        return {
-          ...base,
-          label: formatMessage(key("importCacheClosed")),
-          ...(detail === undefined ? {} : { detail }),
-          tone: "default",
-        };
-      }
+            case "usage-updated": {
+                // 事件直接携带已花总量；权威值在状态头的用量行上。
+                const spentTokens =
+                    typeof payload.spentTokens === "number" ? payload.spentTokens : undefined;
+                return {
+                    ...base,
+                    label: formatMessage(key("usageUpdated")),
+                    ...(spentTokens === undefined
+                        ? {}
+                        : { detail: `${spentTokens.toLocaleString()} tokens` }),
+                    tone: "default",
+                };
+            }
 
-      case "phase-entered": {
-        const name = typeof payload.name === "string" ? payload.name : undefined;
-        const ordinal = typeof payload.ordinal === "number" ? payload.ordinal : 1;
-        return {
-          ...base,
-          label: formatMessage(key("phaseEntered")),
-          ...(name === undefined ? {} : { detail: ordinal >= 2 ? `${name} · ${ordinal}` : name }),
-          tone: "default",
-        };
-      }
+            case "log": {
+                const message = typeof payload.message === "string" ? payload.message : undefined;
+                return {
+                    ...base,
+                    label: formatMessage(key("log")),
+                    ...(message === undefined ? {} : { detail: message }),
+                    tone: "default",
+                };
+            }
 
-      /**
-       * report 与 log 都是 fire-and-forget，但 report **有 site 身份**（`report#N@k` 进 journal），
-       * 所以这一行带实例。条目正文另有主场（Results 区的完整预览），这里只给一个短摘要——
-       * 事件日志的职责是"引擎发过什么、什么时候"，不是第二个产物视图。
-       */
-      case "report": {
-        const detail = joinDetail(refText(payload.instance), reportItemSummary(payload.item));
-        return {
-          ...base,
-          label: formatMessage(key("report")),
-          ...(detail === undefined ? {} : { detail }),
-          tone: "default",
-        };
-      }
+            /** 控制流经过了一个 `phase("…")` 标记：给名字与第几次进入（回放导出仍用这条格式化器）。 */
+            case "import-cache-closed": {
+                // amend-resume 的导入缓存关门：谁的第一笔写入关的门。
+                // detail = 子代理名（有则）+ 实例；world.run 关的门没有名字，只有实例。
+                const actorName =
+                    typeof payload.actorName === "string" ? payload.actorName : undefined;
+                const detail = joinDetail(actorName, refText(payload.instance));
+                return {
+                    ...base,
+                    label: formatMessage(key("importCacheClosed")),
+                    ...(detail === undefined ? {} : { detail }),
+                    tone: "default",
+                };
+            }
 
-      /**
-       * 升级问答：actor 撞上真阻塞，把问题升级给主代理，
-       * 停在自己那次 ask 里等答案；主代理按 qid 作答后它就地继续。
-       *
-       * 两行都以 **qid 打头**，尽管 raised 那一行的主角是"谁问了什么"：qid 是这两条事件之间
-       * 唯一的关联键，而它们在日志里通常隔着几十行（等待就是这个特性的全部内容）。少了它，
-       * 一条 "已作答" 就无从知道答的是上面哪一问。
-       *
-       * 正文按 detail 列的既有习惯截断（与 report 摘要同一个上限）：事件日志是一行一条，
-       * 完整的问题正文另有主场——上面的「待答问题」区。
-       */
-      case "escalation-raised": {
-        const question = typeof payload.question === "string" ? payload.question : undefined;
-        // actor 名缺席（匿名 actor）时退回站点实例：这一行宁可说 `actor#1@1`，也不能不说是谁。
-        const actorName = typeof payload.actorName === "string" ? payload.actorName : undefined;
-        const detail = joinDetail(
-          nonEmptyText(payload.qid),
-          actorName ?? refText(payload.actor),
-          question === undefined ? undefined : truncate(question, UNKNOWN_PAYLOAD_MAX_LENGTH),
-        );
-        return {
-          ...base,
-          label: formatMessage(key("escalationRaised")),
-          ...(detail === undefined ? {} : { detail }),
-          // 升级不是失败：actor 没有出错，它在等一个答案。着色留给真正没成的那些行。
-          tone: "default",
-        };
-      }
+            case "phase-entered": {
+                const name = typeof payload.name === "string" ? payload.name : undefined;
+                const ordinal = typeof payload.ordinal === "number" ? payload.ordinal : 1;
+                return {
+                    ...base,
+                    label: formatMessage(key("phaseEntered")),
+                    ...(name === undefined
+                        ? {}
+                        : { detail: ordinal >= 2 ? `${name} · ${ordinal}` : name }),
+                    tone: "default",
+                };
+            }
 
-      case "escalation-resolved": {
-        const answer = typeof payload.answer === "string" ? payload.answer : undefined;
-        const detail = joinDetail(
-          nonEmptyText(payload.qid),
-          answer === undefined ? undefined : truncate(answer, UNKNOWN_PAYLOAD_MAX_LENGTH),
-        );
-        return {
-          ...base,
-          label: formatMessage(key("escalationResolved")),
-          ...(detail === undefined ? {} : { detail }),
-          tone: "default",
-        };
-      }
+            /**
+             * report 与 log 都是 fire-and-forget，但 report **有 site 身份**（`report#N@k` 进 journal），
+             * 所以这一行带实例。条目正文另有主场（Results 区的完整预览），这里只给一个短摘要——
+             * 事件日志的职责是"引擎发过什么、什么时候"，不是第二个产物视图。
+             */
+            case "report": {
+                const detail = joinDetail(
+                    refText(payload.instance),
+                    reportItemSummary(payload.item),
+                );
+                return {
+                    ...base,
+                    label: formatMessage(key("report")),
+                    ...(detail === undefined ? {} : { detail }),
+                    tone: "default",
+                };
+            }
 
-      case "run-settled": {
-        const status =
-          typeof payload.status === "string" && payload.status.length > 0
-            ? payload.status
-            : undefined;
-        const statusLabel = status
-          ? formatMessage({ id: `chat.toolCall.workflow.run.status.${status}` })
-          : "";
-        const detail = errorMessage(payload.error);
-        return {
-          ...base,
-          label: formatMessage(key("runSettled"), { status: statusLabel }),
-          ...(detail === undefined ? {} : { detail }),
-          tone: status === "errored" || status === "stopped" ? "failed" : "default",
-        };
-      }
+            /**
+             * 升级问答：actor 撞上真阻塞，把问题升级给主代理，
+             * 停在自己那次 ask 里等答案；主代理按 qid 作答后它就地继续。
+             *
+             * 两行都以 **qid 打头**，尽管 raised 那一行的主角是"谁问了什么"：qid 是这两条事件之间
+             * 唯一的关联键，而它们在日志里通常隔着几十行（等待就是这个特性的全部内容）。少了它，
+             * 一条 "已作答" 就无从知道答的是上面哪一问。
+             *
+             * 正文按 detail 列的既有习惯截断（与 report 摘要同一个上限）：事件日志是一行一条，
+             * 完整的问题正文另有主场——上面的「待答问题」区。
+             */
+            case "escalation-raised": {
+                const question =
+                    typeof payload.question === "string" ? payload.question : undefined;
+                // actor 名缺席（匿名 actor）时退回站点实例：这一行宁可说 `actor#1@1`，也不能不说是谁。
+                const actorName =
+                    typeof payload.actorName === "string" ? payload.actorName : undefined;
+                const detail = joinDetail(
+                    nonEmptyText(payload.qid),
+                    actorName ?? refText(payload.actor),
+                    question === undefined
+                        ? undefined
+                        : truncate(question, UNKNOWN_PAYLOAD_MAX_LENGTH),
+                );
+                return {
+                    ...base,
+                    label: formatMessage(key("escalationRaised")),
+                    ...(detail === undefined ? {} : { detail }),
+                    // 升级不是失败：actor 没有出错，它在等一个答案。着色留给真正没成的那些行。
+                    tone: "default",
+                };
+            }
 
-      default: {
-        // 并发的四条事件（node-waiting / node-executing / concurrency-changed / run-caps-changed）
-        // 住在同族的 workflowRunThrottle.ts（max-lines 门）。
-        const concurrencyLine = workflowRunConcurrencyEventLine(event, formatMessage);
-        if (concurrencyLine !== undefined) return concurrencyLine;
-        // 例如引擎为长上下文压缩预留的 `compaction`（v1 从不发出）。它将来一出现，
-        // 这里必须仍给出一条有信息量的行，而不是空白。
-        const detail = unknownDetail(payload);
-        return {
-          ...base,
-          label: formatMessage(key("unknown"), { type: event.type }),
-          ...(detail === undefined ? {} : { detail }),
-          tone: "default",
-        };
-      }
-    }
-  });
+            case "escalation-resolved": {
+                const answer = typeof payload.answer === "string" ? payload.answer : undefined;
+                const detail = joinDetail(
+                    nonEmptyText(payload.qid),
+                    answer === undefined ? undefined : truncate(answer, UNKNOWN_PAYLOAD_MAX_LENGTH),
+                );
+                return {
+                    ...base,
+                    label: formatMessage(key("escalationResolved")),
+                    ...(detail === undefined ? {} : { detail }),
+                    tone: "default",
+                };
+            }
+
+            case "run-settled": {
+                const status =
+                    typeof payload.status === "string" && payload.status.length > 0
+                        ? payload.status
+                        : undefined;
+                const statusLabel = status
+                    ? formatMessage({ id: `chat.toolCall.workflow.run.status.${status}` })
+                    : "";
+                const detail = errorMessage(payload.error);
+                return {
+                    ...base,
+                    label: formatMessage(key("runSettled"), { status: statusLabel }),
+                    ...(detail === undefined ? {} : { detail }),
+                    tone: status === "errored" || status === "stopped" ? "failed" : "default",
+                };
+            }
+
+            default: {
+                // 并发的四条事件（node-waiting / node-executing / concurrency-changed / run-caps-changed）
+                // 住在同族的 workflowRunThrottle.ts（max-lines 门）。
+                const concurrencyLine = workflowRunConcurrencyEventLine(event, formatMessage);
+                if (concurrencyLine !== undefined) return concurrencyLine;
+                // 例如引擎为长上下文压缩预留的 `compaction`（v1 从不发出）。它将来一出现，
+                // 这里必须仍给出一条有信息量的行，而不是空白。
+                const detail = unknownDetail(payload);
+                return {
+                    ...base,
+                    label: formatMessage(key("unknown"), { type: event.type }),
+                    ...(detail === undefined ? {} : { detail }),
+                    tone: "default",
+                };
+            }
+        }
+    });
 }
 
 // ── Transcript 入口：step 卡片 → actor 实例──
@@ -421,11 +440,11 @@ export function workflowRunEventLines(
  * 随行的订阅目标，缺席时 tab 里是「尚未启动」占位。
  */
 export interface WorkflowActorInstance {
-  siteId: string;
-  ordinal: number;
-  name?: string;
-  sessionId?: string;
-  status: WorkflowRunActor["status"];
+    siteId: string;
+    ordinal: number;
+    name?: string;
+    sessionId?: string;
+    status: WorkflowRunActor["status"];
 }
 
 // ── actor 未启动门──
@@ -439,16 +458,16 @@ type WorkflowActorStartState = "notStarted" | "started" | "unknown";
 
 /** actor transcript tab 交给门的身份：槽位 + 打开时已知的会话 id（可缺席）。 */
 export interface WorkflowActorSlotRef {
-  runId: string;
-  siteId: string;
-  ordinal: number;
-  actorSessionId?: string;
+    runId: string;
+    siteId: string;
+    ordinal: number;
+    actorSessionId?: string;
 }
 
 /** 门的裁决：处境 + 该订阅的会话 id（缺席 = 没有可订阅的东西，面板只能占位）。 */
 interface WorkflowActorGate {
-  state: WorkflowActorStartState;
-  sessionId?: string;
+    state: WorkflowActorStartState;
+    sessionId?: string;
 }
 
 /**
@@ -481,27 +500,27 @@ interface WorkflowActorGate {
  * notStarted——那条命中本来也证明不了任何会话。
  */
 export function workflowActorStartState(
-  runs: readonly WorkflowRunState[] | undefined,
-  slot: WorkflowActorSlotRef,
+    runs: readonly WorkflowRunState[] | undefined,
+    slot: WorkflowActorSlotRef,
 ): WorkflowActorGate {
-  const run = runs?.find((candidate) => candidate.runId === slot.runId);
-  const actor = run?.actors.find(
-    (candidate) => candidate.siteId === slot.siteId && candidate.ordinal === slot.ordinal,
-  );
-  const sessionId = actor?.sessionId ?? slot.actorSessionId;
-  const withSession = sessionId === undefined ? {} : { sessionId };
-  if (run === undefined || actor === undefined) {
-    return { state: sessionId === undefined ? "notStarted" : "unknown", ...withSession };
-  }
-  // 归属按 `siteId` + `ordinal`（journal 的键）比对：序号错了就是另一个实例，而
-  // world-read 节点两个字段都缺席，于是从不给任何人开门。
-  const started = run.nodes.some(
-    (node) =>
-      node.actorSiteId === actor.siteId &&
-      node.actorOrdinal === actor.ordinal &&
-      // `queued` 是唯一**不**证明会话存在的相位。取补集而不是列举 dispatched/repairing/
-      // nudged/settled，是为了让将来新增的相位默认开门——与 `unknown` 不拦同一个取向。
-      node.phase !== "queued",
-  );
-  return { state: started ? "started" : "notStarted", ...withSession };
+    const run = runs?.find((candidate) => candidate.runId === slot.runId);
+    const actor = run?.actors.find(
+        (candidate) => candidate.siteId === slot.siteId && candidate.ordinal === slot.ordinal,
+    );
+    const sessionId = actor?.sessionId ?? slot.actorSessionId;
+    const withSession = sessionId === undefined ? {} : { sessionId };
+    if (run === undefined || actor === undefined) {
+        return { state: sessionId === undefined ? "notStarted" : "unknown", ...withSession };
+    }
+    // 归属按 `siteId` + `ordinal`（journal 的键）比对：序号错了就是另一个实例，而
+    // world-read 节点两个字段都缺席，于是从不给任何人开门。
+    const started = run.nodes.some(
+        (node) =>
+            node.actorSiteId === actor.siteId &&
+            node.actorOrdinal === actor.ordinal &&
+            // `queued` 是唯一**不**证明会话存在的相位。取补集而不是列举 dispatched/repairing/
+            // nudged/settled，是为了让将来新增的相位默认开门——与 `unknown` 不拦同一个取向。
+            node.phase !== "queued",
+    );
+    return { state: started ? "started" : "notStarted", ...withSession };
 }

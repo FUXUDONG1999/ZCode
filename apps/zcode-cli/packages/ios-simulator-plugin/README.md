@@ -31,17 +31,17 @@ Example `~/.zcode/cli/config.json` entry:
 
 ```json
 {
-  "plugins": {
-    "enabledPlugins": {
-      "ios-simulator@zcode-plugins-official": true
-    },
-    "options": {
-      "ios-simulator@zcode-plugins-official": {
-        "default_device": "iPhone 16",
-        "ui_backend": "auto"
-      }
+    "plugins": {
+        "enabledPlugins": {
+            "ios-simulator@zcode-plugins-official": true
+        },
+        "options": {
+            "ios-simulator@zcode-plugins-official": {
+                "default_device": "iPhone 16",
+                "ui_backend": "auto"
+            }
+        }
     }
-  }
 }
 ```
 

@@ -1,9 +1,9 @@
 import {
-  AMEND_WORKFLOW_TOOL_NAME,
-  CREATE_WORKFLOW_TOOL_NAME,
-  SessionEventType,
-  type DynamicWorkflowRunProgressPayload,
-  type SessionEvent,
+    AMEND_WORKFLOW_TOOL_NAME,
+    CREATE_WORKFLOW_TOOL_NAME,
+    SessionEventType,
+    type DynamicWorkflowRunProgressPayload,
+    type SessionEvent,
 } from "@zcode/contracts";
 import { createDenyPermissionBroker } from "@zcode/core";
 import type { GlobalOptions } from "@zcode/shared-types";
@@ -29,25 +29,25 @@ import { readRuntimeFunction } from "./runtime-event-subscriber.js";
  * 的 `??` 短路），权限事件照常发射，run 内 actor 照旧继承会话的权限 profile。
  */
 export const createHeadlessPermissionBroker = (): NonNullable<
-  ZCodeAppOptions["permissionBroker"]
+    ZCodeAppOptions["permissionBroker"]
 > => {
-  const denyBroker = createDenyPermissionBroker();
-  return {
-    requestPermission: async (request, options) => {
-      // AmendWorkflow 与 CreateWorkflow 同一道门、同一条例外。
-      if (
-        request.toolName !== CREATE_WORKFLOW_TOOL_NAME &&
-        request.toolName !== AMEND_WORKFLOW_TOOL_NAME
-      ) {
-        return await denyBroker.requestPermission(request, options);
-      }
-      return {
-        decision: "allow",
-        reason: `Headless CLI auto-approves ${request.toolName}: no interactive gate exists in -p mode.`,
-        resolvedAt: new Date(),
-      };
-    },
-  };
+    const denyBroker = createDenyPermissionBroker();
+    return {
+        requestPermission: async (request, options) => {
+            // AmendWorkflow 与 CreateWorkflow 同一道门、同一条例外。
+            if (
+                request.toolName !== CREATE_WORKFLOW_TOOL_NAME &&
+                request.toolName !== AMEND_WORKFLOW_TOOL_NAME
+            ) {
+                return await denyBroker.requestPermission(request, options);
+            }
+            return {
+                decision: "allow",
+                reason: `Headless CLI auto-approves ${request.toolName}: no interactive gate exists in -p mode.`,
+                resolvedAt: new Date(),
+            };
+        },
+    };
 };
 
 /**
@@ -66,21 +66,21 @@ export const WORKFLOW_RUN_PROGRESS_STREAM_TYPE = "workflow.run.progress";
  * `payload` 是 contracts 的有界载荷**原样**，不重塑字段名。
  */
 interface WorkflowRunProgressStreamLine {
-  type: typeof WORKFLOW_RUN_PROGRESS_STREAM_TYPE;
-  eventId: string;
-  sessionId: string;
-  seq: number;
-  timestamp: number;
-  traceId: string;
-  payload: DynamicWorkflowRunProgressPayload;
+    type: typeof WORKFLOW_RUN_PROGRESS_STREAM_TYPE;
+    eventId: string;
+    sessionId: string;
+    seq: number;
+    timestamp: number;
+    traceId: string;
+    payload: DynamicWorkflowRunProgressPayload;
 }
 
 /** 这条会话事件是 dwf 进度吗？stream-json 与 stderr 进度共用这道判别。 */
 export const isDynamicWorkflowRunProgressEvent = (event: SessionEvent): boolean =>
-  event.type === SessionEventType.DynamicWorkflowRunProgress;
+    event.type === SessionEventType.DynamicWorkflowRunProgress;
 
 const progressPayloadOf = (event: SessionEvent): DynamicWorkflowRunProgressPayload =>
-  event.payload as DynamicWorkflowRunProgressPayload;
+    event.payload as DynamicWorkflowRunProgressPayload;
 
 /**
  * dwf 进度事件 → 定型 NDJSON 行。
@@ -93,26 +93,26 @@ const progressPayloadOf = (event: SessionEvent): DynamicWorkflowRunProgressPaylo
  * `turnId`：写一个恒为 undefined 的键只会让读者以为它有时有值。
  */
 export const mapWorkflowRunProgressStreamLine = (
-  event: SessionEvent,
+    event: SessionEvent,
 ): WorkflowRunProgressStreamLine => ({
-  type: WORKFLOW_RUN_PROGRESS_STREAM_TYPE,
-  eventId: String(event.id),
-  sessionId: String(event.sessionId),
-  seq: event.sequenceNumber,
-  timestamp: event.timestamp.getTime(),
-  traceId: String(event.traceId),
-  payload: progressPayloadOf(event),
+    type: WORKFLOW_RUN_PROGRESS_STREAM_TYPE,
+    eventId: String(event.id),
+    sessionId: String(event.sessionId),
+    seq: event.sequenceNumber,
+    timestamp: event.timestamp.getTime(),
+    traceId: String(event.traceId),
+    payload: progressPayloadOf(event),
 });
 
 const asRecord = (value: unknown): Record<string, unknown> =>
-  value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+    value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 
 const instanceLabel = (payload: Record<string, unknown>): string | undefined => {
-  const instance = asRecord(payload.instance);
-  const siteId = instance.siteId;
-  if (typeof siteId !== "string") return undefined;
-  const ordinal = instance.ordinal;
-  return typeof ordinal === "number" ? `${siteId}@${ordinal}` : siteId;
+    const instance = asRecord(payload.instance);
+    const siteId = instance.siteId;
+    if (typeof siteId !== "string") return undefined;
+    const ordinal = instance.ordinal;
+    return typeof ordinal === "number" ? `${siteId}@${ordinal}` : siteId;
 };
 
 /**
@@ -124,36 +124,38 @@ const instanceLabel = (payload: Record<string, unknown>): string | undefined => 
  * `usage-updated` 与 `actor-created` 刻意不打印：前者是纯计数、后者不是迁移。
  */
 const describeProgress = (payload: DynamicWorkflowRunProgressPayload): string | undefined => {
-  const inner = asRecord(payload.payload);
-  switch (payload.eventType) {
-    case "run-started":
-      return "started";
-    case "run-settled": {
-      // 终态词汇 completed / errored / stopped；
-      // stopped 带原因：`stopped/provider: …`。
-      const rawStatus = typeof inner.status === "string" ? inner.status : "settled";
-      const status =
-        typeof inner.stopReason === "string" ? `${rawStatus}/${inner.stopReason}` : rawStatus;
-      const error = asRecord(inner.error).message;
-      return typeof error === "string" ? `${status}: ${error}` : status;
+    const inner = asRecord(payload.payload);
+    switch (payload.eventType) {
+        case "run-started":
+            return "started";
+        case "run-settled": {
+            // 终态词汇 completed / errored / stopped；
+            // stopped 带原因：`stopped/provider: …`。
+            const rawStatus = typeof inner.status === "string" ? inner.status : "settled";
+            const status =
+                typeof inner.stopReason === "string"
+                    ? `${rawStatus}/${inner.stopReason}`
+                    : rawStatus;
+            const error = asRecord(inner.error).message;
+            return typeof error === "string" ? `${status}: ${error}` : status;
+        }
+        case "log":
+            return typeof inner.message === "string" ? `log: ${inner.message}` : undefined;
+        case "node-queued":
+        case "node-dispatched":
+        case "node-repairing":
+        case "node-nudged": {
+            const label = instanceLabel(inner);
+            return label ? `${payload.eventType.slice("node-".length)} ${label}` : undefined;
+        }
+        case "node-settled": {
+            const label = instanceLabel(inner);
+            const outcome = typeof inner.outcome === "string" ? inner.outcome : "settled";
+            return label ? `settled ${label} (${outcome})` : undefined;
+        }
+        default:
+            return undefined;
     }
-    case "log":
-      return typeof inner.message === "string" ? `log: ${inner.message}` : undefined;
-    case "node-queued":
-    case "node-dispatched":
-    case "node-repairing":
-    case "node-nudged": {
-      const label = instanceLabel(inner);
-      return label ? `${payload.eventType.slice("node-".length)} ${label}` : undefined;
-    }
-    case "node-settled": {
-      const label = instanceLabel(inner);
-      const outcome = typeof inner.outcome === "string" ? inner.outcome : "settled";
-      return label ? `settled ${label} (${outcome})` : undefined;
-    }
-    default:
-      return undefined;
-  }
 };
 
 /**
@@ -163,15 +165,15 @@ const describeProgress = (payload: DynamicWorkflowRunProgressPayload): string | 
  * 而作者写下它就是为了被看到。
  */
 const isUnthrottledProgress = (eventType: string): boolean =>
-  eventType === "run-started" || eventType === "run-settled" || eventType === "log";
+    eventType === "run-started" || eventType === "run-settled" || eventType === "log";
 
 interface WorkflowProgressReporterInput {
-  /** 进度只写 stderr——stdout 属于结果（`text` 模式在 stderr 打简短进度）。 */
-  write: (line: string) => void;
-  /** 注入时钟，让节流可被无睡眠单测穷举。 */
-  now?: () => number;
-  /** 节点相位迁移的最小间隔；`log` 与 run 端点不受它约束。 */
-  throttleMs?: number;
+    /** 进度只写 stderr——stdout 属于结果（`text` 模式在 stderr 打简短进度）。 */
+    write: (line: string) => void;
+    /** 注入时钟，让节流可被无睡眠单测穷举。 */
+    now?: () => number;
+    /** 节点相位迁移的最小间隔；`log` 与 run 端点不受它约束。 */
+    throttleMs?: number;
 }
 
 /** 节点相位迁移的默认节流间隔。一个 100 节点的 run 约 5×100 条事件。 */
@@ -182,54 +184,54 @@ const DEFAULT_WORKFLOW_PROGRESS_THROTTLE_MS = 400;
  * 只认 dwf 进度事件，其余会话事件直接忽略（返回后无副作用）。
  */
 export const createWorkflowProgressReporter = (
-  input: WorkflowProgressReporterInput,
+    input: WorkflowProgressReporterInput,
 ): ((event: SessionEvent) => void) => {
-  const now = input.now ?? Date.now;
-  const throttleMs = input.throttleMs ?? DEFAULT_WORKFLOW_PROGRESS_THROTTLE_MS;
-  let lastThrottledAt: number | undefined;
-  return (event) => {
-    if (!isDynamicWorkflowRunProgressEvent(event)) return;
-    const payload = progressPayloadOf(event);
-    const description = describeProgress(payload);
-    if (description === undefined) return;
-    if (!isUnthrottledProgress(payload.eventType)) {
-      const at = now();
-      if (lastThrottledAt !== undefined && at - lastThrottledAt < throttleMs) return;
-      lastThrottledAt = at;
-    }
-    input.write(`workflow ${payload.runId}: ${description}\n`);
-  };
+    const now = input.now ?? Date.now;
+    const throttleMs = input.throttleMs ?? DEFAULT_WORKFLOW_PROGRESS_THROTTLE_MS;
+    let lastThrottledAt: number | undefined;
+    return (event) => {
+        if (!isDynamicWorkflowRunProgressEvent(event)) return;
+        const payload = progressPayloadOf(event);
+        const description = describeProgress(payload);
+        if (description === undefined) return;
+        if (!isUnthrottledProgress(payload.eventType)) {
+            const at = now();
+            if (lastThrottledAt !== undefined && at - lastThrottledAt < throttleMs) return;
+            lastThrottledAt = at;
+        }
+        input.write(`workflow ${payload.runId}: ${description}\n`);
+    };
 };
 
 interface HeadlessWriteStream {
-  write: (chunk: string) => unknown;
+    write: (chunk: string) => unknown;
 }
 
 interface HeadlessSessionObserverInput {
-  options: Pick<GlobalOptions, "json" | "outputFormat">;
-  stderr: HeadlessWriteStream;
-  stdout: HeadlessWriteStream;
-  /** 仅 `--output-format stream-json` 需要；缺席即不写 NDJSON。 */
-  mapSessionEvent?: (event: SessionEvent) => unknown;
+    options: Pick<GlobalOptions, "json" | "outputFormat">;
+    stderr: HeadlessWriteStream;
+    stdout: HeadlessWriteStream;
+    /** 仅 `--output-format stream-json` 需要；缺席即不写 NDJSON。 */
+    mapSessionEvent?: (event: SessionEvent) => unknown;
 }
 
 interface HeadlessSessionObserver {
-  /** 唯一的会话事件消费者。装在**一个** sink 上——两个 sink 各写一次就是重复行。 */
-  observe: (event: SessionEvent) => void;
-  /**
-   * 观察到过 dwf 活动吗？这是「等待结算」的**窄触发**判据：没有 dwf 活动的运行
-   * 一次都不进等待，行为与改动前逐字节相同。
-   */
-  hasWorkflowActivity: () => boolean;
-  /**
-   * 开始记录回合文本。必须在 `submitPrompt` 返回后**同步**调用：那一刻起到第一个 await
-   * 之间没有任何事件能插队，所以通知驱动回合的第一条事件不会漏。
-   * `excludeTurnId` 是首个回合的 id——它的文本已由 `submitPrompt` 的返回值给出，
-   * 万一它的 `turn_complete` 迟到，靠这个 id 挡住重复计数。
-   */
-  beginWaitPhase: (excludeTurnId?: string) => void;
-  /** 等待期内每个已完成回合的文本，按到达序。 */
-  waitPhaseTurnResponses: () => readonly string[];
+    /** 唯一的会话事件消费者。装在**一个** sink 上——两个 sink 各写一次就是重复行。 */
+    observe: (event: SessionEvent) => void;
+    /**
+     * 观察到过 dwf 活动吗？这是「等待结算」的**窄触发**判据：没有 dwf 活动的运行
+     * 一次都不进等待，行为与改动前逐字节相同。
+     */
+    hasWorkflowActivity: () => boolean;
+    /**
+     * 开始记录回合文本。必须在 `submitPrompt` 返回后**同步**调用：那一刻起到第一个 await
+     * 之间没有任何事件能插队，所以通知驱动回合的第一条事件不会漏。
+     * `excludeTurnId` 是首个回合的 id——它的文本已由 `submitPrompt` 的返回值给出，
+     * 万一它的 `turn_complete` 迟到，靠这个 id 挡住重复计数。
+     */
+    beginWaitPhase: (excludeTurnId?: string) => void;
+    /** 等待期内每个已完成回合的文本，按到达序。 */
+    waitPhaseTurnResponses: () => readonly string[];
 }
 
 /**
@@ -244,52 +246,53 @@ interface HeadlessSessionObserver {
  * 与回合文本记录。所以这个函数永远返回一个观察者，不再返回 undefined。
  */
 export const createHeadlessSessionObserver = (
-  input: HeadlessSessionObserverInput,
+    input: HeadlessSessionObserverInput,
 ): HeadlessSessionObserver => {
-  const { mapSessionEvent, options, stderr, stdout } = input;
-  const writeStreamEvent = mapSessionEvent
-    ? (event: SessionEvent) => {
-        // One event per line, written as it happens. Deliberately not formatJson:
-        // that pretty-prints with an indent, which would spread a single event
-        // over several lines and break every line-oriented reader downstream.
-        //
-        // dwf 进度走定型行：mapSessionEvent 的 default 会把它落成 catch-all
-        // `session.updated`（session-mapper.ts），读者既无从分辨、也没法
-        // 只订阅它。
-        const line = isDynamicWorkflowRunProgressEvent(event)
-          ? mapWorkflowRunProgressStreamLine(event)
-          : mapSessionEvent(event);
-        stdout.write(`${JSON.stringify(line)}\n`);
-      }
-    : undefined;
-  const reportProgress =
-    mapSessionEvent === undefined && wantsWorkflowProgress(options)
-      ? createWorkflowProgressReporter({ write: (line) => void stderr.write(line) })
-      : undefined;
+    const { mapSessionEvent, options, stderr, stdout } = input;
+    const writeStreamEvent = mapSessionEvent
+        ? (event: SessionEvent) => {
+              // One event per line, written as it happens. Deliberately not formatJson:
+              // that pretty-prints with an indent, which would spread a single event
+              // over several lines and break every line-oriented reader downstream.
+              //
+              // dwf 进度走定型行：mapSessionEvent 的 default 会把它落成 catch-all
+              // `session.updated`（session-mapper.ts），读者既无从分辨、也没法
+              // 只订阅它。
+              const line = isDynamicWorkflowRunProgressEvent(event)
+                  ? mapWorkflowRunProgressStreamLine(event)
+                  : mapSessionEvent(event);
+              stdout.write(`${JSON.stringify(line)}\n`);
+          }
+        : undefined;
+    const reportProgress =
+        mapSessionEvent === undefined && wantsWorkflowProgress(options)
+            ? createWorkflowProgressReporter({ write: (line) => void stderr.write(line) })
+            : undefined;
 
-  let workflowActivity = false;
-  let waiting = false;
-  let excludedTurnId: string | undefined;
-  const turnResponses: string[] = [];
+    let workflowActivity = false;
+    let waiting = false;
+    let excludedTurnId: string | undefined;
+    const turnResponses: string[] = [];
 
-  return {
-    hasWorkflowActivity: () => workflowActivity,
-    beginWaitPhase: (excludeTurnId) => {
-      waiting = true;
-      excludedTurnId = excludeTurnId;
-    },
-    waitPhaseTurnResponses: () => turnResponses,
-    observe: (event) => {
-      writeStreamEvent?.(event);
-      reportProgress?.(event);
-      if (isWorkflowActivityEvent(event)) workflowActivity = true;
-      if (!waiting || event.type !== SessionEventType.TurnComplete) return;
-      // 首个回合的文本来自 submitPrompt 的返回值；它的 turn_complete 若迟到就会重复计数。
-      if (event.turnId !== undefined && String(event.turnId) === excludedTurnId) return;
-      const response = (event.payload as { response?: unknown }).response;
-      if (typeof response === "string" && response.trim().length > 0) turnResponses.push(response);
-    },
-  };
+    return {
+        hasWorkflowActivity: () => workflowActivity,
+        beginWaitPhase: (excludeTurnId) => {
+            waiting = true;
+            excludedTurnId = excludeTurnId;
+        },
+        waitPhaseTurnResponses: () => turnResponses,
+        observe: (event) => {
+            writeStreamEvent?.(event);
+            reportProgress?.(event);
+            if (isWorkflowActivityEvent(event)) workflowActivity = true;
+            if (!waiting || event.type !== SessionEventType.TurnComplete) return;
+            // 首个回合的文本来自 submitPrompt 的返回值；它的 turn_complete 若迟到就会重复计数。
+            if (event.turnId !== undefined && String(event.turnId) === excludedTurnId) return;
+            const response = (event.payload as { response?: unknown }).response;
+            if (typeof response === "string" && response.trim().length > 0)
+                turnResponses.push(response);
+        },
+    };
 };
 
 /**
@@ -300,17 +303,17 @@ export const createHeadlessSessionObserver = (
  * **必然**落在启动它的那个回合之内——所以它是更早、更硬的证据。两个都收，触发只需其一。
  */
 const isWorkflowActivityEvent = (event: SessionEvent): boolean => {
-  if (isDynamicWorkflowRunProgressEvent(event)) return true;
-  return (
-    event.type === SessionEventType.BackgroundTaskStarted &&
-    (event.payload as { taskKind?: unknown }).taskKind === "workflow"
-  );
+    if (isDynamicWorkflowRunProgressEvent(event)) return true;
+    return (
+        event.type === SessionEventType.BackgroundTaskStarted &&
+        (event.payload as { taskKind?: unknown }).taskKind === "workflow"
+    );
 };
 
 /** runtime 的两个 busy 权威事实。窄接口而不是整个 AgentRuntime——等待只读这两个布尔。 */
 interface HeadlessWorkflowRuntimeFacts {
-  hasActiveOrQueuedTurnWork: () => boolean;
-  hasRunningBackgroundTasks: () => boolean;
+    hasActiveOrQueuedTurnWork: () => boolean;
+    hasRunningBackgroundTasks: () => boolean;
 }
 
 /** 轮询间隔。等待期是分钟量级的，这个粒度的开销可忽略，而它决定退出的响应度。 */
@@ -334,20 +337,23 @@ const HEADLESS_WORKFLOW_POLL_INTERVAL_MS = 100;
  * 把 run 记成 `stopped(interrupted)`（失败码 `Interrupted`，可 resume）。signal 一旦 abort 就立刻返回，绝不吞信号。
  */
 export const waitForHeadlessWorkflowSettle = async (input: {
-  intervalMs?: number;
-  runtime: HeadlessWorkflowRuntimeFacts;
-  signal: AbortSignal;
-  sleep?: (ms: number) => Promise<void>;
+    intervalMs?: number;
+    runtime: HeadlessWorkflowRuntimeFacts;
+    signal: AbortSignal;
+    sleep?: (ms: number) => Promise<void>;
 }): Promise<void> => {
-  const intervalMs = input.intervalMs ?? HEADLESS_WORKFLOW_POLL_INTERVAL_MS;
-  const sleep =
-    input.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
-  while (!input.signal.aborted) {
-    if (!input.runtime.hasRunningBackgroundTasks() && !input.runtime.hasActiveOrQueuedTurnWork()) {
-      return;
+    const intervalMs = input.intervalMs ?? HEADLESS_WORKFLOW_POLL_INTERVAL_MS;
+    const sleep =
+        input.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+    while (!input.signal.aborted) {
+        if (
+            !input.runtime.hasRunningBackgroundTasks() &&
+            !input.runtime.hasActiveOrQueuedTurnWork()
+        ) {
+            return;
+        }
+        await sleep(intervalMs);
     }
-    await sleep(intervalMs);
-  }
 };
 
 /**
@@ -360,15 +366,15 @@ export const waitForHeadlessWorkflowSettle = async (input: {
  * 而不是假装等过了。
  */
 export const readHeadlessRuntimeFacts = (
-  runtime: unknown,
+    runtime: unknown,
 ): HeadlessWorkflowRuntimeFacts | undefined => {
-  const turnWork = readRuntimeFunction(runtime, "hasActiveOrQueuedTurnWork");
-  const backgroundTasks = readRuntimeFunction(runtime, "hasRunningBackgroundTasks");
-  if (!turnWork || !backgroundTasks) return undefined;
-  return {
-    hasActiveOrQueuedTurnWork: () => turnWork.call(runtime) === true,
-    hasRunningBackgroundTasks: () => backgroundTasks.call(runtime) === true,
-  };
+    const turnWork = readRuntimeFunction(runtime, "hasActiveOrQueuedTurnWork");
+    const backgroundTasks = readRuntimeFunction(runtime, "hasRunningBackgroundTasks");
+    if (!turnWork || !backgroundTasks) return undefined;
+    return {
+        hasActiveOrQueuedTurnWork: () => turnWork.call(runtime) === true,
+        hasRunningBackgroundTasks: () => backgroundTasks.call(runtime) === true,
+    };
 };
 
 /**
@@ -378,4 +384,4 @@ export const readHeadlessRuntimeFacts = (
  * 定型成 stdout 上的一行。缺省（无 --output-format、无 --json）就是 text，所以它也打。
  */
 const wantsWorkflowProgress = (options: Pick<GlobalOptions, "json" | "outputFormat">): boolean =>
-  options.outputFormat === undefined ? !options.json : options.outputFormat === "text";
+    options.outputFormat === undefined ? !options.json : options.outputFormat === "text";

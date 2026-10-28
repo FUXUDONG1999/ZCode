@@ -28,8 +28,8 @@ import { useV4Conversation } from "@/v4/V4ConversationContext.js";
  * 刻意**不**把 `sessionNotFound` 算成能力缺席：那正是值得重试的那一种。
  */
 export function isWorkflowRunsCapabilityMissing(error: unknown): boolean {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.includes("capabilityUnsupported") || message.includes("listDynamicWorkflowRuns");
+    const message = error instanceof Error ? error.message : String(error);
+    return message.includes("capabilityUnsupported") || message.includes("listDynamicWorkflowRuns");
 }
 
 /**
@@ -44,94 +44,94 @@ export function isWorkflowRunsCapabilityMissing(error: unknown): boolean {
  * 节点事件就抬一次，会把一次读变成一条流。
  */
 export function useWorkflowRunJournalSummaries(options: {
-  sessionId: string | null;
-  live: boolean;
-  /**
-   * 调用方声明「这条查询对本 pane 有意义」的闸门；缺省 true。
-   *
-   * journal 按**父会话**建键，而嵌套只读 transcript
-   * （dwf actor / subagent）的 SessionPane 曾无差别地带着子会话 id 发出这条查询。
-   * 空手而归只是小头；大头是 CLI 的冷会话前置会为一条**正在运行**的 detached 会话
-   * 物化第二个（幽灵）runtime——双写同一份事件日志，直播冻结在「已工作 xx 秒」。
-   * CLI 侧已按 hasLiveConversation 收口；这里是 UI 侧的那半：不该问的 pane 根本不问。
-   */
-  enabled?: boolean;
-  /** 缺省不带这个键，条数由 CLI 侧裁决（缺省 16 / 上限 64）。 */
-  limit?: number;
-  refreshKey?: number | string;
+    sessionId: string | null;
+    live: boolean;
+    /**
+     * 调用方声明「这条查询对本 pane 有意义」的闸门；缺省 true。
+     *
+     * journal 按**父会话**建键，而嵌套只读 transcript
+     * （dwf actor / subagent）的 SessionPane 曾无差别地带着子会话 id 发出这条查询。
+     * 空手而归只是小头；大头是 CLI 的冷会话前置会为一条**正在运行**的 detached 会话
+     * 物化第二个（幽灵）runtime——双写同一份事件日志，直播冻结在「已工作 xx 秒」。
+     * CLI 侧已按 hasLiveConversation 收口；这里是 UI 侧的那半：不该问的 pane 根本不问。
+     */
+    enabled?: boolean;
+    /** 缺省不带这个键，条数由 CLI 侧裁决（缺省 16 / 上限 64）。 */
+    limit?: number;
+    refreshKey?: number | string;
 }): readonly V4ConversationWorkflowRunSummary[] | null {
-  const { workflowRuns } = useV4Conversation();
-  const { enabled = true, limit, live, refreshKey, sessionId } = options;
-  const [summaries, setSummaries] = useState<readonly V4ConversationWorkflowRunSummary[] | null>(
-    null,
-  );
-  /**
-   * **最近**收口的那个会话及其答案（成功的摘要，或能力缺席时的 `null`）。
-   *
-   * 记的是「会话 + 答案」而不只是一个「问过了」的布尔：pane 的 `effectiveSessionId` 会变
-   * （草稿转正、fork、切任务），而只记会话 id 的话，切回一个问过的会话就会两头落空——
-   * 既早退不重查，又因为换会话清了状态而永远空着。换到别的会话再切回来会重查一页 journal，
-   * 这很便宜；一个永远空着的入口不便宜。
-   *
-   * `refreshKey` 一并记下：抬升即视为「这个答案过期了」而重取。**但能力缺席不受它影响**
-   * （见下），所以那一档单独记一个标记而不是塞进这里比较。
-   */
-  const settledRef = useRef<{
-    sessionId: string;
-    refreshKey: number | string | undefined;
-    summaries: readonly V4ConversationWorkflowRunSummary[] | null;
-  } | null>(null);
-  /**
-   * 能力缺席是**按会话**的终局事实：旧 CLI / journal 不可用不会因为跑完一个 run 就变了。
-   * 与上面的收口分开记，正是为了让 `refreshKey` 抬升穿不过这一档——否则每跑完一个 run
-   * 都要再打一次注定失败的 RPC，而那恰是这条分类当初写下来要避免的抖动。
-   */
-  const capabilityMissingSessionRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!enabled || !sessionId) {
-      setSummaries(null);
-      return;
-    }
-    if (capabilityMissingSessionRef.current === sessionId) {
-      setSummaries(null);
-      return;
-    }
-    const settled = settledRef.current;
-    if (settled?.sessionId === sessionId && settled.refreshKey === refreshKey) {
-      // 已有答案：`live` 抬升不再多打一次 RPC（活 run 归投影，journal 只补历史）。
-      setSummaries(settled.summaries);
-      return;
-    }
-    // 换会话：上一个会话的 run 拿来给这个会话的卡片做 join 就是错的 join。
-    // （`refreshKey` 抬升走的是同一条路：清空 → 重取，新答案落地前不显示旧的。）
-    setSummaries(null);
-    let alive = true;
-    workflowRuns({ sessionId, ...(limit === undefined ? {} : { limit }) }).then(
-      (result) => {
-        if (!alive) return;
-        settledRef.current = { sessionId, refreshKey, summaries: result.runs };
-        setSummaries(result.runs);
-      },
-      (error: unknown) => {
-        if (!alive) return;
-        if (isWorkflowRunsCapabilityMissing(error)) {
-          capabilityMissingSessionRef.current = sessionId;
-        } else {
-          // 冷会话是这里最常见的一种，`live` 抬升时会自动再来一次；日志留痕便于排查其余。
-          logger.warn("[workflow-run] 读取 run 摘要失败（journal 回退暂缺）", {
-            error: error instanceof Error ? error.message : String(error),
-            live,
-            sessionId,
-          });
-        }
-        setSummaries(null);
-      },
+    const { workflowRuns } = useV4Conversation();
+    const { enabled = true, limit, live, refreshKey, sessionId } = options;
+    const [summaries, setSummaries] = useState<readonly V4ConversationWorkflowRunSummary[] | null>(
+        null,
     );
-    return () => {
-      alive = false;
-    };
-  }, [enabled, limit, live, refreshKey, sessionId, workflowRuns]);
+    /**
+     * **最近**收口的那个会话及其答案（成功的摘要，或能力缺席时的 `null`）。
+     *
+     * 记的是「会话 + 答案」而不只是一个「问过了」的布尔：pane 的 `effectiveSessionId` 会变
+     * （草稿转正、fork、切任务），而只记会话 id 的话，切回一个问过的会话就会两头落空——
+     * 既早退不重查，又因为换会话清了状态而永远空着。换到别的会话再切回来会重查一页 journal，
+     * 这很便宜；一个永远空着的入口不便宜。
+     *
+     * `refreshKey` 一并记下：抬升即视为「这个答案过期了」而重取。**但能力缺席不受它影响**
+     * （见下），所以那一档单独记一个标记而不是塞进这里比较。
+     */
+    const settledRef = useRef<{
+        sessionId: string;
+        refreshKey: number | string | undefined;
+        summaries: readonly V4ConversationWorkflowRunSummary[] | null;
+    } | null>(null);
+    /**
+     * 能力缺席是**按会话**的终局事实：旧 CLI / journal 不可用不会因为跑完一个 run 就变了。
+     * 与上面的收口分开记，正是为了让 `refreshKey` 抬升穿不过这一档——否则每跑完一个 run
+     * 都要再打一次注定失败的 RPC，而那恰是这条分类当初写下来要避免的抖动。
+     */
+    const capabilityMissingSessionRef = useRef<string | null>(null);
 
-  return summaries;
+    useEffect(() => {
+        if (!enabled || !sessionId) {
+            setSummaries(null);
+            return;
+        }
+        if (capabilityMissingSessionRef.current === sessionId) {
+            setSummaries(null);
+            return;
+        }
+        const settled = settledRef.current;
+        if (settled?.sessionId === sessionId && settled.refreshKey === refreshKey) {
+            // 已有答案：`live` 抬升不再多打一次 RPC（活 run 归投影，journal 只补历史）。
+            setSummaries(settled.summaries);
+            return;
+        }
+        // 换会话：上一个会话的 run 拿来给这个会话的卡片做 join 就是错的 join。
+        // （`refreshKey` 抬升走的是同一条路：清空 → 重取，新答案落地前不显示旧的。）
+        setSummaries(null);
+        let alive = true;
+        workflowRuns({ sessionId, ...(limit === undefined ? {} : { limit }) }).then(
+            (result) => {
+                if (!alive) return;
+                settledRef.current = { sessionId, refreshKey, summaries: result.runs };
+                setSummaries(result.runs);
+            },
+            (error: unknown) => {
+                if (!alive) return;
+                if (isWorkflowRunsCapabilityMissing(error)) {
+                    capabilityMissingSessionRef.current = sessionId;
+                } else {
+                    // 冷会话是这里最常见的一种，`live` 抬升时会自动再来一次；日志留痕便于排查其余。
+                    logger.warn("[workflow-run] 读取 run 摘要失败（journal 回退暂缺）", {
+                        error: error instanceof Error ? error.message : String(error),
+                        live,
+                        sessionId,
+                    });
+                }
+                setSummaries(null);
+            },
+        );
+        return () => {
+            alive = false;
+        };
+    }, [enabled, limit, live, refreshKey, sessionId, workflowRuns]);
+
+    return summaries;
 }

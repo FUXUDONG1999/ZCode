@@ -7,7 +7,7 @@
 import type { McpOfficialProvenance, ZCodeOfficialMcpAuthConfig } from "@zcode/contracts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 /**
@@ -15,21 +15,23 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * 不做宽容降级——降级会让"看起来配了官方鉴权、实际匿名请求"的配置静默上线。
  */
 export function parseZCodeOfficialAuth(
-  value: unknown,
-  mcpKey: string,
+    value: unknown,
+    mcpKey: string,
 ): ZCodeOfficialMcpAuthConfig | undefined {
-  if (value === undefined) return undefined;
-  if (!isRecord(value)) {
-    throw new Error(`MCP server ${mcpKey}: auth must be an object`);
-  }
-  // 精确值匹配，区分大小写；zcode-official、zcode_official_auth 等别名一律拒绝。
-  if (value.type !== "zcode_official") {
-    throw new Error(`MCP server ${mcpKey}: unsupported auth type: ${String(value.type)}`);
-  }
-  if (value.provider !== "jwt_token") {
-    throw new Error(`MCP server ${mcpKey}: unsupported auth provider: ${String(value.provider)}`);
-  }
-  return { type: "zcode_official", provider: "jwt_token" };
+    if (value === undefined) return undefined;
+    if (!isRecord(value)) {
+        throw new Error(`MCP server ${mcpKey}: auth must be an object`);
+    }
+    // 精确值匹配，区分大小写；zcode-official、zcode_official_auth 等别名一律拒绝。
+    if (value.type !== "zcode_official") {
+        throw new Error(`MCP server ${mcpKey}: unsupported auth type: ${String(value.type)}`);
+    }
+    if (value.provider !== "jwt_token") {
+        throw new Error(
+            `MCP server ${mcpKey}: unsupported auth provider: ${String(value.provider)}`,
+        );
+    }
+    return { type: "zcode_official", provider: "jwt_token" };
 }
 
 /**
@@ -37,8 +39,8 @@ export function parseZCodeOfficialAuth(
  * 官方身份不能由被审查方自己声明。
  */
 export function buildOfficialProvenance(identity: {
-  mcpKey: string;
-  pluginId: string;
+    mcpKey: string;
+    pluginId: string;
 }): McpOfficialProvenance {
-  return { mcpKey: identity.mcpKey, pluginId: identity.pluginId, source: "plugin" };
+    return { mcpKey: identity.mcpKey, pluginId: identity.pluginId, source: "plugin" };
 }

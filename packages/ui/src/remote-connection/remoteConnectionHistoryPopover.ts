@@ -1,7 +1,7 @@
 export function shouldIgnoreRemoteConnectionHistoryPopoverInteractOutside({
-  isTargetInsideContainer,
+    isTargetInsideContainer,
 }: {
-  isTargetInsideContainer: boolean;
+    isTargetInsideContainer: boolean;
 }): boolean {
-  return isTargetInsideContainer;
+    return isTargetInsideContainer;
 }

@@ -32,17 +32,17 @@ Tasks:
 - [x] Track node states: `pending`, `active`, `completed`, `failed`, `skipped`, `cancelled`.
 - [x] Dispatch ready nodes as child agent session activities.
 - [x] Respect strategy fields:
-  - `executor.maxConcurrentLoops`
-  - `executor.maxConsecutiveErrors`
-  - `reactLoop.maxRounds` is included in node prompts; per-node loop enforcement still belongs in child AgentRuntime/react-loop policy.
+    - `executor.maxConcurrentLoops`
+    - `executor.maxConsecutiveErrors`
+    - `reactLoop.maxRounds` is included in node prompts; per-node loop enforcement still belongs in child AgentRuntime/react-loop policy.
 - [x] Persist state after every node transition.
 - [x] Emit events:
-  - `node_started`
-  - `node_completed`
-  - `node_failed`
-  - `frontier_changed`
-  - `executor_paused`
-  - `executor_completed`
+    - `node_started`
+    - `node_completed`
+    - `node_failed`
+    - `frontier_changed`
+    - `executor_paused`
+    - `executor_completed`
 - [x] Keep all external I/O behind existing workflow store and agent runner ports.
 
 Acceptance criteria:
@@ -71,14 +71,14 @@ Tasks:
 - [ ] Extend workflow activity kinds for subplanner, actor, and critic child sessions.
 - [ ] Add scheduler callbacks that let a node executor record nested activities and artifacts without owning scheduler state.
 - [ ] Implement expert task node execution:
-  - subplanner JSON parser with legacy GSAP aliases.
-  - actor JSON parser with tolerant fallback for Markdown summaries.
-  - critic JSON parser with pass/fail verdict and blockers.
-  - retry actor rounds with critic feedback up to `reactLoop.maxRounds`.
+    - subplanner JSON parser with legacy GSAP aliases.
+    - actor JSON parser with tolerant fallback for Markdown summaries.
+    - critic JSON parser with pass/fail verdict and blockers.
+    - retry actor rounds with critic feedback up to `reactLoop.maxRounds`.
 - [ ] Keep ZCode app-server aligned:
-  - include nested activities in `snapshot.activities` and `snapshot.sessionLinks`.
-  - emit `workflow_session_linked` with `nodeId`, `activityId`, `activityKind`, `loopId`, `sessionId`, and `model`.
-  - keep `zcode.dev/workflow/get.scheduler.activeActivities` derivable from the snapshot.
+    - include nested activities in `snapshot.activities` and `snapshot.sessionLinks`.
+    - emit `workflow_session_linked` with `nodeId`, `activityId`, `activityKind`, `loopId`, `sessionId`, and `model`.
+    - keep `zcode.dev/workflow/get.scheduler.activeActivities` derivable from the snapshot.
 - [ ] Leave worktree isolation and merge locking as the next slice after the activity/ZCode app-server contract is stable.
 
 Acceptance criteria:
@@ -104,22 +104,22 @@ Status: generic collection/frontier state, graph expansion validation, planner a
 Tasks:
 
 - [x] Extend workflow graph model with optional collections:
-  - `collectionId`
-  - `nodeIds`
-  - `explorable`
-  - `frontierTarget`
-  - `plannerRuns`
-  - `exhausted`
+    - `collectionId`
+    - `nodeIds`
+    - `explorable`
+    - `frontierTarget`
+    - `plannerRuns`
+    - `exhausted`
 - [x] Add an exploration planner activity type.
 - [x] When a collection frontier falls below target, run an injected planner port.
 - [x] Let the planner append nodes and edges to the graph through generic validation.
 - [x] Record planner watermarks so completed nodes are not repeatedly re-analyzed.
 - [x] Emit events:
-  - `planner_started`
-  - `planner_completed`
-  - `planner_failed`
-  - `graph_expanded`
-  - `collection_exhausted`
+    - `planner_started`
+    - `planner_completed`
+    - `planner_failed`
+    - `graph_expanded`
+    - `collection_exhausted`
 - [x] Add the planner artifact parser that turns `arch_decompose` output into exec task nodes, edges, and collections.
 - [x] Add deeper `meta_prompt` integration for node-level prompts when a future prompt artifact provides richer per-node instructions.
 
@@ -148,20 +148,20 @@ Status: implemented as a generic workflow critic result schema plus reusable reo
 Tasks:
 
 - [x] Define critic output schema for:
-  - pass/fail verdict
-  - reopened node ids
-  - reason per reopened node
-  - optional new acceptance gaps
+    - pass/fail verdict
+    - reopened node ids
+    - reason per reopened node
+    - optional new acceptance gaps
 - [x] Add `reopen_node` graph operation.
 - [x] When critic fails with reopen proposals, set those nodes back to `pending`.
 - [x] Re-enter executor loop for reopened nodes.
 - [x] Cap reopen attempts per node.
 - [x] Emit events:
-  - `critic_started`
-  - `critic_passed`
-  - `critic_failed`
-  - `node_reopened`
-  - `critic_iteration_limit_reached`
+    - `critic_started`
+    - `critic_passed`
+    - `critic_failed`
+    - `node_reopened`
+    - `critic_iteration_limit_reached`
 
 Acceptance criteria:
 
@@ -186,9 +186,9 @@ Tasks:
 - [x] Reset `active` nodes to `pending` on resume unless their child session is known to still be running.
 - Persist enough activity state to reconnect child sessions.
 - [x] Make cancellation cooperative:
-  - run-level cancel
-  - node-level stop
-  - planner-level stop
+    - run-level cancel
+    - node-level stop
+    - planner-level stop
 - [x] Add graph/state reconciliation before resume.
 - Detect corrupt or incompatible workflow artifacts and surface structured errors.
 - Add a workflow lock so two processes cannot mutate one run at the same time.
@@ -215,13 +215,13 @@ Goal: expose enough state for z-code-2 to act as a useful workflow debugger.
 Tasks:
 
 - Extend ZCode app-server workflow detail response with:
-  - graph nodes and edges
-  - active node ids
-  - ready node ids
-  - blocked node ids with blocking dependency ids
-  - collection/frontier state
-  - [x] active child session ids
-  - recent scheduler events
+    - graph nodes and edges
+    - active node ids
+    - ready node ids
+    - blocked node ids with blocking dependency ids
+    - collection/frontier state
+    - [x] active child session ids
+    - recent scheduler events
 - Add fine-grained workflow events to `zcode.dev/workflow/event`.
 - Keep events small. Large artifacts should return paths/references, not full content.
 - Document method payloads and error shapes in `expert-workflow.md`.
@@ -239,8 +239,8 @@ Tests:
 - [x] ZCode Protocol workflow notification fires for node start/complete/fail and frontier changes.
 - [x] Malformed workflow request returns structured invalid request errors.
 - App follow-up: the current z-code app no longer has the ZCode Protocol handler. `packages/shared/src/zcode-task-types.ts` already models `ZCodeWorkflowEventRecord.nodeId` and `payload`, but `packages/services/src/zcode-agent/zcodeTaskServiceAdapter.ts` still leaves workflow methods as empty/unsupported. Reconnect workflow transport through `IZCodeTaskService` before productizing the debugger.
-  - Required app change: route workflow list/get/start/cancel/retry to the ZCode agent server and publish `workspace_workflow_event` through dynamic workspace events.
-  - Keep `ZCodeWorkflowKind` as a non-empty string so custom definition-backed workflows are observable.
+    - Required app change: route workflow list/get/start/cancel/retry to the ZCode agent server and publish `workspace_workflow_event` through dynamic workspace events.
+    - Keep `ZCodeWorkflowKind` as a non-empty string so custom definition-backed workflows are observable.
 
 ## P5: z-code-2 Debugger Polish
 
@@ -259,11 +259,11 @@ Tasks in `/Users/dev/workspace/z-code-2`:
 Acceptance criteria:
 
 - During a real run, the user can answer:
-  - what is running now?
-  - what is next?
-  - what is blocked and by what?
-  - which child session produced this artifact?
-  - why did a node retry or reopen?
+    - what is running now?
+    - what is next?
+    - what is blocked and by what?
+    - which child session produced this artifact?
+    - why did a node retry or reopen?
 
 Tests:
 
@@ -285,12 +285,12 @@ Tasks:
 - [x] Add workflow definition loading from `~/.zcode/cli/workflows/definitions`.
 - Keep built-in `expert` as the default definition.
 - Define schema for:
-  - [x] phases
-  - [x] graph seed
-  - [x] strategy defaults
-  - [x] agent prompt updates from phase artifacts
-  - agent prompt templates
-  - allowed activity kinds
+    - [x] phases
+    - [x] graph seed
+    - [x] strategy defaults
+    - [x] agent prompt updates from phase artifacts
+    - agent prompt templates
+    - allowed activity kinds
 - [x] Validate definitions with runtime schema.
 - Add `/expert --definition <name>` or a future generic `/workflow <name>` slash command only after the schema is stable.
 

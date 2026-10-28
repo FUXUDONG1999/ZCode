@@ -15,6 +15,6 @@ export declare function createRendererOnlyPackageExclusionPatterns(): string[];
  * 打包必须失败。
  */
 export declare function findRendererOnlyExclusionRuntimeConflicts(
-  excludedPackages: readonly string[],
-  closureModuleNames: readonly string[],
+    excludedPackages: readonly string[],
+    closureModuleNames: readonly string[],
 ): string[];

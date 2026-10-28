@@ -17,8 +17,8 @@
 
 ```json
 {
-  "description": "Print shell identity and process substitution output",
-  "command": "printf 'CASE01 shell0=%s\\n' \"$0\"\nprintf 'CASE01 versions bash=%s zsh=%s\\n' \"${BASH_VERSION:-}\" \"${ZSH_VERSION:-}\"\ncat <(printf 'CASE01 process-substitution-ok\\n')"
+    "description": "Print shell identity and process substitution output",
+    "command": "printf 'CASE01 shell0=%s\\n' \"$0\"\nprintf 'CASE01 versions bash=%s zsh=%s\\n' \"${BASH_VERSION:-}\" \"${ZSH_VERSION:-}\"\ncat <(printf 'CASE01 process-substitution-ok\\n')"
 }
 ```
 
@@ -26,8 +26,8 @@
 
 ```json
 {
-  "description": "Check login shell mode",
-  "command": "if [ -n \"${BASH_VERSION:-}\" ]; then\n  shopt -q login_shell\nelif [ -n \"${ZSH_VERSION:-}\" ]; then\n  [[ -o login ]]\nelse\n  false\nfi\nrc=$?\nprintf 'CASE02 login_rc=%s\\n' \"$rc\"\nprintf 'CASE02 shell_versions bash=%s zsh=%s\\n' \"${BASH_VERSION:-}\" \"${ZSH_VERSION:-}\""
+    "description": "Check login shell mode",
+    "command": "if [ -n \"${BASH_VERSION:-}\" ]; then\n  shopt -q login_shell\nelif [ -n \"${ZSH_VERSION:-}\" ]; then\n  [[ -o login ]]\nelse\n  false\nfi\nrc=$?\nprintf 'CASE02 login_rc=%s\\n' \"$rc\"\nprintf 'CASE02 shell_versions bash=%s zsh=%s\\n' \"${BASH_VERSION:-}\" \"${ZSH_VERSION:-}\""
 }
 ```
 
@@ -35,8 +35,8 @@
 
 ```json
 {
-  "description": "Run bash or zsh array and pipeline status syntax",
-  "command": "if [ -n \"${BASH_VERSION:-}\" ]; then\n  arr=(a b)\n  printf 'CASE03 array=%s\\n' \"${arr[1]}\"\n  false | true\n  printf 'CASE03 pipe=%s %s\\n' \"${PIPESTATUS[0]}\" \"${PIPESTATUS[1]}\"\nelif [ -n \"${ZSH_VERSION:-}\" ]; then\n  arr=(a b)\n  printf 'CASE03 array=%s\\n' \"${arr[2]}\"\n  false | true\n  printf 'CASE03 pipe=%s %s\\n' \"${pipestatus[1]}\" \"${pipestatus[2]}\"\nelse\n  printf 'CASE03 unsupported-shell\\n'\nfi"
+    "description": "Run bash or zsh array and pipeline status syntax",
+    "command": "if [ -n \"${BASH_VERSION:-}\" ]; then\n  arr=(a b)\n  printf 'CASE03 array=%s\\n' \"${arr[1]}\"\n  false | true\n  printf 'CASE03 pipe=%s %s\\n' \"${PIPESTATUS[0]}\" \"${PIPESTATUS[1]}\"\nelif [ -n \"${ZSH_VERSION:-}\" ]; then\n  arr=(a b)\n  printf 'CASE03 array=%s\\n' \"${arr[2]}\"\n  false | true\n  printf 'CASE03 pipe=%s %s\\n' \"${pipestatus[1]}\" \"${pipestatus[2]}\"\nelse\n  printf 'CASE03 unsupported-shell\\n'\nfi"
 }
 ```
 
@@ -44,8 +44,8 @@
 
 ```json
 {
-  "description": "Run double bracket regex syntax",
-  "command": "if [[ \"alpha-123\" =~ ^alpha-[0-9]+$ ]]; then\n  printf 'CASE04 regex-match\\n'\nelse\n  printf 'CASE04 regex-no-match\\n'\nfi"
+    "description": "Run double bracket regex syntax",
+    "command": "if [[ \"alpha-123\" =~ ^alpha-[0-9]+$ ]]; then\n  printf 'CASE04 regex-match\\n'\nelse\n  printf 'CASE04 regex-no-match\\n'\nfi"
 }
 ```
 
@@ -55,9 +55,9 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Confirm stdin closes without blocking",
-  "timeout": 3000,
-  "command": "cat >/tmp/zcode-bash-shell-profile-stdin.txt\nprintf 'CASE05 after-cat\\n'"
+    "description": "Confirm stdin closes without blocking",
+    "timeout": 3000,
+    "command": "cat >/tmp/zcode-bash-shell-profile-stdin.txt\nprintf 'CASE05 after-cat\\n'"
 }
 ```
 
@@ -65,8 +65,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Set persisted working directory inside workspace",
-  "command": "START=\"$(pwd -P)\"\nif [ -d \"$START/apps/zcode-cli\" ]; then\n  NEXT=\"$START/apps/zcode-cli\"\nelif [ -d \"$START/packages/core\" ]; then\n  NEXT=\"$START/packages/core\"\nelif [ -d \"$START/src\" ]; then\n  NEXT=\"$START/src\"\nelse\n  NEXT=\"$START\"\nfi\nprintf '%s\\n' \"$START\" > /tmp/zcode-bash-shell-profile-last-start-cwd\nprintf '%s\\n' \"$NEXT\" > /tmp/zcode-bash-shell-profile-last-inside-cwd\ncd \"$NEXT\"\nprintf 'CASE06 start=%s\\n' \"$START\"\nprintf 'CASE06 pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE06 cwd-set-inside\\n'"
+    "description": "Set persisted working directory inside workspace",
+    "command": "START=\"$(pwd -P)\"\nif [ -d \"$START/apps/zcode-cli\" ]; then\n  NEXT=\"$START/apps/zcode-cli\"\nelif [ -d \"$START/packages/core\" ]; then\n  NEXT=\"$START/packages/core\"\nelif [ -d \"$START/src\" ]; then\n  NEXT=\"$START/src\"\nelse\n  NEXT=\"$START\"\nfi\nprintf '%s\\n' \"$START\" > /tmp/zcode-bash-shell-profile-last-start-cwd\nprintf '%s\\n' \"$NEXT\" > /tmp/zcode-bash-shell-profile-last-inside-cwd\ncd \"$NEXT\"\nprintf 'CASE06 start=%s\\n' \"$START\"\nprintf 'CASE06 pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE06 cwd-set-inside\\n'"
 }
 ```
 
@@ -74,8 +74,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Use persisted working directory",
-  "command": "printf 'CASE07 pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE07 saved=%s\\n' \"$(cat /tmp/zcode-bash-shell-profile-last-inside-cwd)\"\nprintf 'CASE07 cwd-persisted-inside\\n'"
+    "description": "Use persisted working directory",
+    "command": "printf 'CASE07 pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE07 saved=%s\\n' \"$(cat /tmp/zcode-bash-shell-profile-last-inside-cwd)\"\nprintf 'CASE07 cwd-persisted-inside\\n'"
 }
 ```
 
@@ -83,8 +83,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Fail after changing directory",
-  "command": "FAILED_OUT=\"/tmp/zcode-bash-shell-profile-failed-cwd-${USER:-user}-$(date +%s)-$$\"\nmkdir -p \"$FAILED_OUT\"\ncd \"$FAILED_OUT\"\nprintf 'CASE08 before-fail-pwd=%s\\n' \"$(pwd -P)\"\nexit 3"
+    "description": "Fail after changing directory",
+    "command": "FAILED_OUT=\"/tmp/zcode-bash-shell-profile-failed-cwd-${USER:-user}-$(date +%s)-$$\"\nmkdir -p \"$FAILED_OUT\"\ncd \"$FAILED_OUT\"\nprintf 'CASE08 before-fail-pwd=%s\\n' \"$(pwd -P)\"\nexit 3"
 }
 ```
 
@@ -92,8 +92,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Print working directory after failed command",
-  "command": "printf 'CASE09 after-failed-cd-pwd=%s\\n' \"$(pwd -P)\""
+    "description": "Print working directory after failed command",
+    "command": "printf 'CASE09 after-failed-cd-pwd=%s\\n' \"$(pwd -P)\""
 }
 ```
 
@@ -101,8 +101,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Change to outside temp directory successfully",
-  "command": "OUTSIDE=\"/tmp/zcode-bash-shell-profile-reset-cwd-${USER:-user}-$(date +%s)-$$\"\nmkdir -p \"$OUTSIDE\"\nprintf '%s\\n' \"$OUTSIDE\" > /tmp/zcode-bash-shell-profile-last-outside-cwd\ncd \"$OUTSIDE\"\nprintf 'CASE10 outside-success-pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE10 outside-success\\n'"
+    "description": "Change to outside temp directory successfully",
+    "command": "OUTSIDE=\"/tmp/zcode-bash-shell-profile-reset-cwd-${USER:-user}-$(date +%s)-$$\"\nmkdir -p \"$OUTSIDE\"\nprintf '%s\\n' \"$OUTSIDE\" > /tmp/zcode-bash-shell-profile-last-outside-cwd\ncd \"$OUTSIDE\"\nprintf 'CASE10 outside-success-pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE10 outside-success\\n'"
 }
 ```
 
@@ -110,8 +110,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Print working directory after outside reset",
-  "command": "printf 'CASE11 after-reset-pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE11 start=%s\\n' \"$(cat /tmp/zcode-bash-shell-profile-last-start-cwd)\"\nprintf 'CASE11 outside=%s\\n' \"$(cat /tmp/zcode-bash-shell-profile-last-outside-cwd)\""
+    "description": "Print working directory after outside reset",
+    "command": "printf 'CASE11 after-reset-pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE11 start=%s\\n' \"$(cat /tmp/zcode-bash-shell-profile-last-start-cwd)\"\nprintf 'CASE11 outside=%s\\n' \"$(cat /tmp/zcode-bash-shell-profile-last-outside-cwd)\""
 }
 ```
 
@@ -119,8 +119,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Return stdout stderr and nonzero exit",
-  "command": "printf 'CASE12 stdout-before-fail\\n'\nprintf 'CASE12 stderr-before-fail\\n' >&2\nexit 7"
+    "description": "Return stdout stderr and nonzero exit",
+    "command": "printf 'CASE12 stdout-before-fail\\n'\nprintf 'CASE12 stderr-before-fail\\n' >&2\nexit 7"
 }
 ```
 
@@ -128,8 +128,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Run empty successful command",
-  "command": "true"
+    "description": "Run empty successful command",
+    "command": "true"
 }
 ```
 
@@ -137,8 +137,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Emit large stdout for persisted output",
-  "command": "i=0\nwhile [ \"$i\" -lt 2200 ]; do\n  printf 'CASE14-%04d abcdefghijklmnopqrstuvwxyz\\n' \"$i\"\n  i=$((i + 1))\ndone"
+    "description": "Emit large stdout for persisted output",
+    "command": "i=0\nwhile [ \"$i\" -lt 2200 ]; do\n  printf 'CASE14-%04d abcdefghijklmnopqrstuvwxyz\\n' \"$i\"\n  i=$((i + 1))\ndone"
 }
 ```
 
@@ -146,8 +146,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Emit png data URI stdout",
-  "command": "printf '%s' 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII='"
+    "description": "Emit png data URI stdout",
+    "command": "printf '%s' 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII='"
 }
 ```
 
@@ -155,8 +155,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Emit png data URI then fail",
-  "command": "printf '%s\\n' 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII='\nprintf 'CASE16 stderr-before-fail\\n' >&2\nexit 5"
+    "description": "Emit png data URI then fail",
+    "command": "printf '%s\\n' 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII='\nprintf 'CASE16 stderr-before-fail\\n' >&2\nexit 5"
 }
 ```
 
@@ -164,8 +164,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Run shell time keyword",
-  "command": "{ time printf 'CASE17 time-body\\n'; } 2>&1"
+    "description": "Run shell time keyword",
+    "command": "{ time printf 'CASE17 time-body\\n'; } 2>&1"
 }
 ```
 
@@ -173,8 +173,8 @@ Tool 参数：`timeout: 3000`
 
 ```json
 {
-  "description": "Run ripgrep no match command",
-  "command": "TMP=\"$(mktemp -d /tmp/zcode-bash-shell-profile-rg.XXXXXX)\"\nprintf 'abc\\n' > \"$TMP/file.txt\"\nrg 'definitely-no-match-zcode-shell-profile' \"$TMP\""
+    "description": "Run ripgrep no match command",
+    "command": "TMP=\"$(mktemp -d /tmp/zcode-bash-shell-profile-rg.XXXXXX)\"\nprintf 'abc\\n' > \"$TMP/file.txt\"\nrg 'definitely-no-match-zcode-shell-profile' \"$TMP\""
 }
 ```
 
@@ -184,9 +184,9 @@ Tool 参数：`run_in_background: true`
 
 ```json
 {
-  "description": "Run background shell command",
-  "run_in_background": true,
-  "command": "sleep 1\nprintf 'CASE19 background stdout\\n'\nprintf 'CASE19 background stderr\\n' >&2"
+    "description": "Run background shell command",
+    "run_in_background": true,
+    "command": "sleep 1\nprintf 'CASE19 background stdout\\n'\nprintf 'CASE19 background stderr\\n' >&2"
 }
 ```
 
@@ -194,8 +194,8 @@ Tool 参数：`run_in_background: true`
 
 ```json
 {
-  "description": "Print final shell state",
-  "command": "printf 'CASE20 pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE20 versions bash=%s zsh=%s\\n' \"${BASH_VERSION:-}\" \"${ZSH_VERSION:-}\""
+    "description": "Print final shell state",
+    "command": "printf 'CASE20 pwd=%s\\n' \"$(pwd -P)\"\nprintf 'CASE20 versions bash=%s zsh=%s\\n' \"${BASH_VERSION:-}\" \"${ZSH_VERSION:-}\""
 }
 ```
 
@@ -205,7 +205,7 @@ Tool 参数：`run_in_background: true`
 
 ```json
 {
-  "description": "Print Windows Git Bash shell details",
-  "command": "printf 'CASE21 shell0=%s\\n' \"$0\"\nprintf 'CASE21 bash=%s\\n' \"${BASH_VERSION:-}\"\nprintf 'CASE21 pwd=%s\\n' \"$(pwd -P)\"\narr=(win bash)\nprintf 'CASE21 array=%s\\n' \"${arr[1]}\"\ncat <(printf 'CASE21 process-substitution\\n')"
+    "description": "Print Windows Git Bash shell details",
+    "command": "printf 'CASE21 shell0=%s\\n' \"$0\"\nprintf 'CASE21 bash=%s\\n' \"${BASH_VERSION:-}\"\nprintf 'CASE21 pwd=%s\\n' \"$(pwd -P)\"\narr=(win bash)\nprintf 'CASE21 array=%s\\n' \"${arr[1]}\"\ncat <(printf 'CASE21 process-substitution\\n')"
 }
 ```

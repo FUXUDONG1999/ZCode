@@ -11,20 +11,20 @@
 // 落回一次真正修订时要重新读的那些事实。
 
 import {
-  AmendWorkflowInputSchema,
-  isAmendWorkflowOwnedPredecessor,
-  type AmendWorkflowInput,
-  type AmendWorkflowPredecessor,
-  type CreateWorkflowOutput,
-  type DynamicWorkflowRunPort,
-  type DynamicWorkflowRunRetuneResult,
+    AmendWorkflowInputSchema,
+    isAmendWorkflowOwnedPredecessor,
+    type AmendWorkflowInput,
+    type AmendWorkflowPredecessor,
+    type CreateWorkflowOutput,
+    type DynamicWorkflowRunPort,
+    type DynamicWorkflowRunRetuneResult,
 } from "@zcode/contracts";
 import type { ToolExecutionContext, ToolHandlerFailure } from "../types.js";
 import {
-  AMEND_WORKFLOW_ERROR_CODE,
-  describePredecessor,
-  resolveAmendMaxConcurrency,
-  resolveAmendScript,
+    AMEND_WORKFLOW_ERROR_CODE,
+    describePredecessor,
+    resolveAmendMaxConcurrency,
+    resolveAmendScript,
 } from "./amend-workflow-source.js";
 import { normalizeWorkflowMaxConcurrency } from "./create-workflow-source.js";
 import { workflowRunNotFoundFailure } from "./workflow-run-introspection.js";
@@ -38,13 +38,13 @@ import { workflowRunNotFoundFailure } from "./workflow-run-introspection.js";
  * 就地调并发。
  */
 export function isConcurrencyOnlyAmend(model: AmendWorkflowInput): boolean {
-  return (
-    model.max_concurrency !== undefined &&
-    model.script === undefined &&
-    model.path === undefined &&
-    model.subagent_model === undefined &&
-    model.name === undefined
-  );
+    return (
+        model.max_concurrency !== undefined &&
+        model.script === undefined &&
+        model.path === undefined &&
+        model.subagent_model === undefined &&
+        model.name === undefined
+    );
 }
 
 /**
@@ -57,31 +57,31 @@ export function isConcurrencyOnlyAmend(model: AmendWorkflowInput): boolean {
  * 原样落成今天的修订——包括别人的 run 那一个确认窗。
  */
 export function resolveConcurrencyRetuneRoute(options: {
-  model: AmendWorkflowInput;
-  port: DynamicWorkflowRunPort;
-  predecessor: AmendWorkflowPredecessor;
-  /** 前驱快照上的上界；缺席即它跑在默认并发上。 */
-  inherited: number | undefined;
+    model: AmendWorkflowInput;
+    port: DynamicWorkflowRunPort;
+    predecessor: AmendWorkflowPredecessor;
+    /** 前驱快照上的上界；缺席即它跑在默认并发上。 */
+    inherited: number | undefined;
 }): { result: true; input: AmendWorkflowInput } | ToolHandlerFailure | undefined {
-  const { model, port, predecessor } = options;
-  if (!isConcurrencyOnlyAmend(model)) return undefined;
-  if (predecessor.status !== "pending" && predecessor.status !== "running") return undefined;
-  if (typeof port.retuneConcurrency !== "function") return undefined;
+    const { model, port, predecessor } = options;
+    if (!isConcurrencyOnlyAmend(model)) return undefined;
+    if (predecessor.status !== "pending" && predecessor.status !== "running") return undefined;
+    if (typeof port.retuneConcurrency !== "function") return undefined;
 
-  // 三态在这里**不**归一：`null` 要原样递到端口（见 resolveAmendMaxConcurrency 的注释）。
-  const requested = model.max_concurrency ?? null;
-  const defaultConcurrency = port.defaultConcurrency?.();
-  const unchanged = refuseUnchangedBound(
-    model.run_id,
-    requested,
-    options.inherited,
-    defaultConcurrency,
-  );
-  if (unchanged !== undefined) return unchanged;
-  return {
-    result: true,
-    input: { run_id: model.run_id, max_concurrency: requested, predecessor },
-  };
+    // 三态在这里**不**归一：`null` 要原样递到端口（见 resolveAmendMaxConcurrency 的注释）。
+    const requested = model.max_concurrency ?? null;
+    const defaultConcurrency = port.defaultConcurrency?.();
+    const unchanged = refuseUnchangedBound(
+        model.run_id,
+        requested,
+        options.inherited,
+        defaultConcurrency,
+    );
+    if (unchanged !== undefined) return unchanged;
+    return {
+        result: true,
+        input: { run_id: model.run_id, max_concurrency: requested, predecessor },
+    };
 }
 
 /**
@@ -89,15 +89,16 @@ export function resolveConcurrencyRetuneRoute(options: {
  * `defaultConcurrency`）时 `null` 无从折算成数，这道网就让开，由端口自己去答 `unchanged`。
  */
 function refuseUnchangedBound(
-  runId: string,
-  requested: number | null,
-  inherited: number | undefined,
-  defaultConcurrency: number | undefined,
+    runId: string,
+    requested: number | null,
+    inherited: number | undefined,
+    defaultConcurrency: number | undefined,
 ): ToolHandlerFailure | undefined {
-  const current = inherited ?? defaultConcurrency;
-  const next = requested === null ? defaultConcurrency : normalizeWorkflowMaxConcurrency(requested);
-  if (current === undefined || next === undefined || current !== next) return undefined;
-  return retuneUnchangedFailure(runId, current, defaultConcurrency);
+    const current = inherited ?? defaultConcurrency;
+    const next =
+        requested === null ? defaultConcurrency : normalizeWorkflowMaxConcurrency(requested);
+    if (current === undefined || next === undefined || current !== next) return undefined;
+    return retuneUnchangedFailure(runId, current, defaultConcurrency);
 }
 
 /**
@@ -107,36 +108,36 @@ function refuseUnchangedBound(
  * 此刻描述的是一次修订，做不做由 {@link resolveRetuneFallbackAmend} 定夺。
  */
 export async function runConcurrencyRetune(
-  parsed: AmendWorkflowInput,
-  context: ToolExecutionContext,
+    parsed: AmendWorkflowInput,
+    context: ToolExecutionContext,
 ): Promise<CreateWorkflowOutput | ToolHandlerFailure | undefined> {
-  const port = context.dynamicWorkflowRunPort;
-  if (port === undefined || typeof port.retuneConcurrency !== "function") return undefined;
-  const answer = await port.retuneConcurrency({
-    runId: parsed.run_id,
-    // 路由判定已保证这里是「一个数或 null」；`?? null` 只是把绕过归一化的缺席读作「回默认」。
-    maxConcurrency: parsed.max_concurrency ?? null,
-  });
-  if (answer.ok) {
-    return {
-      diagnostics: [],
-      ok: true,
-      // 不进后台追踪器：run 本来就在里面，而且它自始至终是同一个 run，没有 `backgrounded`
-      // 契约可言，也没有编译产物可画（docs/dynamic-workflow/launch.md）。`retuned` 是**显式**
-      // 的判别块：消费方不该按「ok 且没有 status」去猜，那个形状还有别的来路。
-      response: retuneResponse(parsed.run_id, answer),
-      retuned: {
+    const port = context.dynamicWorkflowRunPort;
+    if (port === undefined || typeof port.retuneConcurrency !== "function") return undefined;
+    const answer = await port.retuneConcurrency({
         runId: parsed.run_id,
-        maxConcurrency: answer.maxConcurrency,
-        previous: answer.previous,
-        defaultConcurrency: answer.defaultConcurrency,
-      },
-    } satisfies CreateWorkflowOutput;
-  }
-  if (answer.reason === "unchanged") {
-    return retuneUnchangedFailure(parsed.run_id, answer.current, port.defaultConcurrency?.());
-  }
-  return undefined;
+        // 路由判定已保证这里是「一个数或 null」；`?? null` 只是把绕过归一化的缺席读作「回默认」。
+        maxConcurrency: parsed.max_concurrency ?? null,
+    });
+    if (answer.ok) {
+        return {
+            diagnostics: [],
+            ok: true,
+            // 不进后台追踪器：run 本来就在里面，而且它自始至终是同一个 run，没有 `backgrounded`
+            // 契约可言，也没有编译产物可画（docs/dynamic-workflow/launch.md）。`retuned` 是**显式**
+            // 的判别块：消费方不该按「ok 且没有 status」去猜，那个形状还有别的来路。
+            response: retuneResponse(parsed.run_id, answer),
+            retuned: {
+                runId: parsed.run_id,
+                maxConcurrency: answer.maxConcurrency,
+                previous: answer.previous,
+                defaultConcurrency: answer.defaultConcurrency,
+            },
+        } satisfies CreateWorkflowOutput;
+    }
+    if (answer.reason === "unchanged") {
+        return retuneUnchangedFailure(parsed.run_id, answer.current, port.defaultConcurrency?.());
+    }
+    return undefined;
 }
 
 /**
@@ -148,95 +149,95 @@ export async function runConcurrencyRetune(
  * 这条路一个窗都没弹过，不能把「什么都没批」撑成「另起一次 run」。
  */
 export async function resolveRetuneFallbackAmend(
-  parsed: AmendWorkflowInput,
-  context: ToolExecutionContext,
+    parsed: AmendWorkflowInput,
+    context: ToolExecutionContext,
 ): Promise<{ result: true; input: AmendWorkflowInput } | ToolHandlerFailure> {
-  const port = context.dynamicWorkflowRunPort;
-  // 事实要重读一遍：run 刚刚在存活判定与端口调用之间结算，入参里的那一份说的还是「在跑」。
-  const snapshot = port === undefined ? undefined : await port.getTask(parsed.run_id);
-  if (snapshot === undefined) return predecessorNotFoundFailure(parsed.run_id);
-  const predecessor = describePredecessor(snapshot, context.sessionId);
-  if (!isAmendWorkflowOwnedPredecessor(predecessor)) {
-    // 还没结算（pending、引擎没建起来）与已结算是两句不同的话，但下一步相同：再调一次。
-    return predecessor.status === "pending" || predecessor.status === "running"
-      ? notRetunableFailure(parsed.run_id)
-      : runSettledFailure(parsed.run_id);
-  }
-  const script = await resolveAmendScript({
-    model: parsed,
-    cwd: context.workingDirectory,
-    port,
-    predecessorScriptPath: snapshot.scriptPath,
-  });
-  if (!script.result) return script;
-  return {
-    result: true,
-    input: AmendWorkflowInputSchema.parse({
-      run_id: parsed.run_id,
-      ...script.fields,
-      // 落回修订就回到「一个数或没有」：这次调用显式给了值，没有可沿用的。
-      ...resolveAmendMaxConcurrency(parsed.max_concurrency, undefined),
-      predecessor: {
-        ...predecessor,
-        ...(script.inherited ? { script_inherited: true as const } : {}),
-      },
-    }) as AmendWorkflowInput,
-  };
+    const port = context.dynamicWorkflowRunPort;
+    // 事实要重读一遍：run 刚刚在存活判定与端口调用之间结算，入参里的那一份说的还是「在跑」。
+    const snapshot = port === undefined ? undefined : await port.getTask(parsed.run_id);
+    if (snapshot === undefined) return predecessorNotFoundFailure(parsed.run_id);
+    const predecessor = describePredecessor(snapshot, context.sessionId);
+    if (!isAmendWorkflowOwnedPredecessor(predecessor)) {
+        // 还没结算（pending、引擎没建起来）与已结算是两句不同的话，但下一步相同：再调一次。
+        return predecessor.status === "pending" || predecessor.status === "running"
+            ? notRetunableFailure(parsed.run_id)
+            : runSettledFailure(parsed.run_id);
+    }
+    const script = await resolveAmendScript({
+        model: parsed,
+        cwd: context.workingDirectory,
+        port,
+        predecessorScriptPath: snapshot.scriptPath,
+    });
+    if (!script.result) return script;
+    return {
+        result: true,
+        input: AmendWorkflowInputSchema.parse({
+            run_id: parsed.run_id,
+            ...script.fields,
+            // 落回修订就回到「一个数或没有」：这次调用显式给了值，没有可沿用的。
+            ...resolveAmendMaxConcurrency(parsed.max_concurrency, undefined),
+            predecessor: {
+                ...predecessor,
+                ...(script.inherited ? { script_inherited: true as const } : {}),
+            },
+        }) as AmendWorkflowInput,
+    };
 }
 
 /** 前驱不存在：与 resolveInput 那一条同源同文案（一个 run id 打错了只该有一种说法）。 */
 function predecessorNotFoundFailure(runId: string): ToolHandlerFailure {
-  const base = workflowRunNotFoundFailure(runId);
-  return {
-    ...base,
-    message: `${base.message} Nothing was stopped or created: \`run_id\` pointed at a run that does not exist — pass an existing run's ID (see ListWorkflowRuns), or start a fresh run with CreateWorkflow.`,
-  };
+    const base = workflowRunNotFoundFailure(runId);
+    return {
+        ...base,
+        message: `${base.message} Nothing was stopped or created: \`run_id\` pointed at a run that does not exist — pass an existing run's ID (see ListWorkflowRuns), or start a fresh run with CreateWorkflow.`,
+    };
 }
 
 /** 现在生效的上界读成一句话；等于默认并发即「没有自己的界」。 */
 function describeBoundInForce(
-  bound: number | undefined,
-  defaultConcurrency: number | undefined,
+    bound: number | undefined,
+    defaultConcurrency: number | undefined,
 ): string {
-  if (bound === undefined || bound === defaultConcurrency) {
-    return defaultConcurrency === undefined
-      ? "already runs at the default parallelism"
-      : `already runs at the default parallelism (at most ${defaultConcurrency} subagents at once)`;
-  }
-  return bound === 1
-    ? "already runs at most 1 subagent at once"
-    : `already runs at most ${bound} subagents at once`;
+    if (bound === undefined || bound === defaultConcurrency) {
+        return defaultConcurrency === undefined
+            ? "already runs at the default parallelism"
+            : `already runs at the default parallelism (at most ${defaultConcurrency} subagents at once)`;
+    }
+    return bound === 1
+        ? "already runs at most 1 subagent at once"
+        : `already runs at most ${bound} subagents at once`;
 }
 
 /** 同值：什么都没写、什么都没停，拒绝里点名此刻生效的那个界。 */
 export function retuneUnchangedFailure(
-  runId: string,
-  current: number | undefined,
-  defaultConcurrency: number | undefined,
+    runId: string,
+    current: number | undefined,
+    defaultConcurrency: number | undefined,
 ): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: AMEND_WORKFLOW_ERROR_CODE.RETUNE_UNCHANGED,
-    message: `workflow_retune_unchanged: run ${runId} ${describeBoundInForce(current, defaultConcurrency)}, so there is nothing to change. Nothing was stopped, created or changed — pass a different \`max_concurrency\`, or a revised script if you meant to amend the run.`,
-  };
+    return {
+        result: false,
+        errorCode: AMEND_WORKFLOW_ERROR_CODE.RETUNE_UNCHANGED,
+        message: `workflow_retune_unchanged: run ${runId} ${describeBoundInForce(current, defaultConcurrency)}, so there is nothing to change. Nothing was stopped, created or changed — pass a different \`max_concurrency\`, or a revised script if you meant to amend the run.`,
+    };
 }
 
 /** 别人的 run，已经结算：再调一次，那一次从头走修订，连同它要的那个确认窗。 */
 export function runSettledFailure(runId: string): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: AMEND_WORKFLOW_ERROR_CODE.RUN_SETTLED,
-    message: `workflow_run_settled: run ${runId} settled before the new parallelism limit could take hold, so there is nothing running to retune. Nothing was stopped, created or changed — call AmendWorkflow again if you want a new run of it under that limit.`,
-  };
+    return {
+        result: false,
+        errorCode: AMEND_WORKFLOW_ERROR_CODE.RUN_SETTLED,
+        message: `workflow_run_settled: run ${runId} settled before the new parallelism limit could take hold, so there is nothing running to retune. Nothing was stopped, created or changed — call AmendWorkflow again if you want a new run of it under that limit.`,
+    };
 }
 
 /** 别人的 run，本 agent 从没握住过（`pending`，引擎还没建）：同样的下一步。 */
 export function notRetunableFailure(runId: string): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: AMEND_WORKFLOW_ERROR_CODE.NOT_RETUNABLE,
-    message: `workflow_run_not_retunable: run ${runId} is not being executed by this agent, so its parallelism cannot be changed in place. Nothing was stopped, created or changed — call AmendWorkflow again if you want a new run of it under that limit.`,
-  };
+    return {
+        result: false,
+        errorCode: AMEND_WORKFLOW_ERROR_CODE.NOT_RETUNABLE,
+        message: `workflow_run_not_retunable: run ${runId} is not being executed by this agent, so its parallelism cannot be changed in place. Nothing was stopped, created or changed — call AmendWorkflow again if you want a new run of it under that limit.`,
+    };
 }
 
 /**
@@ -250,14 +251,14 @@ export function notRetunableFailure(runId: string): ToolHandlerFailure {
  * 两种上界各有一份逐字测试钉在 core/tests/amend-workflow-permission.test.ts。
  */
 function retuneResponse(
-  runId: string,
-  answer: Extract<DynamicWorkflowRunRetuneResult, { ok: true }>,
+    runId: string,
+    answer: Extract<DynamicWorkflowRunRetuneResult, { ok: true }>,
 ): string {
-  const count =
-    answer.maxConcurrency === 1
-      ? "at most 1 subagent runs at once"
-      : `at most ${answer.maxConcurrency} subagents run at once`;
-  const bound =
-    answer.maxConcurrency === answer.defaultConcurrency ? `${count} (the default)` : count;
-  return `Applied to the running run ${runId}; ${bound}. Run ${runId} keeps running under it: nothing was stopped and no new run was started.`;
+    const count =
+        answer.maxConcurrency === 1
+            ? "at most 1 subagent runs at once"
+            : `at most ${answer.maxConcurrency} subagents run at once`;
+    const bound =
+        answer.maxConcurrency === answer.defaultConcurrency ? `${count} (the default)` : count;
+    return `Applied to the running run ${runId}; ${bound}. Run ${runId} keeps running under it: nothing was stopped and no new run was started.`;
 }

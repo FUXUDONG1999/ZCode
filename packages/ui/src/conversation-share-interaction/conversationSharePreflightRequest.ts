@@ -5,26 +5,26 @@ import type { ConversationSharePreflightRequest } from "@/conversation-share-int
  * 否则关闭后同 scope 重开或快速改选，旧成功/失败会覆盖新缓存；scope key 无法区分这些代际。
  */
 export function scheduleConversationSharePreflightRequest<T>(
-  options: ConversationSharePreflightRequest<T>,
+    options: ConversationSharePreflightRequest<T>,
 ): () => void {
-  let active = true;
-  const timer = setTimeout(() => {
-    void Promise.resolve()
-      .then(options.request)
-      .then(
-        (result) => {
-          if (active) options.onResolved(result);
-        },
-        (error: unknown) => {
-          if (active) options.onRejected(error);
-        },
-      )
-      .catch((error: unknown) => {
-        if (active) options.onError(error);
-      });
-  }, 150);
-  return () => {
-    active = false;
-    clearTimeout(timer);
-  };
+    let active = true;
+    const timer = setTimeout(() => {
+        void Promise.resolve()
+            .then(options.request)
+            .then(
+                (result) => {
+                    if (active) options.onResolved(result);
+                },
+                (error: unknown) => {
+                    if (active) options.onRejected(error);
+                },
+            )
+            .catch((error: unknown) => {
+                if (active) options.onError(error);
+            });
+    }, 150);
+    return () => {
+        active = false;
+        clearTimeout(timer);
+    };
 }

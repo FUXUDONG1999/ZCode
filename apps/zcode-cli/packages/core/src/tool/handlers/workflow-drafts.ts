@@ -18,10 +18,10 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
-  SAVED_WORKFLOW_FILE_EXTENSION,
-  WORKFLOW_DRAFTS_DIR,
-  createWorkflowPhaseNames,
-  type CreateWorkflowCausalityGraph,
+    SAVED_WORKFLOW_FILE_EXTENSION,
+    WORKFLOW_DRAFTS_DIR,
+    createWorkflowPhaseNames,
+    type CreateWorkflowCausalityGraph,
 } from "@zcode/contracts";
 
 /**
@@ -53,15 +53,15 @@ export const WORKFLOW_DRAFT_FALLBACK_SLUG = "workflow";
 const WORKFLOW_DRAFT_MAX_ATTEMPTS = 1_000;
 
 export interface WriteWorkflowDraftInput {
-  /**
-   * 会话工作目录；草稿落在它的 `.zcode/workflow-drafts/` 下。缺席即宿主没有工作目录概念
-   * （端口 stub / 无会话上下文），此时无处可写，与写失败同义。
-   */
-  cwd: string | undefined;
-  /** run 的展示名，用来铸文件名。 */
-  name: string;
-  /** 要写下的字节，逐字不改（saved 来源连元数据块一起）。 */
-  source: string;
+    /**
+     * 会话工作目录；草稿落在它的 `.zcode/workflow-drafts/` 下。缺席即宿主没有工作目录概念
+     * （端口 stub / 无会话上下文），此时无处可写，与写失败同义。
+     */
+    cwd: string | undefined;
+    /** run 的展示名，用来铸文件名。 */
+    name: string;
+    /** 要写下的字节，逐字不改（saved 来源连元数据块一起）。 */
+    source: string;
 }
 
 /**
@@ -72,31 +72,31 @@ export interface WriteWorkflowDraftInput {
  * `wx`（独占创建）落盘——两次并发提交因此不可能落进同一个文件，"先 stat 再写"那种写法会。
  */
 export async function writeWorkflowDraft(
-  input: WriteWorkflowDraftInput,
+    input: WriteWorkflowDraftInput,
 ): Promise<{ path: string } | undefined> {
-  if (input.cwd === undefined || input.cwd === "") return undefined;
-  try {
-    const dir = path.join(input.cwd, WORKFLOW_DRAFTS_DIR);
-    await mkdir(dir, { recursive: true });
-    await writeDraftGitignore(dir);
-    const slug = workflowDraftSlug(input.name);
-    for (let attempt = 1; attempt <= WORKFLOW_DRAFT_MAX_ATTEMPTS; attempt += 1) {
-      const fileName = `${attempt === 1 ? slug : `${slug}-${attempt}`}${SAVED_WORKFLOW_FILE_EXTENSION}`;
-      const filePath = path.join(dir, fileName);
-      try {
-        // `wx`：文件已在就报 EEXIST，于是"取名"与"占名"是同一个原子动作。
-        await writeFile(filePath, input.source, { encoding: "utf8", flag: "wx" });
-        return { path: filePath };
-      } catch (error) {
-        if (errorCode(error) !== "EEXIST") throw error;
-      }
+    if (input.cwd === undefined || input.cwd === "") return undefined;
+    try {
+        const dir = path.join(input.cwd, WORKFLOW_DRAFTS_DIR);
+        await mkdir(dir, { recursive: true });
+        await writeDraftGitignore(dir);
+        const slug = workflowDraftSlug(input.name);
+        for (let attempt = 1; attempt <= WORKFLOW_DRAFT_MAX_ATTEMPTS; attempt += 1) {
+            const fileName = `${attempt === 1 ? slug : `${slug}-${attempt}`}${SAVED_WORKFLOW_FILE_EXTENSION}`;
+            const filePath = path.join(dir, fileName);
+            try {
+                // `wx`：文件已在就报 EEXIST，于是"取名"与"占名"是同一个原子动作。
+                await writeFile(filePath, input.source, { encoding: "utf8", flag: "wx" });
+                return { path: filePath };
+            } catch (error) {
+                if (errorCode(error) !== "EEXIST") throw error;
+            }
+        }
+        return undefined;
+    } catch {
+        // 尽力而为：目录写不进、`.zcode` 是个文件、盘满……一律当作「这次没有草稿」。调用方据此
+        // 退回旧文案，工具调用本身照常完成。
+        return undefined;
     }
-    return undefined;
-  } catch {
-    // 尽力而为：目录写不进、`.zcode` 是个文件、盘满……一律当作「这次没有草稿」。调用方据此
-    // 退回旧文案，工具调用本身照常完成。
-    return undefined;
-  }
 }
 
 /**
@@ -107,11 +107,11 @@ export async function writeWorkflowDraft(
  * 刻意不用 run 标签的兜底（脚本首行）：实盘里首行多半是 `// ==== 结果类型 ====` 这种注释横幅。
  */
 export function resolveWorkflowDraftName(
-  name: string | undefined,
-  graph: Pick<CreateWorkflowCausalityGraph, "phases"> | undefined,
+    name: string | undefined,
+    graph: Pick<CreateWorkflowCausalityGraph, "phases"> | undefined,
 ): string {
-  if (name !== undefined && name.trim() !== "") return name;
-  return createWorkflowPhaseNames(graph)?.[0] ?? WORKFLOW_DRAFT_FALLBACK_SLUG;
+    if (name !== undefined && name.trim() !== "") return name;
+    return createWorkflowPhaseNames(graph)?.[0] ?? WORKFLOW_DRAFT_FALLBACK_SLUG;
 }
 
 /**
@@ -120,28 +120,28 @@ export function resolveWorkflowDraftName(
  * （`.` / `..` 是目录项，不是文件名）时用兜底词。
  */
 export function workflowDraftSlug(name: string): string {
-  const reduced = Array.from(
-    name
-      .trim()
-      .replace(WORKFLOW_DRAFT_WHITESPACE_PATTERN, "-")
-      .replace(WORKFLOW_DRAFT_SLUG_DROP_PATTERN, ""),
-  )
-    .slice(0, WORKFLOW_DRAFT_MAX_SLUG_CHARS)
-    .join("")
-    .replace(/^[.-]+|[.-]+$/gu, "");
-  if (reduced === "" || /^\.+$/u.test(reduced)) return WORKFLOW_DRAFT_FALLBACK_SLUG;
-  return reduced;
+    const reduced = Array.from(
+        name
+            .trim()
+            .replace(WORKFLOW_DRAFT_WHITESPACE_PATTERN, "-")
+            .replace(WORKFLOW_DRAFT_SLUG_DROP_PATTERN, ""),
+    )
+        .slice(0, WORKFLOW_DRAFT_MAX_SLUG_CHARS)
+        .join("")
+        .replace(/^[.-]+|[.-]+$/gu, "");
+    if (reduced === "" || /^\.+$/u.test(reduced)) return WORKFLOW_DRAFT_FALLBACK_SLUG;
+    return reduced;
 }
 
 /** 草稿目录内的 `.gitignore`，只在缺席时写一次（用户改过就不再动它）。 */
 async function writeDraftGitignore(dir: string): Promise<void> {
-  try {
-    await writeFile(path.join(dir, ".gitignore"), "*\n", { encoding: "utf8", flag: "wx" });
-  } catch (error) {
-    if (errorCode(error) !== "EEXIST") throw error;
-  }
+    try {
+        await writeFile(path.join(dir, ".gitignore"), "*\n", { encoding: "utf8", flag: "wx" });
+    } catch (error) {
+        if (errorCode(error) !== "EEXIST") throw error;
+    }
 }
 
 function errorCode(error: unknown): string | undefined {
-  return (error as NodeJS.ErrnoException | undefined)?.code;
+    return (error as NodeJS.ErrnoException | undefined)?.code;
 }

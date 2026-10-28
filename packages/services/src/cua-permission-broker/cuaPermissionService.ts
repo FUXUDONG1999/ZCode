@@ -19,37 +19,37 @@ import { createServiceDescriptor } from "../descriptors.js";
 // Type layer — type-only imports from the consolidated package (erased by TS
 // at compile time; Vite never resolves @zcode/zcode-cua for these).
 import type {
-  CuaPermissionState,
-  CuaPermissionStatus,
-  CuaPermissionStatusUnavailable,
-  CuaPermissionStatusResult,
-  CuaPermissionStatusQueryOptions,
-  CuaPermissionRestartResult,
-  CuaPermissionRestartOptions,
-  ICuaPermissionService as BrokerICuaPermissionService,
+    CuaPermissionState,
+    CuaPermissionStatus,
+    CuaPermissionStatusUnavailable,
+    CuaPermissionStatusResult,
+    CuaPermissionStatusQueryOptions,
+    CuaPermissionRestartResult,
+    CuaPermissionRestartOptions,
+    ICuaPermissionService as BrokerICuaPermissionService,
 } from "@zcode/zcode-cua/broker";
 
 // Re-export types for consumers.
 export type {
-  CuaPermissionState,
-  CuaPermissionStatus,
-  CuaPermissionStatusUnavailable,
-  CuaPermissionStatusResult,
-  CuaPermissionStatusQueryOptions,
-  CuaPermissionRestartResult,
-  CuaPermissionRestartOptions,
+    CuaPermissionState,
+    CuaPermissionStatus,
+    CuaPermissionStatusUnavailable,
+    CuaPermissionStatusResult,
+    CuaPermissionStatusQueryOptions,
+    CuaPermissionRestartResult,
+    CuaPermissionRestartOptions,
 };
 
 // 只从 producer 的纯 ports subpath 复用值谓词。这里不能从 Node-only broker barrel
 // re-export，否则 renderer bundle 会引入 process/node:path/node:crypto；也不能再复制实现，
 // 否则“省略 options 是否主动抓屏”这种隐私契约会再次漂移。
 export {
-  isCuaPermissionStatusAvailable,
-  shouldRunCuaScreenCaptureProbe,
+    isCuaPermissionStatusAvailable,
+    shouldRunCuaScreenCaptureProbe,
 } from "@zcode/zcode-cua/broker/ports";
 
 export interface ICuaPermissionService extends BrokerICuaPermissionService {}
 
 export const ICuaPermissionService = createServiceDescriptor<BrokerICuaPermissionService>(
-  ServiceChannels.CuaPermission,
+    ServiceChannels.CuaPermission,
 );

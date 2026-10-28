@@ -7,20 +7,20 @@
 // 本文件因此是纯合成规则（无 I/O、无状态），与 dynamic-workflow-run-observation.ts 同一纪律。
 
 import type {
-  DynamicWorkflowRunFillHoleDiagnostic,
-  DynamicWorkflowRunHole,
+    DynamicWorkflowRunFillHoleDiagnostic,
+    DynamicWorkflowRunHole,
 } from "@zcode/contracts";
 import {
-  collectSites,
-  createWorkflowProgram,
-  MODEL_UNRESOLVED_CODE,
-  type CompileDiagnostic,
-  type JournalStorePort,
-  type ModelReference,
-  type OpenHole,
-  type RunEvent,
-  type SiteTable,
-  type StoredEvent,
+    collectSites,
+    createWorkflowProgram,
+    MODEL_UNRESOLVED_CODE,
+    type CompileDiagnostic,
+    type JournalStorePort,
+    type ModelReference,
+    type OpenHole,
+    type RunEvent,
+    type SiteTable,
+    type StoredEvent,
 } from "@zcode/dynamic-workflow";
 import type { RunRegistryEntry } from "./dynamic-workflow-run-observation.js";
 
@@ -38,24 +38,24 @@ const UNKNOWN_HOLE_TYPE = "unknown";
  * 从站点表抄下来而不是持有站点表本身：`SiteTable` 挂着整棵 AST，注册表条目要活到 run 结算。
  */
 export interface CompiledHole {
-  siteId: string;
-  name: string;
-  type: string;
-  /** `hole(...)` 调用在脚本里的行号（1 起）。 */
-  line: number;
-  /** 没有函数体 = 开放的留白；补全后变成 false，嵌套在体内的新留白随之出现在表里。 */
-  open: boolean;
+    siteId: string;
+    name: string;
+    type: string;
+    /** `hole(...)` 调用在脚本里的行号（1 起）。 */
+    line: number;
+    /** 没有函数体 = 开放的留白；补全后变成 false，嵌套在体内的新留白随之出现在表里。 */
+    open: boolean;
 }
 
 /** 站点表 → 留白的编译期事实表（源码序，开放与已补全都在）。 */
 export function compiledHolesOf(table: SiteTable): CompiledHole[] {
-  return table.holes.map((site) => ({
-    siteId: site.id,
-    name: site.name ?? site.id,
-    type: site.typeText ?? UNKNOWN_HOLE_TYPE,
-    line: site.loc.line,
-    open: site.body === undefined,
-  }));
+    return table.holes.map((site) => ({
+        siteId: site.id,
+        name: site.name ?? site.id,
+        type: site.typeText ?? UNKNOWN_HOLE_TYPE,
+        line: site.loc.line,
+        open: site.body === undefined,
+    }));
 }
 
 /**
@@ -64,16 +64,16 @@ export function compiledHolesOf(table: SiteTable): CompiledHole[] {
  * 阶段表缺席或没有开放留白时回 `undefined`——字段整个缺席，与 `phaseAlongside` 同规。
  */
 export function openHoleIndexes(
-  phaseNames: readonly string[] | undefined,
-  holes: readonly CompiledHole[],
+    phaseNames: readonly string[] | undefined,
+    holes: readonly CompiledHole[],
 ): number[] | undefined {
-  if (phaseNames === undefined) return undefined;
-  const open = new Set(holes.filter((hole) => hole.open).map((hole) => hole.name));
-  const indexes: number[] = [];
-  phaseNames.forEach((name, index) => {
-    if (open.has(name)) indexes.push(index);
-  });
-  return indexes.length === 0 ? undefined : indexes;
+    if (phaseNames === undefined) return undefined;
+    const open = new Set(holes.filter((hole) => hole.open).map((hole) => hole.name));
+    const indexes: number[] = [];
+    phaseNames.forEach((name, index) => {
+        if (open.has(name)) indexes.push(index);
+    });
+    return indexes.length === 0 ? undefined : indexes;
 }
 
 /** 快照投影要读的两类事件；`reportItems: {limit: 0}` 是这条读面的固定形状（不碰 report 行）。 */
@@ -84,7 +84,7 @@ type HoleFilledEvent = Extract<RunEvent, { type: "hole-filled" }>;
 
 /** 快照投影的事件读：留白事件与首条 `run-launched`（阶段表的冷来源），一次有类型过滤的窄读。 */
 export function readRunHoleEvents(journal: JournalStorePort, runId: string): StoredEvent[] {
-  return journal.listEvents(runId, { types: HOLE_EVENT_TYPES, reportItems: { limit: 0 } });
+    return journal.listEvents(runId, { types: HOLE_EVENT_TYPES, reportItems: { limit: 0 } });
 }
 
 /**
@@ -92,27 +92,27 @@ export function readRunHoleEvents(journal: JournalStorePort, runId: string): Sto
  * 就是 `run-launched` 的声明表。快照与冷回放的 before / after 都按它取邻居。
  */
 export function phaseNamesFromEvents(events: readonly StoredEvent[]): string[] | undefined {
-  let names: string[] | undefined;
-  for (const { event } of events) {
-    if (event.type === "run-launched" && names === undefined) names = event.phaseNames;
-    if (event.type === "hole-filled") names = event.phaseNames;
-  }
-  return names;
+    let names: string[] | undefined;
+    for (const { event } of events) {
+        if (event.type === "run-launched" && names === undefined) names = event.phaseNames;
+        if (event.type === "hole-filled") names = event.phaseNames;
+    }
+    return names;
 }
 
 export interface ProjectRunHolesInput {
-  /** `readRunHoleEvents` 的返回（sequence 升序）。 */
-  events: readonly StoredEvent[];
-  /**
-   * 引擎此刻的停驻表；`undefined` = 本进程没有活着的引擎（冷行、已结算、还没接上）。
-   * **`waiting` 只在这张表里有它时成立**：进程亡故后没有 promise 在等，单靠事件会把一个没人问的
-   * 留白报成在等（docs/execution-engine.md「The run snapshot」）。
-   */
-  openHoles: readonly OpenHole[] | undefined;
-  /** 有效脚本的留白事实表（type / line 的来源）；缺席即这两项不出。 */
-  holes: readonly CompiledHole[] | undefined;
-  /** 此刻生效的阶段表（before / after 的来源）；缺席即这两项不出。 */
-  phaseNames: readonly string[] | undefined;
+    /** `readRunHoleEvents` 的返回（sequence 升序）。 */
+    events: readonly StoredEvent[];
+    /**
+     * 引擎此刻的停驻表；`undefined` = 本进程没有活着的引擎（冷行、已结算、还没接上）。
+     * **`waiting` 只在这张表里有它时成立**：进程亡故后没有 promise 在等，单靠事件会把一个没人问的
+     * 留白报成在等（docs/execution-engine.md「The run snapshot」）。
+     */
+    openHoles: readonly OpenHole[] | undefined;
+    /** 有效脚本的留白事实表（type / line 的来源）；缺席即这两项不出。 */
+    holes: readonly CompiledHole[] | undefined;
+    /** 此刻生效的阶段表（before / after 的来源）；缺席即这两项不出。 */
+    phaseNames: readonly string[] | undefined;
 }
 
 /**
@@ -122,42 +122,42 @@ export interface ProjectRunHolesInput {
  * 那时它才又是一条在等的留白。零条时返回空数组，调用方据此让字段整个缺席。
  */
 export function projectRunHoles(input: ProjectRunHolesInput): DynamicWorkflowRunHole[] {
-  const waiting = new Set((input.openHoles ?? []).map((hole) => instanceKey(hole)));
-  const filledBySite = new Map<string, HoleFilledEvent>();
-  const reached: { event: HoleReachedEvent; at: number | undefined }[] = [];
-  for (const stored of input.events) {
-    if (stored.event.type === "hole-reached") {
-      reached.push({ event: stored.event, at: stored.timeCreated });
-    } else if (stored.event.type === "hole-filled") {
-      filledBySite.set(stored.event.siteId, stored.event);
+    const waiting = new Set((input.openHoles ?? []).map((hole) => instanceKey(hole)));
+    const filledBySite = new Map<string, HoleFilledEvent>();
+    const reached: { event: HoleReachedEvent; at: number | undefined }[] = [];
+    for (const stored of input.events) {
+        if (stored.event.type === "hole-reached") {
+            reached.push({ event: stored.event, at: stored.timeCreated });
+        } else if (stored.event.type === "hole-filled") {
+            filledBySite.set(stored.event.siteId, stored.event);
+        }
     }
-  }
-  const byId = new Map((input.holes ?? []).map((hole) => [hole.siteId, hole]));
-  const out: DynamicWorkflowRunHole[] = [];
-  for (const { event, at } of reached) {
-    if (out.length >= SNAPSHOT_MAX_HOLES) break;
-    const { siteId, ordinal } = event.instance;
-    const compiled = byId.get(siteId);
-    const filled = filledBySite.get(siteId);
-    const isWaiting = waiting.has(instanceKey(event.instance));
-    if (!isWaiting && filled === undefined) continue;
-    out.push({
-      siteId,
-      ordinal,
-      name: event.name,
-      type: compiled?.type ?? UNKNOWN_HOLE_TYPE,
-      ...(isWaiting
-        ? { state: "waiting" as const, ...(at === undefined ? {} : { since: at }) }
-        : {
-            state: "filled" as const,
-            filledAt: filled!.filledAt,
-            ...(filled!.filledBy === undefined ? {} : { filledBy: filled!.filledBy }),
-          }),
-      ...(compiled === undefined ? {} : { line: compiled.line }),
-      ...neighbourPhases(event.name, input.phaseNames),
-    });
-  }
-  return out;
+    const byId = new Map((input.holes ?? []).map((hole) => [hole.siteId, hole]));
+    const out: DynamicWorkflowRunHole[] = [];
+    for (const { event, at } of reached) {
+        if (out.length >= SNAPSHOT_MAX_HOLES) break;
+        const { siteId, ordinal } = event.instance;
+        const compiled = byId.get(siteId);
+        const filled = filledBySite.get(siteId);
+        const isWaiting = waiting.has(instanceKey(event.instance));
+        if (!isWaiting && filled === undefined) continue;
+        out.push({
+            siteId,
+            ordinal,
+            name: event.name,
+            type: compiled?.type ?? UNKNOWN_HOLE_TYPE,
+            ...(isWaiting
+                ? { state: "waiting" as const, ...(at === undefined ? {} : { since: at }) }
+                : {
+                      state: "filled" as const,
+                      filledAt: filled!.filledAt,
+                      ...(filled!.filledBy === undefined ? {} : { filledBy: filled!.filledBy }),
+                  }),
+            ...(compiled === undefined ? {} : { line: compiled.line }),
+            ...neighbourPhases(event.name, input.phaseNames),
+        });
+    }
+    return out;
 }
 
 /**
@@ -166,16 +166,16 @@ export function projectRunHoles(input: ProjectRunHolesInput): DynamicWorkflowRun
  * （老 facade 下写的行）同样回 `undefined`——这是读面，不该因为一次派生字段而抛。
  */
 export function coldCompiledHoles(
-  scriptText: string | undefined,
-  events: readonly StoredEvent[],
+    scriptText: string | undefined,
+    events: readonly StoredEvent[],
 ): CompiledHole[] | undefined {
-  if (scriptText === undefined) return undefined;
-  if (!events.some((entry) => entry.event.type === "hole-reached")) return undefined;
-  try {
-    return compiledHolesOf(collectSites(createWorkflowProgram(scriptText)));
-  } catch {
-    return undefined;
-  }
+    if (scriptText === undefined) return undefined;
+    if (!events.some((entry) => entry.event.type === "hole-reached")) return undefined;
+    try {
+        return compiledHolesOf(collectSites(createWorkflowProgram(scriptText)));
+    } catch {
+        return undefined;
+    }
 }
 
 /**
@@ -184,42 +184,43 @@ export function coldCompiledHoles(
  * run，`getTask` 被追踪器每秒轮询，不该为一个空字段付一次事件读。
  */
 export function runHolesOf(
-  runId: string,
-  entry: RunRegistryEntry | undefined,
-  journal: JournalStorePort,
-  scriptText?: string,
+    runId: string,
+    entry: RunRegistryEntry | undefined,
+    journal: JournalStorePort,
+    scriptText?: string,
 ): DynamicWorkflowRunHole[] {
-  if (entry !== undefined && (entry.holes?.length ?? 0) === 0) return [];
-  const events = readRunHoleEvents(journal, runId);
-  if (events.length === 0) return [];
-  const live = entry !== undefined && entry.terminal === undefined;
-  return projectRunHoles({
-    events,
-    openHoles: live ? entry.control?.openHoles() : undefined,
-    holes:
-      entry?.holes ?? coldCompiledHoles(scriptText ?? journal.getRun(runId)?.scriptText, events),
-    phaseNames: entry?.phaseNames ?? phaseNamesFromEvents(events),
-  });
+    if (entry !== undefined && (entry.holes?.length ?? 0) === 0) return [];
+    const events = readRunHoleEvents(journal, runId);
+    if (events.length === 0) return [];
+    const live = entry !== undefined && entry.terminal === undefined;
+    return projectRunHoles({
+        events,
+        openHoles: live ? entry.control?.openHoles() : undefined,
+        holes:
+            entry?.holes ??
+            coldCompiledHoles(scriptText ?? journal.getRun(runId)?.scriptText, events),
+        phaseNames: entry?.phaseNames ?? phaseNamesFromEvents(events),
+    });
 }
 
 function instanceKey(ref: { siteId: string; ordinal: number }): string {
-  return `${ref.siteId}@${ref.ordinal}`;
+    return `${ref.siteId}@${ref.ordinal}`;
 }
 
 /** 留白在阶段表里的前后邻居（留白按名字站在表里）；不在表里或没有邻居时各自缺席。 */
 function neighbourPhases(
-  name: string,
-  phaseNames: readonly string[] | undefined,
+    name: string,
+    phaseNames: readonly string[] | undefined,
 ): { before?: string; after?: string } {
-  if (phaseNames === undefined) return {};
-  const index = phaseNames.indexOf(name);
-  if (index < 0) return {};
-  const before = phaseNames[index - 1];
-  const after = phaseNames[index + 1];
-  return {
-    ...(before === undefined ? {} : { before }),
-    ...(after === undefined ? {} : { after }),
-  };
+    if (phaseNames === undefined) return {};
+    const index = phaseNames.indexOf(name);
+    if (index < 0) return {};
+    const before = phaseNames[index - 1];
+    const after = phaseNames[index + 1];
+    return {
+        ...(before === undefined ? {} : { before }),
+        ...(after === undefined ? {} : { after }),
+    };
 }
 
 /**
@@ -230,45 +231,45 @@ function neighbourPhases(
  * 拼接前的脚本，行号得指向它。
  */
 export function mapFillDiagnostics(input: {
-  diagnostics: readonly CompileDiagnostic[];
-  effectiveText: string;
-  body: string;
-  insertedAtLine: number;
-  insertedLines: number;
+    diagnostics: readonly CompileDiagnostic[];
+    effectiveText: string;
+    body: string;
+    insertedAtLine: number;
+    insertedLines: number;
 }): DynamicWorkflowRunFillHoleDiagnostic[] {
-  const { diagnostics, insertedAtLine, insertedLines } = input;
-  const firstBodyLine = insertedAtLine;
-  const lastBodyLine = insertedAtLine + insertedLines - 2;
-  const closingLine = insertedAtLine + insertedLines - 1;
-  const effectiveLines = input.effectiveText.split("\n");
-  const bodyLines = input.body.replace(/\r?\n$/u, "").split(/\r?\n/u);
-  return diagnostics.map((diagnostic) => {
-    const base = { message: diagnostic.message, code: diagnostic.code };
-    if (diagnostic.line >= firstBodyLine && diagnostic.line <= lastBodyLine) {
-      const bodyLine = diagnostic.line - firstBodyLine + 1;
-      const indent =
-        leadingWhitespace(effectiveLines[diagnostic.line - 1] ?? "") -
-        leadingWhitespace(bodyLines[bodyLine - 1] ?? "");
-      return {
-        ...base,
-        inFill: true,
-        line: bodyLine,
-        column: Math.max(1, diagnostic.column - Math.max(0, indent)),
-      };
-    }
-    if (diagnostic.line === closingLine) {
-      return { ...base, inFill: false, line: insertedAtLine - 1, column: diagnostic.column };
-    }
-    if (diagnostic.line > closingLine) {
-      return {
-        ...base,
-        inFill: false,
-        line: diagnostic.line - insertedLines,
-        column: diagnostic.column,
-      };
-    }
-    return { ...base, inFill: false, line: diagnostic.line, column: diagnostic.column };
-  });
+    const { diagnostics, insertedAtLine, insertedLines } = input;
+    const firstBodyLine = insertedAtLine;
+    const lastBodyLine = insertedAtLine + insertedLines - 2;
+    const closingLine = insertedAtLine + insertedLines - 1;
+    const effectiveLines = input.effectiveText.split("\n");
+    const bodyLines = input.body.replace(/\r?\n$/u, "").split(/\r?\n/u);
+    return diagnostics.map((diagnostic) => {
+        const base = { message: diagnostic.message, code: diagnostic.code };
+        if (diagnostic.line >= firstBodyLine && diagnostic.line <= lastBodyLine) {
+            const bodyLine = diagnostic.line - firstBodyLine + 1;
+            const indent =
+                leadingWhitespace(effectiveLines[diagnostic.line - 1] ?? "") -
+                leadingWhitespace(bodyLines[bodyLine - 1] ?? "");
+            return {
+                ...base,
+                inFill: true,
+                line: bodyLine,
+                column: Math.max(1, diagnostic.column - Math.max(0, indent)),
+            };
+        }
+        if (diagnostic.line === closingLine) {
+            return { ...base, inFill: false, line: insertedAtLine - 1, column: diagnostic.column };
+        }
+        if (diagnostic.line > closingLine) {
+            return {
+                ...base,
+                inFill: false,
+                line: diagnostic.line - insertedLines,
+                column: diagnostic.column,
+            };
+        }
+        return { ...base, inFill: false, line: diagnostic.line, column: diagnostic.column };
+    });
 }
 
 /**
@@ -281,29 +282,29 @@ export function mapFillDiagnostics(input: {
  * 没有这个模型。补全的确认窗不列模型，所以函数体只能用表里已有的名字；要换模型走 AmendWorkflow。
  */
 export function unboundFillModelDiagnostics(
-  references: readonly ModelReference[],
-  bindings: Readonly<Record<string, string>> | undefined,
+    references: readonly ModelReference[],
+    bindings: Readonly<Record<string, string>> | undefined,
 ): CompileDiagnostic[] {
-  const bound = Object.entries(bindings ?? {});
-  const available =
-    bound.length === 0
-      ? "this run was launched without naming any model"
-      : `this run was launched with ${bound.map(([name, canonical]) => `"${name}" = ${canonical}`).join("; ")}`;
-  const reported = new Set<string>();
-  const diagnostics: CompileDiagnostic[] = [];
-  for (const reference of references) {
-    if (bindings?.[reference.name] !== undefined || reported.has(reference.name)) continue;
-    reported.add(reference.name);
-    diagnostics.push({
-      code: MODEL_UNRESOLVED_CODE,
-      line: reference.line,
-      column: reference.column,
-      message: `The model "${reference.name}" is not one the run can use: ${available}, and a fill can name only those. Use one of them, or drop \`model\` from the persona; to add a model, revise the run with AmendWorkflow.`,
-    });
-  }
-  return diagnostics;
+    const bound = Object.entries(bindings ?? {});
+    const available =
+        bound.length === 0
+            ? "this run was launched without naming any model"
+            : `this run was launched with ${bound.map(([name, canonical]) => `"${name}" = ${canonical}`).join("; ")}`;
+    const reported = new Set<string>();
+    const diagnostics: CompileDiagnostic[] = [];
+    for (const reference of references) {
+        if (bindings?.[reference.name] !== undefined || reported.has(reference.name)) continue;
+        reported.add(reference.name);
+        diagnostics.push({
+            code: MODEL_UNRESOLVED_CODE,
+            line: reference.line,
+            column: reference.column,
+            message: `The model "${reference.name}" is not one the run can use: ${available}, and a fill can name only those. Use one of them, or drop \`model\` from the persona; to add a model, revise the run with AmendWorkflow.`,
+        });
+    }
+    return diagnostics;
 }
 
 function leadingWhitespace(line: string): number {
-  return /^[ \t]*/u.exec(line)?.[0].length ?? 0;
+    return /^[ \t]*/u.exec(line)?.[0].length ?? 0;
 }

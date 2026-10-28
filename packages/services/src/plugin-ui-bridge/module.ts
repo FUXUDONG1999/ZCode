@@ -4,8 +4,8 @@
  * 以及 App-Provided Tools 的登记 / 认领 / 回传通道（appToolsContract.ts）。
  */
 export const pluginUiBridgeModule = {
-  id: "plugin-ui-bridge",
-  requires: ["services", "shared", "mcp-apps-protocol"],
-  provides: ["plugin-ui-bridge-service"],
-  publicEntrypoints: ["index.ts", "contract.ts", "appToolsContract.ts", "samplingContract.ts"],
+    id: "plugin-ui-bridge",
+    requires: ["services", "shared", "mcp-apps-protocol"],
+    provides: ["plugin-ui-bridge-service"],
+    publicEntrypoints: ["index.ts", "contract.ts", "appToolsContract.ts", "samplingContract.ts"],
 } as const;

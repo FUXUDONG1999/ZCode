@@ -29,9 +29,9 @@
 - legacy render 逻辑已经存在：未被 MCS projector 消费的 runtime attachment entry 会通过 `renderProjectedEntryToModelMessage(...)` 变成 `role: "user"` + `wrapSystemReminderForSource(...)`。
 - 当前 attachment reorder 会排除 MCS-capable source，原因是 `isAttachmentLikeUserEntry(...)` 对 `isMidConversationSystemSource(source)` 返回 false。
 - WebSearch 已经有可参考的 provider/baseURL 动态 capability 模式：
-  - `apps/zcode-cli/packages/core/src/tool/handlers/websearch-support.ts`
-  - `apps/zcode-cli/packages/contracts/src/tools/websearch.ts`
-  - runtime 侧通过 `modelConnectionPort.resolveConnection(this.defaultModelRef)` 获取 resolved connection。
+    - `apps/zcode-cli/packages/core/src/tool/handlers/websearch-support.ts`
+    - `apps/zcode-cli/packages/contracts/src/tools/websearch.ts`
+    - runtime 侧通过 `modelConnectionPort.resolveConnection(this.defaultModelRef)` 获取 resolved connection。
 
 ## 目标行为
 
@@ -50,10 +50,10 @@ attachment todo_reminder "The TodoWrite tool hasn't..."
 
 ```json
 [
-  { "role": "user", "content": "Summarize this" },
-  { "role": "system", "content": "Called the Read tool..." },
-  { "role": "assistant", "content": "..." },
-  { "role": "system", "content": "The TodoWrite tool hasn't..." }
+    { "role": "user", "content": "Summarize this" },
+    { "role": "system", "content": "Called the Read tool..." },
+    { "role": "assistant", "content": "..." },
+    { "role": "system", "content": "The TodoWrite tool hasn't..." }
 ]
 ```
 
@@ -63,16 +63,16 @@ attachment todo_reminder "The TodoWrite tool hasn't..."
 
 ```json
 [
-  {
-    "role": "user",
-    "content": "<system-reminder>\nCalled the Read tool...\n</system-reminder>"
-  },
-  { "role": "user", "content": "Summarize this" },
-  { "role": "assistant", "content": "..." },
-  {
-    "role": "user",
-    "content": "<system-reminder>\nThe TodoWrite tool hasn't...\n</system-reminder>"
-  }
+    {
+        "role": "user",
+        "content": "<system-reminder>\nCalled the Read tool...\n</system-reminder>"
+    },
+    { "role": "user", "content": "Summarize this" },
+    { "role": "assistant", "content": "..." },
+    {
+        "role": "user",
+        "content": "<system-reminder>\nThe TodoWrite tool hasn't...\n</system-reminder>"
+    }
 ]
 ```
 
@@ -159,78 +159,78 @@ export function isFastSupportedModel(modelId: string | undefined): boolean;
 ```ts
 import { describe, expect, it } from "vitest";
 import {
-  isFastSupportedModel,
-  isMidConversationSystemCapableBaseURL,
+    isFastSupportedModel,
+    isMidConversationSystemCapableBaseURL,
 } from "../src/model/mid-conversation-system.js";
 
 describe("isMidConversationSystemCapableBaseURL", () => {
-  it.each([
-    "https://bigmodel.cn/api/anthropic",
-    "https://open.bigmodel.cn/api/anthropic",
-    "https://open.bigmodel.cn/api/anthropic",
-    "https://z.ai/api/anthropic",
-    "https://api.z.ai/api/anthropic",
-    "https://deepseek.com/anthropic",
-    "https://api.deepseek.com/anthropic",
-    "https://z.ai/api/anthropic",
-    "https://zcode.z.ai/api/anthropic",
-    "api.z.ai/api/anthropic",
-  ])("allows %s", (baseURL) => {
-    expect(isMidConversationSystemCapableBaseURL(baseURL)).toBe(true);
-  });
+    it.each([
+        "https://bigmodel.cn/api/anthropic",
+        "https://open.bigmodel.cn/api/anthropic",
+        "https://open.bigmodel.cn/api/anthropic",
+        "https://z.ai/api/anthropic",
+        "https://api.z.ai/api/anthropic",
+        "https://deepseek.com/anthropic",
+        "https://api.deepseek.com/anthropic",
+        "https://z.ai/api/anthropic",
+        "https://zcode.z.ai/api/anthropic",
+        "api.z.ai/api/anthropic",
+    ])("allows %s", (baseURL) => {
+        expect(isMidConversationSystemCapableBaseURL(baseURL)).toBe(true);
+    });
 
-  it.each([
-    undefined,
-    "",
-    "https://provider.example/anthropic",
-    "https://bigmodel.cn.example/anthropic",
-    "https://z.ai.example/anthropic",
-    "https://deepseek.com.example/anthropic",
-    "https://z.ai.example/anthropic",
-    "https://example.com/anthropic?redirect=https://api.z.ai",
-  ])("rejects %s", (baseURL) => {
-    expect(isMidConversationSystemCapableBaseURL(baseURL)).toBe(false);
-  });
+    it.each([
+        undefined,
+        "",
+        "https://provider.example/anthropic",
+        "https://bigmodel.cn.example/anthropic",
+        "https://z.ai.example/anthropic",
+        "https://deepseek.com.example/anthropic",
+        "https://z.ai.example/anthropic",
+        "https://example.com/anthropic?redirect=https://api.z.ai",
+    ])("rejects %s", (baseURL) => {
+        expect(isMidConversationSystemCapableBaseURL(baseURL)).toBe(false);
+    });
 });
 
 describe("isFastSupportedModel", () => {
-  it.each([
-    "claude-opus-4-8",
-    " claude-opus-4-8 ",
-    "CLAUDE-OPUS-4-8",
-    "anthropic.claude-opus-4-8",
-    "us.anthropic.claude-opus-4-8",
-    "bedrock/us.anthropic.claude-opus-4-8",
-    "claude-opus-4-8-cc[1m]",
-    " claude-opus-4-8-cc[1m] ",
-    "claude-opus-4-8-cc",
-    "claude-opus-4-8[1m]",
-    "claude-opus-4-8-preview",
-    "claude-opus-4-8-latest",
-  ])("matches %s", (modelId) => {
-    expect(isFastSupportedModel(modelId)).toBe(true);
-  });
+    it.each([
+        "claude-opus-4-8",
+        " claude-opus-4-8 ",
+        "CLAUDE-OPUS-4-8",
+        "anthropic.claude-opus-4-8",
+        "us.anthropic.claude-opus-4-8",
+        "bedrock/us.anthropic.claude-opus-4-8",
+        "claude-opus-4-8-cc[1m]",
+        " claude-opus-4-8-cc[1m] ",
+        "claude-opus-4-8-cc",
+        "claude-opus-4-8[1m]",
+        "claude-opus-4-8-preview",
+        "claude-opus-4-8-latest",
+    ])("matches %s", (modelId) => {
+        expect(isFastSupportedModel(modelId)).toBe(true);
+    });
 
-  it.each([
-    undefined,
-    "",
-    "claude-opus-4-7",
-    "claude-opus-4-80",
-    "claude-sonnet-4-8",
-    "not-claude-opus-4-8",
-    "my_claude-opus-4-8",
-    "glm-5.2",
-    " GLM-5.2 ",
-    "zai/glm-5.2",
-    "z.ai/glm-5.2",
-    "bigmodel/glm-5.2-latest",
-    "glm-5.1",
-    "glm-5.20",
-    "not-glm-5.2",
-    "my_glm-5.2",
-  ])("rejects %s", (modelId) => {
-    expect(isFastSupportedModel(modelId)).toBe(false);
-  });
+    it.each([
+        undefined,
+        "",
+        "claude-opus-4-7",
+        "claude-opus-4-80",
+        "claude-sonnet-4-8",
+        "not-claude-opus-4-8",
+        "my_claude-opus-4-8",
+        "glm-5.2",
+        " GLM-5.2 ",
+        "zai/glm-5.2",
+        "z.ai/glm-5.2",
+        "bigmodel/glm-5.2-latest",
+        "glm-5.1",
+        "glm-5.20",
+        "not-glm-5.2",
+        "my_glm-5.2",
+    ])("rejects %s", (modelId) => {
+        expect(isFastSupportedModel(modelId)).toBe(false);
+    });
 });
 ```
 
@@ -244,10 +244,10 @@ pnpm --filter @zcode/contracts exec vitest run tests/mid-conversation-system.tes
 
 ```ts
 const MID_CONVERSATION_SYSTEM_CAPABLE_BASE_HOSTS = [
-  "bigmodel.cn",
-  "z.ai",
-  "deepseek.com",
-  "z.ai",
+    "bigmodel.cn",
+    "z.ai",
+    "deepseek.com",
+    "z.ai",
 ] as const;
 
 const FAST_SUPPORTED_MODEL_MARKERS = ["claude-opus-4-8"] as const;
@@ -255,54 +255,54 @@ const FAST_SUPPORTED_MODEL_PREFIX_BOUNDARIES = new Set([".", "/", ":"]);
 const FAST_SUPPORTED_MODEL_SUFFIX_BOUNDARIES = new Set(["-", "[", ".", "/", ":", "@", "_"]);
 
 export function isFastSupportedModel(modelId: string | undefined): boolean {
-  const name = modelId?.trim().toLowerCase();
-  if (!name) return false;
+    const name = modelId?.trim().toLowerCase();
+    if (!name) return false;
 
-  return FAST_SUPPORTED_MODEL_MARKERS.some((marker) =>
-    modelNameContainsFastSupportedMarker(name, marker),
-  );
+    return FAST_SUPPORTED_MODEL_MARKERS.some((marker) =>
+        modelNameContainsFastSupportedMarker(name, marker),
+    );
 }
 
 function modelNameContainsFastSupportedMarker(name: string, marker: string): boolean {
-  let index = name.indexOf(marker);
-  while (index !== -1) {
-    const before = index === 0 ? undefined : name[index - 1];
-    const afterIndex = index + marker.length;
-    const after = afterIndex >= name.length ? undefined : name[afterIndex];
+    let index = name.indexOf(marker);
+    while (index !== -1) {
+        const before = index === 0 ? undefined : name[index - 1];
+        const afterIndex = index + marker.length;
+        const after = afterIndex >= name.length ? undefined : name[afterIndex];
 
-    if (
-      (!before || FAST_SUPPORTED_MODEL_PREFIX_BOUNDARIES.has(before)) &&
-      (!after || FAST_SUPPORTED_MODEL_SUFFIX_BOUNDARIES.has(after))
-    ) {
-      return true;
+        if (
+            (!before || FAST_SUPPORTED_MODEL_PREFIX_BOUNDARIES.has(before)) &&
+            (!after || FAST_SUPPORTED_MODEL_SUFFIX_BOUNDARIES.has(after))
+        ) {
+            return true;
+        }
+
+        index = name.indexOf(marker, index + 1);
     }
 
-    index = name.indexOf(marker, index + 1);
-  }
-
-  return false;
+    return false;
 }
 
 export function isMidConversationSystemCapableBaseURL(baseURL: string | undefined): boolean {
-  const host = hostnameFromBaseURL(baseURL);
-  if (!host) return false;
-  return MID_CONVERSATION_SYSTEM_CAPABLE_BASE_HOSTS.some(
-    (allowedHost) => host === allowedHost || host.endsWith(`.${allowedHost}`),
-  );
+    const host = hostnameFromBaseURL(baseURL);
+    if (!host) return false;
+    return MID_CONVERSATION_SYSTEM_CAPABLE_BASE_HOSTS.some(
+        (allowedHost) => host === allowedHost || host.endsWith(`.${allowedHost}`),
+    );
 }
 
 function hostnameFromBaseURL(baseURL: string | undefined): string | undefined {
-  const trimmed = baseURL?.trim();
-  if (!trimmed) return undefined;
-  try {
-    return new URL(trimmed).hostname.toLowerCase();
-  } catch {
+    const trimmed = baseURL?.trim();
+    if (!trimmed) return undefined;
     try {
-      return new URL(`https://${trimmed}`).hostname.toLowerCase();
+        return new URL(trimmed).hostname.toLowerCase();
     } catch {
-      return undefined;
+        try {
+            return new URL(`https://${trimmed}`).hostname.toLowerCase();
+        } catch {
+            return undefined;
+        }
     }
-  }
 }
 ```
 
@@ -330,55 +330,55 @@ pnpm --filter @zcode/contracts exec vitest run tests/mid-conversation-system.tes
 
 ```ts
 export interface MidConversationSystemCapabilityContext {
-  modelRef: ModelRef;
-  connection: ModelConnectionInfo;
+    modelRef: ModelRef;
+    connection: ModelConnectionInfo;
 }
 
 type SanitizedModelConnectionInfo = Omit<ModelConnectionInfo, "apiKey" | "headers">;
 
 export interface ResolvedMidConversationSystemCapabilityContext {
-  baseURL?: string;
-  connection: SanitizedModelConnectionInfo;
-  modelId: string;
-  modelRef: ModelRef;
-  providerId: string;
-  providerKind: ModelConnectionInfo["providerKind"];
+    baseURL?: string;
+    connection: SanitizedModelConnectionInfo;
+    modelId: string;
+    modelRef: ModelRef;
+    providerId: string;
+    providerKind: ModelConnectionInfo["providerKind"];
 }
 
 export type MidConversationSystemCapabilityReason =
-  | "supported"
-  | "missing_model_connection_port"
-  | "resolve_connection_failed"
-  | "unsupported_provider_kind"
-  | "unsupported_base_url";
+    | "supported"
+    | "missing_model_connection_port"
+    | "resolve_connection_failed"
+    | "unsupported_provider_kind"
+    | "unsupported_base_url";
 
 export interface MidConversationSystemCapabilityDecision {
-  useMidConversationSystem: boolean;
-  reason: MidConversationSystemCapabilityReason;
-  context?: ResolvedMidConversationSystemCapabilityContext;
+    useMidConversationSystem: boolean;
+    reason: MidConversationSystemCapabilityReason;
+    context?: ResolvedMidConversationSystemCapabilityContext;
 }
 
 export function evaluateMidConversationSystemCapability(
-  context: MidConversationSystemCapabilityContext,
+    context: MidConversationSystemCapabilityContext,
 ): MidConversationSystemCapabilityDecision;
 
 export function resolveMidConversationSystemCapability(input: {
-  modelConnectionPort?: ModelConnectionPort;
-  modelRef: ModelRef;
+    modelConnectionPort?: ModelConnectionPort;
+    modelRef: ModelRef;
 }): MidConversationSystemCapabilityDecision;
 ```
 
 **关键设计：**
 
 - `evaluateMidConversationSystemCapability(...)` 接收完整 `ModelConnectionInfo`，因此能看到：
-  - `connection.model.modelId`
-  - `connection.providerId`
-  - `connection.providerKind`
-  - `connection.baseURL`
-  - `connection.providerOptions`
-  - `modelRef.role`
-  - `modelRef.source`
-  - `modelRef.variant`
+    - `connection.model.modelId`
+    - `connection.providerId`
+    - `connection.providerKind`
+    - `connection.baseURL`
+    - `connection.providerOptions`
+    - `modelRef.role`
+    - `modelRef.source`
+    - `modelRef.variant`
 - 初始版本只用 `providerKind` + `baseURL` 判断。
 - `apiKey` / `headers` 可以存在于输入 `connection`，但不允许输出到日志或轨迹；返回的 decision context 只包含去敏后的 connection。
 
@@ -396,88 +396,88 @@ export function resolveMidConversationSystemCapability(input: {
 ```ts
 import { describe, expect, it } from "vitest";
 import {
-  ModelRefSource,
-  ModelRole,
-  createModelId,
-  createModelProviderId,
-  type ModelConnectionInfo,
-  type ModelConnectionPort,
-  type ModelRef,
+    ModelRefSource,
+    ModelRole,
+    createModelId,
+    createModelProviderId,
+    type ModelConnectionInfo,
+    type ModelConnectionPort,
+    type ModelRef,
 } from "@zcode/contracts";
 import {
-  evaluateMidConversationSystemCapability,
-  resolveMidConversationSystemCapability,
+    evaluateMidConversationSystemCapability,
+    resolveMidConversationSystemCapability,
 } from "../src/runtime/helpers/mid-conversation-system.js";
 
 const modelRef: ModelRef = {
-  providerId: createModelProviderId("test"),
-  modelId: createModelId("claude-opus-4-20250514"),
-  role: ModelRole.Main,
-  source: ModelRefSource.Config,
-  variant: "first-party",
+    providerId: createModelProviderId("test"),
+    modelId: createModelId("claude-opus-4-20250514"),
+    role: ModelRole.Main,
+    source: ModelRefSource.Config,
+    variant: "first-party",
 };
 
 function connection(input: Partial<ModelConnectionInfo> = {}): ModelConnectionInfo {
-  return {
-    apiKey: "secret-api-key",
-    baseURL: "https://api.z.ai/api/anthropic",
-    headers: { Authorization: "Bearer secret-token" },
-    model: modelRef,
-    providerId: "test",
-    providerKind: "anthropic",
-    ...input,
-  } as ModelConnectionInfo;
+    return {
+        apiKey: "secret-api-key",
+        baseURL: "https://api.z.ai/api/anthropic",
+        headers: { Authorization: "Bearer secret-token" },
+        model: modelRef,
+        providerId: "test",
+        providerKind: "anthropic",
+        ...input,
+    } as ModelConnectionInfo;
 }
 
 describe("evaluateMidConversationSystemCapability", () => {
-  it("enables MCS for anthropic providers on allowlisted baseURL", () => {
-    expect(
-      evaluateMidConversationSystemCapability({
-        modelRef,
-        connection: connection(),
-      }),
-    ).toMatchObject({
-      reason: "supported",
-      useMidConversationSystem: true,
-    });
-  });
-
-  it("keeps safe current model/provider context available to the decision function", () => {
-    const currentModelRef: ModelRef = {
-      providerId: createModelProviderId("anthropic-provider"),
-      modelId: createModelId("claude-opus-4-1-20260101"),
-      role: ModelRole.Subagent,
-      source: ModelRefSource.Session,
-      variant: "first-party",
-    };
-    const currentConnection = connection({
-      model: currentModelRef,
-      providerId: "anthropic-provider",
-      providerOptions: { routing: "first-party" },
+    it("enables MCS for anthropic providers on allowlisted baseURL", () => {
+        expect(
+            evaluateMidConversationSystemCapability({
+                modelRef,
+                connection: connection(),
+            }),
+        ).toMatchObject({
+            reason: "supported",
+            useMidConversationSystem: true,
+        });
     });
 
-    const decision = evaluateMidConversationSystemCapability({
-      modelRef: currentModelRef,
-      connection: currentConnection,
-    });
+    it("keeps safe current model/provider context available to the decision function", () => {
+        const currentModelRef: ModelRef = {
+            providerId: createModelProviderId("anthropic-provider"),
+            modelId: createModelId("claude-opus-4-1-20260101"),
+            role: ModelRole.Subagent,
+            source: ModelRefSource.Session,
+            variant: "first-party",
+        };
+        const currentConnection = connection({
+            model: currentModelRef,
+            providerId: "anthropic-provider",
+            providerOptions: { routing: "first-party" },
+        });
 
-    expect(decision.useMidConversationSystem).toBe(true);
-    if (!decision.context) throw new Error("expected capability context");
-    expect(decision.context.modelRef).toBe(currentModelRef);
-    expect(decision.context.connection).toEqual({
-      baseURL: "https://api.z.ai/api/anthropic",
-      model: currentModelRef,
-      providerId: "anthropic-provider",
-      providerKind: "anthropic",
-      providerOptions: { routing: "first-party" },
+        const decision = evaluateMidConversationSystemCapability({
+            modelRef: currentModelRef,
+            connection: currentConnection,
+        });
+
+        expect(decision.useMidConversationSystem).toBe(true);
+        if (!decision.context) throw new Error("expected capability context");
+        expect(decision.context.modelRef).toBe(currentModelRef);
+        expect(decision.context.connection).toEqual({
+            baseURL: "https://api.z.ai/api/anthropic",
+            model: currentModelRef,
+            providerId: "anthropic-provider",
+            providerKind: "anthropic",
+            providerOptions: { routing: "first-party" },
+        });
+        expect("apiKey" in decision.context.connection).toBe(false);
+        expect("headers" in decision.context.connection).toBe(false);
+        expect(decision.context.modelId).toBe("claude-opus-4-1-20260101");
+        expect(decision.context.providerId).toBe("anthropic-provider");
+        expect(decision.context.providerKind).toBe("anthropic");
+        expect(decision.context.baseURL).toBe("https://api.z.ai/api/anthropic");
     });
-    expect("apiKey" in decision.context.connection).toBe(false);
-    expect("headers" in decision.context.connection).toBe(false);
-    expect(decision.context.modelId).toBe("claude-opus-4-1-20260101");
-    expect(decision.context.providerId).toBe("anthropic-provider");
-    expect(decision.context.providerKind).toBe("anthropic");
-    expect(decision.context.baseURL).toBe("https://api.z.ai/api/anthropic");
-  });
 });
 ```
 
@@ -504,9 +504,9 @@ pnpm --filter @zcode/core exec vitest run tests/runtime-mcs-capability.test.ts
 
 ```ts
 export function buildProviderRequestMessages(input: {
-  entries: readonly RuntimeMessageEntry[];
-  applyCacheControl?: boolean;
-  useMidConversationSystem?: boolean;
+    entries: readonly RuntimeMessageEntry[];
+    applyCacheControl?: boolean;
+    useMidConversationSystem?: boolean;
 }): ProviderRequestMessageProjectionResult;
 ```
 
@@ -514,45 +514,46 @@ export function buildProviderRequestMessages(input: {
 
 ```ts
 it("projects MCS-capable attachments as system messages when MCS is enabled", () => {
-  const entries = [
-    entry(user("Summarize notes."), "real_user"),
-    attachment("prompt_attachment", "Called the Read tool with the following input: {}"),
-    attachment("output_style", "Terse output style is active."),
-  ] satisfies RuntimeMessageEntry[];
+    const entries = [
+        entry(user("Summarize notes."), "real_user"),
+        attachment("prompt_attachment", "Called the Read tool with the following input: {}"),
+        attachment("output_style", "Terse output style is active."),
+    ] satisfies RuntimeMessageEntry[];
 
-  expect(
-    buildProviderRequestMessages({
-      entries,
-      useMidConversationSystem: true,
-    }).messages,
-  ).toEqual([
-    { role: "user", content: "Summarize notes." },
-    {
-      role: "system",
-      content: "Called the Read tool with the following input: {}\n\nTerse output style is active.",
-    },
-  ]);
+    expect(
+        buildProviderRequestMessages({
+            entries,
+            useMidConversationSystem: true,
+        }).messages,
+    ).toEqual([
+        { role: "user", content: "Summarize notes." },
+        {
+            role: "system",
+            content:
+                "Called the Read tool with the following input: {}\n\nTerse output style is active.",
+        },
+    ]);
 });
 
 it("renders MCS-capable attachments as legacy user system reminders when MCS is disabled", () => {
-  const entries = [
-    entry(user("Summarize notes."), "real_user"),
-    attachment("prompt_attachment", "Called the Read tool with the following input: {}"),
-  ] satisfies RuntimeMessageEntry[];
+    const entries = [
+        entry(user("Summarize notes."), "real_user"),
+        attachment("prompt_attachment", "Called the Read tool with the following input: {}"),
+    ] satisfies RuntimeMessageEntry[];
 
-  expect(
-    buildProviderRequestMessages({
-      entries,
-      useMidConversationSystem: false,
-    }).messages,
-  ).toEqual([
-    {
-      role: "user",
-      content:
-        "<system-reminder>\nCalled the Read tool with the following input: {}\n</system-reminder>",
-    },
-    { role: "user", content: "Summarize notes." },
-  ]);
+    expect(
+        buildProviderRequestMessages({
+            entries,
+            useMidConversationSystem: false,
+        }).messages,
+    ).toEqual([
+        {
+            role: "user",
+            content:
+                "<system-reminder>\nCalled the Read tool with the following input: {}\n</system-reminder>",
+        },
+        { role: "user", content: "Summarize notes." },
+    ]);
 });
 ```
 
@@ -564,7 +565,7 @@ it("renders MCS-capable attachments as legacy user system reminders when MCS is 
 
 ```ts
 interface AttachmentReorderOptions {
-  includeMidConversationSystemAttachments: boolean;
+    includeMidConversationSystemAttachments: boolean;
 }
 ```
 
@@ -595,15 +596,15 @@ pnpm --filter @zcode/core exec vitest run tests/provider-request-messages.test.t
 
 ```ts
 export function resolveRuntimeMidConversationSystemCapability(
-  runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
+    runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
 ): MidConversationSystemCapabilityDecision;
 
 export function buildRuntimeProviderRequestMessages(
-  runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
-  input: {
-    entries: readonly RuntimeMessageEntry[];
-    applyCacheControl?: boolean;
-  },
+    runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
+    input: {
+        entries: readonly RuntimeMessageEntry[];
+        applyCacheControl?: boolean;
+    },
 ): ProviderRequestMessageProjectionResult;
 ```
 
@@ -613,35 +614,35 @@ export function buildRuntimeProviderRequestMessages(
 import type { RuntimeMessageEntry } from "../../agent/message-history.js";
 import type { AgentRuntimeInternal } from "../internal.js";
 import {
-  resolveMidConversationSystemCapability,
-  type MidConversationSystemCapabilityDecision,
+    resolveMidConversationSystemCapability,
+    type MidConversationSystemCapabilityDecision,
 } from "./mid-conversation-system.js";
 import {
-  buildProviderRequestMessages,
-  type ProviderRequestMessageProjectionResult,
+    buildProviderRequestMessages,
+    type ProviderRequestMessageProjectionResult,
 } from "./provider-request-messages.js";
 
 export function resolveRuntimeMidConversationSystemCapability(
-  runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
+    runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
 ): MidConversationSystemCapabilityDecision {
-  return resolveMidConversationSystemCapability({
-    modelConnectionPort: runtime.modelConnectionPort,
-    modelRef: runtime.defaultModelRef,
-  });
+    return resolveMidConversationSystemCapability({
+        modelConnectionPort: runtime.modelConnectionPort,
+        modelRef: runtime.defaultModelRef,
+    });
 }
 
 export function buildRuntimeProviderRequestMessages(
-  runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
-  input: {
-    entries: readonly RuntimeMessageEntry[];
-    applyCacheControl?: boolean;
-  },
+    runtime: Pick<AgentRuntimeInternal, "defaultModelRef" | "modelConnectionPort">,
+    input: {
+        entries: readonly RuntimeMessageEntry[];
+        applyCacheControl?: boolean;
+    },
 ): ProviderRequestMessageProjectionResult {
-  const decision = resolveRuntimeMidConversationSystemCapability(runtime);
-  return buildProviderRequestMessages({
-    ...input,
-    useMidConversationSystem: decision.useMidConversationSystem,
-  });
+    const decision = resolveRuntimeMidConversationSystemCapability(runtime);
+    return buildProviderRequestMessages({
+        ...input,
+        useMidConversationSystem: decision.useMidConversationSystem,
+    });
 }
 ```
 
@@ -672,8 +673,8 @@ pnpm --filter @zcode/core exec vitest run tests/runtime-mcs-capability.test.ts t
 
 ```ts
 const providerProjection = buildRuntimeProviderRequestMessages(this, {
-  entries: this.messageHistory.toRuntimeEntries(),
-  applyCacheControl: true,
+    entries: this.messageHistory.toRuntimeEntries(),
+    applyCacheControl: true,
 });
 ```
 
@@ -681,8 +682,8 @@ const providerProjection = buildRuntimeProviderRequestMessages(this, {
 
 ```ts
 const activeMessages = buildRuntimeProviderRequestMessages(this, {
-  entries: this.messageHistory.toRuntimeEntries(),
-  applyCacheControl: false,
+    entries: this.messageHistory.toRuntimeEntries(),
+    applyCacheControl: false,
 }).messages;
 ```
 
@@ -690,7 +691,7 @@ const activeMessages = buildRuntimeProviderRequestMessages(this, {
 
 ```ts
 const useMidConversationSystem =
-  resolveRuntimeMidConversationSystemCapability(this).useMidConversationSystem;
+    resolveRuntimeMidConversationSystemCapability(this).useMidConversationSystem;
 ```
 
 然后把 `useMidConversationSystem` 传入：
@@ -698,7 +699,7 @@ const useMidConversationSystem =
 ```ts
 estimateRuntimeEntryTokens(activeEntries, { useMidConversationSystem });
 buildCompactSummaryRequestMessages(entriesForSummary, compactPrompt, {
-  useMidConversationSystem,
+    useMidConversationSystem,
 });
 estimateRuntimeEntryTokens(postCompactEntries, { useMidConversationSystem });
 ```
@@ -707,7 +708,7 @@ estimateRuntimeEntryTokens(postCompactEntries, { useMidConversationSystem });
 
 ```ts
 const useMidConversationSystem =
-  resolveRuntimeMidConversationSystemCapability(this).useMidConversationSystem;
+    resolveRuntimeMidConversationSystemCapability(this).useMidConversationSystem;
 ```
 
 然后传入 `maybeLocalMicrocompactRuntimeEntries(...)`。
@@ -716,8 +717,8 @@ const useMidConversationSystem =
 
 ```ts
 const projection = buildRuntimeProviderRequestMessages(this, {
-  entries,
-  applyCacheControl: false,
+    entries,
+    applyCacheControl: false,
 });
 ```
 
@@ -755,8 +756,8 @@ MCS-capable provider 预期片段：
 
 ```json
 [
-  { "role": "user", "content": "..." },
-  { "role": "system", "content": "Called the Read tool..." }
+    { "role": "user", "content": "..." },
+    { "role": "system", "content": "Called the Read tool..." }
 ]
 ```
 
@@ -764,11 +765,11 @@ unsupported provider 预期片段：
 
 ```json
 [
-  {
-    "role": "user",
-    "content": "<system-reminder>\nCalled the Read tool..."
-  },
-  { "role": "user", "content": "..." }
+    {
+        "role": "user",
+        "content": "<system-reminder>\nCalled the Read tool..."
+    },
+    { "role": "user", "content": "..." }
 ]
 ```
 

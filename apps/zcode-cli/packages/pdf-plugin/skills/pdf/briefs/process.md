@@ -175,21 +175,21 @@ To determine bbox coordinates: open the rendered PNG in an image viewer or use P
 
 ```json
 {
-  "sheet": [
-    {
-      "pg": 1,
-      "dims": [1000, 1400],
-      "regions": [
+    "sheet": [
         {
-          "id": "last_name",
-          "hint": "Last name field",
-          "label": { "tag": "Last name", "bbox": [30, 125, 95, 142] },
-          "target": { "bbox": [100, 125, 280, 142] },
-          "ink": { "value": "Simpson", "size": 14, "color": "000000" }
+            "pg": 1,
+            "dims": [1000, 1400],
+            "regions": [
+                {
+                    "id": "last_name",
+                    "hint": "Last name field",
+                    "label": { "tag": "Last name", "bbox": [30, 125, 95, 142] },
+                    "target": { "bbox": [100, 125, 280, 142] },
+                    "ink": { "value": "Simpson", "size": 14, "color": "000000" }
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
 ```
 

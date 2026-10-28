@@ -89,61 +89,61 @@ Streaming tool execution:
 
 1. Core owns the streaming state machine.
 
-   The adapter should normalize AI SDK stream chunks; core should decide when
-   to emit events, persist parts, schedule tools, wait for permission, execute
-   tools, and loop.
+    The adapter should normalize AI SDK stream chunks; core should decide when
+    to emit events, persist parts, schedule tools, wait for permission, execute
+    tools, and loop.
 
 2. AI SDK tools are projection only.
 
-   `toAiSdkTools()` must continue exposing schemas without provider-side
-   `execute`. A model tool call becomes a ZCode `ExecutableToolCall` only after
-   core validates and schedules it.
+    `toAiSdkTools()` must continue exposing schemas without provider-side
+    `execute`. A model tool call becomes a ZCode `ExecutableToolCall` only after
+    core validates and schedules it.
 
 3. `SessionEvent` is the durable streaming API.
 
-   Every user-visible delta or lifecycle transition should first become a
-   `SessionEvent`, then TUI/ZCode app-server/debug clients project from those events.
+    Every user-visible delta or lifecycle transition should first become a
+    `SessionEvent`, then TUI/ZCode app-server/debug clients project from those events.
 
 4. Production v1 executes tools after a streaming model step completes.
 
-   This matches the current generate-text loop semantics while giving users
-   token streaming and stream-path tool calls. Starting tools before model
-   finish is an explicit later phase.
+    This matches the current generate-text loop semantics while giving users
+    token streaming and stream-path tool calls. Starting tools before model
+    finish is an explicit later phase.
 
 5. No transparent retry after committed stream output.
 
-   Adapter retry is safe while it only holds discardable prelude events such as
-   reasoning/tool-input deltas. Once text deltas, formal tool calls, or finish
-   events are emitted or persisted, failures become stream errors and the runtime
-   must close or recover the turn explicitly.
+    Adapter retry is safe while it only holds discardable prelude events such as
+    reasoning/tool-input deltas. Once text deltas, formal tool calls, or finish
+    events are emitted or persisted, failures become stream errors and the runtime
+    must close or recover the turn explicitly.
 
 ## Phase 0: Spec and Contract Cleanup
 
 Add or refine contracts before runtime edits.
 
 - Expand `ModelStreamEvent` to cover:
-  - `start`
-  - `text_start`
-  - `text_delta`
-  - `text_end`
-  - `reasoning_start`
-  - `reasoning_delta`
-  - `reasoning_end`
-  - `tool_input_start`
-  - `tool_input_delta`
-  - `tool_input_end`
-  - `tool_call`
-  - `finish`
-  - `error`
+    - `start`
+    - `text_start`
+    - `text_delta`
+    - `text_end`
+    - `reasoning_start`
+    - `reasoning_delta`
+    - `reasoning_end`
+    - `tool_input_start`
+    - `tool_input_delta`
+    - `tool_input_end`
+    - `tool_call`
+    - `finish`
+    - `error`
 - Extend `ModelStreamingPayload` so it can identify stream part kind, model
   request id, assistant message id, part id, tool call id, and delta text.
 - Define a `StreamingModelStep` accumulator contract:
-  - assistant text
-  - reasoning text
-  - completed tool calls
-  - usage
-  - finish reason
-  - provider metadata
+    - assistant text
+    - reasoning text
+    - completed tool calls
+    - usage
+    - finish reason
+    - provider metadata
 - Document when partial output is persisted and how interrupted output is marked.
 
 Acceptance:
@@ -161,9 +161,9 @@ Tasks:
 - Add `AgentRuntimeConfig.modelStreaming?: "off" | "on"` or equivalent.
 - Add a runtime helper such as `runModelStepStreaming()`.
 - Consume `modelAdapter.streamText()` and emit ordered events:
-  - `model_request`
-  - `model_streaming` for text/reasoning deltas
-  - `model_complete`
+    - `model_request`
+    - `model_streaming` for text/reasoning deltas
+    - `model_complete`
 - Persist assistant text parts with stable ids. For v1, text may be appended in
   memory during streaming and persisted at `text_end` or `finish`; live deltas
   still go through `SessionEvent`.
@@ -188,12 +188,12 @@ Tasks:
 - Accumulate completed `tool_call` events during a streaming step.
 - After the model step finishes, reuse the current scheduling and execution
   path:
-  - add assistant message with tool calls to `MessageHistory`
-  - persist pending tool parts
-  - emit `tool_call_scheduled`
-  - execute through `ToolExecutor`
-  - append model-visible tool results to history
-  - continue the loop with another streaming model step
+    - add assistant message with tool calls to `MessageHistory`
+    - persist pending tool parts
+    - emit `tool_call_scheduled`
+    - execute through `ToolExecutor`
+    - append model-visible tool results to history
+    - continue the loop with another streaming model step
 - Keep permission approval inside `ToolExecutor` and existing broker.
 - Ensure tool result ids match provider tool call ids exactly.
 

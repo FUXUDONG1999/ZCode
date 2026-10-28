@@ -12,62 +12,62 @@ import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { workflowSettingsChangeSegments } from "./workflowSettingsChange.js";
 
 export function WorkflowSettingsChangeRow({
-  amend,
-  at,
-  providerName,
+    amend,
+    at,
+    providerName,
 }: {
-  amend: WorkflowSettingsAmendMeta;
-  /** 设置轮的时刻；缺席即不写。 */
-  at?: number;
-  /** providerId → provider 名（与卡上的模型段同一个查找）；缺席退回裸 modelId。 */
-  providerName?: (providerId: string) => string | undefined;
+    amend: WorkflowSettingsAmendMeta;
+    /** 设置轮的时刻；缺席即不写。 */
+    at?: number;
+    /** providerId → provider 名（与卡上的模型段同一个查找）；缺席退回裸 modelId。 */
+    providerName?: (providerId: string) => string | undefined;
 }) {
-  const { intl } = useZCodeIntl();
-  const segments = workflowSettingsChangeSegments(amend, {
-    formatMessage: intl.formatMessage.bind(intl),
-    ...(providerName === undefined ? {} : { providerName }),
-  });
-  const time =
-    at === undefined
-      ? undefined
-      : new Intl.DateTimeFormat(undefined, {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }).format(at);
-  const parts = [
-    intl.formatMessage({ id: "chat.toolCall.workflow.settingsChange.kind" }),
-    ...segments,
-    ...(time === undefined ? [] : [time]),
-  ];
-  return (
-    <div
-      className="flex min-w-0 items-center gap-2 py-0.5 text-ui-base text-foreground-subtle"
-      data-testid="workflow-settings-change-row"
-    >
-      <SlidersHorizontalIcon aria-hidden className="size-4 shrink-0" />
-      <span className="flex min-w-0 flex-wrap items-center gap-x-2">
-        {parts.map((part, index) => (
-          <Fragment key={index}>
-            {index > 0 ? (
-              <span aria-hidden className="text-foreground-subtlest">
-                ·
-              </span>
-            ) : null}
-            <span
-              className={
-                index === 0
-                  ? "font-medium"
-                  : index === parts.length - 1 && time !== undefined
-                    ? "text-foreground-subtlest tabular-nums"
-                    : undefined
-              }
-            >
-              {part}
+    const { intl } = useZCodeIntl();
+    const segments = workflowSettingsChangeSegments(amend, {
+        formatMessage: intl.formatMessage.bind(intl),
+        ...(providerName === undefined ? {} : { providerName }),
+    });
+    const time =
+        at === undefined
+            ? undefined
+            : new Intl.DateTimeFormat(undefined, {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+              }).format(at);
+    const parts = [
+        intl.formatMessage({ id: "chat.toolCall.workflow.settingsChange.kind" }),
+        ...segments,
+        ...(time === undefined ? [] : [time]),
+    ];
+    return (
+        <div
+            className="flex min-w-0 items-center gap-2 py-0.5 text-ui-base text-foreground-subtle"
+            data-testid="workflow-settings-change-row"
+        >
+            <SlidersHorizontalIcon aria-hidden className="size-4 shrink-0" />
+            <span className="flex min-w-0 flex-wrap items-center gap-x-2">
+                {parts.map((part, index) => (
+                    <Fragment key={index}>
+                        {index > 0 ? (
+                            <span aria-hidden className="text-foreground-subtlest">
+                                ·
+                            </span>
+                        ) : null}
+                        <span
+                            className={
+                                index === 0
+                                    ? "font-medium"
+                                    : index === parts.length - 1 && time !== undefined
+                                      ? "text-foreground-subtlest tabular-nums"
+                                      : undefined
+                            }
+                        >
+                            {part}
+                        </span>
+                    </Fragment>
+                ))}
             </span>
-          </Fragment>
-        ))}
-      </span>
-    </div>
-  );
+        </div>
+    );
 }

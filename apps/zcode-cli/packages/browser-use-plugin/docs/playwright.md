@@ -65,8 +65,8 @@ When an action may open a popup/new tab and the source tab does not show the exp
 
 ```js
 const [controlledTabs, userTabs] = await Promise.all([
-  browser.tabs.list(),
-  browser.user.openTabs(),
+    browser.tabs.list(),
+    browser.user.openTabs(),
 ]);
 ({ controlledTabs, userTabs });
 ```

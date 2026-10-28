@@ -1,7 +1,7 @@
 import { createConfig, type ConfigResult } from "@zcode/adapters/config";
 import {
-  createSharedZCodeCredentialStore,
-  SHARED_ZCODE_CREDENTIAL_KEYS,
+    createSharedZCodeCredentialStore,
+    SHARED_ZCODE_CREDENTIAL_KEYS,
 } from "@zcode/adapters/auth";
 import { createNodeHttpClientAdapter } from "@zcode/adapters/http";
 import { createProviderEndpointRoutingPort } from "@zcode/adapters/model";
@@ -16,90 +16,90 @@ const processRoutingPorts = new Map<string, ProviderEndpointRoutingPort>();
 type NetworkConfig = ConfigResult["config"]["network"];
 
 export interface ResolveProcessProviderEndpointRoutingPortOptions {
-  appVersion?: string;
-  env?: NodeJS.ProcessEnv;
-  logger: Logger;
-  network: NetworkConfig;
-  sourceTitle?: ModelProviderSourceTitle;
+    appVersion?: string;
+    env?: NodeJS.ProcessEnv;
+    logger: Logger;
+    network: NetworkConfig;
+    sourceTitle?: ModelProviderSourceTitle;
 }
 
 export interface CreateDefaultProviderEndpointRoutingPortOptions {
-  appVersion?: string;
-  env?: NodeJS.ProcessEnv;
-  loggerFactory?: LoggerFactory;
-  projectConfigPath?: string;
-  skipUserConfig?: boolean;
-  sourceTitle?: ModelProviderSourceTitle;
-  userConfigPath?: string;
-  workingDirectory: string;
+    appVersion?: string;
+    env?: NodeJS.ProcessEnv;
+    loggerFactory?: LoggerFactory;
+    projectConfigPath?: string;
+    skipUserConfig?: boolean;
+    sourceTitle?: ModelProviderSourceTitle;
+    userConfigPath?: string;
+    workingDirectory: string;
 }
 
 export function resolveProcessProviderEndpointRoutingPort(
-  options: ResolveProcessProviderEndpointRoutingPortOptions,
+    options: ResolveProcessProviderEndpointRoutingPortOptions,
 ): ProviderEndpointRoutingPort {
-  const env = options.env ?? process.env;
-  const endpointOrigin = resolveRuntimeZCodeEndpointOrigin(env);
-  const key = routingRegistryKey(endpointOrigin, options.network);
-  const existing = processRoutingPorts.get(key);
-  if (existing) {
-    return existing;
-  }
+    const env = options.env ?? process.env;
+    const endpointOrigin = resolveRuntimeZCodeEndpointOrigin(env);
+    const key = routingRegistryKey(endpointOrigin, options.network);
+    const existing = processRoutingPorts.get(key);
+    if (existing) {
+        return existing;
+    }
 
-  const credentialStore = createSharedZCodeCredentialStore({ env });
+    const credentialStore = createSharedZCodeCredentialStore({ env });
 
-  const port = createProviderEndpointRoutingPort({
-    appVersion: options.appVersion,
-    endpointOrigin,
-    httpClient: createNodeHttpClientAdapter({
-      caCertFile: options.network.caCertFile,
-      env,
-      noProxy: options.network.noProxy,
-      proxyUrl: options.network.httpProxy,
-    }),
-    logger: options.logger.child({
-      module: "adapters.model.provider_endpoint_routing",
-    }),
-    readZCodeJwt: () => credentialStore.load(SHARED_ZCODE_CREDENTIAL_KEYS.zcodeJwtToken),
-    sourceHeaders: () =>
-      createProviderEndpointRoutingSourceHeaders({
+    const port = createProviderEndpointRoutingPort({
         appVersion: options.appVersion,
-        env,
-        sourceTitle: options.sourceTitle,
-      }),
-  });
-  processRoutingPorts.set(key, port);
-  return port;
+        endpointOrigin,
+        httpClient: createNodeHttpClientAdapter({
+            caCertFile: options.network.caCertFile,
+            env,
+            noProxy: options.network.noProxy,
+            proxyUrl: options.network.httpProxy,
+        }),
+        logger: options.logger.child({
+            module: "adapters.model.provider_endpoint_routing",
+        }),
+        readZCodeJwt: () => credentialStore.load(SHARED_ZCODE_CREDENTIAL_KEYS.zcodeJwtToken),
+        sourceHeaders: () =>
+            createProviderEndpointRoutingSourceHeaders({
+                appVersion: options.appVersion,
+                env,
+                sourceTitle: options.sourceTitle,
+            }),
+    });
+    processRoutingPorts.set(key, port);
+    return port;
 }
 
 export function createDefaultProviderEndpointRoutingPort(
-  options: CreateDefaultProviderEndpointRoutingPortOptions,
+    options: CreateDefaultProviderEndpointRoutingPortOptions,
 ): ProviderEndpointRoutingPort {
-  const env = options.env ?? process.env;
-  const configResult = createConfig({
-    env,
-    projectConfigPath: options.projectConfigPath,
-    skipUserConfig: options.skipUserConfig,
-    userConfigPath: options.userConfigPath,
-    workingDirectory: options.workingDirectory,
-  });
-  const loggerFactory = options.loggerFactory ?? createNodeLoggerFactory({ env });
-  const logger = loggerFactory.createLogger("zcode").child({
-    module: "bootstrap.provider_endpoint_routing",
-  });
-  return resolveProcessProviderEndpointRoutingPort({
-    appVersion: options.appVersion,
-    env,
-    logger,
-    network: configResult.config.network,
-    sourceTitle: options.sourceTitle,
-  });
+    const env = options.env ?? process.env;
+    const configResult = createConfig({
+        env,
+        projectConfigPath: options.projectConfigPath,
+        skipUserConfig: options.skipUserConfig,
+        userConfigPath: options.userConfigPath,
+        workingDirectory: options.workingDirectory,
+    });
+    const loggerFactory = options.loggerFactory ?? createNodeLoggerFactory({ env });
+    const logger = loggerFactory.createLogger("zcode").child({
+        module: "bootstrap.provider_endpoint_routing",
+    });
+    return resolveProcessProviderEndpointRoutingPort({
+        appVersion: options.appVersion,
+        env,
+        logger,
+        network: configResult.config.network,
+        sourceTitle: options.sourceTitle,
+    });
 }
 
 function routingRegistryKey(endpointOrigin: string, network: NetworkConfig): string {
-  return JSON.stringify({
-    caCertFile: network.caCertFile,
-    endpointOrigin,
-    httpProxy: network.httpProxy,
-    noProxy: network.noProxy,
-  });
+    return JSON.stringify({
+        caCertFile: network.caCertFile,
+        endpointOrigin,
+        httpProxy: network.httpProxy,
+        noProxy: network.noProxy,
+    });
 }

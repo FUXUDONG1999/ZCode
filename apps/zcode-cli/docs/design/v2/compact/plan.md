@@ -391,15 +391,15 @@ active context 的裁剪、summary 生成、boundary 持久化和 resume/replay 
 ## 推荐 PR 拆分
 
 1. `compact contracts and projection`
-   - schema、event、active chain、post-compact builder、测试。
+    - schema、event、active chain、post-compact builder、测试。
 2. `manual compact command`
-   - `/compact`、summary prompt、provider adapter 调用、post-compact write、测试。
+    - `/compact`、summary prompt、provider adapter 调用、post-compact write、测试。
 3. `auto compact policy`
-   - token threshold、recursion guard、failure circuit breaker、telemetry、测试。
+    - token threshold、recursion guard、failure circuit breaker、telemetry、测试。
 4. `compact overflow fallback`
-   - PTL retry、media stripping、reactive compact 最小路径、测试。
+    - PTL retry、media stripping、reactive compact 最小路径、测试。
 5. `tool result budget`
-   - 大输出 artifact 化、context projection、UI 引用、测试。
+    - 大输出 artifact 化、context projection、UI 引用、测试。
 
 ## 验证清单
 

@@ -12,105 +12,105 @@ const FORCE_UPDATE_PROMPT_COMPACT_HEIGHT = 232;
 type ForceUpdatePromptAction = "auto" | "manual" | "quit";
 type ForceUpdatePromptState = ForceAutoUpdateState | { kind: "idle" } | { kind: "confirm-close" };
 type StartForceAutoUpdate = (
-  onStateChange: (state: ForceAutoUpdateState) => void,
+    onStateChange: (state: ForceAutoUpdateState) => void,
 ) => (() => void) | void;
 
 interface ShowForceUpdatePromptOptions {
-  startAutoUpdate?: StartForceAutoUpdate;
+    startAutoUpdate?: StartForceAutoUpdate;
 }
 
 function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
 }
 
 function readForceUpdatePromptIcon(): string | null {
-  try {
-    const iconPath = resolve(process.cwd(), "build/icon.png");
-    const icon = readFileSync(iconPath).toString("base64");
-    return `data:image/png;base64,${icon}`;
-  } catch {
-    return null;
-  }
+    try {
+        const iconPath = resolve(process.cwd(), "build/icon.png");
+        const icon = readFileSync(iconPath).toString("base64");
+        return `data:image/png;base64,${icon}`;
+    } catch {
+        return null;
+    }
 }
 
 function buildForceUpdatePromptMessages(locale: Locale) {
-  if (locale === "zh-CN") {
-    return {
-      checkingTitle: "正在检查更新",
-      checkingMessage: "请保持此窗口打开，MyAgent 正在查找可用更新。",
-      downloadingTitle: "正在下载更新",
-      downloadingVersionTitle: "正在下载更新 v{version}",
-      downloadingMessage: "下载完成后会自动安装，请勿关闭应用。",
-      readyTitle: "更新已下载",
-      readyMessage: "MyAgent 正在准备重启并安装更新。",
-      installingTitle: "正在安装更新",
-      installingMessage: "MyAgent 即将重启完成安装。",
-      errorTitle: "自动升级失败",
-      errorMessage: "你可以重试自动升级，或改用手动升级。",
-      devSkippedTitle: "调试环境无法自动升级",
-      devSkippedMessage: "自动升级仅在打包后的应用中可用，请使用手动升级或打包应用验证。",
-      confirmCloseTitle: "自动升级正在进行",
-      confirmCloseMessage:
-        "关闭窗口会中断当前自动升级流程，旧版本仍然无法进入主界面。你可以继续等待，或确认关闭并退出。",
-      confirmCloseButton: "确认关闭",
-      continueUpdateButton: "继续更新",
-      retryButton: "重试自动升级",
-      checkingButton: "检查中...",
-      downloadingButton: "下载中...",
-      installingButton: "安装中...",
-    };
-  }
+    if (locale === "zh-CN") {
+        return {
+            checkingTitle: "正在检查更新",
+            checkingMessage: "请保持此窗口打开，MyAgent 正在查找可用更新。",
+            downloadingTitle: "正在下载更新",
+            downloadingVersionTitle: "正在下载更新 v{version}",
+            downloadingMessage: "下载完成后会自动安装，请勿关闭应用。",
+            readyTitle: "更新已下载",
+            readyMessage: "MyAgent 正在准备重启并安装更新。",
+            installingTitle: "正在安装更新",
+            installingMessage: "MyAgent 即将重启完成安装。",
+            errorTitle: "自动升级失败",
+            errorMessage: "你可以重试自动升级，或改用手动升级。",
+            devSkippedTitle: "调试环境无法自动升级",
+            devSkippedMessage: "自动升级仅在打包后的应用中可用，请使用手动升级或打包应用验证。",
+            confirmCloseTitle: "自动升级正在进行",
+            confirmCloseMessage:
+                "关闭窗口会中断当前自动升级流程，旧版本仍然无法进入主界面。你可以继续等待，或确认关闭并退出。",
+            confirmCloseButton: "确认关闭",
+            continueUpdateButton: "继续更新",
+            retryButton: "重试自动升级",
+            checkingButton: "检查中...",
+            downloadingButton: "下载中...",
+            installingButton: "安装中...",
+        };
+    }
 
-  return {
-    checkingTitle: "Checking for updates",
-    checkingMessage: "Keep this window open while MyAgent checks for updates.",
-    downloadingTitle: "Downloading update",
-    downloadingVersionTitle: "Downloading update v{version}",
-    downloadingMessage: "MyAgent will install the update automatically after download.",
-    readyTitle: "Update downloaded",
-    readyMessage: "MyAgent is preparing to restart and install the update.",
-    installingTitle: "Installing update",
-    installingMessage: "MyAgent will restart to finish installing the update.",
-    errorTitle: "Auto update failed",
-    errorMessage: "You can retry auto update or use manual update.",
-    devSkippedTitle: "Auto update unavailable in development",
-    devSkippedMessage:
-      "Auto update is only available in packaged apps. Use manual update or test a packaged build.",
-    confirmCloseTitle: "Auto update in progress",
-    confirmCloseMessage:
-      "Closing this window will stop the current auto update flow, and this old version still cannot open the main app. You can keep waiting or close and quit.",
-    confirmCloseButton: "Close anyway",
-    continueUpdateButton: "Continue update",
-    retryButton: "Retry auto update",
-    checkingButton: "Checking...",
-    downloadingButton: "Downloading...",
-    installingButton: "Installing...",
-  };
+    return {
+        checkingTitle: "Checking for updates",
+        checkingMessage: "Keep this window open while MyAgent checks for updates.",
+        downloadingTitle: "Downloading update",
+        downloadingVersionTitle: "Downloading update v{version}",
+        downloadingMessage: "MyAgent will install the update automatically after download.",
+        readyTitle: "Update downloaded",
+        readyMessage: "MyAgent is preparing to restart and install the update.",
+        installingTitle: "Installing update",
+        installingMessage: "MyAgent will restart to finish installing the update.",
+        errorTitle: "Auto update failed",
+        errorMessage: "You can retry auto update or use manual update.",
+        devSkippedTitle: "Auto update unavailable in development",
+        devSkippedMessage:
+            "Auto update is only available in packaged apps. Use manual update or test a packaged build.",
+        confirmCloseTitle: "Auto update in progress",
+        confirmCloseMessage:
+            "Closing this window will stop the current auto update flow, and this old version still cannot open the main app. You can keep waiting or close and quit.",
+        confirmCloseButton: "Close anyway",
+        continueUpdateButton: "Continue update",
+        retryButton: "Retry auto update",
+        checkingButton: "Checking...",
+        downloadingButton: "Downloading...",
+        installingButton: "Installing...",
+    };
 }
 
 function renderForceUpdatePromptHtml(text: ForceUpdateDialogText, locale: Locale): string {
-  const icon = readForceUpdatePromptIcon();
-  const messages = buildForceUpdatePromptMessages(locale);
-  const detailLines = text.detail
-    .split("\n")
-    .map((line) => `<div class="version-row">${escapeHtml(line)}</div>`)
-    .join("");
-  const stateMessages = JSON.stringify(messages);
-  const initialState = JSON.stringify({
-    title: text.title,
-    message: text.message,
-    detailHtml: detailLines,
-    autoButton: text.autoUpdateButton,
-    manualButton: text.manualUpdateButton,
-    quitButton: text.quitButton,
-  });
+    const icon = readForceUpdatePromptIcon();
+    const messages = buildForceUpdatePromptMessages(locale);
+    const detailLines = text.detail
+        .split("\n")
+        .map((line) => `<div class="version-row">${escapeHtml(line)}</div>`)
+        .join("");
+    const stateMessages = JSON.stringify(messages);
+    const initialState = JSON.stringify({
+        title: text.title,
+        message: text.message,
+        detailHtml: detailLines,
+        autoButton: text.autoUpdateButton,
+        manualButton: text.manualUpdateButton,
+        quitButton: text.quitButton,
+    });
 
-  return `<!doctype html>
+    return `<!doctype html>
 <html lang="${escapeHtml(locale)}">
 <head>
   <meta charset="utf-8" />
@@ -486,156 +486,156 @@ function renderForceUpdatePromptHtml(text: ForceUpdateDialogText, locale: Locale
 }
 
 export async function showForceUpdatePrompt(
-  text: ForceUpdateDialogText,
-  locale: Locale,
-  logger: ForceUpdateGuardLogger,
-  options: ShowForceUpdatePromptOptions = {},
+    text: ForceUpdateDialogText,
+    locale: Locale,
+    logger: ForceUpdateGuardLogger,
+    options: ShowForceUpdatePromptOptions = {},
 ): Promise<ForceUpdatePromptAction> {
-  const { BrowserWindow, nativeTheme } = await import("electron");
-  const parentWindow =
-    BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0] ?? undefined;
-  return new Promise<ForceUpdatePromptAction>((resolvePrompt) => {
-    let resolved = false;
-    let shown = false;
-    let autoUpdateDispose: (() => void) | undefined;
-    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
-    const win = new BrowserWindow({
-      width: FORCE_UPDATE_PROMPT_WIDTH,
-      height: FORCE_UPDATE_PROMPT_HEIGHT,
-      minWidth: FORCE_UPDATE_PROMPT_WIDTH,
-      minHeight: FORCE_UPDATE_PROMPT_HEIGHT,
-      parent: parentWindow,
-      modal: Boolean(parentWindow),
-      frame: false,
-      transparent: false,
-      hasShadow: true,
-      roundedCorners: false,
-      resizable: false,
-      minimizable: false,
-      maximizable: false,
-      fullscreenable: false,
-      show: false,
-      alwaysOnTop: !parentWindow,
-      center: true,
-      focusable: true,
-      skipTaskbar: false,
-      paintWhenInitiallyHidden: true,
-      title: text.title,
-      backgroundColor: nativeTheme.shouldUseDarkColors ? "#2b2b2b" : "#f8f8f8",
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        sandbox: true,
-      },
-    });
-
-    const updatePromptState = (state: ForceUpdatePromptState) => {
-      if (win.isDestroyed()) {
-        return;
-      }
-      const script = `window.__setForceUpdateState?.(${JSON.stringify(state)})`;
-      void win.webContents.executeJavaScript(script).catch((error) => {
-        logger.warn("[force-update] 更新强制升级提示状态失败", { error });
-      });
-    };
-
-    const updatePromptHeight = (height: number) => {
-      if (win.isDestroyed()) {
-        return;
-      }
-      // 下载态隐藏版本说明后需要收回窗口高度，避免出现大片空白；确认关闭/错误态再恢复默认高度。
-      win.setSize(FORCE_UPDATE_PROMPT_WIDTH, height);
-      win.center();
-    };
-
-    const resolveOnce = (action: ForceUpdatePromptAction, closeWindow: boolean) => {
-      if (resolved && !closeWindow) {
-        return;
-      }
-      if (!resolved) {
-        resolved = true;
-        resolvePrompt(action);
-      }
-      if (fallbackTimer) {
-        clearTimeout(fallbackTimer);
-      }
-      if (closeWindow && !win.isDestroyed()) {
-        win.close();
-      }
-    };
-
-    const startAutoUpdate = () => {
-      if (autoUpdateDispose) {
-        autoUpdateDispose();
-      }
-      logger.info("[force-update] 用户选择自动升级");
-      updatePromptState({ kind: "checking" });
-      autoUpdateDispose =
-        options.startAutoUpdate?.((state) => updatePromptState(state)) ?? undefined;
-    };
-
-    const showPromptWindow = (source: string) => {
-      if (win.isDestroyed()) {
-        return;
-      }
-      if (!shown) {
-        shown = true;
-        logger.info(`[force-update] 显示强制升级提示窗口 source=${source}`);
-      }
-      win.show();
-      win.focus();
-      // 启动前没有主窗口时，原生消息框在部分开发环境不可见；显式置顶保证用户能看到强制升级提示。
-      if (!parentWindow) {
-        win.setAlwaysOnTop(true, "modal-panel");
-      }
-    };
-
-    win.on("closed", () => {
-      autoUpdateDispose?.();
-      if (!resolved) {
-        // 自动升级是异步流程，用户关闭保留中的强更窗口时仍要把最终退出动作交还给 guard。
-        resolveOnce("quit", false);
-      }
-    });
-    win.webContents.on("page-title-updated", (event, title) => {
-      if (title.startsWith("force-update-height:")) {
-        event.preventDefault();
-        const height = Number.parseInt(title.slice("force-update-height:".length), 10);
-        if (Number.isFinite(height)) {
-          updatePromptHeight(height);
-        }
-        return;
-      }
-      if (!title.startsWith("force-update:")) {
-        return;
-      }
-      event.preventDefault();
-      const action = title.slice("force-update:".length);
-      if (action === "auto") {
-        startAutoUpdate();
-        return;
-      }
-      autoUpdateDispose?.();
-      resolveOnce(action === "manual" ? "manual" : "quit", true);
-    });
-    win.once("ready-to-show", () => showPromptWindow("ready-to-show"));
-    win.webContents.once("did-finish-load", () => {
-      void win.webContents
-        .executeJavaScript(
-          `window.__setForceUpdatePromptHeight = (height) => { document.title = 'force-update-height:' + height; };`,
-        )
-        .catch((error) => {
-          logger.warn("[force-update] 初始化强制升级窗口高度桥失败", { error });
+    const { BrowserWindow, nativeTheme } = await import("electron");
+    const parentWindow =
+        BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0] ?? undefined;
+    return new Promise<ForceUpdatePromptAction>((resolvePrompt) => {
+        let resolved = false;
+        let shown = false;
+        let autoUpdateDispose: (() => void) | undefined;
+        let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+        const win = new BrowserWindow({
+            width: FORCE_UPDATE_PROMPT_WIDTH,
+            height: FORCE_UPDATE_PROMPT_HEIGHT,
+            minWidth: FORCE_UPDATE_PROMPT_WIDTH,
+            minHeight: FORCE_UPDATE_PROMPT_HEIGHT,
+            parent: parentWindow,
+            modal: Boolean(parentWindow),
+            frame: false,
+            transparent: false,
+            hasShadow: true,
+            roundedCorners: false,
+            resizable: false,
+            minimizable: false,
+            maximizable: false,
+            fullscreenable: false,
+            show: false,
+            alwaysOnTop: !parentWindow,
+            center: true,
+            focusable: true,
+            skipTaskbar: false,
+            paintWhenInitiallyHidden: true,
+            title: text.title,
+            backgroundColor: nativeTheme.shouldUseDarkColors ? "#2b2b2b" : "#f8f8f8",
+            webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true,
+                sandbox: true,
+            },
         });
-      showPromptWindow("did-finish-load");
+
+        const updatePromptState = (state: ForceUpdatePromptState) => {
+            if (win.isDestroyed()) {
+                return;
+            }
+            const script = `window.__setForceUpdateState?.(${JSON.stringify(state)})`;
+            void win.webContents.executeJavaScript(script).catch((error) => {
+                logger.warn("[force-update] 更新强制升级提示状态失败", { error });
+            });
+        };
+
+        const updatePromptHeight = (height: number) => {
+            if (win.isDestroyed()) {
+                return;
+            }
+            // 下载态隐藏版本说明后需要收回窗口高度，避免出现大片空白；确认关闭/错误态再恢复默认高度。
+            win.setSize(FORCE_UPDATE_PROMPT_WIDTH, height);
+            win.center();
+        };
+
+        const resolveOnce = (action: ForceUpdatePromptAction, closeWindow: boolean) => {
+            if (resolved && !closeWindow) {
+                return;
+            }
+            if (!resolved) {
+                resolved = true;
+                resolvePrompt(action);
+            }
+            if (fallbackTimer) {
+                clearTimeout(fallbackTimer);
+            }
+            if (closeWindow && !win.isDestroyed()) {
+                win.close();
+            }
+        };
+
+        const startAutoUpdate = () => {
+            if (autoUpdateDispose) {
+                autoUpdateDispose();
+            }
+            logger.info("[force-update] 用户选择自动升级");
+            updatePromptState({ kind: "checking" });
+            autoUpdateDispose =
+                options.startAutoUpdate?.((state) => updatePromptState(state)) ?? undefined;
+        };
+
+        const showPromptWindow = (source: string) => {
+            if (win.isDestroyed()) {
+                return;
+            }
+            if (!shown) {
+                shown = true;
+                logger.info(`[force-update] 显示强制升级提示窗口 source=${source}`);
+            }
+            win.show();
+            win.focus();
+            // 启动前没有主窗口时，原生消息框在部分开发环境不可见；显式置顶保证用户能看到强制升级提示。
+            if (!parentWindow) {
+                win.setAlwaysOnTop(true, "modal-panel");
+            }
+        };
+
+        win.on("closed", () => {
+            autoUpdateDispose?.();
+            if (!resolved) {
+                // 自动升级是异步流程，用户关闭保留中的强更窗口时仍要把最终退出动作交还给 guard。
+                resolveOnce("quit", false);
+            }
+        });
+        win.webContents.on("page-title-updated", (event, title) => {
+            if (title.startsWith("force-update-height:")) {
+                event.preventDefault();
+                const height = Number.parseInt(title.slice("force-update-height:".length), 10);
+                if (Number.isFinite(height)) {
+                    updatePromptHeight(height);
+                }
+                return;
+            }
+            if (!title.startsWith("force-update:")) {
+                return;
+            }
+            event.preventDefault();
+            const action = title.slice("force-update:".length);
+            if (action === "auto") {
+                startAutoUpdate();
+                return;
+            }
+            autoUpdateDispose?.();
+            resolveOnce(action === "manual" ? "manual" : "quit", true);
+        });
+        win.once("ready-to-show", () => showPromptWindow("ready-to-show"));
+        win.webContents.once("did-finish-load", () => {
+            void win.webContents
+                .executeJavaScript(
+                    `window.__setForceUpdatePromptHeight = (height) => { document.title = 'force-update-height:' + height; };`,
+                )
+                .catch((error) => {
+                    logger.warn("[force-update] 初始化强制升级窗口高度桥失败", { error });
+                });
+            showPromptWindow("did-finish-load");
+        });
+        win.webContents.once("did-fail-load", (_event, errorCode, errorDescription) => {
+            logger.warn("[force-update] 强制升级提示窗口加载失败", { errorCode, errorDescription });
+            showPromptWindow("did-fail-load");
+        });
+        fallbackTimer = setTimeout(() => showPromptWindow("timeout"), 1000);
+        win.loadURL(
+            `data:text/html;charset=utf-8,${encodeURIComponent(renderForceUpdatePromptHtml(text, locale))}`,
+        );
     });
-    win.webContents.once("did-fail-load", (_event, errorCode, errorDescription) => {
-      logger.warn("[force-update] 强制升级提示窗口加载失败", { errorCode, errorDescription });
-      showPromptWindow("did-fail-load");
-    });
-    fallbackTimer = setTimeout(() => showPromptWindow("timeout"), 1000);
-    win.loadURL(
-      `data:text/html;charset=utf-8,${encodeURIComponent(renderForceUpdatePromptHtml(text, locale))}`,
-    );
-  });
 }

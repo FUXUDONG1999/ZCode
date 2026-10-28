@@ -12,10 +12,10 @@
 import type { DwfRunSessionListItem } from "@zcode/adapters/storage";
 import type { DynamicWorkflowRunProgressPayload } from "@zcode/contracts";
 import type {
-  JournalStorePort,
-  ListEventsOptions,
-  RunEvent,
-  StoredEvent,
+    JournalStorePort,
+    ListEventsOptions,
+    RunEvent,
+    StoredEvent,
 } from "@zcode/dynamic-workflow";
 import { WORKFLOW_RUNS_LIMITS } from "@zcode/shared/zcode-protocol-v4";
 import { coldCompiledHoles } from "./dynamic-workflow-run-holes.js";
@@ -45,15 +45,15 @@ import { TERMINAL_RUN_STATUSES } from "./dynamic-workflow-run-observation.js";
  * `resolveWorkflowDefaultConcurrency`。
  */
 export function replayRunProgress(
-  row: DwfRunSessionListItem,
-  journal: Pick<JournalStorePort, "listEvents">,
-  defaultConcurrency: number,
+    row: DwfRunSessionListItem,
+    journal: Pick<JournalStorePort, "listEvents">,
+    defaultConcurrency: number,
 ): DynamicWorkflowRunProgressPayload[] {
-  return replayRunProgressFromEvents(
-    row,
-    journal.listEvents(row.runId, COLD_REPLAY_EVENT_READ),
-    defaultConcurrency,
-  );
+    return replayRunProgressFromEvents(
+        row,
+        journal.listEvents(row.runId, COLD_REPLAY_EVENT_READ),
+        defaultConcurrency,
+    );
 }
 
 /**
@@ -68,8 +68,8 @@ export function replayRunProgress(
  * 约 2 GiB 的 item 解码进内存，而它们没有一条会被显示。
  */
 export const COLD_REPLAY_EVENT_READ: ListEventsOptions = {
-  types: "all",
-  reportItems: { limit: WORKFLOW_RUNS_LIMITS.maxReports },
+    types: "all",
+    reportItems: { limit: WORKFLOW_RUNS_LIMITS.maxReports },
 };
 
 /**
@@ -83,84 +83,84 @@ export const COLD_REPLAY_EVENT_READ: ListEventsOptions = {
  * 的返回），尾部结算的替换逻辑依赖「最后一条就是最后一条」。
  */
 export function replayRunProgressFromEvents(
-  row: DwfRunSessionListItem,
-  stored: readonly StoredEvent[],
-  defaultConcurrency: number,
+    row: DwfRunSessionListItem,
+    stored: readonly StoredEvent[],
+    defaultConcurrency: number,
 ): DynamicWorkflowRunProgressPayload[] {
-  const toolCallId = row.toolCallId === undefined ? {} : { toolCallId: row.toolCallId };
-  // 留白的类型（`hole-reached` 的派生字段）：live 侧读注册表条目上的编译产物，这里没有条目，只能
-  // 对行里的（有效）脚本重建一次站点表——**只在这批事件里真有留白到达时**才付这笔编译，绝大多数
-  // run 没有留白，冷回放因此与从前逐字相同。行里脚本缺席（老行）即不补。
-  const holeTypeOf = coldHoleTypeOf(row.scriptText, stored);
-  // 发起锚点：与 live 同一条铸造链，派生字段也要一致——
-  // 冷回放载荷与 live 载荷逐字节相等是本模块的契约（测试钉住）。锚点就在这批事件里（首条
-  // run-launched），不必再查一次 journal；升级前的 run 没有它，字段缺席。
-  const launched = stored.find((entry) => entry.event.type === "run-launched")?.event;
-  const launchInputId =
-    launched?.type === "run-launched" ? { launchInputId: launched.inputId } : {};
-  // lineage 指针与 live 同源（launch 侧从入参或 journal 行读，这里直接是行）。
-  const resumedFrom = row.resumedFrom === undefined ? {} : { resumedFrom: row.resumedFrom };
-  // 子代理模型与锚点**同源**：同一条 `run-launched` 事件（零 SQL，dwf_run 上没有这一列）。
-  // live 侧从 launch 入参或同一条事件读回同一个规范串，所以两侧载荷仍然逐字节相等。设过才在场。
-  const subagentModel =
-    launched?.type === "run-launched" && launched.subagentModel !== undefined
-      ? { subagentModel: launched.subagentModel }
-      : {};
-  // 脚本点名的模型绑定表：同一条事件、同一条论证（actor-created 的派生 `model` 据它映射），两侧载荷
-  // 因此仍然逐字节相等。
-  const modelBindings =
-    launched?.type === "run-launched" && launched.modelBindings !== undefined
-      ? { modelBindings: launched.modelBindings }
-      : {};
-  const terminal = TERMINAL_RUN_STATUSES.has(row.status);
-  const last = stored.at(-1);
-  // 只替换**尾部**的结算：resume 过的 run 中途还躺着上一世的 `run-settled`，那是真实历史，
-  // 紧随其后的 `run-started` 会把它翻回 running（reducer 的既有语义），不动它。
-  const trailingSettle = terminal && last?.event.type === "run-settled" ? last : undefined;
-  const replayable = trailingSettle === undefined ? stored : stored.slice(0, -1);
-  const payloads = replayable.map((entry) =>
-    toProgressPayload({
-      event: entry.event,
-      runId: row.runId,
-      sequence: entry.sequence,
-      ...toolCallId,
-      ...launchInputId,
-      ...resumedFrom,
-      ...subagentModel,
-      ...modelBindings,
-      concurrencyCeiling: defaultConcurrency,
-      ...(holeTypeOf === undefined ? {} : { holeTypeOf }),
-      ...(entry.event.type === "hole-reached" && entry.timeCreated !== undefined
-        ? { reachedAt: entry.timeCreated }
-        : {}),
-    }),
-  );
-  if (!terminal) return payloads;
-  const settled: RunEvent = {
-    type: "run-settled",
-    status: row.status,
-    // stopped 的行必带 reason（老行解码缺席时仓储已兜成 user）；其余状态不带。
-    ...(row.status === "stopped" ? { stopReason: row.stopReason ?? "user" } : {}),
-    ...(row.status === "stopped" && row.supersededBy !== undefined
-      ? { supersededBy: row.supersededBy }
-      : {}),
-    ...(row.failure === undefined ? {} : { error: row.failure }),
-  };
-  payloads.push(
-    toProgressPayload({
-      event: settled,
-      runId: row.runId,
-      // 替换时沿用被替换那条的 sequence（水位与 live 一致）；追加时接在最后一条之后。
-      sequence: trailingSettle?.sequence ?? (last?.sequence ?? 0) + 1,
-      ...toolCallId,
-      ...launchInputId,
-      ...resumedFrom,
-      ...subagentModel,
-      ...modelBindings,
-      concurrencyCeiling: defaultConcurrency,
-    }),
-  );
-  return payloads;
+    const toolCallId = row.toolCallId === undefined ? {} : { toolCallId: row.toolCallId };
+    // 留白的类型（`hole-reached` 的派生字段）：live 侧读注册表条目上的编译产物，这里没有条目，只能
+    // 对行里的（有效）脚本重建一次站点表——**只在这批事件里真有留白到达时**才付这笔编译，绝大多数
+    // run 没有留白，冷回放因此与从前逐字相同。行里脚本缺席（老行）即不补。
+    const holeTypeOf = coldHoleTypeOf(row.scriptText, stored);
+    // 发起锚点：与 live 同一条铸造链，派生字段也要一致——
+    // 冷回放载荷与 live 载荷逐字节相等是本模块的契约（测试钉住）。锚点就在这批事件里（首条
+    // run-launched），不必再查一次 journal；升级前的 run 没有它，字段缺席。
+    const launched = stored.find((entry) => entry.event.type === "run-launched")?.event;
+    const launchInputId =
+        launched?.type === "run-launched" ? { launchInputId: launched.inputId } : {};
+    // lineage 指针与 live 同源（launch 侧从入参或 journal 行读，这里直接是行）。
+    const resumedFrom = row.resumedFrom === undefined ? {} : { resumedFrom: row.resumedFrom };
+    // 子代理模型与锚点**同源**：同一条 `run-launched` 事件（零 SQL，dwf_run 上没有这一列）。
+    // live 侧从 launch 入参或同一条事件读回同一个规范串，所以两侧载荷仍然逐字节相等。设过才在场。
+    const subagentModel =
+        launched?.type === "run-launched" && launched.subagentModel !== undefined
+            ? { subagentModel: launched.subagentModel }
+            : {};
+    // 脚本点名的模型绑定表：同一条事件、同一条论证（actor-created 的派生 `model` 据它映射），两侧载荷
+    // 因此仍然逐字节相等。
+    const modelBindings =
+        launched?.type === "run-launched" && launched.modelBindings !== undefined
+            ? { modelBindings: launched.modelBindings }
+            : {};
+    const terminal = TERMINAL_RUN_STATUSES.has(row.status);
+    const last = stored.at(-1);
+    // 只替换**尾部**的结算：resume 过的 run 中途还躺着上一世的 `run-settled`，那是真实历史，
+    // 紧随其后的 `run-started` 会把它翻回 running（reducer 的既有语义），不动它。
+    const trailingSettle = terminal && last?.event.type === "run-settled" ? last : undefined;
+    const replayable = trailingSettle === undefined ? stored : stored.slice(0, -1);
+    const payloads = replayable.map((entry) =>
+        toProgressPayload({
+            event: entry.event,
+            runId: row.runId,
+            sequence: entry.sequence,
+            ...toolCallId,
+            ...launchInputId,
+            ...resumedFrom,
+            ...subagentModel,
+            ...modelBindings,
+            concurrencyCeiling: defaultConcurrency,
+            ...(holeTypeOf === undefined ? {} : { holeTypeOf }),
+            ...(entry.event.type === "hole-reached" && entry.timeCreated !== undefined
+                ? { reachedAt: entry.timeCreated }
+                : {}),
+        }),
+    );
+    if (!terminal) return payloads;
+    const settled: RunEvent = {
+        type: "run-settled",
+        status: row.status,
+        // stopped 的行必带 reason（老行解码缺席时仓储已兜成 user）；其余状态不带。
+        ...(row.status === "stopped" ? { stopReason: row.stopReason ?? "user" } : {}),
+        ...(row.status === "stopped" && row.supersededBy !== undefined
+            ? { supersededBy: row.supersededBy }
+            : {}),
+        ...(row.failure === undefined ? {} : { error: row.failure }),
+    };
+    payloads.push(
+        toProgressPayload({
+            event: settled,
+            runId: row.runId,
+            // 替换时沿用被替换那条的 sequence（水位与 live 一致）；追加时接在最后一条之后。
+            sequence: trailingSettle?.sequence ?? (last?.sequence ?? 0) + 1,
+            ...toolCallId,
+            ...launchInputId,
+            ...resumedFrom,
+            ...subagentModel,
+            ...modelBindings,
+            concurrencyCeiling: defaultConcurrency,
+        }),
+    );
+    return payloads;
 }
 
 /**
@@ -168,11 +168,11 @@ export function replayRunProgressFromEvents(
  * 需要时重建；没有即不补 `type`，UI 退回展示载荷。
  */
 function coldHoleTypeOf(
-  scriptText: string | undefined,
-  stored: readonly StoredEvent[],
+    scriptText: string | undefined,
+    stored: readonly StoredEvent[],
 ): ((siteId: string) => string | undefined) | undefined {
-  const holes = coldCompiledHoles(scriptText, stored);
-  return holes === undefined
-    ? undefined
-    : (siteId) => holes.find((hole) => hole.siteId === siteId)?.type;
+    const holes = coldCompiledHoles(scriptText, stored);
+    return holes === undefined
+        ? undefined
+        : (siteId) => holes.find((hole) => hole.siteId === siteId)?.type;
 }

@@ -12,24 +12,24 @@ import { selectWorkspaceZCodeState, useZCodeSessionStore } from "@/store/zcodeSe
  * providerId（团队套餐的它是一个 UUID）。
  */
 function workflowSubagentProviderNameLookup(
-  configOptions: readonly ZCodeConfigOption[] | null | undefined,
+    configOptions: readonly ZCodeConfigOption[] | null | undefined,
 ): ((providerId: string) => string | undefined) | undefined {
-  const entries = configOptions?.find((option) => option.category === "model")?.options;
-  if (entries === undefined) {
-    return undefined;
-  }
-  const names = new Map<string, string>();
-  for (const entry of entries) {
-    const providerId = entry.modelProviderId?.trim();
-    const providerName = entry.modelProviderName?.trim();
-    if (!providerId || !providerName || providerName === providerId) {
-      continue;
+    const entries = configOptions?.find((option) => option.category === "model")?.options;
+    if (entries === undefined) {
+        return undefined;
     }
-    if (!names.has(providerId)) {
-      names.set(providerId, providerName);
+    const names = new Map<string, string>();
+    for (const entry of entries) {
+        const providerId = entry.modelProviderId?.trim();
+        const providerName = entry.modelProviderName?.trim();
+        if (!providerId || !providerName || providerName === providerId) {
+            continue;
+        }
+        if (!names.has(providerId)) {
+            names.set(providerId, providerName);
+        }
     }
-  }
-  return names.size === 0 ? undefined : (providerId: string) => names.get(providerId);
+    return names.size === 0 ? undefined : (providerId: string) => names.get(providerId);
 }
 
 /**
@@ -37,13 +37,13 @@ function workflowSubagentProviderNameLookup(
  * 此时拼名规则退回裸 modelId，这是刻意的兜底，不是缺陷。
  */
 export function useWorkflowSubagentModelProviderName(
-  workspacePath: string | undefined,
-  workspaceIdentity?: string,
+    workspacePath: string | undefined,
+    workspaceIdentity?: string,
 ): ((providerId: string) => string | undefined) | undefined {
-  const configOptions = useZCodeSessionStore((state) =>
-    workspacePath === undefined
-      ? undefined
-      : selectWorkspaceZCodeState(state, workspacePath, workspaceIdentity).configOptions,
-  );
-  return useMemo(() => workflowSubagentProviderNameLookup(configOptions), [configOptions]);
+    const configOptions = useZCodeSessionStore((state) =>
+        workspacePath === undefined
+            ? undefined
+            : selectWorkspaceZCodeState(state, workspacePath, workspaceIdentity).configOptions,
+    );
+    return useMemo(() => workflowSubagentProviderNameLookup(configOptions), [configOptions]);
 }

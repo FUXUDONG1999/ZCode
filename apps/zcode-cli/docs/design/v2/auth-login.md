@@ -125,9 +125,9 @@ The HTTP response envelope is:
 
 ```json
 {
-  "code": 0,
-  "msg": "",
-  "data": {}
+    "code": 0,
+    "msg": "",
+    "data": {}
 }
 ```
 

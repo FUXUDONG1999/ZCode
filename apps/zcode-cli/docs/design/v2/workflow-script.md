@@ -19,15 +19,15 @@ an async module context:
 
 ```ts
 export const meta = {
-  name: "review-changes",
-  description: "Review changed files and verify findings",
-  phases: [{ title: "Review" }, { title: "Verify" }],
+    name: "review-changes",
+    description: "Review changed files and verify findings",
+    phases: [{ title: "Review" }, { title: "Verify" }],
 };
 
 phase("Review");
 const findings = await agent("Review the current diff for bugs.", {
-  label: "review:diff",
-  schema: FINDINGS_SCHEMA,
+    label: "review:diff",
+    schema: FINDINGS_SCHEMA,
 });
 return findings;
 ```
@@ -285,31 +285,31 @@ Input schema:
 
 ```json
 {
-  "type": "object",
-  "properties": {
-    "script": {
-      "type": "string",
-      "maxLength": 524288,
-      "description": "Self-contained workflow script. Must begin with `export const meta = { name, description, phases }` followed by the script body using agent()/parallel()/pipeline()/phase()."
+    "type": "object",
+    "properties": {
+        "script": {
+            "type": "string",
+            "maxLength": 524288,
+            "description": "Self-contained workflow script. Must begin with `export const meta = { name, description, phases }` followed by the script body using agent()/parallel()/pipeline()/phase()."
+        },
+        "name": {
+            "type": "string",
+            "description": "Name of a predefined workflow resolved from built-ins, project .zcode/workflows, or user ~/.zcode/workflows."
+        },
+        "args": {
+            "description": "Optional input value exposed to the script as the global `args`."
+        },
+        "scriptPath": {
+            "type": "string",
+            "description": "Path to a workflow script file on disk. Takes precedence over `script` and `name`."
+        },
+        "resumeFromRunId": {
+            "type": "string",
+            "pattern": "^wf_[a-z0-9-]{6,}$",
+            "description": "Run ID of a prior Workflow invocation to resume from."
+        }
     },
-    "name": {
-      "type": "string",
-      "description": "Name of a predefined workflow resolved from built-ins, project .zcode/workflows, or user ~/.zcode/workflows."
-    },
-    "args": {
-      "description": "Optional input value exposed to the script as the global `args`."
-    },
-    "scriptPath": {
-      "type": "string",
-      "description": "Path to a workflow script file on disk. Takes precedence over `script` and `name`."
-    },
-    "resumeFromRunId": {
-      "type": "string",
-      "pattern": "^wf_[a-z0-9-]{6,}$",
-      "description": "Run ID of a prior Workflow invocation to resume from."
-    }
-  },
-  "additionalProperties": false
+    "additionalProperties": false
 }
 ```
 

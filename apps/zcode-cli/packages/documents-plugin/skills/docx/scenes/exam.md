@@ -108,17 +108,17 @@ headers: { default: new Header({ children: [
 ```js
 // Horizontal info row (when no seal line) — borderless 3-column table
 new Table({
-  alignment: AlignmentType.CENTER,
-  columnWidths: [2800, 2800, 2800],
-  rows: [
-    new TableRow({
-      children: [
-        cell("Name: ______________"),
-        cell("Class: ______________", AlignmentType.CENTER),
-        cell("ID: ______________", AlignmentType.RIGHT),
-      ],
-    }),
-  ],
+    alignment: AlignmentType.CENTER,
+    columnWidths: [2800, 2800, 2800],
+    rows: [
+        new TableRow({
+            children: [
+                cell("Name: ______________"),
+                cell("Class: ______________", AlignmentType.CENTER),
+                cell("ID: ______________", AlignmentType.RIGHT),
+            ],
+        }),
+    ],
 });
 ```
 
@@ -172,13 +172,13 @@ Should include: total score, exam duration, answer method, special requirements 
 ```js
 // Exam papers use only black/white/grey for clear photocopying
 const C = {
-  title: "000000",
-  body: "000000",
-  section: "333333",
-  seal: "999999",
-  answerLine: "CCCCCC",
-  headerBg: "F0F0F0",
-  gridLine: "DDDDDD",
+    title: "000000",
+    body: "000000",
+    section: "333333",
+    seal: "999999",
+    answerLine: "CCCCCC",
+    headerBg: "F0F0F0",
+    gridLine: "DDDDDD",
 };
 ```
 
@@ -206,16 +206,16 @@ Entire paper uses consistent three-level numbering:
 ```js
 // ✅ Correct — plain TextRun manual numbering
 new Paragraph({
-  spacing: { before: 120, after: 60, line: 360 },
-  children: [
-    new TextRun({ text: `${i + 1}. ${question}`, size: 21, font: { eastAsia: "SimSun" } }),
-  ],
+    spacing: { before: 120, after: 60, line: 360 },
+    children: [
+        new TextRun({ text: `${i + 1}. ${question}`, size: 21, font: { eastAsia: "SimSun" } }),
+    ],
 });
 
 // ❌ Wrong — numbering causes Word to add bullets
 new Paragraph({
-  numbering: { reference: "xxx", level: 0 }, // ← Forbidden!
-  children: [new TextRun({ text: question })],
+    numbering: { reference: "xxx", level: 0 }, // ← Forbidden!
+    children: [new TextRun({ text: question })],
 });
 ```
 
@@ -257,20 +257,20 @@ When a question references "underlined part" (划线部分), the relevant text M
 ```js
 // ✅ Correct — actual underline on the referenced text
 new Paragraph({
-  children: [
-    new TextRun({ text: "1. It is ", size: 21, font: { ascii: "Times New Roman" } }),
-    new TextRun({
-      text: "a butterfly",
-      size: 21,
-      font: { ascii: "Times New Roman" },
-      underline: { type: UnderlineType.SINGLE, color: "000000" },
-    }),
-    new TextRun({
-      text: ". (Ask about the underlined part)",
-      size: 21,
-      font: { ascii: "Times New Roman" },
-    }),
-  ],
+    children: [
+        new TextRun({ text: "1. It is ", size: 21, font: { ascii: "Times New Roman" } }),
+        new TextRun({
+            text: "a butterfly",
+            size: 21,
+            font: { ascii: "Times New Roman" },
+            underline: { type: UnderlineType.SINGLE, color: "000000" },
+        }),
+        new TextRun({
+            text: ". (Ask about the underlined part)",
+            size: 21,
+            font: { ascii: "Times New Roman" },
+        }),
+    ],
 });
 
 // ❌ Wrong — underlined part described as annotation text
@@ -315,27 +315,31 @@ answerLine: 500; // Answer line spacing for writing room
 ```js
 // Short options: 4 columns in 1 row
 new Table({
-  columnWidths: [2200, 2200, 2200, 2200],
-  rows: [
-    new TableRow({
-      children: ["A", "B", "C", "D"].map(
-        (label, i) =>
-          new TableCell({
-            borders: NBs,
-            width: { size: 2200, type: WidthType.DXA },
-            margins: { top: 0, bottom: 0, left: 60, right: 60 },
-            children: [
-              new Paragraph({
-                spacing: { before: 0, after: 0 },
-                children: [
-                  new TextRun({ text: `${label}. ${options[i]}`, size: 21, font: "SimSun" }),
-                ],
-              }),
-            ],
-          }),
-      ),
-    }),
-  ],
+    columnWidths: [2200, 2200, 2200, 2200],
+    rows: [
+        new TableRow({
+            children: ["A", "B", "C", "D"].map(
+                (label, i) =>
+                    new TableCell({
+                        borders: NBs,
+                        width: { size: 2200, type: WidthType.DXA },
+                        margins: { top: 0, bottom: 0, left: 60, right: 60 },
+                        children: [
+                            new Paragraph({
+                                spacing: { before: 0, after: 0 },
+                                children: [
+                                    new TextRun({
+                                        text: `${label}. ${options[i]}`,
+                                        size: 21,
+                                        font: "SimSun",
+                                    }),
+                                ],
+                            }),
+                        ],
+                    }),
+            ),
+        }),
+    ],
 });
 // Medium options: 2 columns, 2 rows
 // Long options: 1 column, 4 rows
@@ -345,10 +349,10 @@ new Table({
 
 ```js
 function getOptionLayout(options) {
-  const maxLen = Math.max(...options.map((o) => o.length));
-  if (maxLen <= 6) return "4col";
-  if (maxLen <= 15) return "2col";
-  return "1col";
+    const maxLen = Math.max(...options.map((o) => o.length));
+    if (maxLen <= 6) return "4col";
+    if (maxLen <= 15) return "2col";
+    return "1col";
 }
 ```
 
@@ -362,10 +366,10 @@ function getOptionLayout(options) {
 // Medium (phrase): 14 underscores
 // Long (sentence): 20 underscores
 new Paragraph({
-  spacing: { before: 140, after: 80, line: 400 },
-  children: [
-    new TextRun({ text: `${num}. Question text ________________.`, size: 21, font: "SimSun" }),
-  ],
+    spacing: { before: 140, after: 80, line: 400 },
+    children: [
+        new TextRun({ text: `${num}. Question text ________________.`, size: 21, font: "SimSun" }),
+    ],
 });
 ```
 
@@ -379,11 +383,11 @@ new Paragraph({
 
 ```js
 new Paragraph({
-  spacing: { before: 200, after: 60, line: 360 },
-  keepNext: true,
-  children: [
-    new TextRun({ text: `${num}. (${points} pts) ${question}`, size: 21, font: "SimSun" }),
-  ],
+    spacing: { before: 200, after: 60, line: 360 },
+    keepNext: true,
+    children: [
+        new TextRun({ text: `${num}. (${points} pts) ${question}`, size: 21, font: "SimSun" }),
+    ],
 });
 ```
 
@@ -393,16 +397,16 @@ new Paragraph({
 // Light grey answer lines (CCCCCC), NOT black
 // ⚠️ Answer lines are ONLY for writing space within each question — never as dividers between questions
 function answerLines(count) {
-  return Array(count)
-    .fill(null)
-    .map(
-      () =>
-        new Paragraph({
-          spacing: { before: 0, after: 0, line: 500 },
-          borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" } },
-          children: [new TextRun({ text: " ", size: 21 })],
-        }),
-    );
+    return Array(count)
+        .fill(null)
+        .map(
+            () =>
+                new Paragraph({
+                    spacing: { before: 0, after: 0, line: 500 },
+                    borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" } },
+                    children: [new TextRun({ text: " ", size: 21 })],
+                }),
+        );
 }
 ```
 
@@ -433,15 +437,15 @@ Use **only spacing** (`spacing.before: 200`) for visual separation between quest
 ```js
 // Material area — indented + KaiTi to differentiate
 new Paragraph({
-  indent: { left: 420, right: 420 },
-  spacing: { before: 100, after: 100, line: 380 },
-  children: [new TextRun({ text: materialText, size: 21, font: "KaiTi" })],
+    indent: { left: 420, right: 420 },
+    spacing: { before: 100, after: 100, line: 380 },
+    children: [new TextRun({ text: materialText, size: 21, font: "KaiTi" })],
 });
 // Source attribution
 new Paragraph({
-  alignment: AlignmentType.RIGHT,
-  indent: { right: 420 },
-  children: [new TextRun({ text: '— from "XXX"', size: 18, color: "666666", font: "SimSun" })],
+    alignment: AlignmentType.RIGHT,
+    indent: { right: 420 },
+    children: [new TextRun({ text: '— from "XXX"', size: 18, color: "666666", font: "SimSun" })],
 });
 ```
 
@@ -470,9 +474,9 @@ new Paragraph({
 
 ```js
 function calcGridSize(requiredWords, colsPerRow = 20) {
-  const totalCells = Math.ceil(requiredWords * 1.25);
-  const rows = Math.ceil(totalCells / colsPerRow);
-  return { rows, colsPerRow, totalCells: rows * colsPerRow };
+    const totalCells = Math.ceil(requiredWords * 1.25);
+    const rows = Math.ceil(totalCells / colsPerRow);
+    return { rows, colsPerRow, totalCells: rows * colsPerRow };
 }
 ```
 
@@ -480,28 +484,28 @@ function calcGridSize(requiredWords, colsPerRow = 20) {
 
 ```js
 function compositionGrid(rows, colsPerRow) {
-  const cellSize = Math.floor(8800 / colsPerRow);
-  return new Table({
-    columnWidths: Array(colsPerRow).fill(cellSize),
-    rows: Array(rows)
-      .fill(null)
-      .map(
-        () =>
-          new TableRow({
-            height: { value: cellSize, rule: HeightRule.EXACT },
-            children: Array(colsPerRow)
-              .fill(null)
-              .map(
+    const cellSize = Math.floor(8800 / colsPerRow);
+    return new Table({
+        columnWidths: Array(colsPerRow).fill(cellSize),
+        rows: Array(rows)
+            .fill(null)
+            .map(
                 () =>
-                  new TableCell({
-                    borders: thinBs("DDDDDD"),
-                    width: { size: cellSize, type: WidthType.DXA },
-                    children: [new Paragraph({ children: [] })],
-                  }),
-              ),
-          }),
-      ),
-  });
+                    new TableRow({
+                        height: { value: cellSize, rule: HeightRule.EXACT },
+                        children: Array(colsPerRow)
+                            .fill(null)
+                            .map(
+                                () =>
+                                    new TableCell({
+                                        borders: thinBs("DDDDDD"),
+                                        width: { size: cellSize, type: WidthType.DXA },
+                                        children: [new Paragraph({ children: [] })],
+                                    }),
+                            ),
+                    }),
+            ),
+    });
 }
 ```
 
@@ -511,16 +515,16 @@ function compositionGrid(rows, colsPerRow) {
 
 ```js
 function writingLines(count) {
-  return Array(count)
-    .fill(null)
-    .map(
-      () =>
-        new Paragraph({
-          spacing: { before: 0, after: 0, line: 560 },
-          borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" } },
-          children: [new TextRun({ text: " ", size: 21 })],
-        }),
-    );
+    return Array(count)
+        .fill(null)
+        .map(
+            () =>
+                new Paragraph({
+                    spacing: { before: 0, after: 0, line: 560 },
+                    borders: { bottom: { style: BorderStyle.SINGLE, size: 1, color: "CCCCCC" } },
+                    children: [new TextRun({ text: " ", size: 21 })],
+                }),
+        );
 }
 ```
 
@@ -598,16 +602,20 @@ The answer key file should include:
 
 ```js
 new Paragraph({
-  alignment: AlignmentType.CENTER,
-  spacing: { before: 100, after: 60 },
-  children: [
-    new ImageRun({ data: imageBuffer, transformation: { width: 300, height: 200 }, type: "png" }),
-  ],
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 100, after: 60 },
+    children: [
+        new ImageRun({
+            data: imageBuffer,
+            transformation: { width: 300, height: 200 },
+            type: "png",
+        }),
+    ],
 });
 new Paragraph({
-  alignment: AlignmentType.CENTER,
-  spacing: { after: 100 },
-  children: [new TextRun({ text: "(Figure 1)", size: 18, color: "666666", font: "SimSun" })],
+    alignment: AlignmentType.CENTER,
+    spacing: { after: 100 },
+    children: [new TextRun({ text: "(Figure 1)", size: 18, color: "666666", font: "SimSun" })],
 });
 ```
 
@@ -707,10 +715,10 @@ For: score tables, data tables, statistics
 ```js
 const thinB = (c = "000000") => ({ style: BorderStyle.SINGLE, size: 1, color: c });
 const thinBs = (c = "000000") => ({
-  top: thinB(c),
-  bottom: thinB(c),
-  left: thinB(c),
-  right: thinB(c),
+    top: thinB(c),
+    bottom: thinB(c),
+    left: thinB(c),
+    right: thinB(c),
 });
 ```
 

@@ -42,18 +42,18 @@
 ## 当前实现事实
 
 - `apps/zcode-cli/packages/core/src/runtime/methods/turn.ts`
-  - `executeTurn(...)` 当前同时是 public submit API 和真实 turn executor。
-  - 它在 async startup 前调用 `reserveTurnStart(...)`，之后再 `beginActiveTurn(...)`。
+    - `executeTurn(...)` 当前同时是 public submit API 和真实 turn executor。
+    - 它在 async startup 前调用 `reserveTurnStart(...)`，之后再 `beginActiveTurn(...)`。
 - `apps/zcode-cli/packages/core/src/runtime/methods/background-notifications.ts`
-  - 当前 background notification 有独立 pending/wake 状态，并能直接调用 `executeTurn(...)`。
+    - 当前 background notification 有独立 pending/wake 状态，并能直接调用 `executeTurn(...)`。
 - `apps/zcode-cli/packages/core/src/runtime/methods/steering.ts`
-  - `steerTurn(...)` 当前是 active turn 内部 pending queue。
+    - `steerTurn(...)` 当前是 active turn 内部 pending queue。
 - `apps/zcode-cli/packages/core/src/runtime/methods/target.ts`
-  - `targetContinuationCandidate(...)` 当前只用 `activeTurn` 判断 idle。
+    - `targetContinuationCandidate(...)` 当前只用 `activeTurn` 判断 idle。
 - `apps/zcode-cli/packages/core/src/runtime/methods/subagent.ts`
-  - child runtime 调自己的 `executeTurn(...)`；queue 落地后它应进入 child runtime 自己的 queue。
+    - child runtime 调自己的 `executeTurn(...)`；queue 落地后它应进入 child runtime 自己的 queue。
 - `apps/zcode-cli/packages/core/src/tool/executor/background-tasks.ts`
-  - Bash background completion 目前已有 notification producer，后续应接入同一个 runtime queue API。
+    - Bash background completion 目前已有 notification producer，后续应接入同一个 runtime queue API。
 
 ---
 
@@ -114,28 +114,28 @@ export type RuntimeCommandMode = "prompt" | "task-notification";
 export type RuntimeCommandId = string & { readonly __runtimeCommandId: unique symbol };
 
 export interface RuntimeCommandBase {
-  readonly id: RuntimeCommandId;
-  readonly mode: RuntimeCommandMode;
-  readonly priority: RuntimeCommandPriority;
-  readonly createdAt: Date;
-  readonly traceContext: TraceContext;
+    readonly id: RuntimeCommandId;
+    readonly mode: RuntimeCommandMode;
+    readonly priority: RuntimeCommandPriority;
+    readonly createdAt: Date;
+    readonly traceContext: TraceContext;
 }
 
 export interface PromptRuntimeCommand extends RuntimeCommandBase {
-  readonly mode: "prompt";
-  readonly input: string;
-  readonly attachments?: TurnState["attachments"];
-  readonly options?: ExecuteTurnOptions;
-  readonly resolve: (result: TurnResult) => void;
-  readonly reject: (error: unknown) => void;
+    readonly mode: "prompt";
+    readonly input: string;
+    readonly attachments?: TurnState["attachments"];
+    readonly options?: ExecuteTurnOptions;
+    readonly resolve: (result: TurnResult) => void;
+    readonly reject: (error: unknown) => void;
 }
 
 export interface TaskNotificationRuntimeCommand extends RuntimeCommandBase {
-  readonly mode: "task-notification";
-  readonly text: string;
-  readonly source: "background_task";
-  readonly taskId?: string;
-  readonly toolUseId?: string;
+    readonly mode: "task-notification";
+    readonly text: string;
+    readonly source: "background_task";
+    readonly taskId?: string;
+    readonly toolUseId?: string;
 }
 
 export type RuntimeCommand = PromptRuntimeCommand | TaskNotificationRuntimeCommand;
@@ -153,12 +153,12 @@ export function requestRuntimeCommandDrain(this: AgentRuntimeInternal): void;
 export function hasActiveOrQueuedTurnWork(this: AgentRuntimeInternal): boolean;
 export async function drainRuntimeCommandQueue(this: AgentRuntimeInternal): Promise<void>;
 export async function executeRuntimeCommand(
-  this: AgentRuntimeInternal,
-  command: RuntimeCommand,
+    this: AgentRuntimeInternal,
+    command: RuntimeCommand,
 ): Promise<TurnResult | void>;
 export async function executeTaskNotificationCommand(
-  this: AgentRuntimeInternal,
-  command: TaskNotificationRuntimeCommand,
+    this: AgentRuntimeInternal,
+    command: TaskNotificationRuntimeCommand,
 ): Promise<void>;
 ```
 

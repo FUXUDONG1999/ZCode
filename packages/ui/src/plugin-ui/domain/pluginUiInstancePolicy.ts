@@ -6,44 +6,44 @@ export const PLUGIN_UI_AUTO_EXPAND_TURNS = 3;
 
 /** 一个逻辑 UI：仅显式 surface 或权限范围一致的 widgetSessionId 共用，其余调用独立。 */
 export interface PluginUiLogicalInstance {
-  key: string;
-  /** 当前显示的调用：最新一次成功（非 isError）的；没有成功的就是最新一条。 */
-  activeToolCallId: string;
-  /** 被较新成功结果替代的成功调用；它们不建沙箱，只保留普通工具记录。 */
-  supersededToolCallIds: string[];
+    key: string;
+    /** 当前显示的调用：最新一次成功（非 isError）的；没有成功的就是最新一条。 */
+    activeToolCallId: string;
+    /** 被较新成功结果替代的成功调用；它们不建沙箱，只保留普通工具记录。 */
+    supersededToolCallIds: string[];
 }
 
 /** 单条插件工具行的展示裁决；渲染层据此决定进不进折叠区、要不要建沙箱。 */
 export interface PluginUiRowDisposition {
-  key: string;
-  superseded: boolean;
-  /** 所在回合在最近 PLUGIN_UI_AUTO_EXPAND_TURNS 个回合内。 */
-  autoExpand: boolean;
-  /** 工具级 `openai/widgetShowCodexWidgetInline`（display.ui.showInline）。 */
-  forcedInline: boolean;
+    key: string;
+    superseded: boolean;
+    /** 所在回合在最近 PLUGIN_UI_AUTO_EXPAND_TURNS 个回合内。 */
+    autoExpand: boolean;
+    /** 工具级 `openai/widgetShowCodexWidgetInline`（display.ui.showInline）。 */
+    forcedInline: boolean;
 }
 
 export interface PluginUiInstanceDerivation {
-  instances: PluginUiLogicalInstance[];
-  byToolCallId: Readonly<Record<string, PluginUiRowDisposition>>;
+    instances: PluginUiLogicalInstance[];
+    byToolCallId: Readonly<Record<string, PluginUiRowDisposition>>;
 }
 
 export const EMPTY_PLUGIN_UI_INSTANCE_DERIVATION: PluginUiInstanceDerivation = {
-  instances: [],
-  byToolCallId: {},
+    instances: [],
+    byToolCallId: {},
 };
 
 function isPluginUiToolRow(row: ConversationRow): row is ToolCallRow {
-  return (
-    row.kind === "toolCall" && row.display?.kind === "mcp_tool" && row.display.ui !== undefined
-  );
+    return (
+        row.kind === "toolCall" && row.display?.kind === "mcp_tool" && row.display.ui !== undefined
+    );
 }
 
 function isSuccessfulUiRow(row: ToolCallRow): boolean {
-  return (
-    row.status === "success" &&
-    !(row.display?.kind === "mcp_tool" && row.display.ui?.isError === true)
-  );
+    return (
+        row.status === "success" &&
+        !(row.display?.kind === "mcp_tool" && row.display.ui?.isError === true)
+    );
 }
 
 /**
@@ -53,54 +53,59 @@ function isSuccessfulUiRow(row: ToolCallRow): boolean {
  * autoExpand 按全部行的回合顺序取最近 N 个回合（回合里没有插件卡片也算一个回合）。
  */
 export function deriveLogicalUiInstances(
-  rows: readonly ConversationRow[],
-  options: { autoExpandTurns?: number } = {},
+    rows: readonly ConversationRow[],
+    options: { autoExpandTurns?: number } = {},
 ): PluginUiInstanceDerivation {
-  // domain 不用 Map / Set（模块边界约束），全部用数组与普通对象。
-  const turnOrder: string[] = [];
-  for (const row of rows) {
-    if (!turnOrder.includes(row.turnId)) turnOrder.push(row.turnId);
-  }
-  const recentTurns = turnOrder.slice(-(options.autoExpandTurns ?? PLUGIN_UI_AUTO_EXPAND_TURNS));
-  const groupKeys: string[] = [];
-  const groups: Record<string, ToolCallRow[]> = {};
-  for (const row of rows) {
-    if (!isPluginUiToolRow(row)) continue;
-    const display = row.display;
-    if (display?.kind !== "mcp_tool" || !display.ui) continue;
-    const logical = resolvePluginUiLogicalScope(display.ui, {
-      kind: "toolCall",
-      toolCallId: row.toolCallId,
-    });
-    const key = JSON.stringify([
-      display.ui.pluginId,
-      display.serverName,
-      display.ui.resourceUri,
-      logical,
-    ]);
-    const group = groups[key];
-    if (group) group.push(row);
-    else {
-      groups[key] = [row];
-      groupKeys.push(key);
+    // domain 不用 Map / Set（模块边界约束），全部用数组与普通对象。
+    const turnOrder: string[] = [];
+    for (const row of rows) {
+        if (!turnOrder.includes(row.turnId)) turnOrder.push(row.turnId);
     }
-  }
-  const instances: PluginUiLogicalInstance[] = [];
-  const byToolCallId: Record<string, PluginUiRowDisposition> = {};
-  for (const key of groupKeys) {
-    const group = groups[key]!;
-    const successes = group.filter(isSuccessfulUiRow);
-    const active = successes.at(-1) ?? group.at(-1)!;
-    const superseded = successes.filter((row) => row !== active).map((row) => row.toolCallId);
-    instances.push({ key, activeToolCallId: active.toolCallId, supersededToolCallIds: superseded });
-    for (const row of group) {
-      byToolCallId[row.toolCallId] = {
-        key,
-        superseded: superseded.includes(row.toolCallId),
-        autoExpand: recentTurns.includes(row.turnId),
-        forcedInline: row.display?.kind === "mcp_tool" && row.display.ui?.showInline === true,
-      };
+    const recentTurns = turnOrder.slice(-(options.autoExpandTurns ?? PLUGIN_UI_AUTO_EXPAND_TURNS));
+    const groupKeys: string[] = [];
+    const groups: Record<string, ToolCallRow[]> = {};
+    for (const row of rows) {
+        if (!isPluginUiToolRow(row)) continue;
+        const display = row.display;
+        if (display?.kind !== "mcp_tool" || !display.ui) continue;
+        const logical = resolvePluginUiLogicalScope(display.ui, {
+            kind: "toolCall",
+            toolCallId: row.toolCallId,
+        });
+        const key = JSON.stringify([
+            display.ui.pluginId,
+            display.serverName,
+            display.ui.resourceUri,
+            logical,
+        ]);
+        const group = groups[key];
+        if (group) group.push(row);
+        else {
+            groups[key] = [row];
+            groupKeys.push(key);
+        }
     }
-  }
-  return { instances, byToolCallId };
+    const instances: PluginUiLogicalInstance[] = [];
+    const byToolCallId: Record<string, PluginUiRowDisposition> = {};
+    for (const key of groupKeys) {
+        const group = groups[key]!;
+        const successes = group.filter(isSuccessfulUiRow);
+        const active = successes.at(-1) ?? group.at(-1)!;
+        const superseded = successes.filter((row) => row !== active).map((row) => row.toolCallId);
+        instances.push({
+            key,
+            activeToolCallId: active.toolCallId,
+            supersededToolCallIds: superseded,
+        });
+        for (const row of group) {
+            byToolCallId[row.toolCallId] = {
+                key,
+                superseded: superseded.includes(row.toolCallId),
+                autoExpand: recentTurns.includes(row.turnId),
+                forcedInline:
+                    row.display?.kind === "mcp_tool" && row.display.ui?.showInline === true,
+            };
+        }
+    }
+    return { instances, byToolCallId };
 }

@@ -34,23 +34,23 @@ const LINEAGE_HOP_LIMIT = 64;
  * 读快照变成死循环，而快照读在后台追踪器的轮询路径上。
  */
 export function runLineageActiveMs(journal: JournalStorePort, runId: string): number | undefined {
-  if (!supportsRunLifeSpans(journal)) return undefined;
-  let total = 0;
-  let sawLife = false;
-  let cursor: string | undefined = runId;
-  const visited = new Set<string>();
-  for (let hop = 0; cursor !== undefined && hop < LINEAGE_HOP_LIMIT; hop += 1) {
-    if (visited.has(cursor)) break;
-    visited.add(cursor);
-    for (const life of journal.listRunLifeSpans(cursor)) {
-      sawLife = true;
-      // 钳到非负：两个时刻同源于 `dwf_event.time_created`，但那是**墙钟**——一次系统对时可以
-      // 让「最后一条」早于「第一条」。负数会从总和里减掉别的世的真实时长，那比丢掉这一世更糟。
-      total += Math.max(0, life.lastActivityAt - life.startedAt);
+    if (!supportsRunLifeSpans(journal)) return undefined;
+    let total = 0;
+    let sawLife = false;
+    let cursor: string | undefined = runId;
+    const visited = new Set<string>();
+    for (let hop = 0; cursor !== undefined && hop < LINEAGE_HOP_LIMIT; hop += 1) {
+        if (visited.has(cursor)) break;
+        visited.add(cursor);
+        for (const life of journal.listRunLifeSpans(cursor)) {
+            sawLife = true;
+            // 钳到非负：两个时刻同源于 `dwf_event.time_created`，但那是**墙钟**——一次系统对时可以
+            // 让「最后一条」早于「第一条」。负数会从总和里减掉别的世的真实时长，那比丢掉这一世更糟。
+            total += Math.max(0, life.lastActivityAt - life.startedAt);
+        }
+        // 只上溯 lineage，不下溯 supersededBy：修订是「同一件工作的下一版」，而被替代的前驱的活
+        // 是这一版的底座；反方向的后继与本 run 的时长无关（它有自己的卡）。
+        cursor = journal.getRun(cursor)?.resumedFrom;
     }
-    // 只上溯 lineage，不下溯 supersededBy：修订是「同一件工作的下一版」，而被替代的前驱的活
-    // 是这一版的底座；反方向的后继与本 run 的时长无关（它有自己的卡）。
-    cursor = journal.getRun(cursor)?.resumedFrom;
-  }
-  return sawLife ? total : undefined;
+    return sawLife ? total : undefined;
 }

@@ -13,13 +13,13 @@ import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 
 /** 把行拆成正文与尾注。越界或缺席 → 无尾注：宁可多显示，也不把正文吃掉。 */
 export function splitUserInputEpilogue(
-  text: string,
-  epilogueStart: number | undefined,
+    text: string,
+    epilogueStart: number | undefined,
 ): { body: string; epilogue?: string } {
-  if (epilogueStart === undefined || epilogueStart < 0 || epilogueStart > text.length) {
-    return { body: text };
-  }
-  return { body: text.slice(0, epilogueStart), epilogue: text.slice(epilogueStart) };
+    if (epilogueStart === undefined || epilogueStart < 0 || epilogueStart > text.length) {
+        return { body: text };
+    }
+    return { body: text.slice(0, epilogueStart), epilogue: text.slice(epilogueStart) };
 }
 
 /**
@@ -27,37 +27,37 @@ export function splitUserInputEpilogue(
  * 已经表达了这条边界，再画一根就是噪音。段落之间的第二根 `---`（质量尾注与 schema 尾注之间）保留。
  */
 function trimEpilogueLead(text: string): string {
-  return text.replace(/^\s*(?:---[ \t]*\n)?/u, "").trimEnd();
+    return text.replace(/^\s*(?:---[ \t]*\n)?/u, "").trimEnd();
 }
 
 export function ConversationUserInputEpilogue({ text }: { text: string }) {
-  const { intl } = useZCodeIntl();
-  const [open, setOpen] = useState(false);
-  const label = intl.formatMessage({ id: "chat.userInput.epilogue.label" });
-  return (
-    <div data-v4-user-input-epilogue="true" className="flex min-w-0 flex-col gap-1">
-      <button
-        aria-expanded={open}
-        className="flex items-center gap-1 self-start rounded-md text-ui-xs text-foreground-subtlest transition-colors hover:text-foreground"
-        onClick={() => setOpen((current) => !current)}
-        type="button"
-      >
-        {open ? (
-          <ChevronDownIcon aria-hidden="true" className="size-3 shrink-0" />
-        ) : (
-          <ChevronRightIcon aria-hidden="true" className="size-3 shrink-0" />
-        )}
-        {label}
-      </button>
-      {open ? (
-        // 尾注里有缩进的 JSON Schema，按等宽预格式排；次级色——它是参考材料，不是消息正文。
-        <pre
-          className="max-h-60 overflow-auto whitespace-pre-wrap break-words font-mono text-ui-sm text-foreground-subtle"
-          data-v4-user-input-epilogue-body="true"
-        >
-          {trimEpilogueLead(text)}
-        </pre>
-      ) : null}
-    </div>
-  );
+    const { intl } = useZCodeIntl();
+    const [open, setOpen] = useState(false);
+    const label = intl.formatMessage({ id: "chat.userInput.epilogue.label" });
+    return (
+        <div data-v4-user-input-epilogue="true" className="flex min-w-0 flex-col gap-1">
+            <button
+                aria-expanded={open}
+                className="flex items-center gap-1 self-start rounded-md text-ui-xs text-foreground-subtlest transition-colors hover:text-foreground"
+                onClick={() => setOpen((current) => !current)}
+                type="button"
+            >
+                {open ? (
+                    <ChevronDownIcon aria-hidden="true" className="size-3 shrink-0" />
+                ) : (
+                    <ChevronRightIcon aria-hidden="true" className="size-3 shrink-0" />
+                )}
+                {label}
+            </button>
+            {open ? (
+                // 尾注里有缩进的 JSON Schema，按等宽预格式排；次级色——它是参考材料，不是消息正文。
+                <pre
+                    className="max-h-60 overflow-auto whitespace-pre-wrap break-words font-mono text-ui-sm text-foreground-subtle"
+                    data-v4-user-input-epilogue-body="true"
+                >
+                    {trimEpilogueLead(text)}
+                </pre>
+            ) : null}
+        </div>
+    );
 }

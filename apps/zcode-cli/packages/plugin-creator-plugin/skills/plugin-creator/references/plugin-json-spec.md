@@ -4,11 +4,11 @@ A plugin uses `.zcode-plugin/plugin.json`. Its `name` is its stable identifier; 
 
 ```json
 {
-  "name": "my-plugin",
-  "version": "0.1.0",
-  "description": "The implemented workflow",
-  "author": { "name": "Your team" },
-  "skills": "./skills"
+    "name": "my-plugin",
+    "version": "0.1.0",
+    "description": "The implemented workflow",
+    "author": { "name": "Your team" },
+    "skills": "./skills"
 }
 ```
 
@@ -22,19 +22,19 @@ For a local marketplace, use `.claude-plugin/marketplace.json` at its root. The 
 
 ```json
 {
-  "name": "my-market",
-  "plugins": [
-    {
-      "name": "my-plugin",
-      "source": "./plugins/my-plugin",
-      "version": "0.1.0",
-      "description": "The implemented workflow",
-      "displayName": "My Plugin",
-      "displayName_i18n": { "zh-CN": "我的插件" },
-      "description_i18n": { "zh-CN": "已实现的工作流说明" },
-      "category": "productivity"
-    }
-  ]
+    "name": "my-market",
+    "plugins": [
+        {
+            "name": "my-plugin",
+            "source": "./plugins/my-plugin",
+            "version": "0.1.0",
+            "description": "The implemented workflow",
+            "displayName": "My Plugin",
+            "displayName_i18n": { "zh-CN": "我的插件" },
+            "description_i18n": { "zh-CN": "已实现的工作流说明" },
+            "category": "productivity"
+        }
+    ]
 }
 ```
 

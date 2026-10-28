@@ -14,21 +14,21 @@ import { toToolJsonSchema } from "./json-schema.js";
 export const ESCALATE_TOOL_NAME = "escalate";
 
 export const EscalateInputSchema = z
-  .object({
-    question: z
-      .string()
-      .min(1)
-      .describe(
-        "The single focused question that unblocks you. One question per call, answerable in a sentence.",
-      ),
-    context: z
-      .string()
-      .optional()
-      .describe(
-        "What you already tried and where exactly you are stuck — the evidence the answerer needs.",
-      ),
-  })
-  .strict();
+    .object({
+        question: z
+            .string()
+            .min(1)
+            .describe(
+                "The single focused question that unblocks you. One question per call, answerable in a sentence.",
+            ),
+        context: z
+            .string()
+            .optional()
+            .describe(
+                "What you already tried and where exactly you are stuck — the evidence the answerer needs.",
+            ),
+    })
+    .strict();
 
 export type EscalateInput = z.infer<typeof EscalateInputSchema>;
 
@@ -43,15 +43,15 @@ export const EscalateInputJsonSchema = toToolJsonSchema(EscalateInputSchema);
  *   故障，反复撞同一堵墙，而那正是本特性要消灭的行为。
  */
 export const EscalateOutputSchema = z
-  .object({
-    status: z.enum(["answered", "refused"]),
-    message: z.string(),
-    /** `answered` 才在场。 */
-    qid: z.string().optional(),
-    /** `refused` 才在场。 */
-    reason: z.enum(["budget_exhausted", "no_active_ask"]).optional(),
-  })
-  .strict();
+    .object({
+        status: z.enum(["answered", "refused"]),
+        message: z.string(),
+        /** `answered` 才在场。 */
+        qid: z.string().optional(),
+        /** `refused` 才在场。 */
+        reason: z.enum(["budget_exhausted", "no_active_ask"]).optional(),
+    })
+    .strict();
 
 export type EscalateOutput = z.infer<typeof EscalateOutputSchema>;
 

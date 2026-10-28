@@ -9,42 +9,42 @@ The host installs the bridge before your fragment's scripts run. Do not load ano
 <button class="btn btn-primary" id="ask">Explain this scenario</button>
 <p role="status" id="status"></p>
 <script>
-  const count = document.getElementById("count");
-  const value = document.getElementById("value");
-  const status = document.getElementById("status");
-  function restore() {
-    const saved = window.zcode.widgetState?.modelContent?.count;
-    count.value = typeof saved === "number" && saved >= 1 && saved <= 20 ? saved : 5;
-    value.textContent = count.value;
-  }
-  restore();
-  window.addEventListener("zcode:set_globals", (event) => {
-    // event.detail.globals contains widgetState and theme.
+    const count = document.getElementById("count");
+    const value = document.getElementById("value");
+    const status = document.getElementById("status");
+    function restore() {
+        const saved = window.zcode.widgetState?.modelContent?.count;
+        count.value = typeof saved === "number" && saved >= 1 && saved <= 20 ? saved : 5;
+        value.textContent = count.value;
+    }
     restore();
-  });
-  count.oninput = () => {
-    value.textContent = count.value;
-  };
-  count.onchange = async () => {
-    try {
-      await window.zcode.setWidgetState({
-        modelContent: { count: Number(count.value) },
-        privateContent: null,
-      });
-    } catch {
-      status.textContent = "Could not save. Try again.";
-    }
-  };
-  document.getElementById("ask").onclick = async () => {
-    try {
-      await window.zcode.sendFollowUpMessage({
-        prompt: `Explain the scenario with count ${count.value}`,
-        title: "Count explorer",
-      });
-    } catch {
-      status.textContent = "Message was cancelled or could not be sent.";
-    }
-  };
+    window.addEventListener("zcode:set_globals", (event) => {
+        // event.detail.globals contains widgetState and theme.
+        restore();
+    });
+    count.oninput = () => {
+        value.textContent = count.value;
+    };
+    count.onchange = async () => {
+        try {
+            await window.zcode.setWidgetState({
+                modelContent: { count: Number(count.value) },
+                privateContent: null,
+            });
+        } catch {
+            status.textContent = "Could not save. Try again.";
+        }
+    };
+    document.getElementById("ask").onclick = async () => {
+        try {
+            await window.zcode.sendFollowUpMessage({
+                prompt: `Explain the scenario with count ${count.value}`,
+                title: "Count explorer",
+            });
+        } catch {
+            status.textContent = "Message was cancelled or could not be sent.";
+        }
+    };
 </script>
 ```
 
@@ -56,11 +56,11 @@ Prefer a normal link for navigation:
 
 ```html
 <a
-  class="btn btn-primary"
-  href="https://example.com/subscribe"
-  target="_blank"
-  rel="noopener noreferrer"
-  >Subscribe</a
+    class="btn btn-primary"
+    href="https://example.com/subscribe"
+    target="_blank"
+    rel="noopener noreferrer"
+    >Subscribe</a
 >
 ```
 
@@ -70,11 +70,11 @@ For a scripted action, `window.zcode.openExternal({ href: string }): Promise<voi
 
 ```js
 document.getElementById("subscribe").onclick = async () => {
-  try {
-    await window.zcode.openExternal({ href: "https://example.com/subscribe" });
-  } catch {
-    document.getElementById("status").textContent = "Could not open the link. Try again.";
-  }
+    try {
+        await window.zcode.openExternal({ href: "https://example.com/subscribe" });
+    } catch {
+        document.getElementById("status").textContent = "Could not open the link. Try again.";
+    }
 };
 ```
 
@@ -89,36 +89,36 @@ Render the initial mockup first. Use a separate Tweak group for each editable co
 ```html
 <div id="player" aria-label="Music player">Play</div>
 <style>
-  #player {
-    --player-accent: #7c3aed;
-    padding: 20px;
-    background: light-dark(#f5f3ff, #282235);
-    color: light-dark(#24212d, #f5f3ff);
-  }
+    #player {
+        --player-accent: #7c3aed;
+        padding: 20px;
+        background: light-dark(#f5f3ff, #282235);
+        color: light-dark(#24212d, #f5f3ff);
+    }
 </style>
 <script>
-  const state = { radius: 18, accent: "#7c3aed", playing: true, density: "normal" };
-  const player = document.getElementById("player");
-  function render() {
-    player.style.borderRadius = `${state.radius}px`;
-    player.style.setProperty("--player-accent", state.accent);
-    player.textContent = state.playing ? "Pause" : "Play";
-    player.style.padding = state.density === "compact" ? "12px" : "20px";
-  }
-  render();
-  if (globalThis.Tweak) {
-    const tweaks = new Tweak({ container: player, onChange: render });
-    tweaks.addSlider(state, "radius", { label: "Corner radius", min: 0, max: 40, unit: "px" });
-    tweaks.addColorPicker(state, "accent", { label: "Accent", reference: "--player-accent" });
-    tweaks.addToggle(state, "playing", { label: "Playing" });
-    tweaks.addSelect(state, "density", {
-      label: "Density",
-      options: [
-        { label: "Comfortable", value: "normal" },
-        { label: "Compact", value: "compact" },
-      ],
-    });
-  }
+    const state = { radius: 18, accent: "#7c3aed", playing: true, density: "normal" };
+    const player = document.getElementById("player");
+    function render() {
+        player.style.borderRadius = `${state.radius}px`;
+        player.style.setProperty("--player-accent", state.accent);
+        player.textContent = state.playing ? "Pause" : "Play";
+        player.style.padding = state.density === "compact" ? "12px" : "20px";
+    }
+    render();
+    if (globalThis.Tweak) {
+        const tweaks = new Tweak({ container: player, onChange: render });
+        tweaks.addSlider(state, "radius", { label: "Corner radius", min: 0, max: 40, unit: "px" });
+        tweaks.addColorPicker(state, "accent", { label: "Accent", reference: "--player-accent" });
+        tweaks.addToggle(state, "playing", { label: "Playing" });
+        tweaks.addSelect(state, "density", {
+            label: "Density",
+            options: [
+                { label: "Comfortable", value: "normal" },
+                { label: "Compact", value: "compact" },
+            ],
+        });
+    }
 </script>
 ```
 

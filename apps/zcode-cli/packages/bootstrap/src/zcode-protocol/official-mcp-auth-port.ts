@@ -3,9 +3,9 @@
    由 host 解析当前 Coding Plan 凭证后回传本次请求的身份头。凭证不落 runtime config、
    不持久化、不进日志。 */
 import {
-  zcodeOfficialMcpAuthHeadersResponseSchema,
-  zcodeProtocolMethods,
-  type ZCodeWorkspaceRef,
+    zcodeOfficialMcpAuthHeadersResponseSchema,
+    zcodeProtocolMethods,
+    type ZCodeWorkspaceRef,
 } from "@zcode/shared";
 import type { OfficialMcpAuthHeadersPort } from "@zcode/contracts";
 import type { ZCodeProtocolAgentServerContext } from "./server-types.js";
@@ -35,41 +35,43 @@ export type OfficialMcpAuthRequestContext = Pick<ZCodeProtocolAgentServerContext
  *   若将来审计需要真实远端身份，需在 spawn 或协议层把 identity 传给 agent，不在本阶段范围。
  */
 export function createOfficialMcpAuthHeadersPort(input: {
-  resolveContext: () => OfficialMcpAuthRequestContext | undefined;
-  resolveWorkspace: (input: {
-    workspaceIdentity?: string;
-    workspacePath?: string;
-  }) => ZCodeWorkspaceRef | undefined;
+    resolveContext: () => OfficialMcpAuthRequestContext | undefined;
+    resolveWorkspace: (input: {
+        workspaceIdentity?: string;
+        workspacePath?: string;
+    }) => ZCodeWorkspaceRef | undefined;
 }): OfficialMcpAuthHeadersPort {
-  return {
-    async resolveHeaders(request) {
-      const context = input.resolveContext();
-      const workspace = input.resolveWorkspace({
-        ...(request.workspaceIdentity ? { workspaceIdentity: request.workspaceIdentity } : {}),
-        ...(request.workspacePath ? { workspacePath: request.workspacePath } : {}),
-      });
-      if (!context || !workspace) {
-        return { ok: false, reason: "official_auth_unavailable" };
-      }
-      requestSequence += 1;
-      try {
-        return await context.requestClient(
-          zcodeProtocolMethods.interactionRequestOfficialMcpAuthHeaders,
-          {
-            mcpKey: request.mcpKey,
-            pluginId: request.pluginId,
-            requestId: `official-mcp-auth:${requestSequence}`,
-            targetOrigin: request.targetOrigin,
-            workspace,
-          },
-          zcodeOfficialMcpAuthHeadersResponseSchema,
-          request.signal ? { signal: request.signal } : {},
-        );
-      } catch {
-        // host 不可达/协议错误：按不可用处理。错误详情不带出（可能含请求上下文），
-        // host 侧已记录不含秘密的分类日志。
-        return { ok: false, reason: "official_auth_unavailable" };
-      }
-    },
-  };
+    return {
+        async resolveHeaders(request) {
+            const context = input.resolveContext();
+            const workspace = input.resolveWorkspace({
+                ...(request.workspaceIdentity
+                    ? { workspaceIdentity: request.workspaceIdentity }
+                    : {}),
+                ...(request.workspacePath ? { workspacePath: request.workspacePath } : {}),
+            });
+            if (!context || !workspace) {
+                return { ok: false, reason: "official_auth_unavailable" };
+            }
+            requestSequence += 1;
+            try {
+                return await context.requestClient(
+                    zcodeProtocolMethods.interactionRequestOfficialMcpAuthHeaders,
+                    {
+                        mcpKey: request.mcpKey,
+                        pluginId: request.pluginId,
+                        requestId: `official-mcp-auth:${requestSequence}`,
+                        targetOrigin: request.targetOrigin,
+                        workspace,
+                    },
+                    zcodeOfficialMcpAuthHeadersResponseSchema,
+                    request.signal ? { signal: request.signal } : {},
+                );
+            } catch {
+                // host 不可达/协议错误：按不可用处理。错误详情不带出（可能含请求上下文），
+                // host 侧已记录不含秘密的分类日志。
+                return { ok: false, reason: "official_auth_unavailable" };
+            }
+        },
+    };
 }

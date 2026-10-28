@@ -52,36 +52,36 @@ export const HEAD_ROW = 24;
 export const TAIL_STUB = 40;
 
 export function timelineWidth(count: number, inset = 0, tail = false): number {
-  return count === 0
-    ? 0
-    : (count - 1) * STATION_PITCH + STATION_WIDTH + inset + (tail ? TAIL_STUB : 0);
+    return count === 0
+        ? 0
+        : (count - 1) * STATION_PITCH + STATION_WIDTH + inset + (tail ? TAIL_STUB : 0);
 }
 
 /** 第 i 站的左缘。 */
 export function stationX(index: number, inset = 0): number {
-  return index * STATION_PITCH + inset;
+    return index * STATION_PITCH + inset;
 }
 
 /** 第 i 站的灯心。 */
 export function lampX(index: number, inset = 0): number {
-  return stationX(index, inset) + MARK_X;
+    return stationX(index, inset) + MARK_X;
 }
 
 /** 一条带在主线上分叉的 x；带从站 0 起时没有左边的余地，落在 4（时间线整体右移 `inset`）。 */
 export function bandForkX(band: Pick<TimelineBand, "from">, inset = 0): number {
-  return band.from === 0 ? TAIL : stationX(band.from, inset) - FORK_BACK;
+    return band.from === 0 ? TAIL : stationX(band.from, inset) - FORK_BACK;
 }
 
 /** 一条带在主线上汇合的 x；没有汇合站时落在末站槽尾之后 6px——那里仍是 strand 相遇的地方。 */
 export function bandMergeX(band: Pick<TimelineBand, "join" | "to">, inset = 0): number {
-  return band.join === undefined
-    ? stationX(band.to, inset) + STATION_WIDTH + STUB
-    : stationX(band.join, inset) - MERGE_BACK;
+    return band.join === undefined
+        ? stationX(band.to, inset) + STATION_WIDTH + STUB
+        : stationX(band.join, inset) - MERGE_BACK;
 }
 
 /** 第 i 站所在的带；带外 undefined（`timeline-bands.ts` 的同名函数只认下标带，这里认模型的带）。 */
 export function bandAt(bands: readonly TimelineBand[], index: number): TimelineBand | undefined {
-  return bands.find((band) => band.from <= index && index <= band.to);
+    return bands.find((band) => band.from <= index && index <= band.to);
 }
 
 /**
@@ -91,29 +91,29 @@ export function bandAt(bands: readonly TimelineBand[], index: number): TimelineB
  * 落点又总在轨道 0 上，所以不会被认成 `inTrack`。
  */
 export interface ArcEnds {
-  inTrack: boolean;
-  fromBand: boolean;
-  toBand: boolean;
+    inTrack: boolean;
+    fromBand: boolean;
+    toBand: boolean;
 }
 
 export function arcEnds(
-  arc: Pick<TimelineArc, "air" | "from" | "to">,
-  bands: readonly TimelineBand[],
-  stations: readonly Pick<TimelineStation, "track">[],
+    arc: Pick<TimelineArc, "air" | "from" | "to">,
+    bands: readonly TimelineBand[],
+    stations: readonly Pick<TimelineStation, "track">[],
 ): ArcEnds {
-  const source = bandAt(bands, arc.from);
-  const target = bandAt(bands, arc.to);
-  const trackOf = (index: number): number => stations[index]?.track ?? 0;
-  const inTrack =
-    source !== undefined &&
-    source === target &&
-    trackOf(arc.from) === arc.air &&
-    trackOf(arc.to) === arc.air;
-  return {
-    fromBand: !inTrack && source !== undefined,
-    inTrack,
-    toBand: !inTrack && target !== undefined,
-  };
+    const source = bandAt(bands, arc.from);
+    const target = bandAt(bands, arc.to);
+    const trackOf = (index: number): number => stations[index]?.track ?? 0;
+    const inTrack =
+        source !== undefined &&
+        source === target &&
+        trackOf(arc.from) === arc.air &&
+        trackOf(arc.to) === arc.air;
+    return {
+        fromBand: !inTrack && source !== undefined,
+        inTrack,
+        toBand: !inTrack && target !== undefined,
+    };
 }
 
 /**
@@ -134,61 +134,72 @@ export function arcEnds(
  * 返回与 `arcs` 一一对应的两列偏移（相对灯心，px）；端点不是灯的那一侧恒为 0。
  */
 export function arcTerminalOffsets(
-  arcs: readonly Pick<TimelineArc, "air" | "from" | "lane" | "to">[],
-  bands: readonly TimelineBand[],
-  stations: readonly Pick<TimelineStation, "track">[],
+    arcs: readonly Pick<TimelineArc, "air" | "from" | "lane" | "to">[],
+    bands: readonly TimelineBand[],
+    stations: readonly Pick<TimelineStation, "track">[],
 ): { takeoff: number[]; landing: number[] } {
-  const takeoff = arcs.map(() => 0);
-  const landing = arcs.map(() => 0);
-  interface Terminal {
-    arc: number;
-    end: "takeoff" | "landing";
-    /** 远端在左 −1、在右 1。 */
-    side: -1 | 1;
-    lane: number;
-  }
-  const byStation = new Map<number, Terminal[]>();
-  const add = (station: number, terminal: Terminal): void => {
-    const list = byStation.get(station) ?? [];
-    list.push(terminal);
-    byStation.set(station, list);
-  };
-  arcs.forEach((arc, j) => {
-    const ends = arcEnds(arc, bands, stations);
-    if (!ends.fromBand) {
-      add(arc.from, { arc: j, end: "takeoff", lane: arc.lane, side: arc.to > arc.from ? 1 : -1 });
+    const takeoff = arcs.map(() => 0);
+    const landing = arcs.map(() => 0);
+    interface Terminal {
+        arc: number;
+        end: "takeoff" | "landing";
+        /** 远端在左 −1、在右 1。 */
+        side: -1 | 1;
+        lane: number;
     }
-    if (!ends.toBand) {
-      add(arc.to, { arc: j, end: "landing", lane: arc.lane, side: arc.from > arc.to ? 1 : -1 });
-    }
-  });
-  for (const list of byStation.values()) {
-    // 同一站、同一层空里的弧两两相交（闭区间），车道必不相同；稳定排序让弧序兜底。
-    list.sort(
-      (left, right) =>
-        left.side - right.side || (left.side < 0 ? left.lane - right.lane : right.lane - left.lane),
-    );
-    list.forEach((terminal, k) => {
-      const offset = (k - (list.length - 1) / 2) * TERMINAL_PITCH;
-      if (terminal.end === "takeoff") takeoff[terminal.arc] = offset;
-      else landing[terminal.arc] = offset;
+    const byStation = new Map<number, Terminal[]>();
+    const add = (station: number, terminal: Terminal): void => {
+        const list = byStation.get(station) ?? [];
+        list.push(terminal);
+        byStation.set(station, list);
+    };
+    arcs.forEach((arc, j) => {
+        const ends = arcEnds(arc, bands, stations);
+        if (!ends.fromBand) {
+            add(arc.from, {
+                arc: j,
+                end: "takeoff",
+                lane: arc.lane,
+                side: arc.to > arc.from ? 1 : -1,
+            });
+        }
+        if (!ends.toBand) {
+            add(arc.to, {
+                arc: j,
+                end: "landing",
+                lane: arc.lane,
+                side: arc.from > arc.to ? 1 : -1,
+            });
+        }
     });
-  }
-  return { landing, takeoff };
+    for (const list of byStation.values()) {
+        // 同一站、同一层空里的弧两两相交（闭区间），车道必不相同；稳定排序让弧序兜底。
+        list.sort(
+            (left, right) =>
+                left.side - right.side ||
+                (left.side < 0 ? left.lane - right.lane : right.lane - left.lane),
+        );
+        list.forEach((terminal, k) => {
+            const offset = (k - (list.length - 1) / 2) * TERMINAL_PITCH;
+            if (terminal.end === "takeoff") takeoff[terminal.arc] = offset;
+            else landing[terminal.arc] = offset;
+        });
+    }
+    return { landing, takeoff };
 }
 
 /** 时间线的行：每条轨道的中线、站台行、药丸列的顶，以及整体的右移。 */
 export interface TimelineLayout {
-  /** 每条轨道的中线 y，下标 = 轨道号；`rowY[0]` 是主线（最下面那一行）。 */
-  rowY: number[];
-  /** 站台行的中线；没有带时退化成主线行——那时站头还在轨道行上。 */
-  capY: number;
-  /** 药丸列的顶。 */
-  pillsTop: number;
-  /** 整根轨道右移的量：有带从站 0 起时 12（分叉要有落脚的地方），否则 0。 */
-  inset: number;
-  /** 画面上有带。 */
-  banded: boolean;
+    /** 每条轨道的中线 y，下标 = 轨道号；`rowY[0]` 是主线（最下面那一行）。 */
+    rowY: number[];
+    /** 站台行的中线；没有带时退化成主线行——那时站头还在轨道行上。 */
+    capY: number;
+    /** 药丸列的顶。 */
+    pillsTop: number;
+    /** 整根轨道右移的量：有带从站 0 起时 12（分叉要有落脚的地方），否则 0。 */
+    inset: number;
+    /** 画面上有带。 */
+    banded: boolean;
 }
 
 /**
@@ -198,35 +209,35 @@ export interface TimelineLayout {
  * 从前的「弧道 + 轨道行」。
  */
 export function timelineLayout(
-  arcs: readonly TimelineArc[],
-  bands: readonly TimelineBand[],
-  /** 有补全的时间线：最上面先留出头那一行（`HEAD_ROW`），其余整套式子原样下移。 */
-  heads = false,
+    arcs: readonly TimelineArc[],
+    bands: readonly TimelineBand[],
+    /** 有补全的时间线：最上面先留出头那一行（`HEAD_ROW`），其余整套式子原样下移。 */
+    heads = false,
 ): TimelineLayout {
-  const banded = bands.length > 0;
-  const tracks = banded ? Math.max(2, ...bands.map((band) => band.tracks.length)) : 1;
-  const rowY: number[] = [];
-  let y = heads ? HEAD_ROW : 0;
-  for (let t = tracks - 1; t >= 0; t -= 1) {
-    const lanes = arcLaneCount(arcs.filter((arc) => arc.air === t));
-    // 最高一道的顶线落在 y = 8：rowY = air + RAIL_ROW/2 = 8 + ARC_BASE + ARC_LANE × (lanes − 1)。
-    const air =
-      lanes === 0
-        ? t === tracks - 1
-          ? 6
-          : 0
-        : 8 + ARC_BASE - RAIL_ROW / 2 + ARC_LANE * (lanes - 1);
-    y += air;
-    rowY[t] = y + RAIL_ROW / 2;
-    y += RAIL_ROW;
-  }
-  const capY = banded ? y + PLATFORM_ROW / 2 : rowY[0]!;
-  if (banded) y += PLATFORM_ROW;
-  return {
-    banded,
-    capY,
-    inset: banded && bands.some((band) => band.from === 0) ? CAPTION_X : 0,
-    pillsTop: y + 8,
-    rowY,
-  };
+    const banded = bands.length > 0;
+    const tracks = banded ? Math.max(2, ...bands.map((band) => band.tracks.length)) : 1;
+    const rowY: number[] = [];
+    let y = heads ? HEAD_ROW : 0;
+    for (let t = tracks - 1; t >= 0; t -= 1) {
+        const lanes = arcLaneCount(arcs.filter((arc) => arc.air === t));
+        // 最高一道的顶线落在 y = 8：rowY = air + RAIL_ROW/2 = 8 + ARC_BASE + ARC_LANE × (lanes − 1)。
+        const air =
+            lanes === 0
+                ? t === tracks - 1
+                    ? 6
+                    : 0
+                : 8 + ARC_BASE - RAIL_ROW / 2 + ARC_LANE * (lanes - 1);
+        y += air;
+        rowY[t] = y + RAIL_ROW / 2;
+        y += RAIL_ROW;
+    }
+    const capY = banded ? y + PLATFORM_ROW / 2 : rowY[0]!;
+    if (banded) y += PLATFORM_ROW;
+    return {
+        banded,
+        capY,
+        inset: banded && bands.some((band) => band.from === 0) ? CAPTION_X : 0,
+        pillsTop: y + 8,
+        rowY,
+    };
 }

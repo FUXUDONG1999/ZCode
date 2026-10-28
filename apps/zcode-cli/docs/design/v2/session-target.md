@@ -94,10 +94,10 @@ Every successful goal mutation emits a durable compatibility `target_changed` se
 
 ```ts
 interface TargetChangedPayload {
-  action: "set" | "status_updated" | "cleared" | "usage_accounted" | "summary_updated";
-  source: "command" | "tool" | "runtime";
-  target: SessionGoal | null;
-  previousTarget?: SessionGoal | null;
+    action: "set" | "status_updated" | "cleared" | "usage_accounted" | "summary_updated";
+    source: "command" | "tool" | "runtime";
+    target: SessionGoal | null;
+    previousTarget?: SessionGoal | null;
 }
 ```
 

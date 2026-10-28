@@ -21,34 +21,34 @@
 
 ```json
 {
-  "schemaVersion": 1,
-  "config": {
-    "providerConfigRules": {
-      "providerRules": [
-        {
-          "providerId": "example",
-          "providerName": "Example API",
-          "config": {
-            "group": "standard-personal",
-            "access": { "type": "api-key", "apiKey": "REPLACE_WITH_API_KEY" },
-            "api": {
-              "type": "openai-chat-completions",
-              "baseUrl": "https://api.example.com/v1"
-            },
-            "personalModelIds": ["example-model"]
-          }
+    "schemaVersion": 1,
+    "config": {
+        "providerConfigRules": {
+            "providerRules": [
+                {
+                    "providerId": "example",
+                    "providerName": "Example API",
+                    "config": {
+                        "group": "standard-personal",
+                        "access": { "type": "api-key", "apiKey": "REPLACE_WITH_API_KEY" },
+                        "api": {
+                            "type": "openai-chat-completions",
+                            "baseUrl": "https://api.example.com/v1"
+                        },
+                        "personalModelIds": ["example-model"]
+                    }
+                }
+            ]
+        },
+        "modelConfigRules": {
+            "providerModelRules": [],
+            "manualProviderModelRules": []
+        },
+        "defaultModelSelection": {
+            "providerId": "example",
+            "modelId": "example-model"
         }
-      ]
-    },
-    "modelConfigRules": {
-      "providerModelRules": [],
-      "manualProviderModelRules": []
-    },
-    "defaultModelSelection": {
-      "providerId": "example",
-      "modelId": "example-model"
     }
-  }
 }
 ```
 
@@ -75,13 +75,13 @@
 
 ```json
 {
-  "features": { "mcp": false, "subagent": false, "memory": false, "skill": false },
-  "memory": { "use": false },
-  "plugins": { "enabled": false },
-  "skills": { "enabled": false },
-  "hooks": { "enabled": false },
-  "ui": { "locale": "zh-CN" },
-  "modelStream": { "idleTimeoutMs": 600000 }
+    "features": { "mcp": false, "subagent": false, "memory": false, "skill": false },
+    "memory": { "use": false },
+    "plugins": { "enabled": false },
+    "skills": { "enabled": false },
+    "hooks": { "enabled": false },
+    "ui": { "locale": "zh-CN" },
+    "modelStream": { "idleTimeoutMs": 600000 }
 }
 ```
 

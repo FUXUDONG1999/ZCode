@@ -42,11 +42,11 @@ eligible session 空闲超过 TTL 后无论 resident 数量多少都去激活；
 
 ```ts
 interface SessionResidentPoolHost {
-  listSessionIds(): string[];
-  readResidencyFacts(sessionId: string): SessionResidencyFacts | null;
-  deactivate(sessionId: string): Promise<void>;
-  onDeactivated?(sessionId: string): void;
-  onError?(sessionId: string, error: unknown): void;
+    listSessionIds(): string[];
+    readResidencyFacts(sessionId: string): SessionResidencyFacts | null;
+    deactivate(sessionId: string): Promise<void>;
+    onDeactivated?(sessionId: string): void;
+    onError?(sessionId: string, error: unknown): void;
 }
 ```
 
@@ -68,13 +68,13 @@ interface SessionResidentPoolHost {
 
 ```ts
 interface SessionResidencyFacts {
-  persisted: boolean;
-  hasResidencyBlockingWork: boolean;
-  hasPendingInteractions: boolean;
-  hasQueuedCommands: boolean;
-  hasSubscribers: boolean;
-  hasLegacySubscriber: boolean;
-  lastActivityAt: number;
+    persisted: boolean;
+    hasResidencyBlockingWork: boolean;
+    hasPendingInteractions: boolean;
+    hasQueuedCommands: boolean;
+    hasSubscribers: boolean;
+    hasLegacySubscriber: boolean;
+    lastActivityAt: number;
 }
 ```
 

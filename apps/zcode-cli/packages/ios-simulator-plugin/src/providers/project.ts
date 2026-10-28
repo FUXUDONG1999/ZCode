@@ -4,228 +4,234 @@ import { inside } from "../lib/path.js";
 import { ok, run } from "../lib/run.js";
 
 type Found = {
-  projects: string[];
-  workspaces: string[];
-  schemes: string[];
-  bundleIds: string[];
+    projects: string[];
+    workspaces: string[];
+    schemes: string[];
+    bundleIds: string[];
 };
 
 const IDS = [
-  "A10000000000000000000001",
-  "A10000000000000000000002",
-  "A10000000000000000000003",
-  "A10000000000000000000004",
-  "A10000000000000000000005",
-  "A10000000000000000000006",
-  "A10000000000000000000007",
-  "A10000000000000000000008",
-  "A10000000000000000000009",
-  "A1000000000000000000000A",
-  "A1000000000000000000000B",
-  "A1000000000000000000000C",
-  "A1000000000000000000000D",
-  "A1000000000000000000000E",
-  "A1000000000000000000000F",
-  "A10000000000000000000010",
-  "A10000000000000000000011",
-  "A10000000000000000000012",
-  "A10000000000000000000013",
-  "A10000000000000000000014",
-  "A10000000000000000000015",
-  "A10000000000000000000016",
+    "A10000000000000000000001",
+    "A10000000000000000000002",
+    "A10000000000000000000003",
+    "A10000000000000000000004",
+    "A10000000000000000000005",
+    "A10000000000000000000006",
+    "A10000000000000000000007",
+    "A10000000000000000000008",
+    "A10000000000000000000009",
+    "A1000000000000000000000A",
+    "A1000000000000000000000B",
+    "A1000000000000000000000C",
+    "A1000000000000000000000D",
+    "A1000000000000000000000E",
+    "A1000000000000000000000F",
+    "A10000000000000000000010",
+    "A10000000000000000000011",
+    "A10000000000000000000012",
+    "A10000000000000000000013",
+    "A10000000000000000000014",
+    "A10000000000000000000015",
+    "A10000000000000000000016",
 ] as const;
 
 export async function discover(dir = process.cwd()): Promise<Found> {
-  const projects: string[] = [];
-  const workspaces: string[] = [];
-  await walk(dir, 3, (file) => {
-    if (file.endsWith(".xcodeproj")) projects.push(path.relative(dir, file));
-    if (file.endsWith(".xcworkspace")) workspaces.push(path.relative(dir, file));
-  });
-  const source = workspaces[0]
-    ? { flag: "-workspace", file: workspaces[0] }
-    : projects[0]
-      ? { flag: "-project", file: projects[0] }
-      : undefined;
-  const schemes = source ? await schemesFor(source.flag, source.file) : [];
-  const ids = new Set<string>();
-  for (const item of projects) {
-    const file = path.join(dir, item, "project.pbxproj");
-    const text = await readFile(file, "utf8").catch(() => "");
-    for (const hit of text.matchAll(/PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);/g))
-      ids.add(hit[1]?.replaceAll('"', "").trim() ?? "");
-  }
-  return { projects, workspaces, schemes, bundleIds: [...ids].filter(Boolean) };
+    const projects: string[] = [];
+    const workspaces: string[] = [];
+    await walk(dir, 3, (file) => {
+        if (file.endsWith(".xcodeproj")) projects.push(path.relative(dir, file));
+        if (file.endsWith(".xcworkspace")) workspaces.push(path.relative(dir, file));
+    });
+    const source = workspaces[0]
+        ? { flag: "-workspace", file: workspaces[0] }
+        : projects[0]
+          ? { flag: "-project", file: projects[0] }
+          : undefined;
+    const schemes = source ? await schemesFor(source.flag, source.file) : [];
+    const ids = new Set<string>();
+    for (const item of projects) {
+        const file = path.join(dir, item, "project.pbxproj");
+        const text = await readFile(file, "utf8").catch(() => "");
+        for (const hit of text.matchAll(/PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);/g))
+            ids.add(hit[1]?.replaceAll('"', "").trim() ?? "");
+    }
+    return { projects, workspaces, schemes, bundleIds: [...ids].filter(Boolean) };
 }
 
 async function schemesFor(flag: string, file: string): Promise<string[]> {
-  const out = await run(["xcodebuild", "-list", "-json", flag, file], { timeout: 30_000 });
-  if (!ok(out)) return [];
-  const raw = JSON.parse(out.stdout) as {
-    project?: { schemes?: string[] };
-    workspace?: { schemes?: string[] };
-  };
-  return raw.project?.schemes ?? raw.workspace?.schemes ?? [];
+    const out = await run(["xcodebuild", "-list", "-json", flag, file], { timeout: 30_000 });
+    if (!ok(out)) return [];
+    const raw = JSON.parse(out.stdout) as {
+        project?: { schemes?: string[] };
+        workspace?: { schemes?: string[] };
+    };
+    return raw.project?.schemes ?? raw.workspace?.schemes ?? [];
 }
 
 async function walk(dir: string, depth: number, cb: (file: string) => void): Promise<void> {
-  if (depth < 0) return;
-  const items = await readdir(dir, { withFileTypes: true }).catch(() => []);
-  await Promise.all(
-    items
-      .filter(
-        (item) =>
-          !item.name.startsWith(".") && item.name !== "node_modules" && item.name !== "DerivedData",
-      )
-      .map(async (item) => {
-        const file = path.join(dir, item.name);
-        if (
-          item.isDirectory() &&
-          (item.name.endsWith(".xcodeproj") || item.name.endsWith(".xcworkspace"))
-        ) {
-          cb(file);
-          return;
-        }
-        if (item.isDirectory()) await walk(file, depth - 1, cb);
-      }),
-  );
+    if (depth < 0) return;
+    const items = await readdir(dir, { withFileTypes: true }).catch(() => []);
+    await Promise.all(
+        items
+            .filter(
+                (item) =>
+                    !item.name.startsWith(".") &&
+                    item.name !== "node_modules" &&
+                    item.name !== "DerivedData",
+            )
+            .map(async (item) => {
+                const file = path.join(dir, item.name);
+                if (
+                    item.isDirectory() &&
+                    (item.name.endsWith(".xcodeproj") || item.name.endsWith(".xcworkspace"))
+                ) {
+                    cb(file);
+                    return;
+                }
+                if (item.isDirectory()) await walk(file, depth - 1, cb);
+            }),
+    );
 }
 
 export async function create(input: {
-  name: string;
-  bundleId?: string;
-  dir?: string;
-  deployment?: string;
-  overwrite?: boolean;
+    name: string;
+    bundleId?: string;
+    dir?: string;
+    deployment?: string;
+    overwrite?: boolean;
 }) {
-  const cwd = process.cwd();
-  const name = clean(input.name);
-  const root = inside(cwd, input.dir || name);
-  const bundle = input.bundleId ? bundleId(input.bundleId) : `com.example.${slug(name)}`;
-  const target = deployment(input.deployment || "17.0");
-  const src = path.join(root, name);
-  const proj = path.join(root, `${name}.xcodeproj`);
-  const files = [
-    path.join(src, `${name}App.swift`),
-    path.join(src, "ContentView.swift"),
-    path.join(proj, "project.pbxproj"),
-  ];
-  if (!input.overwrite) {
-    const hits = await present(files);
-    if (hits.length) {
-      throw new Error(
-        `Refusing to overwrite existing iOS app files: ${hits.map((file) => path.relative(cwd, file)).join(", ")}`,
-      );
+    const cwd = process.cwd();
+    const name = clean(input.name);
+    const root = inside(cwd, input.dir || name);
+    const bundle = input.bundleId ? bundleId(input.bundleId) : `com.example.${slug(name)}`;
+    const target = deployment(input.deployment || "17.0");
+    const src = path.join(root, name);
+    const proj = path.join(root, `${name}.xcodeproj`);
+    const files = [
+        path.join(src, `${name}App.swift`),
+        path.join(src, "ContentView.swift"),
+        path.join(proj, "project.pbxproj"),
+    ];
+    if (!input.overwrite) {
+        const hits = await present(files);
+        if (hits.length) {
+            throw new Error(
+                `Refusing to overwrite existing iOS app files: ${hits.map((file) => path.relative(cwd, file)).join(", ")}`,
+            );
+        }
     }
-  }
-  await mkdir(src, { recursive: true });
-  await mkdir(proj, { recursive: true });
-  await writeFile(files[0], app(name), "utf8");
-  await writeFile(files[1], view(), "utf8");
-  await writeFile(files[2], pbx(name, bundle, target), "utf8");
-  return {
-    project: path.relative(cwd, proj),
-    scheme: name,
-    bundle,
-    files: files.slice(0, 2).map((file) => path.relative(cwd, file)),
-  };
+    await mkdir(src, { recursive: true });
+    await mkdir(proj, { recursive: true });
+    await writeFile(files[0], app(name), "utf8");
+    await writeFile(files[1], view(), "utf8");
+    await writeFile(files[2], pbx(name, bundle, target), "utf8");
+    return {
+        project: path.relative(cwd, proj),
+        scheme: name,
+        bundle,
+        files: files.slice(0, 2).map((file) => path.relative(cwd, file)),
+    };
 }
 
 export async function bundle(
-  flag: "-project" | "-workspace",
-  file: string,
-  scheme: string,
+    flag: "-project" | "-workspace",
+    file: string,
+    scheme: string,
 ): Promise<string | undefined> {
-  const out = await run(["xcodebuild", flag, file, "-scheme", scheme, "-showBuildSettings"], {
-    timeout: 60_000,
-  });
-  if (!ok(out)) return undefined;
-  return out.stdout
-    .split("\n")
-    .map((line) => line.trim())
-    .find((line) => line.startsWith("PRODUCT_BUNDLE_IDENTIFIER = "))
-    ?.replace("PRODUCT_BUNDLE_IDENTIFIER = ", "");
+    const out = await run(["xcodebuild", flag, file, "-scheme", scheme, "-showBuildSettings"], {
+        timeout: 60_000,
+    });
+    if (!ok(out)) return undefined;
+    return out.stdout
+        .split("\n")
+        .map((line) => line.trim())
+        .find((line) => line.startsWith("PRODUCT_BUNDLE_IDENTIFIER = "))
+        ?.replace("PRODUCT_BUNDLE_IDENTIFIER = ", "");
 }
 
 export function source(
-  input: { project?: string; workspace?: string; scheme?: string },
-  found: Found,
+    input: { project?: string; workspace?: string; scheme?: string },
+    found: Found,
 ) {
-  const workspace = input.workspace ? scoped(input.workspace, ".xcworkspace") : undefined;
-  const project = input.project ? scoped(input.project, ".xcodeproj") : undefined;
-  if (workspace)
-    return { flag: "-workspace" as const, file: workspace, scheme: pick(input, found, workspace) };
-  if (project)
-    return { flag: "-project" as const, file: project, scheme: pick(input, found, project) };
-  const auto = found.workspaces[0]
-    ? { flag: "-workspace" as const, file: found.workspaces[0] }
-    : found.projects[0]
-      ? { flag: "-project" as const, file: found.projects[0] }
-      : undefined;
-  if (auto) return { ...auto, scheme: pick(input, found, auto.file) };
-  throw new Error("No .xcodeproj or .xcworkspace found. Use ios_create_app first.");
+    const workspace = input.workspace ? scoped(input.workspace, ".xcworkspace") : undefined;
+    const project = input.project ? scoped(input.project, ".xcodeproj") : undefined;
+    if (workspace)
+        return {
+            flag: "-workspace" as const,
+            file: workspace,
+            scheme: pick(input, found, workspace),
+        };
+    if (project)
+        return { flag: "-project" as const, file: project, scheme: pick(input, found, project) };
+    const auto = found.workspaces[0]
+        ? { flag: "-workspace" as const, file: found.workspaces[0] }
+        : found.projects[0]
+          ? { flag: "-project" as const, file: found.projects[0] }
+          : undefined;
+    if (auto) return { ...auto, scheme: pick(input, found, auto.file) };
+    throw new Error("No .xcodeproj or .xcworkspace found. Use ios_create_app first.");
 }
 
 function pick(input: { scheme?: string }, found: Found, file: string): string | undefined {
-  const first = found.workspaces[0] || found.projects[0];
-  return (
-    input.scheme ||
-    (file === first ? found.schemes[0] : undefined) ||
-    path.basename(file, path.extname(file))
-  );
+    const first = found.workspaces[0] || found.projects[0];
+    return (
+        input.scheme ||
+        (file === first ? found.schemes[0] : undefined) ||
+        path.basename(file, path.extname(file))
+    );
 }
 
 async function present(files: string[]): Promise<string[]> {
-  return (
-    await Promise.all(
-      files.map(async (file) => {
-        const hit = await access(file)
-          .then(() => true)
-          .catch(() => false);
-        return hit ? file : undefined;
-      }),
-    )
-  ).filter((file): file is string => file !== undefined);
+    return (
+        await Promise.all(
+            files.map(async (file) => {
+                const hit = await access(file)
+                    .then(() => true)
+                    .catch(() => false);
+                return hit ? file : undefined;
+            }),
+        )
+    ).filter((file): file is string => file !== undefined);
 }
 
 function scoped(raw: string, ext: ".xcodeproj" | ".xcworkspace"): string {
-  const file = inside(process.cwd(), raw);
-  if (!file.endsWith(ext)) throw new Error(`Expected ${ext} path: ${raw}`);
-  return path.relative(process.cwd(), file);
+    const file = inside(process.cwd(), raw);
+    if (!file.endsWith(ext)) throw new Error(`Expected ${ext} path: ${raw}`);
+    return path.relative(process.cwd(), file);
 }
 
 function bundleId(value: string): string {
-  const parts = value.split(".");
-  const good = parts.length > 1 && parts.every((part) => /^[A-Za-z0-9][A-Za-z0-9-]*$/.test(part));
-  if (!good) throw new Error(`Invalid bundle id: ${value}`);
-  return value;
+    const parts = value.split(".");
+    const good = parts.length > 1 && parts.every((part) => /^[A-Za-z0-9][A-Za-z0-9-]*$/.test(part));
+    if (!good) throw new Error(`Invalid bundle id: ${value}`);
+    return value;
 }
 
 function deployment(value: string): string {
-  if (!/^[0-9]+(\.[0-9]+){0,2}$/.test(value))
-    throw new Error(`Invalid deployment target: ${value}`);
-  return value;
+    if (!/^[0-9]+(\.[0-9]+){0,2}$/.test(value))
+        throw new Error(`Invalid deployment target: ${value}`);
+    return value;
 }
 
 function slug(value: string): string {
-  const out = value
-    .replace(/[^A-Za-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .toLowerCase();
-  if (/^[0-9]/.test(out)) return `app-${out}`;
-  return out || "app";
+    const out = value
+        .replace(/[^A-Za-z0-9-]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .toLowerCase();
+    if (/^[0-9]/.test(out)) return `app-${out}`;
+    return out || "app";
 }
 
 function clean(value: string): string {
-  const out = value.replace(/[^A-Za-z0-9_]/g, "");
-  if (!out) throw new Error("App name must contain letters or numbers.");
-  if (/^[0-9]/.test(out)) return `App${out}`;
-  return out;
+    const out = value.replace(/[^A-Za-z0-9_]/g, "");
+    if (!out) throw new Error("App name must contain letters or numbers.");
+    if (/^[0-9]/.test(out)) return `App${out}`;
+    return out;
 }
 
 function app(name: string): string {
-  return `import SwiftUI
+    return `import SwiftUI
 
 @main
 struct ${name}App: App {
@@ -239,7 +245,7 @@ struct ${name}App: App {
 }
 
 function view(): string {
-  return `import SwiftUI
+    return `import SwiftUI
 
 struct ContentView: View {
     @State private var count = 0
@@ -268,7 +274,7 @@ struct ContentView: View {
 }
 
 function pbx(name: string, bundle: string, deployment: string): string {
-  return `// !$*UTF8*$!
+    return `// !$*UTF8*$!
 {
   archiveVersion = 1;
   classes = {};

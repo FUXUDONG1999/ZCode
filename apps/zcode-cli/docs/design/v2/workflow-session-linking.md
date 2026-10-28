@@ -18,27 +18,27 @@ or empty, clients may derive equivalent links from `activities[]`.
 
 ```ts
 interface WorkflowSessionLink {
-  activityId: string;
-  attempt: number;
-  kind: "agent_session" | "planner_agent" | "subplanner_agent" | "actor_agent" | "critic_agent";
-  model?: string;
-  nodeId?: string;
-  parentSessionId?: string;
-  phase: string;
-  runId: string;
-  sessionId?: string;
-  startedAt: string;
-  completedAt?: string;
-  status:
-    | "starting"
-    | "running"
-    | "retrying_model"
-    | "waiting_permission"
-    | "completed"
-    | "failed"
-    | "cancelled";
-  traceId?: string;
-  turnId?: string;
+    activityId: string;
+    attempt: number;
+    kind: "agent_session" | "planner_agent" | "subplanner_agent" | "actor_agent" | "critic_agent";
+    model?: string;
+    nodeId?: string;
+    parentSessionId?: string;
+    phase: string;
+    runId: string;
+    sessionId?: string;
+    startedAt: string;
+    completedAt?: string;
+    status:
+        | "starting"
+        | "running"
+        | "retrying_model"
+        | "waiting_permission"
+        | "completed"
+        | "failed"
+        | "cancelled";
+    traceId?: string;
+    turnId?: string;
 }
 ```
 
@@ -55,10 +55,10 @@ kind)`, so retrying the same node creates a new activity and increments the visi
 
 ```ts
 interface SessionWorkflowReference {
-  activityId: string;
-  nodeId?: string;
-  phase: string;
-  runId: string;
+    activityId: string;
+    nodeId?: string;
+    phase: string;
+    runId: string;
 }
 ```
 

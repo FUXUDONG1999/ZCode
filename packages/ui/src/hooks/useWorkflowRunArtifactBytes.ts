@@ -30,44 +30,44 @@ const CHUNK_BYTES = PROTOCOL_V4_LIMITS.attachmentChunkMaxBytes;
 const MAX_CHUNKS = 96;
 
 interface WorkflowRunArtifactBytesState {
-  bytes: Uint8Array<ArrayBuffer> | null;
-  blob: Blob | null;
-  /** Blob 的 object URL；`<img src>` / PdfViewer 用。卸载与换版本时自动 revoke。 */
-  objectUrl: string | null;
-  /** journal 记录上的 contentType（不是 store 重新嗅探出来的那个）——渲染器分派的精确匹配契约。 */
-  mediaType: string | null;
-  totalBytes: number | null;
-  loading: boolean;
-  error: string | null;
-  /**
-   * `bytes` 属于哪一版。换版本后、effect 清空旧状态之前有一帧 `version` 已是新值而 `bytes`
-   * 还是旧版的；查看器闪一帧无妨，但「作为文件打开」的副本只写一次，拿错字节就永久错了——
-   * 这类消费方必须核对它，而不是信任「当前渲染的 version」。
-   */
-  bytesVersion: number | null;
+    bytes: Uint8Array<ArrayBuffer> | null;
+    blob: Blob | null;
+    /** Blob 的 object URL；`<img src>` / PdfViewer 用。卸载与换版本时自动 revoke。 */
+    objectUrl: string | null;
+    /** journal 记录上的 contentType（不是 store 重新嗅探出来的那个）——渲染器分派的精确匹配契约。 */
+    mediaType: string | null;
+    totalBytes: number | null;
+    loading: boolean;
+    error: string | null;
+    /**
+     * `bytes` 属于哪一版。换版本后、effect 清空旧状态之前有一帧 `version` 已是新值而 `bytes`
+     * 还是旧版的；查看器闪一帧无妨，但「作为文件打开」的副本只写一次，拿错字节就永久错了——
+     * 这类消费方必须核对它，而不是信任「当前渲染的 version」。
+     */
+    bytesVersion: number | null;
 }
 
 function emptyState(): WorkflowRunArtifactBytesState {
-  return {
-    bytes: null,
-    blob: null,
-    objectUrl: null,
-    mediaType: null,
-    totalBytes: null,
-    loading: false,
-    error: null,
-    bytesVersion: null,
-  };
+    return {
+        bytes: null,
+        blob: null,
+        objectUrl: null,
+        mediaType: null,
+        totalBytes: null,
+        loading: false,
+        error: null,
+        bytesVersion: null,
+    };
 }
 
 /** base64 → 字节。renderer 里 `atob` 恒在（Electron 与浏览器都是 Chromium）。 */
 function decodeBase64(value: string): Uint8Array<ArrayBuffer> {
-  const binary = atob(value);
-  const bytes = new Uint8Array(binary.length);
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-  return bytes;
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+        bytes[index] = binary.charCodeAt(index);
+    }
+    return bytes;
 }
 
 /**
@@ -77,117 +77,117 @@ function decodeBase64(value: string): Uint8Array<ArrayBuffer> {
  * "Maximum call stack size exceeded" 炸掉——展开成 2000 万个实参。
  */
 export function encodeBytesToBase64(bytes: Uint8Array<ArrayBuffer>): string {
-  const step = 0x2000;
-  let binary = "";
-  for (let offset = 0; offset < bytes.length; offset += step) {
-    binary += String.fromCharCode(...bytes.subarray(offset, offset + step));
-  }
-  return btoa(binary);
+    const step = 0x2000;
+    let binary = "";
+    for (let offset = 0; offset < bytes.length; offset += step) {
+        binary += String.fromCharCode(...bytes.subarray(offset, offset + step));
+    }
+    return btoa(binary);
 }
 
 export function useWorkflowRunArtifactBytes(options: {
-  sessionId: string;
-  runId: string;
-  artifactId: string;
-  version: number;
-  /** 关掉即不读，也不留下任何 object URL（预置看板与折叠态都靠它省掉整条链路）。 */
-  enabled?: boolean;
+    sessionId: string;
+    runId: string;
+    artifactId: string;
+    version: number;
+    /** 关掉即不读，也不留下任何 object URL（预置看板与折叠态都靠它省掉整条链路）。 */
+    enabled?: boolean;
 }): WorkflowRunArtifactBytesState {
-  const { workflowRunArtifactRead } = useV4Conversation();
-  const [state, setState] = useState<WorkflowRunArtifactBytesState>(emptyState);
-  // 已发出的 object URL：卸载与换版本时必须 revoke，否则每翻一版就漏一份 20 MiB。
-  const objectUrlRef = useRef<string | null>(null);
+    const { workflowRunArtifactRead } = useV4Conversation();
+    const [state, setState] = useState<WorkflowRunArtifactBytesState>(emptyState);
+    // 已发出的 object URL：卸载与换版本时必须 revoke，否则每翻一版就漏一份 20 MiB。
+    const objectUrlRef = useRef<string | null>(null);
 
-  const { artifactId, runId, sessionId, version } = options;
-  const enabled =
-    options.enabled !== false &&
-    sessionId.length > 0 &&
-    runId.length > 0 &&
-    artifactId.length > 0 &&
-    version > 0;
+    const { artifactId, runId, sessionId, version } = options;
+    const enabled =
+        options.enabled !== false &&
+        sessionId.length > 0 &&
+        runId.length > 0 &&
+        artifactId.length > 0 &&
+        version > 0;
 
-  useEffect(() => {
-    const revokePrevious = () => {
-      if (objectUrlRef.current !== null) {
-        if (typeof URL !== "undefined" && typeof URL.revokeObjectURL === "function") {
-          URL.revokeObjectURL(objectUrlRef.current);
-        }
-        objectUrlRef.current = null;
-      }
-    };
-    revokePrevious();
-    setState(emptyState());
-    if (!enabled) return;
+    useEffect(() => {
+        const revokePrevious = () => {
+            if (objectUrlRef.current !== null) {
+                if (typeof URL !== "undefined" && typeof URL.revokeObjectURL === "function") {
+                    URL.revokeObjectURL(objectUrlRef.current);
+                }
+                objectUrlRef.current = null;
+            }
+        };
+        revokePrevious();
+        setState(emptyState());
+        if (!enabled) return;
 
-    let alive = true;
-    setState((current) => ({ ...current, loading: true }));
-    void (async () => {
-      try {
-        const chunks: Uint8Array<ArrayBuffer>[] = [];
-        let offset = 0;
-        let mediaType = "application/octet-stream";
-        let totalBytes = 0;
-        for (let index = 0; index < MAX_CHUNKS; index += 1) {
-          const result = await workflowRunArtifactRead({
-            sessionId,
-            runId,
-            artifactId,
-            version,
-            offset,
-            limit: CHUNK_BYTES,
-          });
-          if (!alive) return;
-          mediaType = result.mediaType;
-          totalBytes = result.totalBytes;
-          chunks.push(decodeBase64(result.dataBase64));
-          if (result.nextOffset === null) break;
-          offset = result.nextOffset;
-        }
-        if (!alive) return;
-        const size = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
-        const bytes = new Uint8Array(size);
-        let cursor = 0;
-        for (const chunk of chunks) {
-          bytes.set(chunk, cursor);
-          cursor += chunk.length;
-        }
-        const blob = new Blob([bytes], { type: mediaType });
-        // jsdom 里没有 createObjectURL：拿不到 URL 不是错误，只是 `<img>` 那条路走不了，
-        // Blob / bytes 两条路仍然通（PdfViewer 与 office 查看器读的就是它们）。
-        const objectUrl =
-          typeof URL !== "undefined" && typeof URL.createObjectURL === "function"
-            ? URL.createObjectURL(blob)
-            : null;
-        objectUrlRef.current = objectUrl;
-        setState({
-          bytes,
-          blob,
-          objectUrl,
-          mediaType,
-          totalBytes,
-          loading: false,
-          error: null,
-          bytesVersion: version,
-        });
-      } catch (caught) {
-        if (!alive) return;
-        const message = caught instanceof Error ? caught.message : String(caught);
-        logger.warn("[workflow-artifacts] 读取产物字节失败", {
-          artifactId,
-          error: message,
-          runId,
-          sessionId,
-          version,
-        });
-        setState({ ...emptyState(), error: message });
-      }
-    })();
+        let alive = true;
+        setState((current) => ({ ...current, loading: true }));
+        void (async () => {
+            try {
+                const chunks: Uint8Array<ArrayBuffer>[] = [];
+                let offset = 0;
+                let mediaType = "application/octet-stream";
+                let totalBytes = 0;
+                for (let index = 0; index < MAX_CHUNKS; index += 1) {
+                    const result = await workflowRunArtifactRead({
+                        sessionId,
+                        runId,
+                        artifactId,
+                        version,
+                        offset,
+                        limit: CHUNK_BYTES,
+                    });
+                    if (!alive) return;
+                    mediaType = result.mediaType;
+                    totalBytes = result.totalBytes;
+                    chunks.push(decodeBase64(result.dataBase64));
+                    if (result.nextOffset === null) break;
+                    offset = result.nextOffset;
+                }
+                if (!alive) return;
+                const size = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+                const bytes = new Uint8Array(size);
+                let cursor = 0;
+                for (const chunk of chunks) {
+                    bytes.set(chunk, cursor);
+                    cursor += chunk.length;
+                }
+                const blob = new Blob([bytes], { type: mediaType });
+                // jsdom 里没有 createObjectURL：拿不到 URL 不是错误，只是 `<img>` 那条路走不了，
+                // Blob / bytes 两条路仍然通（PdfViewer 与 office 查看器读的就是它们）。
+                const objectUrl =
+                    typeof URL !== "undefined" && typeof URL.createObjectURL === "function"
+                        ? URL.createObjectURL(blob)
+                        : null;
+                objectUrlRef.current = objectUrl;
+                setState({
+                    bytes,
+                    blob,
+                    objectUrl,
+                    mediaType,
+                    totalBytes,
+                    loading: false,
+                    error: null,
+                    bytesVersion: version,
+                });
+            } catch (caught) {
+                if (!alive) return;
+                const message = caught instanceof Error ? caught.message : String(caught);
+                logger.warn("[workflow-artifacts] 读取产物字节失败", {
+                    artifactId,
+                    error: message,
+                    runId,
+                    sessionId,
+                    version,
+                });
+                setState({ ...emptyState(), error: message });
+            }
+        })();
 
-    return () => {
-      alive = false;
-      revokePrevious();
-    };
-  }, [artifactId, enabled, runId, sessionId, version, workflowRunArtifactRead]);
+        return () => {
+            alive = false;
+            revokePrevious();
+        };
+    }, [artifactId, enabled, runId, sessionId, version, workflowRunArtifactRead]);
 
-  return useMemo(() => state, [state]);
+    return useMemo(() => state, [state]);
 }

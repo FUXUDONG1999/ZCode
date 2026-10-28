@@ -2,7 +2,7 @@ import type { CuaPermissionKind } from "@zcode/shared";
 import type { CuaPermissionStatus } from "@zcode/services";
 
 function isActionablePermissionState(state: CuaPermissionStatus["accessibility"]): boolean {
-  return state === "denied" || state === "stale";
+    return state === "denied" || state === "stale";
 }
 
 /**
@@ -10,15 +10,15 @@ function isActionablePermissionState(state: CuaPermissionStatus["accessibility"]
  * 功能探针失败与 unknown 都只进入验证/重试，不能反向推导为系统权限缺失。
  */
 export function requiredCuaPermissionsForFreshStatus(
-  status: CuaPermissionStatus | null,
+    status: CuaPermissionStatus | null,
 ): CuaPermissionKind[] {
-  if (!status) return [];
-  const required: CuaPermissionKind[] = [];
-  if (isActionablePermissionState(status.accessibility)) {
-    required.push("accessibility");
-  }
-  if (isActionablePermissionState(status.screenRecording)) {
-    required.push("screen_recording");
-  }
-  return required;
+    if (!status) return [];
+    const required: CuaPermissionKind[] = [];
+    if (isActionablePermissionState(status.accessibility)) {
+        required.push("accessibility");
+    }
+    if (isActionablePermissionState(status.screenRecording)) {
+        required.push("screen_recording");
+    }
+    return required;
 }

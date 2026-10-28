@@ -1,14 +1,14 @@
 import { z } from "zod";
 import {
-  conversationShareContentBlockSchema,
-  SHARE_CONTENT_LIMITS,
+    conversationShareContentBlockSchema,
+    SHARE_CONTENT_LIMITS,
 } from "./conversation-share-content.js";
 
 import type { Locale } from "./protocol.js";
 import {
-  conversationArtifactTypeSchema,
-  conversationRowSchema,
-  type ConversationRow,
+    conversationArtifactTypeSchema,
+    conversationRowSchema,
+    type ConversationRow,
 } from "./zcode-protocol-v4/rows.js";
 
 /**
@@ -16,8 +16,8 @@ import {
  * web 路由、发布回链改写、导入回链共用这一份定义，避免三处各写一遍前缀。
  */
 const CONVERSATION_SHARE_LOCALE_PATH_PREFIX: Readonly<Record<Locale, string>> = {
-  "zh-CN": "/cn",
-  "en-US": "",
+    "zh-CN": "/cn",
+    "en-US": "",
 };
 
 const CONVERSATION_SHARE_PATHNAME_RE = /^\/(cn\/)?share\/([^/]+)\/?$/u;
@@ -27,11 +27,11 @@ const CONVERSATION_SHARE_PATHNAME_RE = /^\/(cn\/)?share\/([^/]+)\/?$/u;
  * 只认 `/share/<code>` 与 `/cn/share/<code>` 两种形状；调用方负责 code 的解码与安全校验。
  */
 export function parseConversationSharePathname(
-  pathname: string,
+    pathname: string,
 ): { rawCode: string; locale: Locale } | null {
-  const match = CONVERSATION_SHARE_PATHNAME_RE.exec(pathname);
-  if (!match) return null;
-  return { rawCode: match[2]!, locale: match[1] ? "zh-CN" : "en-US" };
+    const match = CONVERSATION_SHARE_PATHNAME_RE.exec(pathname);
+    if (!match) return null;
+    return { rawCode: match[2]!, locale: match[1] ? "zh-CN" : "en-US" };
 }
 
 /**
@@ -42,22 +42,22 @@ export function parseConversationSharePathname(
  * 别的 URL 形状或独立域名，这里会安静地不作为，而不是改错。
  */
 export function localizeConversationShareUrl(shareUrl: string, locale: Locale): string {
-  let url: URL;
-  try {
-    url = new URL(shareUrl);
-  } catch {
-    return shareUrl;
-  }
-  const parsed = parseConversationSharePathname(url.pathname);
-  if (!parsed) return shareUrl;
-  url.pathname = `${CONVERSATION_SHARE_LOCALE_PATH_PREFIX[locale]}/share/${parsed.rawCode}`;
-  return url.toString();
+    let url: URL;
+    try {
+        url = new URL(shareUrl);
+    } catch {
+        return shareUrl;
+    }
+    const parsed = parseConversationSharePathname(url.pathname);
+    if (!parsed) return shareUrl;
+    url.pathname = `${CONVERSATION_SHARE_LOCALE_PATH_PREFIX[locale]}/share/${parsed.rawCode}`;
+    return url.toString();
 }
 
 export const conversationShareAccessModeSchema = z.enum([
-  "private",
-  "public_readonly",
-  "public_importable",
+    "private",
+    "public_readonly",
+    "public_importable",
 ]);
 export type ConversationShareAccessMode = z.infer<typeof conversationShareAccessModeSchema>;
 
@@ -79,7 +79,7 @@ const conversationShareSchemaVersionSchema = z.number().int().positive();
 
 /** 版本高于本端认知时不猜语义：调用方必须转成「请升级」而不是通用契约错误。 */
 export function isConversationShareSchemaVersionSupported(version: number): boolean {
-  return version <= CONVERSATION_SHARE_SCHEMA_VERSION;
+    return version <= CONVERSATION_SHARE_SCHEMA_VERSION;
 }
 
 /**
@@ -94,43 +94,43 @@ export function isConversationShareSchemaVersionSupported(version: number): bool
  * 计数交给调用方转成「部分内容需要更新 ZCode 查看」的软提示，不能静默。
  */
 export function decodeConversationShareRows(rows: readonly unknown[]): {
-  rows: ConversationRow[];
-  unsupportedCount: number;
-  unsupportedKinds: string[];
+    rows: ConversationRow[];
+    unsupportedCount: number;
+    unsupportedKinds: string[];
 } {
-  const decoded: ConversationRow[] = [];
-  const unsupportedKinds: string[] = [];
-  let unsupportedCount = 0;
-  for (const row of rows) {
-    const parsed = conversationRowSchema.safeParse(row);
-    if (parsed.success) {
-      decoded.push(parsed.data);
-      continue;
+    const decoded: ConversationRow[] = [];
+    const unsupportedKinds: string[] = [];
+    let unsupportedCount = 0;
+    for (const row of rows) {
+        const parsed = conversationRowSchema.safeParse(row);
+        if (parsed.success) {
+            decoded.push(parsed.data);
+            continue;
+        }
+        unsupportedCount += 1;
+        const kind = (row as { kind?: unknown } | null)?.kind;
+        const label = typeof kind === "string" && kind.trim() ? kind.trim() : "unknown";
+        if (!unsupportedKinds.includes(label)) unsupportedKinds.push(label);
     }
-    unsupportedCount += 1;
-    const kind = (row as { kind?: unknown } | null)?.kind;
-    const label = typeof kind === "string" && kind.trim() ? kind.trim() : "unknown";
-    if (!unsupportedKinds.includes(label)) unsupportedKinds.push(label);
-  }
-  return { rows: decoded, unsupportedCount, unsupportedKinds };
+    return { rows: decoded, unsupportedCount, unsupportedKinds };
 }
 
 export const conversationShareSha256Schema = z.string().regex(/^[0-9a-f]{64}$/u);
 
 const conversationShareArtifactDescriptorFields = {
-  artifact_id: z.string().trim().min(1),
-  logical_artifact_key: z.string().trim().min(1),
-  producer_product_turn_id: z.string().trim().min(1),
-  artifact_version: z.number().int().positive(),
-  state: z.literal("current"),
-  ref: z.string().regex(/^zcode-artifact:\/\/share\/[A-Za-z0-9._~-]+$/u),
-  artifact_type: conversationArtifactTypeSchema,
-  display_name: z.string().trim().min(1),
-  original_path: z.string().min(1).optional(),
-  extension: z.string().trim().min(1),
-  mime_type: z.string().trim().min(1),
-  size_bytes: z.number().int().nonnegative(),
-  sha256: conversationShareSha256Schema,
+    artifact_id: z.string().trim().min(1),
+    logical_artifact_key: z.string().trim().min(1),
+    producer_product_turn_id: z.string().trim().min(1),
+    artifact_version: z.number().int().positive(),
+    state: z.literal("current"),
+    ref: z.string().regex(/^zcode-artifact:\/\/share\/[A-Za-z0-9._~-]+$/u),
+    artifact_type: conversationArtifactTypeSchema,
+    display_name: z.string().trim().min(1),
+    original_path: z.string().min(1).optional(),
+    extension: z.string().trim().min(1),
+    mime_type: z.string().trim().min(1),
+    size_bytes: z.number().int().nonnegative(),
+    sha256: conversationShareSha256Schema,
 } as const;
 
 /**
@@ -140,34 +140,34 @@ const conversationShareArtifactDescriptorFields = {
  * 服务端回来的东西多一个字段是它的自由。
  */
 export const conversationShareArtifactDescriptorSchema = z
-  .object(conversationShareArtifactDescriptorFields)
-  .strict();
+    .object(conversationShareArtifactDescriptorFields)
+    .strict();
 export type ConversationShareArtifactDescriptor = z.infer<
-  typeof conversationShareArtifactDescriptorSchema
+    typeof conversationShareArtifactDescriptorSchema
 >;
 
 /** 入站 descriptor（preview / continuation 回显）：允许服务端加字段。 */
 export const conversationShareInboundArtifactDescriptorSchema = z.object(
-  conversationShareArtifactDescriptorFields,
+    conversationShareArtifactDescriptorFields,
 );
 
 const conversationShareAllowedArtifactShapeSchema = z.object({
-  // 故意不用 artifact type 枚举：capabilities 是服务端的能力发现列表，后端新增一种
-  // 结果物类型不能让整个响应校验失败、把发布（包括不含任何结果物的发布）一起打死。
-  // 未知类型在 narrow 时丢弃——客户端产不出这种类型，参与不了任何 allow 判断。
-  type: z.string().trim().min(1),
-  extensions: z.array(z.string().trim().min(1)),
-  mime_types: z.array(z.string().trim().min(1)),
+    // 故意不用 artifact type 枚举：capabilities 是服务端的能力发现列表，后端新增一种
+    // 结果物类型不能让整个响应校验失败、把发布（包括不含任何结果物的发布）一起打死。
+    // 未知类型在 narrow 时丢弃——客户端产不出这种类型，参与不了任何 allow 判断。
+    type: z.string().trim().min(1),
+    extensions: z.array(z.string().trim().min(1)),
+    mime_types: z.array(z.string().trim().min(1)),
 });
 
 const conversationShareCapabilitiesBaseFields = {
-  content_block_versions: z.record(z.string(), z.number().int().positive()).optional(),
-  ttl_ms: z.number().int().positive(),
-  max_rows: z.number().int().positive(),
-  max_payload_bytes: z.number().int().positive(),
-  max_artifact_count: z.number().int().nonnegative(),
-  max_artifact_bytes: z.number().int().positive(),
-  max_total_artifact_bytes: z.number().int().positive(),
+    content_block_versions: z.record(z.string(), z.number().int().positive()).optional(),
+    ttl_ms: z.number().int().positive(),
+    max_rows: z.number().int().positive(),
+    max_payload_bytes: z.number().int().positive(),
+    max_artifact_count: z.number().int().nonnegative(),
+    max_artifact_bytes: z.number().int().positive(),
+    max_total_artifact_bytes: z.number().int().positive(),
 };
 
 /**
@@ -177,32 +177,32 @@ const conversationShareCapabilitiesBaseFields = {
  * 能力发现（即整个发布入口）打死。未知取值在 narrow 时丢弃——客户端选不出它不认识的模式。
  */
 export const conversationShareCapabilitiesWireSchema = z.object({
-  ...conversationShareCapabilitiesBaseFields,
-  schema_version: conversationShareSchemaVersionSchema,
-  access_modes: z.array(z.string().trim().min(1)),
-  allowed_artifacts: z.array(conversationShareAllowedArtifactShapeSchema),
+    ...conversationShareCapabilitiesBaseFields,
+    schema_version: conversationShareSchemaVersionSchema,
+    access_modes: z.array(z.string().trim().min(1)),
+    allowed_artifacts: z.array(conversationShareAllowedArtifactShapeSchema),
 });
 export type ConversationShareCapabilitiesWire = z.infer<
-  typeof conversationShareCapabilitiesWireSchema
+    typeof conversationShareCapabilitiesWireSchema
 >;
 
 /** narrow 之后的内部形状：取值已收窄到本端认识的枚举，可以继续严格。 */
 export const conversationShareCapabilitiesDataSchema = z
-  .object({
-    ...conversationShareCapabilitiesBaseFields,
-    schema_version: conversationShareSchemaVersionSchema,
-    access_modes: z.array(conversationShareAccessModeSchema),
-    allowed_artifacts: z.array(
-      z
-        .object({
-          type: conversationArtifactTypeSchema,
-          extensions: z.array(z.string().trim().min(1)),
-          mime_types: z.array(z.string().trim().min(1)),
-        })
-        .strict(),
-    ),
-  })
-  .strict();
+    .object({
+        ...conversationShareCapabilitiesBaseFields,
+        schema_version: conversationShareSchemaVersionSchema,
+        access_modes: z.array(conversationShareAccessModeSchema),
+        allowed_artifacts: z.array(
+            z
+                .object({
+                    type: conversationArtifactTypeSchema,
+                    extensions: z.array(z.string().trim().min(1)),
+                    mime_types: z.array(z.string().trim().min(1)),
+                })
+                .strict(),
+        ),
+    })
+    .strict();
 export type ConversationShareCapabilities = z.infer<typeof conversationShareCapabilitiesDataSchema>;
 
 /**
@@ -215,89 +215,89 @@ export type ConversationShareCapabilities = z.infer<typeof conversationShareCapa
  * warning 的明确例外，不应加入可上传 artifact 枚举。
  */
 export function narrowConversationShareCapabilities(wire: ConversationShareCapabilitiesWire): {
-  capabilities: ConversationShareCapabilities;
-  unsupportedArtifactTypes: string[];
-  unsupportedAccessModes: string[];
+    capabilities: ConversationShareCapabilities;
+    unsupportedArtifactTypes: string[];
+    unsupportedAccessModes: string[];
 } {
-  const supported: ConversationShareCapabilities["allowed_artifacts"] = [];
-  const unsupportedArtifactTypes: string[] = [];
-  for (const entry of wire.allowed_artifacts) {
-    const type = conversationArtifactTypeSchema.safeParse(entry.type);
-    if (type.success) supported.push({ ...entry, type: type.data });
-    else if (!unsupportedArtifactTypes.includes(entry.type))
-      unsupportedArtifactTypes.push(entry.type);
-  }
-  const accessModes: ConversationShareAccessMode[] = [];
-  const unsupportedAccessModes: string[] = [];
-  for (const mode of wire.access_modes) {
-    const parsed = conversationShareAccessModeSchema.safeParse(mode);
-    if (parsed.success) accessModes.push(parsed.data);
-    else if (!unsupportedAccessModes.includes(mode)) unsupportedAccessModes.push(mode);
-  }
-  return {
-    capabilities: { ...wire, access_modes: accessModes, allowed_artifacts: supported },
-    unsupportedArtifactTypes,
-    unsupportedAccessModes,
-  };
+    const supported: ConversationShareCapabilities["allowed_artifacts"] = [];
+    const unsupportedArtifactTypes: string[] = [];
+    for (const entry of wire.allowed_artifacts) {
+        const type = conversationArtifactTypeSchema.safeParse(entry.type);
+        if (type.success) supported.push({ ...entry, type: type.data });
+        else if (!unsupportedArtifactTypes.includes(entry.type))
+            unsupportedArtifactTypes.push(entry.type);
+    }
+    const accessModes: ConversationShareAccessMode[] = [];
+    const unsupportedAccessModes: string[] = [];
+    for (const mode of wire.access_modes) {
+        const parsed = conversationShareAccessModeSchema.safeParse(mode);
+        if (parsed.success) accessModes.push(parsed.data);
+        else if (!unsupportedAccessModes.includes(mode)) unsupportedAccessModes.push(mode);
+    }
+    return {
+        capabilities: { ...wire, access_modes: accessModes, allowed_artifacts: supported },
+        unsupportedArtifactTypes,
+        unsupportedAccessModes,
+    };
 }
 
 export const conversationShareConfirmDataSchema = z.object({
-  share_code: z.string().trim().min(1),
-  share_url: z.string().url(),
-  access_mode: conversationShareAccessModeSchema,
-  expires_at: z.number().int().nonnegative(),
+    share_code: z.string().trim().min(1),
+    share_url: z.string().url(),
+    access_mode: conversationShareAccessModeSchema,
+    expires_at: z.number().int().nonnegative(),
 });
 export type ConversationShareRecord = z.infer<typeof conversationShareConfirmDataSchema>;
 
 // 出站请求保持 strict：schema_version 写死本端常量，多一个字段是我们自己的 bug。
 export const conversationSharePreparationRequestSchema = z
-  .object({
-    client_request_id: z.string().trim().min(1),
-    title: z.string().trim().min(1),
-    schema_version: z.literal(CONVERSATION_SHARE_SCHEMA_VERSION),
-    access_mode: conversationShareAccessModeSchema,
-    payload_sha256: conversationShareSha256Schema,
-    artifact_count: z.number().int().nonnegative(),
-  })
-  .strict();
+    .object({
+        client_request_id: z.string().trim().min(1),
+        title: z.string().trim().min(1),
+        schema_version: z.literal(CONVERSATION_SHARE_SCHEMA_VERSION),
+        access_mode: conversationShareAccessModeSchema,
+        payload_sha256: conversationShareSha256Schema,
+        artifact_count: z.number().int().nonnegative(),
+    })
+    .strict();
 export type ConversationSharePreparationRequest = z.infer<
-  typeof conversationSharePreparationRequestSchema
+    typeof conversationSharePreparationRequestSchema
 >;
 
 const conversationSharePreparationBaseFields = {
-  preparation_id: z.string().trim().min(1),
-  access_mode: conversationShareAccessModeSchema,
-  expires_at: z.number().int().nonnegative(),
+    preparation_id: z.string().trim().min(1),
+    access_mode: conversationShareAccessModeSchema,
+    expires_at: z.number().int().nonnegative(),
 } as const;
 
 export const conversationSharePreparationDataSchema = z.discriminatedUnion("status", [
-  z.object({
-    ...conversationSharePreparationBaseFields,
-    status: z.literal("preparing"),
-  }),
-  z.object({
-    ...conversationSharePreparationBaseFields,
-    status: z.literal("confirmed"),
-    share: conversationShareConfirmDataSchema,
-  }),
+    z.object({
+        ...conversationSharePreparationBaseFields,
+        status: z.literal("preparing"),
+    }),
+    z.object({
+        ...conversationSharePreparationBaseFields,
+        status: z.literal("confirmed"),
+        share: conversationShareConfirmDataSchema,
+    }),
 ]);
 export type ConversationSharePreparation = z.infer<typeof conversationSharePreparationDataSchema>;
 
 export const conversationShareArtifactUploadDataSchema = z.object({
-  artifact_id: z.string().trim().min(1),
-  size_bytes: z.number().int().nonnegative(),
-  sha256: conversationShareSha256Schema,
-  status: z.literal("uploaded"),
-  safety_status: z.string().trim().min(1),
+    artifact_id: z.string().trim().min(1),
+    size_bytes: z.number().int().nonnegative(),
+    sha256: conversationShareSha256Schema,
+    status: z.literal("uploaded"),
+    safety_status: z.string().trim().min(1),
 });
 export type ConversationShareArtifactUpload = z.infer<
-  typeof conversationShareArtifactUploadDataSchema
+    typeof conversationShareArtifactUploadDataSchema
 >;
 
 const conversationShareIntegrityFields = {
-  content_blocks_sha256: conversationShareSha256Schema.optional(),
-  projection_sha256: conversationShareSha256Schema,
-  artifact_set_sha256: conversationShareSha256Schema,
+    content_blocks_sha256: conversationShareSha256Schema.optional(),
+    projection_sha256: conversationShareSha256Schema,
+    artifact_set_sha256: conversationShareSha256Schema,
 } as const;
 
 /** 入站 integrity：非 strict，服务端将来多带一个摘要字段不该打死响应。 */
@@ -309,51 +309,51 @@ export type ConversationShareIntegrity = z.infer<typeof conversationShareIntegri
  * 多带一个字段是本端的 bug，必须当场炸掉而不是发到线上。
  */
 const conversationShareOutboundIntegritySchema = z
-  .object(conversationShareIntegrityFields)
-  .strict();
+    .object(conversationShareIntegrityFields)
+    .strict();
 
 // 出站请求：rows 用正式 row schema 且全程 strict——发出去的投影必须是我们完全理解的东西。
 export const conversationShareConfirmRequestSchema = z
-  .object({
-    selected_product_turn_ids: z.array(z.string().trim().min(1)).min(1),
-    projection: z
-      .object({
-        rows: z.array(conversationRowSchema).min(1),
-        content_blocks: z
-          .array(conversationShareContentBlockSchema)
-          .min(1)
-          .max(SHARE_CONTENT_LIMITS.blocks)
-          .optional(),
-      })
-      .strict(),
-    integrity: conversationShareOutboundIntegritySchema,
-    disclosure_confirmation: z
-      .object({
-        version: z.literal(1),
-        accepted_at: z.number().int().nonnegative(),
-        acknowledged_no_secret_detection: z.literal(true),
-      })
-      .strict(),
-  })
-  .strict();
+    .object({
+        selected_product_turn_ids: z.array(z.string().trim().min(1)).min(1),
+        projection: z
+            .object({
+                rows: z.array(conversationRowSchema).min(1),
+                content_blocks: z
+                    .array(conversationShareContentBlockSchema)
+                    .min(1)
+                    .max(SHARE_CONTENT_LIMITS.blocks)
+                    .optional(),
+            })
+            .strict(),
+        integrity: conversationShareOutboundIntegritySchema,
+        disclosure_confirmation: z
+            .object({
+                version: z.literal(1),
+                accepted_at: z.number().int().nonnegative(),
+                acknowledged_no_secret_detection: z.literal(true),
+            })
+            .strict(),
+    })
+    .strict();
 export type ConversationShareConfirmRequest = z.infer<typeof conversationShareConfirmRequestSchema>;
 
 const conversationSharePublicMetadataSchema = z.object({
-  title: z.string(),
-  access_mode: conversationShareAccessModeSchema,
-  created_at: z.number().int().nonnegative(),
-  expires_at: z.number().int().nonnegative(),
+    title: z.string(),
+    access_mode: conversationShareAccessModeSchema,
+    created_at: z.number().int().nonnegative(),
+    expires_at: z.number().int().nonnegative(),
 });
 
 export const conversationSharePreviewArtifactSchema =
-  conversationShareInboundArtifactDescriptorSchema.extend({
-    // 公开 URL 会进入链接、媒体及 fetch，不允许 API 响应启动其它协议。
-    url: z
-      .string()
-      .url()
-      .refine((url) => /^https?:\/\//iu.test(url)),
-    url_expires_at: z.number().int().nonnegative(),
-  });
+    conversationShareInboundArtifactDescriptorSchema.extend({
+        // 公开 URL 会进入链接、媒体及 fetch，不允许 API 响应启动其它协议。
+        url: z
+            .string()
+            .url()
+            .refine((url) => /^https?:\/\//iu.test(url)),
+        url_expires_at: z.number().int().nonnegative(),
+    });
 
 /**
  * 入站 wire 形状：rows 是 unknown[]，由 decodeConversationShareRows 逐行降级。
@@ -362,170 +362,170 @@ export const conversationSharePreviewArtifactSchema =
  * 对外类型 ConversationSharePreview 是「解码后」的形状，不从这份 schema 推断。
  */
 export const conversationSharePreviewDataSchema = z.object({
-  schema_version: conversationShareSchemaVersionSchema,
-  share: conversationSharePublicMetadataSchema,
-  rows: z.array(z.unknown()),
-  content_blocks: z.array(z.unknown()).optional(),
-  artifacts: z.array(conversationSharePreviewArtifactSchema),
-  integrity: conversationShareIntegritySchema,
+    schema_version: conversationShareSchemaVersionSchema,
+    share: conversationSharePublicMetadataSchema,
+    rows: z.array(z.unknown()),
+    content_blocks: z.array(z.unknown()).optional(),
+    artifacts: z.array(conversationSharePreviewArtifactSchema),
+    integrity: conversationShareIntegritySchema,
 });
 export type ConversationSharePreviewWire = z.infer<typeof conversationSharePreviewDataSchema>;
 export type ConversationSharePreview = Omit<ConversationSharePreviewWire, "rows"> & {
-  rows: ConversationRow[];
-  /** 本端认不出、已跳过的行数；>0 时 UI 必须给「部分内容需要更新 ZCode 查看」软提示。 */
-  unsupportedRowCount: number;
+    rows: ConversationRow[];
+    /** 本端认不出、已跳过的行数；>0 时 UI 必须给「部分内容需要更新 ZCode 查看」软提示。 */
+    unsupportedRowCount: number;
 };
 
 export const conversationShareContinuationRequestSchema = z
-  .object({
-    schema_version: z.literal(CONVERSATION_SHARE_SCHEMA_VERSION),
-    client_request_id: z.string().trim().min(1),
-  })
-  .strict();
+    .object({
+        schema_version: z.literal(CONVERSATION_SHARE_SCHEMA_VERSION),
+        client_request_id: z.string().trim().min(1),
+    })
+    .strict();
 export type ConversationShareContinuationRequest = z.infer<
-  typeof conversationShareContinuationRequestSchema
+    typeof conversationShareContinuationRequestSchema
 >;
 
 export const conversationShareContinuationArtifactSchema =
-  conversationShareInboundArtifactDescriptorSchema.extend({
-    download_url: conversationSharePreviewArtifactSchema.shape.url,
-    download_url_expires_at: z.number().int().nonnegative(),
-  });
+    conversationShareInboundArtifactDescriptorSchema.extend({
+        download_url: conversationSharePreviewArtifactSchema.shape.url,
+        download_url_expires_at: z.number().int().nonnegative(),
+    });
 
 export const conversationShareContinuationDataSchema = z.object({
-  schema_version: conversationShareSchemaVersionSchema,
-  import_grant_id: z.string().trim().min(1),
-  import_grant_expires_at: z.number().int().nonnegative(),
-  share: conversationSharePublicMetadataSchema.extend({
-    share_id: z.string().trim().min(1),
-  }),
-  rows: z.array(z.unknown()),
-  content_blocks: z.array(z.unknown()).optional(),
-  artifacts: z.array(conversationShareContinuationArtifactSchema),
-  integrity: conversationShareIntegritySchema,
+    schema_version: conversationShareSchemaVersionSchema,
+    import_grant_id: z.string().trim().min(1),
+    import_grant_expires_at: z.number().int().nonnegative(),
+    share: conversationSharePublicMetadataSchema.extend({
+        share_id: z.string().trim().min(1),
+    }),
+    rows: z.array(z.unknown()),
+    content_blocks: z.array(z.unknown()).optional(),
+    artifacts: z.array(conversationShareContinuationArtifactSchema),
+    integrity: conversationShareIntegritySchema,
 });
 export type ConversationShareContinuationWire = z.infer<
-  typeof conversationShareContinuationDataSchema
+    typeof conversationShareContinuationDataSchema
 >;
 export type ConversationShareContinuation = Omit<ConversationShareContinuationWire, "rows"> & {
-  rows: ConversationRow[];
-  /** 未解析的原始 rows：落盘只读副本时按原样保存，避免未知字段被本端永久抹掉。 */
-  rawRows: readonly unknown[];
-  /** 本端认不出、已跳过的行数；>0 时 UI 必须给「部分内容需要更新 ZCode 查看」软提示。 */
-  unsupportedRowCount: number;
+    rows: ConversationRow[];
+    /** 未解析的原始 rows：落盘只读副本时按原样保存，避免未知字段被本端永久抹掉。 */
+    rawRows: readonly unknown[];
+    /** 本端认不出、已跳过的行数；>0 时 UI 必须给「部分内容需要更新 ZCode 查看」软提示。 */
+    unsupportedRowCount: number;
 };
 
 /** 本端已知的业务错误码；wire 上不做枚举校验，未知码保留服务端 msg 并落 unknown。 */
 export const conversationShareKnownErrorCodeSchema = z.union([
-  z.literal(3001),
-  z.literal(3002),
-  z.literal(3200),
-  z.literal(3201),
-  z.literal(3203),
-  z.literal(3204),
-  z.literal(3205),
-  z.literal(3206),
-  z.literal(3207),
-  z.literal(3208),
-  z.literal(3209),
-  z.literal(3210),
-  z.literal(3211),
-  z.literal(3212),
-  z.literal(3213),
-  z.literal(3214),
-  z.literal(3215),
-  z.literal(3216),
-  z.literal(3217),
+    z.literal(3001),
+    z.literal(3002),
+    z.literal(3200),
+    z.literal(3201),
+    z.literal(3203),
+    z.literal(3204),
+    z.literal(3205),
+    z.literal(3206),
+    z.literal(3207),
+    z.literal(3208),
+    z.literal(3209),
+    z.literal(3210),
+    z.literal(3211),
+    z.literal(3212),
+    z.literal(3213),
+    z.literal(3214),
+    z.literal(3215),
+    z.literal(3216),
+    z.literal(3217),
 ]);
 export type ConversationShareApiErrorCode = z.infer<typeof conversationShareKnownErrorCodeSchema>;
 
 const SHARE_ERROR_KIND_BY_CODE = {
-  3001: "invalid_contract",
-  3002: "rate_limited",
-  3200: "feature_disabled",
-  3201: "authentication_required",
-  3203: "unsupported_schema_version",
-  3204: "invalid_contract",
-  3205: "invalid_conversation",
-  3206: "disclosure_required",
-  3207: "unsafe_structure",
-  3208: "artifact_not_allowed",
-  3209: "limit_exceeded",
-  3210: "upload_incomplete",
-  3211: "not_found",
-  3212: "expired",
-  3213: "authentication_required",
-  3214: "import_not_allowed",
-  3215: "safety_check_pending",
-  3216: "safety_check_rejected",
-  3217: "safety_check_unavailable",
+    3001: "invalid_contract",
+    3002: "rate_limited",
+    3200: "feature_disabled",
+    3201: "authentication_required",
+    3203: "unsupported_schema_version",
+    3204: "invalid_contract",
+    3205: "invalid_conversation",
+    3206: "disclosure_required",
+    3207: "unsafe_structure",
+    3208: "artifact_not_allowed",
+    3209: "limit_exceeded",
+    3210: "upload_incomplete",
+    3211: "not_found",
+    3212: "expired",
+    3213: "authentication_required",
+    3214: "import_not_allowed",
+    3215: "safety_check_pending",
+    3216: "safety_check_rejected",
+    3217: "safety_check_unavailable",
 } as const satisfies Record<ConversationShareApiErrorCode, string>;
 
 export type ConversationShareErrorKind =
-  | (typeof SHARE_ERROR_KIND_BY_CODE)[ConversationShareApiErrorCode]
-  | "service_unavailable"
-  | "network"
-  | "unknown";
+    | (typeof SHARE_ERROR_KIND_BY_CODE)[ConversationShareApiErrorCode]
+    | "service_unavailable"
+    | "network"
+    | "unknown";
 
 /** 桌面与网页共享分类；错误码表达业务语义，未知码仍按 HTTP 判断服务故障。 */
 export function classifyConversationShareError(
-  status: number,
-  code?: number,
+    status: number,
+    code?: number,
 ): ConversationShareErrorKind {
-  const known = conversationShareKnownErrorCodeSchema.safeParse(code);
-  if (known.success) return SHARE_ERROR_KIND_BY_CODE[known.data];
-  if (status === 401) return "authentication_required";
-  if (status === 429) return "rate_limited";
-  if (status >= 500) return "service_unavailable";
-  if (status === 403 || status === 404) return "not_found";
-  if (status === 410) return "expired";
-  if (status === 413) return "limit_exceeded";
-  // HTTP 拒绝与响应契约损坏分开；仅成功响应缺少契约时归为 invalid_contract。
-  return status >= 200 && status < 300 && code === undefined ? "invalid_contract" : "unknown";
+    const known = conversationShareKnownErrorCodeSchema.safeParse(code);
+    if (known.success) return SHARE_ERROR_KIND_BY_CODE[known.data];
+    if (status === 401) return "authentication_required";
+    if (status === 429) return "rate_limited";
+    if (status >= 500) return "service_unavailable";
+    if (status === 403 || status === 404) return "not_found";
+    if (status === 410) return "expired";
+    if (status === 413) return "limit_exceeded";
+    // HTTP 拒绝与响应契约损坏分开；仅成功响应缺少契约时归为 invalid_contract。
+    return status >= 200 && status < 300 && code === undefined ? "invalid_contract" : "unknown";
 }
 
 const rejectionCoordinateSchema = z
-  .string()
-  .min(1)
-  .max(65)
-  .regex(/^[A-Za-z0-9_.[\]~-]+$/u);
-export const conversationShareRejectionSchema = z.object({
-  rule: z
     .string()
     .min(1)
-    .max(64)
-    .regex(/^[a-z][a-z0-9_]*$/u),
-  path: rejectionCoordinateSchema.optional().catch(undefined),
-  field: rejectionCoordinateSchema.optional().catch(undefined),
-  row_index: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional().catch(undefined),
-  row_kind: rejectionCoordinateSchema.optional().catch(undefined),
+    .max(65)
+    .regex(/^[A-Za-z0-9_.[\]~-]+$/u);
+export const conversationShareRejectionSchema = z.object({
+    rule: z
+        .string()
+        .min(1)
+        .max(64)
+        .regex(/^[a-z][a-z0-9_]*$/u),
+    path: rejectionCoordinateSchema.optional().catch(undefined),
+    field: rejectionCoordinateSchema.optional().catch(undefined),
+    row_index: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional().catch(undefined),
+    row_kind: rejectionCoordinateSchema.optional().catch(undefined),
 });
 export type ConversationShareRejection = z.infer<typeof conversationShareRejectionSchema>;
 
 export const conversationShareRequestIdSchema = z
-  .string()
-  .trim()
-  .regex(/^[A-Za-z0-9._:-]{1,128}$/u);
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9._:-]{1,128}$/u);
 
 /**
  * 错误信封对 code 不设枚举：后端上线一个新业务码时，老客户端应该照样能拿到服务端 msg，
  * 而不是整条信封解析失败、退化成没有上下文的 "HTTP 4xx"。
  */
 export const conversationShareErrorEnvelopeSchema = z.object({
-  code: z.number().int(),
-  msg: z.string(),
-  logid: conversationShareRequestIdSchema.optional().catch(undefined),
-  data: conversationShareRejectionSchema.optional().catch(undefined),
+    code: z.number().int(),
+    msg: z.string(),
+    logid: conversationShareRequestIdSchema.optional().catch(undefined),
+    data: conversationShareRejectionSchema.optional().catch(undefined),
 });
 export type ConversationShareErrorEnvelope = z.infer<typeof conversationShareErrorEnvelopeSchema>;
 
 export function createConversationShareSuccessEnvelopeSchema<TSchema extends z.ZodType>(
-  dataSchema: TSchema,
+    dataSchema: TSchema,
 ) {
-  return z.object({
-    code: z.literal(0),
-    // msg 曾是 z.literal("")：后端哪天回个 "ok" 就会把所有成功响应判成契约错误。
-    msg: z.string(),
-    data: dataSchema,
-  });
+    return z.object({
+        code: z.literal(0),
+        // msg 曾是 z.literal("")：后端哪天回个 "ok" 就会把所有成功响应判成契约错误。
+        msg: z.string(),
+        data: dataSchema,
+    });
 }

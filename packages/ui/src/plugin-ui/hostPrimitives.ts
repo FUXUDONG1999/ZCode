@@ -3,11 +3,11 @@ export { createPluginUiMessagePortTransport } from "./adapters/messagePortTransp
 export { createPluginUiPagePlane } from "./adapters/pluginUiPagePlane.js";
 export { readPluginUiStyleVariables } from "./adapters/readPluginUiStyleVariables.js";
 export {
-  sandboxPages,
-  onSandboxPageRemoved,
-  type SandboxPageOwner,
+    sandboxPages,
+    onSandboxPageRemoved,
+    type SandboxPageOwner,
 } from "./adapters/sandboxPageOwners.js";
 export {
-  getPluginUiSessionActions,
-  registerPluginUiSessionActions,
+    getPluginUiSessionActions,
+    registerPluginUiSessionActions,
 } from "./adapters/pluginUiSessionActions.js";

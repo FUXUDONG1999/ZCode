@@ -14,29 +14,29 @@ const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 // 个人精简：--with-remote 远程资源打包入口随 packages/zcode-server-cli 一并移除，
 // bootstrap 只保留 submodule 初始化、依赖安装与本地 workspace 构建。
 function runGit(args) {
-  runCommand(gitCommand, args, {
-    cwd: rootDir,
-    env: process.env,
-  });
+    runCommand(gitCommand, args, {
+        cwd: rootDir,
+        env: process.env,
+    });
 }
 
 function runPnpm(args) {
-  runCommand(pnpmCommand, args, {
-    cwd: rootDir,
-    env: process.env,
-  });
+    runCommand(pnpmCommand, args, {
+        cwd: rootDir,
+        env: process.env,
+    });
 }
 
 runGit(["submodule", "update", "--init", "--recursive", "apps/zcode-cli"]);
 
 const clearedPatchedDependencies = await clearHoistedPatchedDependencies({
-  rootDir,
-  packageJsonPath: resolve(rootDir, "package.json"),
+    rootDir,
+    packageJsonPath: resolve(rootDir, "package.json"),
 });
 if (clearedPatchedDependencies.length > 0) {
-  console.log(
-    `[bootstrap] refreshed hoisted patched dependencies: ${clearedPatchedDependencies.join(", ")}`,
-  );
+    console.log(
+        `[bootstrap] refreshed hoisted patched dependencies: ${clearedPatchedDependencies.join(", ")}`,
+    );
 }
 
 runPnpm(["install"]);

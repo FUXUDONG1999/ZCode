@@ -7,9 +7,9 @@
 // **放行**应答上读 v4 answer 的 `content`，按契约 schema 收成那两个字段，交给 executor 去应用。
 
 import {
-  AMEND_WORKFLOW_TOOL_NAME,
-  CREATE_WORKFLOW_TOOL_NAME,
-  parseWorkflowSettingsAdjustment,
+    AMEND_WORKFLOW_TOOL_NAME,
+    CREATE_WORKFLOW_TOOL_NAME,
+    parseWorkflowSettingsAdjustment,
 } from "@zcode/contracts";
 import type { V4InteractionAnswer } from "../zcode-protocol-v4/interaction-registry.js";
 
@@ -19,14 +19,14 @@ import type { V4InteractionAnswer } from "../zcode-protocol-v4/interaction-regis
  * 压低、模型要经目录重新解析），作废只意味着按确认窗之前的入参跑。
  */
 export function withWorkflowSettingsAdjustment<T extends { decision: string }>(
-  response: T,
-  answer: V4InteractionAnswer,
-  toolName: string,
+    response: T,
+    answer: V4InteractionAnswer,
+    toolName: string,
 ): T & { inputAdjustments?: Readonly<Record<string, unknown>> } {
-  if (toolName !== CREATE_WORKFLOW_TOOL_NAME && toolName !== AMEND_WORKFLOW_TOOL_NAME) {
-    return response;
-  }
-  if (response.decision !== "allow" || answer.content === undefined) return response;
-  const adjustment = parseWorkflowSettingsAdjustment(answer.content);
-  return adjustment === undefined ? response : { ...response, inputAdjustments: adjustment };
+    if (toolName !== CREATE_WORKFLOW_TOOL_NAME && toolName !== AMEND_WORKFLOW_TOOL_NAME) {
+        return response;
+    }
+    if (response.decision !== "allow" || answer.content === undefined) return response;
+    const adjustment = parseWorkflowSettingsAdjustment(answer.content);
+    return adjustment === undefined ? response : { ...response, inputAdjustments: adjustment };
 }

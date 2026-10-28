@@ -12,90 +12,90 @@ import type { PluginUiHostControllerDeps, PluginUiHostScope } from "./pluginUiHo
 const targets = new Map<string, PluginUiResourceNotificationTarget>();
 
 function buildKey(
-  sessionKey: string,
-  pluginId: string,
-  scopeId: string,
-  generation: number,
-  instance: McpAppInstance,
+    sessionKey: string,
+    pluginId: string,
+    scopeId: string,
+    generation: number,
+    instance: McpAppInstance,
 ) {
-  return JSON.stringify([
-    sessionKey,
-    pluginId,
-    scopeId,
-    generation,
-    instance.runtimeId,
-    instance.appIdentity,
-    instance.token,
-  ]);
+    return JSON.stringify([
+        sessionKey,
+        pluginId,
+        scopeId,
+        generation,
+        instance.runtimeId,
+        instance.appIdentity,
+        instance.token,
+    ]);
 }
 
 export function registerPluginUiResourceTarget(
-  sessionKey: string,
-  pluginId: string,
-  scopeId: string,
-  generation: number,
-  target: PluginUiResourceNotificationTarget,
-  instance: McpAppInstance,
+    sessionKey: string,
+    pluginId: string,
+    scopeId: string,
+    generation: number,
+    target: PluginUiResourceNotificationTarget,
+    instance: McpAppInstance,
 ): () => void {
-  const key = buildKey(sessionKey, pluginId, scopeId, generation, instance);
-  targets.set(key, target);
-  return () => {
-    if (targets.get(key) === target) targets.delete(key);
-  };
+    const key = buildKey(sessionKey, pluginId, scopeId, generation, instance);
+    targets.set(key, target);
+    return () => {
+        if (targets.get(key) === target) targets.delete(key);
+    };
 }
 
 /** 返回实际投递到的实例数（单测与日志用）。 */
 export function dispatchPluginUiResourceDelta(
-  sessionKey: string,
-  delta: PluginUiInstanceDelta,
+    sessionKey: string,
+    delta: PluginUiInstanceDelta,
 ): number {
-  let delivered = 0;
-  for (const subscriber of delta.subscribers) {
-    const target = targets.get(
-      buildKey(
-        sessionKey,
-        delta.serverName,
-        subscriber.scopeId,
-        subscriber.generation,
-        subscriber.instance,
-      ),
-    );
-    if (!target) continue;
-    delivered += 1;
-    if (delta.op === "pluginUi.instanceClosed") target.notifyInstanceClosed?.();
-    else if (delta.op === "pluginUi.resourceUpdated") target.notifyResourceUpdated(delta.uri);
-    else if (delta.op === "pluginUi.appToolCall") {
-      target.notifyAppToolCall({
-        activity: delta.activity,
-        cancelled: delta.cancelled,
-        callId: delta.callId,
-        toolName: delta.toolName,
-        arguments: delta.arguments,
-      });
-    } else target.notifyResourceListChanged();
-  }
-  return delivered;
+    let delivered = 0;
+    for (const subscriber of delta.subscribers) {
+        const target = targets.get(
+            buildKey(
+                sessionKey,
+                delta.serverName,
+                subscriber.scopeId,
+                subscriber.generation,
+                subscriber.instance,
+            ),
+        );
+        if (!target) continue;
+        delivered += 1;
+        if (delta.op === "pluginUi.instanceClosed") target.notifyInstanceClosed?.();
+        else if (delta.op === "pluginUi.resourceUpdated") target.notifyResourceUpdated(delta.uri);
+        else if (delta.op === "pluginUi.appToolCall") {
+            target.notifyAppToolCall({
+                activity: delta.activity,
+                cancelled: delta.cancelled,
+                callId: delta.callId,
+                toolName: delta.toolName,
+                arguments: delta.arguments,
+            });
+        } else target.notifyResourceListChanged();
+    }
+    return delivered;
 }
 
 /** 给 controller 的登记入口：实例身份（会话 / 插件 / 作用域）固定，代际由 controller 在端口到达时给出。 */
 export function createPluginUiResourceNotificationRegistrar(
-  scope: PluginUiHostScope,
-  pluginId: string,
+    scope: PluginUiHostScope,
+    pluginId: string,
 ): NonNullable<PluginUiHostControllerDeps["resourceNotifications"]> {
-  const sessionKey = buildPluginUiSessionKey(scope);
-  return {
-    register: (generation, target, instance) =>
-      registerPluginUiResourceTarget(
-        sessionKey,
-        pluginId,
-        instance.token,
-        generation,
-        target,
-        instance,
-      ),
-  };
+    const sessionKey = buildPluginUiSessionKey(scope);
+    return {
+        register: (generation, target, instance) =>
+            registerPluginUiResourceTarget(
+                sessionKey,
+                pluginId,
+                instance.token,
+                generation,
+                target,
+                instance,
+            ),
+    };
 }
 
 export function resetPluginUiResourceTargetsForTest(): void {
-  targets.clear();
+    targets.clear();
 }

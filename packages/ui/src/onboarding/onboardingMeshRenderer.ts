@@ -30,86 +30,86 @@ void main() {
 `;
 
 export function createOnboardingMeshRenderer(canvas: HTMLCanvasElement) {
-  const gl = canvas.getContext("webgl", {
-    alpha: true,
-    premultipliedAlpha: true,
-    antialias: false,
-    depth: false,
-    powerPreference: "low-power",
-  });
-  if (!gl) return null;
-  const compile = (type: number, source: string) => {
-    const shader = gl.createShader(type);
-    if (!shader) return null;
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
-    gl.deleteShader(shader);
-    return null;
-  };
-  const vertex = compile(gl.VERTEX_SHADER, vertexSource);
-  if (!vertex) return null;
-  const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
-  if (!fragment) {
-    gl.deleteShader(vertex);
-    return null;
-  }
-  const program = gl.createProgram();
-  if (!program) {
+    const gl = canvas.getContext("webgl", {
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: false,
+        depth: false,
+        powerPreference: "low-power",
+    });
+    if (!gl) return null;
+    const compile = (type: number, source: string) => {
+        const shader = gl.createShader(type);
+        if (!shader) return null;
+        gl.shaderSource(shader, source);
+        gl.compileShader(shader);
+        if (gl.getShaderParameter(shader, gl.COMPILE_STATUS)) return shader;
+        gl.deleteShader(shader);
+        return null;
+    };
+    const vertex = compile(gl.VERTEX_SHADER, vertexSource);
+    if (!vertex) return null;
+    const fragment = compile(gl.FRAGMENT_SHADER, fragmentSource);
+    if (!fragment) {
+        gl.deleteShader(vertex);
+        return null;
+    }
+    const program = gl.createProgram();
+    if (!program) {
+        gl.deleteShader(vertex);
+        gl.deleteShader(fragment);
+        return null;
+    }
+    gl.attachShader(program, vertex);
+    gl.attachShader(program, fragment);
+    gl.linkProgram(program);
     gl.deleteShader(vertex);
     gl.deleteShader(fragment);
-    return null;
-  }
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    gl.deleteProgram(program);
-    return null;
-  }
-  const buffer = gl.createBuffer();
-  if (!buffer) {
-    gl.deleteProgram(program);
-    return null;
-  }
-  gl.useProgram(program);
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-    gl.STATIC_DRAW,
-  );
-  const position = gl.getAttribLocation(program, "position");
-  gl.enableVertexAttribArray(position);
-  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-  const time = gl.getUniformLocation(program, "time");
-  const aspect = gl.getUniformLocation(program, "aspect");
-  const tint = gl.getUniformLocation(program, "tint");
-  return {
-    draw(
-      seconds: number,
-      width: number,
-      height: number,
-      color: readonly [number, number, number] = [1, 1, 1],
-    ) {
-      const scale = Math.min(1, 960 / Math.max(width, height));
-      const w = Math.max(1, Math.round(width * scale));
-      const h = Math.max(1, Math.round(height * scale));
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-      }
-      gl.viewport(0, 0, w, h);
-      gl.uniform3f(tint, ...color);
-      gl.uniform1f(time, seconds);
-      gl.uniform1f(aspect, width / height);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
-    },
-    dispose() {
-      gl.deleteBuffer(buffer);
-      gl.deleteProgram(program);
-    },
-  };
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        gl.deleteProgram(program);
+        return null;
+    }
+    const buffer = gl.createBuffer();
+    if (!buffer) {
+        gl.deleteProgram(program);
+        return null;
+    }
+    gl.useProgram(program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+        gl.STATIC_DRAW,
+    );
+    const position = gl.getAttribLocation(program, "position");
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+    const time = gl.getUniformLocation(program, "time");
+    const aspect = gl.getUniformLocation(program, "aspect");
+    const tint = gl.getUniformLocation(program, "tint");
+    return {
+        draw(
+            seconds: number,
+            width: number,
+            height: number,
+            color: readonly [number, number, number] = [1, 1, 1],
+        ) {
+            const scale = Math.min(1, 960 / Math.max(width, height));
+            const w = Math.max(1, Math.round(width * scale));
+            const h = Math.max(1, Math.round(height * scale));
+            if (canvas.width !== w || canvas.height !== h) {
+                canvas.width = w;
+                canvas.height = h;
+            }
+            gl.viewport(0, 0, w, h);
+            gl.uniform3f(tint, ...color);
+            gl.uniform1f(time, seconds);
+            gl.uniform1f(aspect, width / height);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        },
+        dispose() {
+            gl.deleteBuffer(buffer);
+            gl.deleteProgram(program);
+        },
+    };
 }

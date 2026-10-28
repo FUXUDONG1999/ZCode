@@ -19,16 +19,16 @@
 //      调用」，那正是这几个读数要用来排除的假象。
 
 import {
-  WORKFLOW_RUNS_LIMITS,
-  type WorkflowRunNode,
-  type WorkflowRunNodeLastTool,
-  type WorkflowRunState,
+    WORKFLOW_RUNS_LIMITS,
+    type WorkflowRunNode,
+    type WorkflowRunNodeLastTool,
+    type WorkflowRunState,
 } from "./workflow-runs.js";
 
 /** 一次 ask 的任务与进度读数，即本模块负责的那四个键。 */
 type NodeProgressFields = Pick<
-  WorkflowRunNode,
-  "instructionsHead" | "turn" | "toolCalls" | "lastTool"
+    WorkflowRunNode,
+    "instructionsHead" | "turn" | "toolCalls" | "lastTool"
 >;
 
 /**
@@ -43,24 +43,24 @@ type NodeProgressFields = Pick<
  * 重新 queue 则连摘要也只认新载荷：那是一条可能被修订过的新指令。
  */
 export function carryNodeProgress(
-  eventType: string,
-  payload: Record<string, unknown>,
-  previousNode: WorkflowRunNode | undefined,
+    eventType: string,
+    payload: Record<string, unknown>,
+    previousNode: WorkflowRunNode | undefined,
 ): Partial<NodeProgressFields> {
-  const requeued = eventType === "node-queued";
-  const born = requeued || (eventType === "node-settled" && payload.cached === true);
-  const carried = born ? undefined : previousNode;
-  const head = boundedText(
-    payload.instructionsHead,
-    WORKFLOW_RUNS_LIMITS.maxInstructionsHeadLength,
-  );
-  const instructionsHead = requeued ? head : (head ?? previousNode?.instructionsHead);
-  return {
-    ...(instructionsHead === undefined ? {} : { instructionsHead }),
-    ...(carried?.turn === undefined ? {} : { turn: carried.turn }),
-    ...(carried?.toolCalls === undefined ? {} : { toolCalls: carried.toolCalls }),
-    ...(carried?.lastTool === undefined ? {} : { lastTool: carried.lastTool }),
-  };
+    const requeued = eventType === "node-queued";
+    const born = requeued || (eventType === "node-settled" && payload.cached === true);
+    const carried = born ? undefined : previousNode;
+    const head = boundedText(
+        payload.instructionsHead,
+        WORKFLOW_RUNS_LIMITS.maxInstructionsHeadLength,
+    );
+    const instructionsHead = requeued ? head : (head ?? previousNode?.instructionsHead);
+    return {
+        ...(instructionsHead === undefined ? {} : { instructionsHead }),
+        ...(carried?.turn === undefined ? {} : { turn: carried.turn }),
+        ...(carried?.toolCalls === undefined ? {} : { toolCalls: carried.toolCalls }),
+        ...(carried?.lastTool === undefined ? {} : { lastTool: carried.lastTool }),
+    };
 }
 
 /**
@@ -74,46 +74,46 @@ export function carryNodeProgress(
  * 写入是**后来者覆盖**而不是取 max（与 `phases[].rounds` 相反），理由见文件头第 2 条。
  */
 export function reduceNodeProgress(
-  run: WorkflowRunState,
-  ref: { siteId: string; ordinal: number },
-  payload: Record<string, unknown>,
+    run: WorkflowRunState,
+    ref: { siteId: string; ordinal: number },
+    payload: Record<string, unknown>,
 ): WorkflowRunState {
-  const index = run.nodes.findIndex(
-    (node) => node.siteId === ref.siteId && node.ordinal === ref.ordinal,
-  );
-  if (index < 0) return run;
-  const node = run.nodes[index]!;
-  const turn = readPositiveInt(payload.turn) ?? node.turn;
-  const toolCalls = readNonNegativeInt(payload.toolCalls) ?? node.toolCalls;
-  const lastTool = readLastTool(payload.lastTool) ?? node.lastTool;
-  const nodes = [...run.nodes];
-  nodes[index] = {
-    ...node,
-    ...(turn === undefined ? {} : { turn }),
-    ...(toolCalls === undefined ? {} : { toolCalls }),
-    ...(lastTool === undefined ? {} : { lastTool }),
-  };
-  return { ...run, nodes };
+    const index = run.nodes.findIndex(
+        (node) => node.siteId === ref.siteId && node.ordinal === ref.ordinal,
+    );
+    if (index < 0) return run;
+    const node = run.nodes[index]!;
+    const turn = readPositiveInt(payload.turn) ?? node.turn;
+    const toolCalls = readNonNegativeInt(payload.toolCalls) ?? node.toolCalls;
+    const lastTool = readLastTool(payload.lastTool) ?? node.lastTool;
+    const nodes = [...run.nodes];
+    nodes[index] = {
+        ...node,
+        ...(turn === undefined ? {} : { turn }),
+        ...(toolCalls === undefined ? {} : { toolCalls }),
+        ...(lastTool === undefined ? {} : { lastTool }),
+    };
+    return { ...run, nodes };
 }
 
 /** 轮次是 1 起的正整数：没有「第 0 轮」这回事，0 / 小数 / NaN 一律按读不出处理。 */
 function readPositiveInt(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
+    return typeof value === "number" && Number.isInteger(value) && value > 0 ? value : undefined;
 }
 
 /** 工具调用数可以是 0——「一个工具都没调过」是事实，不是缺席。 */
 function readNonNegativeInt(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
+    return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
 }
 
 /** 工具名是这条记录存在的理由，读不出即整条不落（只有 target 的 lastTool 说不出任何事）。 */
 function readLastTool(value: unknown): WorkflowRunNodeLastTool | undefined {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
-  const record = value as Record<string, unknown>;
-  const name = boundedText(record.name, WORKFLOW_RUNS_LIMITS.maxLastToolNameLength);
-  if (name === undefined) return undefined;
-  const target = boundedText(record.target, WORKFLOW_RUNS_LIMITS.maxLastToolTargetLength);
-  return { name, ...(target === undefined ? {} : { target }) };
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
+    const record = value as Record<string, unknown>;
+    const name = boundedText(record.name, WORKFLOW_RUNS_LIMITS.maxLastToolNameLength);
+    if (name === undefined) return undefined;
+    const target = boundedText(record.target, WORKFLOW_RUNS_LIMITS.maxLastToolTargetLength);
+    return { name, ...(target === undefined ? {} : { target }) };
 }
 
 /**
@@ -125,7 +125,7 @@ function readLastTool(value: unknown): WorkflowRunNodeLastTool | undefined {
  * 摘要本来就是个头，续写标记是渲染侧的事，协议这条只保证合法。
  */
 function boundedText(value: unknown, limit: number): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const text = value.slice(0, limit);
-  return text.length > 0 ? text : undefined;
+    if (typeof value !== "string") return undefined;
+    const text = value.slice(0, limit);
+    return text.length > 0 ? text : undefined;
 }

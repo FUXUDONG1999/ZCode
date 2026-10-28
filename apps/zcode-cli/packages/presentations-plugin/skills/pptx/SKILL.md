@@ -1,8 +1,8 @@
 ---
 name: pptx
 metadata:
-  author: Z.AI
-  version: "1.1"
+    author: Z.AI
+    version: "1.1"
 description: "Use this skill any time a presentation file is the primary input or output. Covers: creating new .pptx decks from scratch or from an outline/document (pptxgenjs / python-pptx); editing and restyling an existing .pptx; reading and extracting text/structure from a deck (markitdown); and rendering a deck to PDF (LibreOffice) or to per-slide PNG images (pdftoppm) for previews, thumbnails, or visual review. Trigger when the user references a .pptx file by name or path, says 'make/build a deck, slides, presentation, PPT, 幻灯片, 演示文稿, 汇报/路演材料', or asks to convert, export, render, or preview slides as PDF or images (e.g. 'PPT转PDF', 'ppt导出图片', 'turn these slides into a PDF')."
 license: Proprietary. LICENSE.txt has complete terms
 ---
@@ -98,9 +98,9 @@ Build the palette on the **BACKGROUND → PRIMARY → ACCENT** model, and reuse 
 
 - **NEVER place text directly on a full-bleed image** — it will be unreadable.
 - When using a background image, ALWAYS add a semi-transparent overlay between the image and the text:
-  1. Add the image (full-bleed, send to back)
-  2. Add a dark overlay rectangle (full-bleed, ~60–80% opacity) on top of the image
-  3. Then add text on top of the overlay
+    1. Add the image (full-bleed, send to back)
+    2. Add a dark overlay rectangle (full-bleed, ~60–80% opacity) on top of the image
+    3. Then add text on top of the overlay
 - **Alternative (preferred):** instead of full-bleed images, place the image in a bounded region (e.g. the right half) and keep text in the other region on a solid background.
 - If an image is decorative, keep it small and positioned where it won't collide with text.
 - **Never stretch an image to fit** — when its aspect ratio doesn't match the target box, crop it (`sizing: { type: 'cover' }` or an explicit `crop`), never distort it by setting a `w`/`h` that breaks the ratio. This matters most on covers and full-bleed backgrounds, where a stretched photo is the most visible defect on the deck.
@@ -205,8 +205,8 @@ pres.title = "Presentation Title";
 
 // Canvas constants — derive every position from these, never hardcode 10 or 13.33
 const W = 13.33,
-  H = 7.5,
-  M = 0.5; // width, height, margin (true width is 13.333"; 13.33 keeps you inside it)
+    H = 7.5,
+    M = 0.5; // width, height, margin (true width is 13.333"; 13.33 keeps you inside it)
 
 let slide = pres.addSlide();
 slide.addText("Hello World!", { x: M, y: M, w: W - 2 * M, fontSize: 36, color: "363636" });
@@ -230,16 +230,16 @@ pres.writeFile({ fileName: "Presentation.pptx" }).then(() => console.log("done")
 ```javascript
 // Basic text
 slide.addText("Simple Text", {
-  x: 1,
-  y: 1,
-  w: 8,
-  h: 2,
-  fontSize: 24,
-  fontFace: "Arial",
-  color: "363636",
-  bold: true,
-  align: "center",
-  valign: "middle",
+    x: 1,
+    y: 1,
+    w: 8,
+    h: 2,
+    fontSize: 24,
+    fontFace: "Arial",
+    color: "363636",
+    bold: true,
+    align: "center",
+    valign: "middle",
 });
 
 // Character spacing: use charSpacing (letterSpacing is silently ignored)
@@ -247,21 +247,21 @@ slide.addText("SPACED TEXT", { x: 1, y: 1, w: 8, h: 1, charSpacing: 6 });
 
 // Rich text array (mixed styles in one paragraph)
 slide.addText(
-  [
-    { text: "Bold ", options: { bold: true } },
-    { text: "Italic ", options: { italic: true } },
-  ],
-  { x: 1, y: 3, w: 8, h: 1 },
+    [
+        { text: "Bold ", options: { bold: true } },
+        { text: "Italic ", options: { italic: true } },
+    ],
+    { x: 1, y: 3, w: 8, h: 1 },
 );
 
 // Multi-line (each line needs breakLine: true; the last may omit it)
 slide.addText(
-  [
-    { text: "Line 1", options: { breakLine: true } },
-    { text: "Line 2", options: { breakLine: true } },
-    { text: "Line 3" },
-  ],
-  { x: 0.5, y: 0.5, w: 8, h: 2 },
+    [
+        { text: "Line 1", options: { breakLine: true } },
+        { text: "Line 2", options: { breakLine: true } },
+        { text: "Line 3" },
+    ],
+    { x: 0.5, y: 0.5, w: 8, h: 2 },
 );
 
 // Text-box padding: set margin: 0 to align with shapes/lines
@@ -297,21 +297,21 @@ The bare `bullet: true` renders a big dot with a **huge gap** to the text (pptxg
 // A top-level `bullet` only styles the first paragraph; the rest get <a:buNone/> (no dot).
 const bu = () => ({ code: "2022", indent: 14 }); // factory: fresh object per item (pptxgenjs mutates in place)
 slide.addText(
-  [
-    { text: "First item", options: { bullet: bu(), breakLine: true } },
-    { text: "Second item", options: { bullet: bu(), breakLine: true } },
-    { text: "Third item", options: { bullet: bu() } },
-  ],
-  {
-    x: 0.5,
-    y: 0.5,
-    w: 8,
-    h: 3,
-    fontSize: 15,
-    color: "334155",
-    paraSpaceAfter: 8, // item spacing (never lineSpacing)
-    margin: 0, // align glyph to x
-  },
+    [
+        { text: "First item", options: { bullet: bu(), breakLine: true } },
+        { text: "Second item", options: { bullet: bu(), breakLine: true } },
+        { text: "Third item", options: { bullet: bu() } },
+    ],
+    {
+        x: 0.5,
+        y: 0.5,
+        w: 8,
+        h: 3,
+        fontSize: 15,
+        color: "334155",
+        paraSpaceAfter: 8, // item spacing (never lineSpacing)
+        margin: 0, // align glyph to x
+    },
 );
 ```
 
@@ -323,51 +323,51 @@ slide.addText(
 
 ```javascript
 slide.addShape(pres.shapes.RECTANGLE, {
-  x: 0.5,
-  y: 0.8,
-  w: 1.5,
-  h: 3.0,
-  fill: { color: "FF0000" },
-  line: { color: "000000", width: 2 },
+    x: 0.5,
+    y: 0.8,
+    w: 1.5,
+    h: 3.0,
+    fill: { color: "FF0000" },
+    line: { color: "000000", width: 2 },
 });
 
 slide.addShape(pres.shapes.OVAL, { x: 4, y: 1, w: 2, h: 2, fill: { color: "0000FF" } });
 
 slide.addShape(pres.shapes.LINE, {
-  x: 1,
-  y: 3,
-  w: 5,
-  h: 0,
-  line: { color: "FF0000", width: 3, dashType: "dash" },
+    x: 1,
+    y: 3,
+    w: 5,
+    h: 0,
+    line: { color: "FF0000", width: 3, dashType: "dash" },
 });
 
 // Transparency
 slide.addShape(pres.shapes.RECTANGLE, {
-  x: 1,
-  y: 1,
-  w: 3,
-  h: 2,
-  fill: { color: "0088CC", transparency: 50 },
+    x: 1,
+    y: 1,
+    w: 3,
+    h: 2,
+    fill: { color: "0088CC", transparency: 50 },
 });
 
 // Rounded rectangle (rectRadius works only on ROUNDED_RECTANGLE, not RECTANGLE)
 slide.addShape(pres.shapes.ROUNDED_RECTANGLE, {
-  x: 1,
-  y: 1,
-  w: 3,
-  h: 2,
-  fill: { color: "FFFFFF" },
-  rectRadius: 0.1,
+    x: 1,
+    y: 1,
+    w: 3,
+    h: 2,
+    fill: { color: "FFFFFF" },
+    rectRadius: 0.1,
 });
 
 // Shadow (to make a card stand out — use this, not an edge stripe)
 slide.addShape(pres.shapes.RECTANGLE, {
-  x: 1,
-  y: 1,
-  w: 3,
-  h: 2,
-  fill: { color: "FFFFFF" },
-  shadow: { type: "outer", color: "000000", blur: 6, offset: 2, angle: 45, opacity: 0.15 },
+    x: 1,
+    y: 1,
+    w: 3,
+    h: 2,
+    fill: { color: "FFFFFF" },
+    shadow: { type: "outer", color: "000000", blur: 6, offset: 2, angle: 45, opacity: 0.15 },
 });
 ```
 
@@ -429,21 +429,21 @@ triggers "repair", and drops the chart.
 
 ```js
 slide.addChart(
-  p.charts.BAR,
-  [
+    p.charts.BAR,
+    [
+        {
+            name: "series",
+            labels: ["A", "B", "C"],
+            values: [10, 20, 30],
+        },
+    ],
     {
-      name: "series",
-      labels: ["A", "B", "C"],
-      values: [10, 20, 30],
+        barDir: "col",
+        varyColors: true, // per-point coloring
+        chartColors: ["17457E", "17457E", "E8590C"], // highlight the 3rd bar
+        showValue: true,
+        dataLabelPosition: "outEnd", // valid under clustered grouping
     },
-  ],
-  {
-    barDir: "col",
-    varyColors: true, // per-point coloring
-    chartColors: ["17457E", "17457E", "E8590C"], // highlight the 3rd bar
-    showValue: true,
-    dataLabelPosition: "outEnd", // valid under clustered grouping
-  },
 );
 ```
 
@@ -460,17 +460,20 @@ slide.background = { data: "image/png;base64,iVBORw0KGgo..." }; // image base64
 
 ```javascript
 slide.addTable(
-  [
-    ["Header 1", "Header 2"],
-    ["Cell 1", "Cell 2"],
-  ],
-  { x: 1, y: 1, w: 8, h: 2, border: { pt: 1, color: "999999" }, fill: { color: "F1F1F1" } },
+    [
+        ["Header 1", "Header 2"],
+        ["Cell 1", "Cell 2"],
+    ],
+    { x: 1, y: 1, w: 8, h: 2, border: { pt: 1, color: "999999" }, fill: { color: "F1F1F1" } },
 );
 
 // Merged cells
 let tableData = [
-  [{ text: "Header", options: { fill: { color: "6699CC" }, color: "FFFFFF", bold: true } }, "Cell"],
-  [{ text: "Merged", options: { colspan: 2 } }],
+    [
+        { text: "Header", options: { fill: { color: "6699CC" }, color: "FFFFFF", bold: true } },
+        "Cell",
+    ],
+    [{ text: "Merged", options: { colspan: 2 } }],
 ];
 slide.addTable(tableData, { x: 1, y: 3.5, w: 8, colW: [4, 4] });
 ```
@@ -486,41 +489,41 @@ slide.addTable(tableData, { x: 1, y: 3.5, w: 8, colW: [4, 4] });
 ```javascript
 // Bar
 slide.addChart(
-  pres.charts.BAR,
-  [
-    {
-      name: "Sales",
-      labels: ["Q1", "Q2", "Q3", "Q4"],
-      values: [4500, 5500, 6200, 7100],
-    },
-  ],
-  { x: 0.5, y: 0.6, w: 6, h: 3, barDir: "col", showTitle: true, title: "Quarterly Sales" },
+    pres.charts.BAR,
+    [
+        {
+            name: "Sales",
+            labels: ["Q1", "Q2", "Q3", "Q4"],
+            values: [4500, 5500, 6200, 7100],
+        },
+    ],
+    { x: 0.5, y: 0.6, w: 6, h: 3, barDir: "col", showTitle: true, title: "Quarterly Sales" },
 );
 
 // Line
 slide.addChart(
-  pres.charts.LINE,
-  [
-    {
-      name: "Temp",
-      labels: ["Jan", "Feb", "Mar"],
-      values: [32, 35, 42],
-    },
-  ],
-  { x: 0.5, y: 2.5, w: 6, h: 2.5, lineSize: 3, lineSmooth: true },
+    pres.charts.LINE,
+    [
+        {
+            name: "Temp",
+            labels: ["Jan", "Feb", "Mar"],
+            values: [32, 35, 42],
+        },
+    ],
+    { x: 0.5, y: 2.5, w: 6, h: 2.5, lineSize: 3, lineSmooth: true },
 );
 
 // Pie
 slide.addChart(
-  pres.charts.PIE,
-  [
-    {
-      name: "Share",
-      labels: ["A", "B", "Other"],
-      values: [35, 45, 20],
-    },
-  ],
-  { x: 6.5, y: 1, w: 3, h: 3, showPercent: true },
+    pres.charts.PIE,
+    [
+        {
+            name: "Share",
+            labels: ["A", "B", "Other"],
+            values: [35, 45, 20],
+        },
+    ],
+    { x: 6.5, y: 1, w: 3, h: 3, showPercent: true },
 );
 ```
 
@@ -528,21 +531,21 @@ slide.addChart(
 
 ```javascript
 slide.addChart(pres.charts.BAR, chartData, {
-  x: 0.5,
-  y: 1,
-  w: 9,
-  h: 4,
-  barDir: "col",
-  chartColors: ["0D9488", "14B8A6", "5EEAD4"], // match your palette
-  chartArea: { fill: { color: "FFFFFF" }, roundedCorners: true },
-  catAxisLabelColor: "64748B",
-  valAxisLabelColor: "64748B", // muted axis labels
-  valGridLine: { color: "E2E8F0", size: 0.5 }, // subtle grid, value axis only
-  catGridLine: { style: "none" },
-  showValue: true,
-  dataLabelPosition: "outEnd",
-  dataLabelColor: "1E293B", // data labels
-  showLegend: false, // hide legend for single series
+    x: 0.5,
+    y: 1,
+    w: 9,
+    h: 4,
+    barDir: "col",
+    chartColors: ["0D9488", "14B8A6", "5EEAD4"], // match your palette
+    chartArea: { fill: { color: "FFFFFF" }, roundedCorners: true },
+    catAxisLabelColor: "64748B",
+    valAxisLabelColor: "64748B", // muted axis labels
+    valGridLine: { color: "E2E8F0", size: 0.5 }, // subtle grid, value axis only
+    catGridLine: { style: "none" },
+    showValue: true,
+    dataLabelPosition: "outEnd",
+    dataLabelColor: "1E293B", // data labels
+    showLegend: false, // hide legend for single series
 });
 ```
 
@@ -551,16 +554,18 @@ slide.addChart(pres.charts.BAR, chartData, {
 ```javascript
 // Master
 pres.defineSlideMaster({
-  title: "TITLE_SLIDE",
-  background: { color: "283A5E" },
-  objects: [{ placeholder: { options: { name: "title", type: "title", x: 1, y: 2, w: 8, h: 2 } } }],
+    title: "TITLE_SLIDE",
+    background: { color: "283A5E" },
+    objects: [
+        { placeholder: { options: { name: "title", type: "title", x: 1, y: 2, w: 8, h: 2 } } },
+    ],
 });
 let titleSlide = pres.addSlide({ masterName: "TITLE_SLIDE" });
 titleSlide.addText("My Title", { placeholder: "title" });
 
 // Speaker notes (visible only in Presenter View, not on the slide)
 slide.addNotes(
-  "Open with the FY25 revenue headline; pause after the number. If asked about the Q3 dip: supply chain, resolved in Q4.",
+    "Open with the FY25 revenue headline; pause after the number. If asked about the Q3 dip: supply chain, resolved in Q4.",
 );
 ```
 
@@ -573,10 +578,10 @@ slide.addNotes(
 5. **Avoid `lineSpacing` with bullets** (excessive gaps) — use `paraSpaceAfter` instead
 6. **Fresh instance per presentation** — don't reuse the `pptxgen()` object
 7. **Don't reuse option objects across calls** — pptxgenjs **mutates objects in place** (e.g., converts shadow values to EMU), so sharing corrupts the second shape. Use a factory that returns a fresh object:
-   ```javascript
-   const makeShadow = () => ({ type:"outer", blur:6, offset:2, color:"000000", opacity:0.15 });
-   slide.addShape(pres.shapes.RECTANGLE, { shadow: makeShadow(), ... }); // ✅
-   ```
+    ```javascript
+    const makeShadow = () => ({ type:"outer", blur:6, offset:2, color:"000000", opacity:0.15 });
+    slide.addShape(pres.shapes.RECTANGLE, { shadow: makeShadow(), ... }); // ✅
+    ```
 8. **Don't add edge accent bars to cards** — use a `fill` tint or `shadow` to set them apart
 9. **Rich text arrays emit one `<a:pPr>` per run** — two or more runs in a single paragraph produce duplicate, schema-invalid paragraph properties that only PowerPoint chokes on; see the note under "Text & formatting"
 
@@ -655,47 +660,47 @@ For in-place edits to an existing deck (Fill-in mode, and small fixes like typos
 1. **Inventory the deck** — walk every slide, recurse into GROUP shapes (`shape_type == 6`), `print(repr(para.text))`. Use the inventory as the source of truth for replacement keys; rendered text often contains hidden chars that won't survive copy-paste.
 2. **Helpers** — keep the build script short:
 
-   ```python
-   from pptx import Presentation
-   from pptx.enum.text import MSO_AUTO_SIZE
-   from pptx.oxml.ns import qn
-   from pptx.util import Emu, Pt
+    ```python
+    from pptx import Presentation
+    from pptx.enum.text import MSO_AUTO_SIZE
+    from pptx.oxml.ns import qn
+    from pptx.util import Emu, Pt
 
-   def iter_text_frames(shapes):
-       for s in shapes:
-           if s.shape_type == 6:                 # GROUP → recurse
-               yield from iter_text_frames(s.shapes)
-           elif s.has_text_frame:
-               yield s, s.text_frame
+    def iter_text_frames(shapes):
+        for s in shapes:
+            if s.shape_type == 6:                 # GROUP → recurse
+                yield from iter_text_frames(s.shapes)
+            elif s.has_text_frame:
+                yield s, s.text_frame
 
-   def _norm(s):                                  # strip soft breaks before matching
-       return s.replace("\x0b", "").replace("\r", "").strip()
+    def _norm(s):                                  # strip soft breaks before matching
+        return s.replace("\x0b", "").replace("\r", "").strip()
 
-   def replace_in_paragraph(p, new_text):         # first-run replace preserves formatting
-       runs = p.runs
-       if not runs:
-           p.add_run().text = new_text; return
-       runs[0].text = new_text
-       for r in runs[1:]:
-           r._r.getparent().remove(r._r)
+    def replace_in_paragraph(p, new_text):         # first-run replace preserves formatting
+        runs = p.runs
+        if not runs:
+            p.add_run().text = new_text; return
+        runs[0].text = new_text
+        for r in runs[1:]:
+            r._r.getparent().remove(r._r)
 
-   def apply_replacements(tf, mapping):           # full-frame match, then per-paragraph
-       m = {_norm(k): v for k, v in mapping.items()}
-       full = "\n".join(p.text for p in tf.paragraphs)
-       if _norm(full) in m:
-           parts = m[_norm(full)].split("\n")
-           for i, p in enumerate(tf.paragraphs):
-               replace_in_paragraph(p, parts[i] if i < len(parts) else "")
-           return
-       for p in tf.paragraphs:
-           if _norm(p.text) in m:
-               replace_in_paragraph(p, m[_norm(p.text)])
+    def apply_replacements(tf, mapping):           # full-frame match, then per-paragraph
+        m = {_norm(k): v for k, v in mapping.items()}
+        full = "\n".join(p.text for p in tf.paragraphs)
+        if _norm(full) in m:
+            parts = m[_norm(full)].split("\n")
+            for i, p in enumerate(tf.paragraphs):
+                replace_in_paragraph(p, parts[i] if i < len(parts) else "")
+            return
+        for p in tf.paragraphs:
+            if _norm(p.text) in m:
+                replace_in_paragraph(p, m[_norm(p.text)])
 
-   def delete_slide(prs, idx):                    # call high-index first
-       sld = list(prs.slides._sldIdLst)[idx]
-       prs.part.drop_rel(sld.get(qn("r:id")))
-       prs.slides._sldIdLst.remove(sld)
-   ```
+    def delete_slide(prs, idx):                    # call high-index first
+        sld = list(prs.slides._sldIdLst)[idx]
+        prs.part.drop_rel(sld.get(qn("r:id")))
+        prs.slides._sldIdLst.remove(sld)
+    ```
 
 **Budget every shape BEFORE generating replacement text (do this first)**
 
@@ -798,28 +803,28 @@ Every PPTX → PDF conversion and every rendered preview/thumbnail step depends 
    subdirectory matching the OS and CPU arch (`uname -m` / `$env:PROCESSOR_ARCHITECTURE`) and
    download the main package from it:
 
-   | Platform            | Path           | Main package                                  |
-   | ------------------- | -------------- | --------------------------------------------- |
-   | Linux x86_64 (deb)  | `deb/x86_64/`  | `LibreOffice_26.8.0_Linux_x86-64_deb.tar.gz`  |
-   | Linux ARM64 (deb)   | `deb/aarch64/` | `LibreOffice_26.8.0_Linux_aarch64_deb.tar.gz` |
-   | Linux x86_64 (rpm)  | `rpm/x86_64/`  | `LibreOffice_26.8.0_Linux_x86-64_rpm.tar.gz`  |
-   | macOS Apple Silicon | `mac/aarch64/` | `LibreOffice_26.8.0_MacOS_aarch64.dmg`        |
-   | macOS Intel         | `mac/x86_64/`  | `LibreOffice_26.8.0_MacOS_x86-64.dmg`         |
-   | Windows x64         | `win/x86_64/`  | `LibreOffice_26.8.0_Win_x86-64.msi`           |
-   | Windows ARM64       | `win/aarch64/` | `LibreOffice_26.8.0_Win_aarch64.msi`          |
+    | Platform            | Path           | Main package                                  |
+    | ------------------- | -------------- | --------------------------------------------- |
+    | Linux x86_64 (deb)  | `deb/x86_64/`  | `LibreOffice_26.8.0_Linux_x86-64_deb.tar.gz`  |
+    | Linux ARM64 (deb)   | `deb/aarch64/` | `LibreOffice_26.8.0_Linux_aarch64_deb.tar.gz` |
+    | Linux x86_64 (rpm)  | `rpm/x86_64/`  | `LibreOffice_26.8.0_Linux_x86-64_rpm.tar.gz`  |
+    | macOS Apple Silicon | `mac/aarch64/` | `LibreOffice_26.8.0_MacOS_aarch64.dmg`        |
+    | macOS Intel         | `mac/x86_64/`  | `LibreOffice_26.8.0_MacOS_x86-64.dmg`         |
+    | Windows x64         | `win/x86_64/`  | `LibreOffice_26.8.0_Win_x86-64.msi`           |
+    | Windows ARM64       | `win/aarch64/` | `LibreOffice_26.8.0_Win_aarch64.msi`          |
 
-   Linux (deb): `tar -xzf <pkg>.tar.gz && sudo dpkg -i LibreOffice_26.8.0*/DEBS/*.deb && sudo apt-get install -f -y`
-   macOS: `hdiutil attach <pkg>.dmg && cp -R /Volumes/LibreOffice/LibreOffice.app /Applications/ && hdiutil detach /Volumes/LibreOffice`
-   Windows: `msiexec /i <pkg>.msi /qn` (needs admin). Verify with `soffice --version`.
+    Linux (deb): `tar -xzf <pkg>.tar.gz && sudo dpkg -i LibreOffice_26.8.0*/DEBS/*.deb && sudo apt-get install -f -y`
+    macOS: `hdiutil attach <pkg>.dmg && cp -R /Volumes/LibreOffice/LibreOffice.app /Applications/ && hdiutil detach /Volumes/LibreOffice`
+    Windows: `msiexec /i <pkg>.msi /qn` (needs admin). Verify with `soffice --version`.
 
-   **If 26.8.0 is gone** (the mirror keeps only a few releases), list
-   `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/` and use the newest version
-   directory, substituting that version number above.
+    **If 26.8.0 is gone** (the mirror keeps only a few releases), list
+    `https://mirrors.tuna.tsinghua.edu.cn/libreoffice/libreoffice/stable/` and use the newest version
+    directory, substituting that version number above.
 
-   Package-manager fallback, only if the mirror is unreachable:
-   - macOS: `brew install --cask libreoffice`
-   - Linux (Debian/Ubuntu): `sudo apt-get install libreoffice`
-   - Windows: `winget install TheDocumentFoundation.LibreOffice`
+    Package-manager fallback, only if the mirror is unreachable:
+    - macOS: `brew install --cask libreoffice`
+    - Linux (Debian/Ubuntu): `sudo apt-get install libreoffice`
+    - Windows: `winget install TheDocumentFoundation.LibreOffice`
 
 4. **Register the binary on `PATH`, then re-verify.** Do this as part of the install, not as an
    afterthought: an install that leaves `soffice` off the executable search path is
@@ -827,19 +832,19 @@ Every PPTX → PDF conversion and every rendered preview/thumbnail step depends 
    this whole block and makes you download several hundred MB you already have. **The mechanism
    differs per OS — use the one for the platform you are on:**
 
-   | Platform | Register it                                                                                                | Then verify                                                      |
-   | -------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-   | Linux    | `sudo ln -sf /opt/libreoffice*/program/soffice /usr/local/bin/soffice`                                     | `soffice --version`                                              |
-   | macOS    | `sudo ln -sf /Applications/LibreOffice.app/Contents/MacOS/soffice /usr/local/bin/soffice`                  | `soffice --version`                                              |
-   | Windows  | `setx PATH "$([Environment]::GetEnvironmentVariable('PATH','User'));C:\Program Files\LibreOffice\program"` | `& "C:\Program Files\LibreOffice\program\soffice.exe" --version` |
+    | Platform | Register it                                                                                                | Then verify                                                      |
+    | -------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+    | Linux    | `sudo ln -sf /opt/libreoffice*/program/soffice /usr/local/bin/soffice`                                     | `soffice --version`                                              |
+    | macOS    | `sudo ln -sf /Applications/LibreOffice.app/Contents/MacOS/soffice /usr/local/bin/soffice`                  | `soffice --version`                                              |
+    | Windows  | `setx PATH "$([Environment]::GetEnvironmentVariable('PATH','User'));C:\Program Files\LibreOffice\program"` | `& "C:\Program Files\LibreOffice\program\soffice.exe" --version` |
 
-   Notes: on Apple Silicon `/usr/local/bin` is not always on `PATH` — if the verify still fails, link
-   into `/opt/homebrew/bin` instead. On Windows `setx` only affects **newly launched** shells, so for
-   the rest of the current session call `soffice.exe` by its full path. Only continue once the verify
-   prints a version. Corollary: **probe before installing** — if the binary already exists on disk
-   but off-`PATH` (check `/opt/libreoffice*/program/soffice`,
-   `/Applications/LibreOffice.app/Contents/MacOS/soffice`,
-   `C:\Program Files\LibreOffice\program\soffice.exe`), register it instead of reinstalling.
+    Notes: on Apple Silicon `/usr/local/bin` is not always on `PATH` — if the verify still fails, link
+    into `/opt/homebrew/bin` instead. On Windows `setx` only affects **newly launched** shells, so for
+    the rest of the current session call `soffice.exe` by its full path. Only continue once the verify
+    prints a version. Corollary: **probe before installing** — if the binary already exists on disk
+    but off-`PATH` (check `/opt/libreoffice*/program/soffice`,
+    `/Applications/LibreOffice.app/Contents/MacOS/soffice`,
+    `C:\Program Files\LibreOffice\program\soffice.exe`), register it instead of reinstalling.
 
 5. **Only after that install has actually been attempted AND failed** may you use software already
    on the user's machine (Keynote, PowerPoint, WPS). Report the install failure and what you

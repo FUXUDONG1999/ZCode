@@ -20,16 +20,16 @@ import { WorkflowError } from "./types.js";
  * 事件日志里一个 node-dispatched 永远等不到它的 node-settled。
  */
 export function settleCompleted(state: EngineState, artifact: unknown): void {
-  if (state.isRunSettled()) return;
-  state.markSettled();
-  state.abortInFlight(
-    new WorkflowError("Cancelled", "Run completed; in-flight subagent tasks were abandoned."),
-    true,
-  );
-  // 产物随终态一笔落库。分两笔写会造出「completed 但产物丢失」的崩溃窗口，而 journal
-  // 行是产物唯一的持久化家（`run-settled` 事件刻意不加宽）。
-  finishRun(state, "completed", { result: artifact });
-  state.resolveSettled({ status: "completed", artifact });
+    if (state.isRunSettled()) return;
+    state.markSettled();
+    state.abortInFlight(
+        new WorkflowError("Cancelled", "Run completed; in-flight subagent tasks were abandoned."),
+        true,
+    );
+    // 产物随终态一笔落库。分两笔写会造出「completed 但产物丢失」的崩溃窗口，而 journal
+    // 行是产物唯一的持久化家（`run-settled` 事件刻意不加宽）。
+    finishRun(state, "completed", { result: artifact });
+    state.resolveSettled({ status: "completed", artifact });
 }
 
 /**
@@ -39,36 +39,36 @@ export function settleCompleted(state: EngineState, artifact: unknown): void {
  * `provider`（driver 经 `stopRun` 报上来的确定性模型侧错误）。`error` 只对后两者在场。
  */
 export function settleStopped(
-  state: EngineState,
-  reason: RunStopReason,
-  error?: WorkflowError,
-  supersededBy?: string,
+    state: EngineState,
+    reason: RunStopReason,
+    error?: WorkflowError,
+    supersededBy?: string,
 ): void {
-  if (state.isRunSettled()) return;
-  state.markSettled();
-  state.abortInFlight(new WorkflowError("Cancelled", "Run stopped."), true);
-  // `superseded` 的后继 id 与原因**同一笔**落库：
-  // stopped 信封整体重写，分两笔写就有一个「已 superseded 却不知道被谁替代」的窗口。
-  finishRun(state, "stopped", {
-    stopReason: reason,
-    ...(supersededBy === undefined ? {} : { supersededBy }),
-    ...(error === undefined ? {} : { failure: error.toJSON() }),
-  });
-  state.resolveSettled({
-    status: "stopped",
-    reason,
-    ...(supersededBy === undefined ? {} : { supersededBy }),
-    ...(error === undefined ? {} : { error }),
-  });
+    if (state.isRunSettled()) return;
+    state.markSettled();
+    state.abortInFlight(new WorkflowError("Cancelled", "Run stopped."), true);
+    // `superseded` 的后继 id 与原因**同一笔**落库：
+    // stopped 信封整体重写，分两笔写就有一个「已 superseded 却不知道被谁替代」的窗口。
+    finishRun(state, "stopped", {
+        stopReason: reason,
+        ...(supersededBy === undefined ? {} : { supersededBy }),
+        ...(error === undefined ? {} : { failure: error.toJSON() }),
+    });
+    state.resolveSettled({
+        status: "stopped",
+        reason,
+        ...(supersededBy === undefined ? {} : { supersededBy }),
+        ...(error === undefined ? {} : { error }),
+    });
 }
 
 /** run 级失败（脚本之错）：中止在飞 ask（以 run 错误 reject），run 结算 errored。 */
 export function settleFailed(state: EngineState, error: WorkflowError): void {
-  if (state.isRunSettled()) return;
-  state.markSettled(error);
-  state.abortInFlight(error, false);
-  finishRun(state, "errored", { failure: error.toJSON() });
-  state.resolveSettled({ status: "errored", error });
+    if (state.isRunSettled()) return;
+    state.markSettled(error);
+    state.abortInFlight(error, false);
+    finishRun(state, "errored", { failure: error.toJSON() });
+    state.resolveSettled({ status: "errored", error });
 }
 
 /**
@@ -79,13 +79,15 @@ export function settleFailed(state: EngineState, error: WorkflowError): void {
  * 的一部分，事件日志不因它多一条。
  */
 function finishRun(state: EngineState, status: RunStatus, settlement?: RunSettlementRecord): void {
-  state.journal.updateRunStatus(state.runId, status, settlement);
-  state.record({
-    type: "run-settled",
-    status,
-    ...(settlement?.stopReason === undefined ? {} : { stopReason: settlement.stopReason }),
-    ...(settlement?.supersededBy === undefined ? {} : { supersededBy: settlement.supersededBy }),
-    ...(settlement?.failure === undefined ? {} : { error: settlement.failure }),
-  });
-  state.driver.dispose?.();
+    state.journal.updateRunStatus(state.runId, status, settlement);
+    state.record({
+        type: "run-settled",
+        status,
+        ...(settlement?.stopReason === undefined ? {} : { stopReason: settlement.stopReason }),
+        ...(settlement?.supersededBy === undefined
+            ? {}
+            : { supersededBy: settlement.supersededBy }),
+        ...(settlement?.failure === undefined ? {} : { error: settlement.failure }),
+    });
+    state.driver.dispose?.();
 }

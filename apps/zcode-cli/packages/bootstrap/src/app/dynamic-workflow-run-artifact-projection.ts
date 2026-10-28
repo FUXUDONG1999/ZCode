@@ -11,9 +11,9 @@
 
 import type { DwfRunIntrospectionQueries } from "@zcode/adapters/storage";
 import type {
-  DynamicWorkflowRunArtifact,
-  DynamicWorkflowRunArtifactKind,
-  DynamicWorkflowRunArtifactVersion,
+    DynamicWorkflowRunArtifact,
+    DynamicWorkflowRunArtifactKind,
+    DynamicWorkflowRunArtifactVersion,
 } from "@zcode/contracts";
 import type { JournalStorePort } from "@zcode/dynamic-workflow";
 
@@ -43,66 +43,66 @@ import type { JournalStorePort } from "@zcode/dynamic-workflow";
  * 零件时整字段缺席——空数组读起来像「跑过但没产出」，而缺席才是「这个 run 没有产物这个概念」。
  */
 export function artifactsOf(
-  runId: string,
-  journal: JournalStorePort,
+    runId: string,
+    journal: JournalStorePort,
 ): { artifacts?: readonly DynamicWorkflowRunArtifact[] } {
-  const candidate = journal as Partial<DwfRunIntrospectionQueries>;
-  if (typeof candidate.listArtifactRows !== "function") return {};
-  const rows = candidate.listArtifactRows(runId);
-  if (rows.length === 0) return {};
+    const candidate = journal as Partial<DwfRunIntrospectionQueries>;
+    if (typeof candidate.listArtifactRows !== "function") return {};
+    const rows = candidate.listArtifactRows(runId);
+    if (rows.length === 0) return {};
 
-  // id → 版本累积器。插入顺序 = 首次出现顺序，也就是端口契约上 `artifacts` 的顺序。
-  const byId = new Map<
-    string,
-    { kind: DynamicWorkflowRunArtifactKind; versions: DynamicWorkflowRunArtifactVersion[] }
-  >();
-  for (const row of rows) {
-    if (row.status !== "completed") continue;
-    const record = row.result;
-    if (record === null || typeof record !== "object") continue;
-    const version = artifactVersionOf(record as Record<string, unknown>);
-    if (version === undefined) continue;
-    const id =
-      typeof row.artifactId === "string" && row.artifactId.length > 0
-        ? row.artifactId
-        : stringField(record as Record<string, unknown>, "id");
-    const kind = artifactKindOf((record as Record<string, unknown>).kind);
-    if (id === undefined || kind === undefined) continue;
-    const bucket = byId.get(id);
-    if (bucket === undefined) byId.set(id, { kind, versions: [version] });
-    else bucket.versions.push(version);
-  }
-  if (byId.size === 0) return {};
+    // id → 版本累积器。插入顺序 = 首次出现顺序，也就是端口契约上 `artifacts` 的顺序。
+    const byId = new Map<
+        string,
+        { kind: DynamicWorkflowRunArtifactKind; versions: DynamicWorkflowRunArtifactVersion[] }
+    >();
+    for (const row of rows) {
+        if (row.status !== "completed") continue;
+        const record = row.result;
+        if (record === null || typeof record !== "object") continue;
+        const version = artifactVersionOf(record as Record<string, unknown>);
+        if (version === undefined) continue;
+        const id =
+            typeof row.artifactId === "string" && row.artifactId.length > 0
+                ? row.artifactId
+                : stringField(record as Record<string, unknown>, "id");
+        const kind = artifactKindOf((record as Record<string, unknown>).kind);
+        if (id === undefined || kind === undefined) continue;
+        const bucket = byId.get(id);
+        if (bucket === undefined) byId.set(id, { kind, versions: [version] });
+        else bucket.versions.push(version);
+    }
+    if (byId.size === 0) return {};
 
-  // 标签计数只在**真有预置看板**时才查：内容产物的 `itemCount` 恒 0。中枢一页 50 行、每行调一次
-  // 本函数，这条短路让没有看板的 run 连那条 group by 都不发。
-  const needsTally = [...byId.values()].some((bucket) => PRESET_ARTIFACT_KINDS.has(bucket.kind));
-  const itemCounts = needsTally ? tagItemCounts(runId, journal) : undefined;
-  const artifacts = [...byId].map(([id, bucket]) => {
-    const versions = [...bucket.versions].sort((left, right) => left.version - right.version);
-    // 最新版 = 版本号最大的那一条。空 bucket 不可能（构造时至少一条）。
-    const latest = versions[versions.length - 1]!;
-    // 旗子按 id 粘着（引擎保证后续版本都带），任一版带上即算——老 CLI 落的行没有这个键。
-    const primary = versions.some((version) => version.primary === true);
-    return {
-      id,
-      kind: bucket.kind,
-      ...(latest.title === undefined ? {} : { title: latest.title }),
-      ...(latest.description === undefined ? {} : { description: latest.description }),
-      ...(latest.contentType === undefined ? {} : { contentType: latest.contentType }),
-      ...(latest.sourcePath === undefined ? {} : { sourcePath: latest.sourcePath }),
-      ...(latest.spec === undefined ? {} : { spec: latest.spec }),
-      version: latest.version,
-      versions,
-      itemCount: itemCounts?.get(id) ?? 0,
-      ...(primary ? { primary: true as const } : {}),
-    } satisfies DynamicWorkflowRunArtifact;
-  });
-  // 交付物带头，其余保持首次发布顺序：
-  // 顺序在这里定一次，快照 / GetWorkflowRun / 中枢 / v4 查询都从这里读，任何上界都砍不到它。
-  // `Array.prototype.sort` 在 ES2019 起稳定，所以非 primary 之间的相对顺序不动。
-  artifacts.sort((left, right) => Number(right.primary === true) - Number(left.primary === true));
-  return { artifacts };
+    // 标签计数只在**真有预置看板**时才查：内容产物的 `itemCount` 恒 0。中枢一页 50 行、每行调一次
+    // 本函数，这条短路让没有看板的 run 连那条 group by 都不发。
+    const needsTally = [...byId.values()].some((bucket) => PRESET_ARTIFACT_KINDS.has(bucket.kind));
+    const itemCounts = needsTally ? tagItemCounts(runId, journal) : undefined;
+    const artifacts = [...byId].map(([id, bucket]) => {
+        const versions = [...bucket.versions].sort((left, right) => left.version - right.version);
+        // 最新版 = 版本号最大的那一条。空 bucket 不可能（构造时至少一条）。
+        const latest = versions[versions.length - 1]!;
+        // 旗子按 id 粘着（引擎保证后续版本都带），任一版带上即算——老 CLI 落的行没有这个键。
+        const primary = versions.some((version) => version.primary === true);
+        return {
+            id,
+            kind: bucket.kind,
+            ...(latest.title === undefined ? {} : { title: latest.title }),
+            ...(latest.description === undefined ? {} : { description: latest.description }),
+            ...(latest.contentType === undefined ? {} : { contentType: latest.contentType }),
+            ...(latest.sourcePath === undefined ? {} : { sourcePath: latest.sourcePath }),
+            ...(latest.spec === undefined ? {} : { spec: latest.spec }),
+            version: latest.version,
+            versions,
+            itemCount: itemCounts?.get(id) ?? 0,
+            ...(primary ? { primary: true as const } : {}),
+        } satisfies DynamicWorkflowRunArtifact;
+    });
+    // 交付物带头，其余保持首次发布顺序：
+    // 顺序在这里定一次，快照 / GetWorkflowRun / 中枢 / v4 查询都从这里读，任何上界都砍不到它。
+    // `Array.prototype.sort` 在 ES2019 起稳定，所以非 primary 之间的相对顺序不动。
+    artifacts.sort((left, right) => Number(right.primary === true) - Number(left.primary === true));
+    return { artifacts };
 }
 
 /**
@@ -114,38 +114,38 @@ export function artifactsOf(
  * 「Reading the journal」）。
  */
 function tagItemCounts(runId: string, journal: JournalStorePort): ReadonlyMap<string, number> {
-  const candidate = journal as Partial<DwfRunIntrospectionQueries>;
-  if (typeof candidate.countTaggedReports === "function")
-    return candidate.countTaggedReports(runId);
-  const counts = new Map<string, number>();
-  for (const node of journal.listNodes(runId, { kinds: ["report"], withResult: false })) {
-    if (node.artifactId === undefined) continue;
-    counts.set(node.artifactId, (counts.get(node.artifactId) ?? 0) + 1);
-  }
-  return counts;
+    const candidate = journal as Partial<DwfRunIntrospectionQueries>;
+    if (typeof candidate.countTaggedReports === "function")
+        return candidate.countTaggedReports(runId);
+    const counts = new Map<string, number>();
+    for (const node of journal.listNodes(runId, { kinds: ["report"], withResult: false })) {
+        if (node.artifactId === undefined) continue;
+        counts.set(node.artifactId, (counts.get(node.artifactId) ?? 0) + 1);
+    }
+    return counts;
 }
 
 const ARTIFACT_KINDS: ReadonlySet<string> = new Set<DynamicWorkflowRunArtifactKind>([
-  "file",
-  "markdown",
-  "chart",
-  "table",
-  "metrics",
-  "board",
+    "file",
+    "markdown",
+    "chart",
+    "table",
+    "metrics",
+    "board",
 ]);
 
 /** 预置看板的四个成员：只有它们会被标签 `report` 喂数据，内容产物的 `itemCount` 恒 0。 */
 const PRESET_ARTIFACT_KINDS: ReadonlySet<string> = new Set<DynamicWorkflowRunArtifactKind>([
-  "chart",
-  "table",
-  "metrics",
-  "board",
+    "chart",
+    "table",
+    "metrics",
+    "board",
 ]);
 
 function artifactKindOf(value: unknown): DynamicWorkflowRunArtifactKind | undefined {
-  return typeof value === "string" && ARTIFACT_KINDS.has(value)
-    ? (value as DynamicWorkflowRunArtifactKind)
-    : undefined;
+    return typeof value === "string" && ARTIFACT_KINDS.has(value)
+        ? (value as DynamicWorkflowRunArtifactKind)
+        : undefined;
 }
 
 /**
@@ -154,34 +154,34 @@ function artifactKindOf(value: unknown): DynamicWorkflowRunArtifactKind | undefi
  * 不是正整数就整行丢弃（一个没有版本号的版本在 UI 上无法定位、也无法读字节）。
  */
 function artifactVersionOf(
-  record: Record<string, unknown>,
+    record: Record<string, unknown>,
 ): DynamicWorkflowRunArtifactVersion | undefined {
-  const version = record.version;
-  if (typeof version !== "number" || !Number.isInteger(version) || version < 1) return undefined;
-  const bytes = record.bytes;
-  // driver 恒写 `publishedAt`，引擎的类型上它才是可选的。缺席时给 0 而不是丢行：
-  // 一个没有时间戳的产物仍然可看，而丢掉它会让版本号在 UI 上出现空洞。
-  const publishedAt = typeof record.publishedAt === "number" ? record.publishedAt : 0;
-  const title = stringField(record, "title");
-  const description = stringField(record, "description");
-  const contentType = stringField(record, "contentType");
-  const uri = stringField(record, "uri");
-  const sourcePath = stringField(record, "sourcePath");
-  return {
-    version,
-    ...(title === undefined ? {} : { title }),
-    ...(description === undefined ? {} : { description }),
-    ...(contentType === undefined ? {} : { contentType }),
-    ...(typeof bytes === "number" && Number.isFinite(bytes) ? { bytes } : {}),
-    ...(uri === undefined ? {} : { uri }),
-    ...(sourcePath === undefined ? {} : { sourcePath }),
-    ...(record.spec === undefined ? {} : { spec: record.spec }),
-    publishedAt,
-    ...(record.primary === true ? { primary: true as const } : {}),
-  };
+    const version = record.version;
+    if (typeof version !== "number" || !Number.isInteger(version) || version < 1) return undefined;
+    const bytes = record.bytes;
+    // driver 恒写 `publishedAt`，引擎的类型上它才是可选的。缺席时给 0 而不是丢行：
+    // 一个没有时间戳的产物仍然可看，而丢掉它会让版本号在 UI 上出现空洞。
+    const publishedAt = typeof record.publishedAt === "number" ? record.publishedAt : 0;
+    const title = stringField(record, "title");
+    const description = stringField(record, "description");
+    const contentType = stringField(record, "contentType");
+    const uri = stringField(record, "uri");
+    const sourcePath = stringField(record, "sourcePath");
+    return {
+        version,
+        ...(title === undefined ? {} : { title }),
+        ...(description === undefined ? {} : { description }),
+        ...(contentType === undefined ? {} : { contentType }),
+        ...(typeof bytes === "number" && Number.isFinite(bytes) ? { bytes } : {}),
+        ...(uri === undefined ? {} : { uri }),
+        ...(sourcePath === undefined ? {} : { sourcePath }),
+        ...(record.spec === undefined ? {} : { spec: record.spec }),
+        publishedAt,
+        ...(record.primary === true ? { primary: true as const } : {}),
+    };
 }
 
 function stringField(record: Record<string, unknown>, key: string): string | undefined {
-  const value = record[key];
-  return typeof value === "string" ? value : undefined;
+    const value = record[key];
+    return typeof value === "string" ? value : undefined;
 }

@@ -15,19 +15,19 @@
 
 /** 一件产物在模型面需要的全部事实。三处的输入形状不同，取交集后收成这一个结构。 */
 interface PublishedArtifactSummary {
-  id: string;
-  kind: string;
-  version: number;
-  title?: string;
-  contentType?: string;
-  /** 内容产物（file / markdown）最新版的字节数。预置看板没有字节。 */
-  bytes?: number;
-  /** 预置看板收到的标签 `report` 条数（数据量）。内容产物恒 0。 */
-  itemCount?: number;
-  /** run 的交付物：清单以它带头，行上标 `primary`。 */
-  primary?: true;
-  /** 只有交付物的这一句进 manifest：完成卡把它画成带文字的一行。 */
-  description?: string;
+    id: string;
+    kind: string;
+    version: number;
+    title?: string;
+    contentType?: string;
+    /** 内容产物（file / markdown）最新版的字节数。预置看板没有字节。 */
+    bytes?: number;
+    /** 预置看板收到的标签 `report` 条数（数据量）。内容产物恒 0。 */
+    itemCount?: number;
+    /** run 的交付物：清单以它带头，行上标 `primary`。 */
+    primary?: true;
+    /** 只有交付物的这一句进 manifest：完成卡把它画成带文字的一行。 */
+    description?: string;
 }
 
 /** manifest 里交付物 `description` 的界（`ARTIFACT_CAPS.maxDescriptionLength`，与 shared 的 zod 同值）。 */
@@ -38,9 +38,9 @@ const WORKFLOW_ARTIFACT_DESCRIPTION_MAX_CHARS = 500;
  * 端口的 `artifactsOf` 已经排过；这里再排一次是为了快照与通知那条路（它们读的是投影的顺序）。
  */
 function primaryFirst<T extends { primary?: true }>(artifacts: readonly T[]): T[] {
-  return [...artifacts].sort(
-    (left, right) => Number(right.primary === true) - Number(left.primary === true),
-  );
+    return [...artifacts].sort(
+        (left, right) => Number(right.primary === true) - Number(left.primary === true),
+    );
 }
 
 /** 完成通知里 `<artifacts>` 最多列几行。载荷上界（≤ 8）与文本行数刻意同值。 */
@@ -68,31 +68,31 @@ const PRESET_ARTIFACT_KINDS: ReadonlySet<string> = new Set(["chart", "table", "m
  * 子代理去读工作区里的原路径。
  */
 export function formatPublishedArtifactLine(artifact: PublishedArtifactSummary): string {
-  // `primary` 紧跟种类：`- report (markdown, primary, v2, …)`——模型据它知道该先把哪一件交给用户。
-  const parts = artifact.primary === true ? [artifact.kind, "primary"] : [artifact.kind];
-  parts.push(`v${artifact.version}`);
-  if (artifact.contentType !== undefined && artifact.contentType.length > 0) {
-    parts.push(artifact.contentType);
-  }
-  if (PRESET_ARTIFACT_KINDS.has(artifact.kind)) {
-    if (artifact.itemCount !== undefined) {
-      parts.push(`${artifact.itemCount} item${artifact.itemCount === 1 ? "" : "s"}`);
+    // `primary` 紧跟种类：`- report (markdown, primary, v2, …)`——模型据它知道该先把哪一件交给用户。
+    const parts = artifact.primary === true ? [artifact.kind, "primary"] : [artifact.kind];
+    parts.push(`v${artifact.version}`);
+    if (artifact.contentType !== undefined && artifact.contentType.length > 0) {
+        parts.push(artifact.contentType);
     }
-  } else if (artifact.bytes !== undefined) {
-    parts.push(`${artifact.bytes} bytes`);
-  }
-  const head = `- ${artifact.id} (${parts.join(", ")})`;
-  const title = artifact.title?.trim();
-  return title === undefined || title.length === 0 ? head : `${head}: ${title}`;
+    if (PRESET_ARTIFACT_KINDS.has(artifact.kind)) {
+        if (artifact.itemCount !== undefined) {
+            parts.push(`${artifact.itemCount} item${artifact.itemCount === 1 ? "" : "s"}`);
+        }
+    } else if (artifact.bytes !== undefined) {
+        parts.push(`${artifact.bytes} bytes`);
+    }
+    const head = `- ${artifact.id} (${parts.join(", ")})`;
+    const title = artifact.title?.trim();
+    return title === undefined || title.length === 0 ? head : `${head}: ${title}`;
 }
 
 /** `<artifacts count shown>` 一节所需的三件事，与 `<reports>` 那一节同形。 */
 interface WorkflowArtifactsNotificationSection {
-  /** **真实总件数**（不是列出来的行数）。 */
-  count: number;
-  /** 实际列出的行数；小于 count 即清单是局部的。 */
-  shown: number;
-  preview: string;
+    /** **真实总件数**（不是列出来的行数）。 */
+    count: number;
+    /** 实际列出的行数；小于 count 即清单是局部的。 */
+    shown: number;
+    preview: string;
 }
 
 /**
@@ -102,24 +102,24 @@ interface WorkflowArtifactsNotificationSection {
  * 可取」的那个信号。零件时返回 `undefined`，调用方据此让整节缺席——不发一节空的 `<artifacts>`。
  */
 export function buildWorkflowArtifactsNotificationSection(
-  artifacts: readonly PublishedArtifactSummary[] | undefined,
-  maxLines: number,
+    artifacts: readonly PublishedArtifactSummary[] | undefined,
+    maxLines: number,
 ): WorkflowArtifactsNotificationSection | undefined {
-  if (artifacts === undefined || artifacts.length === 0) return undefined;
-  const lines = primaryFirst(artifacts).slice(0, maxLines).map(formatPublishedArtifactLine);
-  return { count: artifacts.length, shown: lines.length, preview: lines.join("\n") };
+    if (artifacts === undefined || artifacts.length === 0) return undefined;
+    const lines = primaryFirst(artifacts).slice(0, maxLines).map(formatPublishedArtifactLine);
+    return { count: artifacts.length, shown: lines.length, preview: lines.join("\n") };
 }
 
 /** manifest 载荷（`WorkflowNotificationMeta.artifacts`）的一条。shared 的 zod 是同一组界。 */
 interface WorkflowArtifactManifestEntry {
-  id: string;
-  kind: "file" | "markdown" | "chart" | "table" | "metrics" | "board";
-  title?: string;
-  version: number;
-  contentType?: string;
-  primary?: true;
-  /** 只在 `primary` 的条目上（完成卡的交付物行念它；其余 chip 放不下也不需要）。 */
-  description?: string;
+    id: string;
+    kind: "file" | "markdown" | "chart" | "table" | "metrics" | "board";
+    title?: string;
+    version: number;
+    contentType?: string;
+    primary?: true;
+    /** 只在 `primary` 的条目上（完成卡的交付物行念它；其余 chip 放不下也不需要）。 */
+    description?: string;
 }
 
 /**
@@ -135,60 +135,60 @@ interface WorkflowArtifactManifestEntry {
  * 零件时返回 `undefined`，调用方据此让两个字段一起缺席。
  */
 export function buildWorkflowArtifactsManifestSection(
-  artifacts: readonly PublishedArtifactSummary[] | undefined,
+    artifacts: readonly PublishedArtifactSummary[] | undefined,
 ): { artifacts: WorkflowArtifactManifestEntry[]; artifactsTruncated?: true } | undefined {
-  if (artifacts === undefined || artifacts.length === 0) return undefined;
-  const entries: WorkflowArtifactManifestEntry[] = [];
-  // 交付物先进清单：8 的上界永远砍不到它。
-  for (const artifact of primaryFirst(artifacts)) {
-    if (entries.length >= WORKFLOW_ARTIFACTS_NOTIFICATION_MAX_LINES) break;
-    const kind = manifestArtifactKind(artifact.kind);
-    // id 是 chip 的身份键，截短就是编造一个不存在的产物——超界只能整条丢，与未知 kind 同规。
-    // 两者都是「一条坏行不该把其余 chip 一起带走」：放行会让 zod 拒收整份载荷。
-    if (kind === undefined || artifact.id.length === 0) continue;
-    if (artifact.id.length > WORKFLOW_ARTIFACT_ID_MAX_CHARS) continue;
-    // 版本号是 chip 的定位键之一，shared 的 zod 要求正整数；非正整数同样整条丢。
-    if (!Number.isInteger(artifact.version) || artifact.version < 1) continue;
-    const title = artifact.title?.trim();
-    // contentType 只是 chip 上的装饰，超界丢这一个键而不是整条。
-    const contentType =
-      artifact.contentType !== undefined &&
-      artifact.contentType.length <= WORKFLOW_ARTIFACT_CONTENT_TYPE_MAX_CHARS
-        ? artifact.contentType
-        : undefined;
-    const description = artifact.primary === true ? artifact.description?.trim() : undefined;
-    entries.push({
-      id: artifact.id,
-      kind,
-      ...(title === undefined || title.length === 0
-        ? {}
-        : { title: title.slice(0, WORKFLOW_ARTIFACT_TITLE_MAX_CHARS) }),
-      version: artifact.version,
-      ...(contentType === undefined ? {} : { contentType }),
-      ...(artifact.primary === true ? { primary: true as const } : {}),
-      ...(description === undefined || description.length === 0
-        ? {}
-        : { description: description.slice(0, WORKFLOW_ARTIFACT_DESCRIPTION_MAX_CHARS) }),
-    });
-  }
-  if (entries.length === 0) return undefined;
-  // 截断诚实：被上界砍掉的、以及被种类过滤掉的，都算「还有更多没画出来」——判据因此是
-  // 「画出来的比总数少」，而不是「命中了上界」。
-  const truncated = entries.length < artifacts.length;
-  return { artifacts: entries, ...(truncated ? { artifactsTruncated: true as const } : {}) };
+    if (artifacts === undefined || artifacts.length === 0) return undefined;
+    const entries: WorkflowArtifactManifestEntry[] = [];
+    // 交付物先进清单：8 的上界永远砍不到它。
+    for (const artifact of primaryFirst(artifacts)) {
+        if (entries.length >= WORKFLOW_ARTIFACTS_NOTIFICATION_MAX_LINES) break;
+        const kind = manifestArtifactKind(artifact.kind);
+        // id 是 chip 的身份键，截短就是编造一个不存在的产物——超界只能整条丢，与未知 kind 同规。
+        // 两者都是「一条坏行不该把其余 chip 一起带走」：放行会让 zod 拒收整份载荷。
+        if (kind === undefined || artifact.id.length === 0) continue;
+        if (artifact.id.length > WORKFLOW_ARTIFACT_ID_MAX_CHARS) continue;
+        // 版本号是 chip 的定位键之一，shared 的 zod 要求正整数；非正整数同样整条丢。
+        if (!Number.isInteger(artifact.version) || artifact.version < 1) continue;
+        const title = artifact.title?.trim();
+        // contentType 只是 chip 上的装饰，超界丢这一个键而不是整条。
+        const contentType =
+            artifact.contentType !== undefined &&
+            artifact.contentType.length <= WORKFLOW_ARTIFACT_CONTENT_TYPE_MAX_CHARS
+                ? artifact.contentType
+                : undefined;
+        const description = artifact.primary === true ? artifact.description?.trim() : undefined;
+        entries.push({
+            id: artifact.id,
+            kind,
+            ...(title === undefined || title.length === 0
+                ? {}
+                : { title: title.slice(0, WORKFLOW_ARTIFACT_TITLE_MAX_CHARS) }),
+            version: artifact.version,
+            ...(contentType === undefined ? {} : { contentType }),
+            ...(artifact.primary === true ? { primary: true as const } : {}),
+            ...(description === undefined || description.length === 0
+                ? {}
+                : { description: description.slice(0, WORKFLOW_ARTIFACT_DESCRIPTION_MAX_CHARS) }),
+        });
+    }
+    if (entries.length === 0) return undefined;
+    // 截断诚实：被上界砍掉的、以及被种类过滤掉的，都算「还有更多没画出来」——判据因此是
+    // 「画出来的比总数少」，而不是「命中了上界」。
+    const truncated = entries.length < artifacts.length;
+    return { artifacts: entries, ...(truncated ? { artifactsTruncated: true as const } : {}) };
 }
 
 const MANIFEST_ARTIFACT_KINDS: readonly WorkflowArtifactManifestEntry["kind"][] = [
-  "file",
-  "markdown",
-  "chart",
-  "table",
-  "metrics",
-  "board",
+    "file",
+    "markdown",
+    "chart",
+    "table",
+    "metrics",
+    "board",
 ];
 
 function manifestArtifactKind(kind: string): WorkflowArtifactManifestEntry["kind"] | undefined {
-  return MANIFEST_ARTIFACT_KINDS.find((known) => known === kind);
+    return MANIFEST_ARTIFACT_KINDS.find((known) => known === kind);
 }
 
 /**
@@ -199,36 +199,36 @@ function manifestArtifactKind(kind: string): WorkflowArtifactManifestEntry["kind
  * 消失。不合形的整条跳过。
  */
 export function toPublishedArtifactSummaries(
-  value: unknown,
+    value: unknown,
 ): PublishedArtifactSummary[] | undefined {
-  if (!Array.isArray(value) || value.length === 0) return undefined;
-  const summaries: PublishedArtifactSummary[] = [];
-  for (const entry of value) {
-    if (entry === null || typeof entry !== "object") continue;
-    const record = entry as Record<string, unknown>;
-    const id = typeof record.id === "string" ? record.id : undefined;
-    const kind = typeof record.kind === "string" ? record.kind : undefined;
-    const version = typeof record.version === "number" ? record.version : undefined;
-    if (id === undefined || kind === undefined || version === undefined) continue;
-    const versions = Array.isArray(record.versions) ? record.versions : undefined;
-    const latest = versions?.[versions.length - 1];
-    const bytes =
-      latest !== null &&
-      typeof latest === "object" &&
-      typeof (latest as Record<string, unknown>).bytes === "number"
-        ? ((latest as Record<string, unknown>).bytes as number)
-        : undefined;
-    summaries.push({
-      id,
-      kind,
-      version,
-      ...(typeof record.title === "string" ? { title: record.title } : {}),
-      ...(typeof record.contentType === "string" ? { contentType: record.contentType } : {}),
-      ...(bytes === undefined ? {} : { bytes }),
-      ...(typeof record.itemCount === "number" ? { itemCount: record.itemCount } : {}),
-      ...(record.primary === true ? { primary: true as const } : {}),
-      ...(typeof record.description === "string" ? { description: record.description } : {}),
-    });
-  }
-  return summaries.length === 0 ? undefined : summaries;
+    if (!Array.isArray(value) || value.length === 0) return undefined;
+    const summaries: PublishedArtifactSummary[] = [];
+    for (const entry of value) {
+        if (entry === null || typeof entry !== "object") continue;
+        const record = entry as Record<string, unknown>;
+        const id = typeof record.id === "string" ? record.id : undefined;
+        const kind = typeof record.kind === "string" ? record.kind : undefined;
+        const version = typeof record.version === "number" ? record.version : undefined;
+        if (id === undefined || kind === undefined || version === undefined) continue;
+        const versions = Array.isArray(record.versions) ? record.versions : undefined;
+        const latest = versions?.[versions.length - 1];
+        const bytes =
+            latest !== null &&
+            typeof latest === "object" &&
+            typeof (latest as Record<string, unknown>).bytes === "number"
+                ? ((latest as Record<string, unknown>).bytes as number)
+                : undefined;
+        summaries.push({
+            id,
+            kind,
+            version,
+            ...(typeof record.title === "string" ? { title: record.title } : {}),
+            ...(typeof record.contentType === "string" ? { contentType: record.contentType } : {}),
+            ...(bytes === undefined ? {} : { bytes }),
+            ...(typeof record.itemCount === "number" ? { itemCount: record.itemCount } : {}),
+            ...(record.primary === true ? { primary: true as const } : {}),
+            ...(typeof record.description === "string" ? { description: record.description } : {}),
+        });
+    }
+    return summaries.length === 0 ? undefined : summaries;
 }

@@ -10,9 +10,9 @@
 
 /** review 三元组身份：只比较这三个字段，其余 payload 字段不参与单调性。 */
 export interface WorkspaceHookReviewIdentity {
-  reviewFlowId: string;
-  generation: number;
-  interactionId: string;
+    reviewFlowId: string;
+    generation: number;
+    interactionId: string;
 }
 
 /**
@@ -26,22 +26,22 @@ export interface WorkspaceHookReviewIdentity {
  *   epoch 证据裁决（projection drop / prompt-turn defer / store 接受新权威）。
  */
 export type WorkspaceHookReviewMonotonicityVerdict =
-  | "no_current"
-  | "same_flow_advance"
-  | "same_flow_replay"
-  | "same_flow_conflict"
-  | "same_flow_stale"
-  | "cross_flow";
+    | "no_current"
+    | "same_flow_advance"
+    | "same_flow_replay"
+    | "same_flow_conflict"
+    | "same_flow_stale"
+    | "cross_flow";
 
 export function verdictWorkspaceHookReviewRequest(
-  current: WorkspaceHookReviewIdentity | undefined,
-  candidate: WorkspaceHookReviewIdentity,
+    current: WorkspaceHookReviewIdentity | undefined,
+    candidate: WorkspaceHookReviewIdentity,
 ): WorkspaceHookReviewMonotonicityVerdict {
-  if (!current) return "no_current";
-  if (candidate.reviewFlowId !== current.reviewFlowId) return "cross_flow";
-  if (candidate.generation > current.generation) return "same_flow_advance";
-  if (candidate.generation < current.generation) return "same_flow_stale";
-  return candidate.interactionId === current.interactionId
-    ? "same_flow_replay"
-    : "same_flow_conflict";
+    if (!current) return "no_current";
+    if (candidate.reviewFlowId !== current.reviewFlowId) return "cross_flow";
+    if (candidate.generation > current.generation) return "same_flow_advance";
+    if (candidate.generation < current.generation) return "same_flow_stale";
+    return candidate.interactionId === current.interactionId
+        ? "same_flow_replay"
+        : "same_flow_conflict";
 }

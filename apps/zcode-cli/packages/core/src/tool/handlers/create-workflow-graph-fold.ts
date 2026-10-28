@@ -6,17 +6,17 @@
 // 这段逻辑可以单独读、单独钉住，也给 bounds 文件留出 max-lines 余量。
 
 import {
-  reduceOrdering,
-  type ReducibleEdge,
-  // 与 bounds 同一条理由：走 /projections 子路径而非根桶，根桶会把 typescript 编译器
-  // 一起拖进浏览器包（作品集回放在浏览器里复用这条链路）。
+    reduceOrdering,
+    type ReducibleEdge,
+    // 与 bounds 同一条理由：走 /projections 子路径而非根桶，根桶会把 typescript 编译器
+    // 一起拖进浏览器包（作品集回放在浏览器里复用这条链路）。
 } from "@zcode/dynamic-workflow/projections";
 
 /** 折叠前的一条边：种类已经坍缩成「是不是回边」。 */
 export interface RawEdge {
-  from: string;
-  to: string;
-  back: boolean;
+    from: string;
+    to: string;
+    back: boolean;
 }
 
 /**
@@ -37,54 +37,54 @@ export interface RawEdge {
  * 见证只在缩点这张 DAG 上才成立。
  */
 export function foldPhaseEdges(raw: readonly RawEdge[]): RawEdge[] {
-  const folded = foldPairs(raw);
-  const componentOf = componentsOf(folded);
-  const component = (id: string): string => componentOf.get(id) ?? id;
-  const keyOf = (from: string, to: string, back: boolean): string => `${from} ${to} ${back}`;
+    const folded = foldPairs(raw);
+    const componentOf = componentsOf(folded);
+    const component = (id: string): string => componentOf.get(id) ?? id;
+    const keyOf = (from: string, to: string, back: boolean): string => `${from} ${to} ${back}`;
 
-  // 跨分量的边按 (分量对, kind) 去重，首见序；同分量的边根本不进归约——它在缩点里是自环，
-  // 对 DAG 上的可达关系什么都没说。
-  const order: string[] = [];
-  const byKey = new Map<string, ReducibleEdge>();
-  for (const edge of folded) {
-    const from = component(edge.from);
-    const to = component(edge.to);
-    if (from === to) continue;
-    const key = keyOf(from, to, edge.back);
-    if (byKey.has(key)) continue;
-    order.push(key);
-    byKey.set(
-      key,
-      edge.back ? { carryOf: "seq", from, kind: "carry", to } : { from, kind: "seq", to },
+    // 跨分量的边按 (分量对, kind) 去重，首见序；同分量的边根本不进归约——它在缩点里是自环，
+    // 对 DAG 上的可达关系什么都没说。
+    const order: string[] = [];
+    const byKey = new Map<string, ReducibleEdge>();
+    for (const edge of folded) {
+        const from = component(edge.from);
+        const to = component(edge.to);
+        if (from === to) continue;
+        const key = keyOf(from, to, edge.back);
+        if (byKey.has(key)) continue;
+        order.push(key);
+        byKey.set(
+            key,
+            edge.back ? { carryOf: "seq", from, kind: "carry", to } : { from, kind: "seq", to },
+        );
+    }
+    const condensed = order.map((key) => byKey.get(key) as ReducibleEdge);
+    const kept = new Set(
+        reduceOrdering(condensed).map((edge) => keyOf(edge.from, edge.to, edge.kind === "carry")),
     );
-  }
-  const condensed = order.map((key) => byKey.get(key) as ReducibleEdge);
-  const kept = new Set(
-    reduceOrdering(condensed).map((edge) => keyOf(edge.from, edge.to, edge.kind === "carry")),
-  );
-  return folded.filter((edge) => {
-    const from = component(edge.from);
-    const to = component(edge.to);
-    return from === to || kept.has(keyOf(from, to, edge.back));
-  });
+    return folded.filter((edge) => {
+        const from = component(edge.from);
+        const to = component(edge.to);
+        return from === to || kept.has(keyOf(from, to, edge.back));
+    });
 }
 
 /** 同一有序对折叠成一条，首见序；`back` 是折叠成员的合取；自环丢弃。 */
 function foldPairs(raw: readonly RawEdge[]): RawEdge[] {
-  const order: string[] = [];
-  const byKey = new Map<string, RawEdge>();
-  for (const edge of raw) {
-    if (edge.from === edge.to) continue;
-    const key = `${edge.from} ${edge.to}`;
-    const seen = byKey.get(key);
-    if (seen === undefined) {
-      order.push(key);
-      byKey.set(key, { ...edge });
-    } else {
-      seen.back = seen.back && edge.back;
+    const order: string[] = [];
+    const byKey = new Map<string, RawEdge>();
+    for (const edge of raw) {
+        if (edge.from === edge.to) continue;
+        const key = `${edge.from} ${edge.to}`;
+        const seen = byKey.get(key);
+        if (seen === undefined) {
+            order.push(key);
+            byKey.set(key, { ...edge });
+        } else {
+            seen.back = seen.back && edge.back;
+        }
     }
-  }
-  return order.map((key) => byKey.get(key) as RawEdge);
+    return order.map((key) => byKey.get(key) as RawEdge);
 }
 
 /**
@@ -95,42 +95,42 @@ function foldPairs(raw: readonly RawEdge[]): RawEdge[] {
  * 成本无关紧要，而「a 到 b 且 b 到 a」是分量定义本身，读起来不需要再证一遍。
  */
 function componentsOf(folded: readonly RawEdge[]): Map<string, string> {
-  const nodes: string[] = [];
-  const seen = new Set<string>();
-  const next = new Map<string, string[]>();
-  for (const edge of folded) {
-    for (const id of [edge.from, edge.to]) {
-      if (seen.has(id)) continue;
-      seen.add(id);
-      nodes.push(id);
+    const nodes: string[] = [];
+    const seen = new Set<string>();
+    const next = new Map<string, string[]>();
+    for (const edge of folded) {
+        for (const id of [edge.from, edge.to]) {
+            if (seen.has(id)) continue;
+            seen.add(id);
+            nodes.push(id);
+        }
+        if (edge.back) continue;
+        const list = next.get(edge.from);
+        if (list === undefined) next.set(edge.from, [edge.to]);
+        else list.push(edge.to);
     }
-    if (edge.back) continue;
-    const list = next.get(edge.from);
-    if (list === undefined) next.set(edge.from, [edge.to]);
-    else list.push(edge.to);
-  }
 
-  const reach = new Map<string, Set<string>>();
-  for (const start of nodes) {
-    const reached = new Set<string>();
-    const stack = [...(next.get(start) ?? [])];
-    while (stack.length > 0) {
-      const node = stack.pop() as string;
-      if (reached.has(node)) continue;
-      reached.add(node);
-      stack.push(...(next.get(node) ?? []));
+    const reach = new Map<string, Set<string>>();
+    for (const start of nodes) {
+        const reached = new Set<string>();
+        const stack = [...(next.get(start) ?? [])];
+        while (stack.length > 0) {
+            const node = stack.pop() as string;
+            if (reached.has(node)) continue;
+            reached.add(node);
+            stack.push(...(next.get(node) ?? []));
+        }
+        reach.set(start, reached);
     }
-    reach.set(start, reached);
-  }
 
-  const componentOf = new Map<string, string>();
-  for (const node of nodes) {
-    if (componentOf.has(node)) continue;
-    componentOf.set(node, node);
-    for (const other of reach.get(node) ?? []) {
-      if (componentOf.has(other)) continue;
-      if (reach.get(other)?.has(node) === true) componentOf.set(other, node);
+    const componentOf = new Map<string, string>();
+    for (const node of nodes) {
+        if (componentOf.has(node)) continue;
+        componentOf.set(node, node);
+        for (const other of reach.get(node) ?? []) {
+            if (componentOf.has(other)) continue;
+            if (reach.get(other)?.has(node) === true) componentOf.set(other, node);
+        }
     }
-  }
-  return componentOf;
+    return componentOf;
 }

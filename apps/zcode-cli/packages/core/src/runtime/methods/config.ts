@@ -1,27 +1,27 @@
 import { resolveToolSearchMode } from "../../tool/search/exposure.js";
 import type {
-  CollaborationMode,
-  ExecutionShellSelection,
-  Model,
-  ModelSelection,
-  ModelToolContract,
-  PermissionBrokerRequest,
-  ProjectId,
-  SessionEvent,
-  SessionEventSink,
-  SessionEventStorePort,
-  SessionId,
-  SessionProjection,
-  TraceContext,
-  ToolExecutor,
-  ToolRegistry,
-  ContextBuilder,
+    CollaborationMode,
+    ExecutionShellSelection,
+    Model,
+    ModelSelection,
+    ModelToolContract,
+    PermissionBrokerRequest,
+    ProjectId,
+    SessionEvent,
+    SessionEventSink,
+    SessionEventStorePort,
+    SessionId,
+    SessionProjection,
+    TraceContext,
+    ToolExecutor,
+    ToolRegistry,
+    ContextBuilder,
 } from "../deps.js";
 import { isInspectablePermissionBroker, projectIdFromDirectory } from "../helpers/index.js";
 import {
-  deriveChildClientPorts,
-  type ChildClientPortsContext,
-  type ClientFacingPorts,
+    deriveChildClientPorts,
+    type ChildClientPortsContext,
+    type ClientFacingPorts,
 } from "../helpers/child-client-ports.js";
 import type { AgentRuntimeConfig, ActiveTurnInfo } from "../types.js";
 import type { AgentRuntimeInternal } from "../internal.js";
@@ -34,143 +34,143 @@ import { projectToolModelContract } from "../../tool/model-contract.js";
 import { rebuildContextPrefix } from "./context-refresh.js";
 import { filterEmbeddedSearchRuntimeVisibleTools } from "./embedded-search-branch.js";
 import {
-  getSessionShellSelection as readSessionShellSelection,
-  initializeSessionShellEnvironmentIfNeeded as initializeSessionShellEnvironment,
-  type SessionShellEnvironmentCandidate,
+    getSessionShellSelection as readSessionShellSelection,
+    initializeSessionShellEnvironmentIfNeeded as initializeSessionShellEnvironment,
+    type SessionShellEnvironmentCandidate,
 } from "./session-shell-environment.js";
 
 export async function setExecutionState(
-  this: AgentRuntimeInternal,
-  input: { mode?: string; planEnabled?: boolean },
-  traceContext?: TraceContext,
+    this: AgentRuntimeInternal,
+    input: { mode?: string; planEnabled?: boolean },
+    traceContext?: TraceContext,
 ): Promise<void> {
-  await applyRuntimeExecutionState(this, input, { source: "command", traceContext });
+    await applyRuntimeExecutionState(this, input, { source: "command", traceContext });
 }
 
 export function updateConfig(
-  this: AgentRuntimeInternal,
-  patch: Pick<AgentRuntimeConfig, "mode" | "planEnabled" | "language" | "outputStyle">,
+    this: AgentRuntimeInternal,
+    patch: Pick<AgentRuntimeConfig, "mode" | "planEnabled" | "language" | "outputStyle">,
 ): void {
-  if (patch.mode !== undefined || patch.planEnabled !== undefined) {
-    const previous = resolveExecutionState(this.config);
-    const next = resolveExecutionState(patch, previous);
-    Object.assign(this.config, next);
-    if (previous.planEnabled !== next.planEnabled)
-      this.needsPlanModeExitReminder = !next.planEnabled;
-  }
-  if (patch.language !== undefined) {
-    this.config.language = patch.language;
-    if (!this.activeTurn) {
-      rebuildContextPrefix(this);
+    if (patch.mode !== undefined || patch.planEnabled !== undefined) {
+        const previous = resolveExecutionState(this.config);
+        const next = resolveExecutionState(patch, previous);
+        Object.assign(this.config, next);
+        if (previous.planEnabled !== next.planEnabled)
+            this.needsPlanModeExitReminder = !next.planEnabled;
     }
-  }
-  if ("outputStyle" in patch) {
-    this.config.outputStyle = patch.outputStyle;
-    if (!this.activeTurn) {
-      rebuildContextPrefix(this);
+    if (patch.language !== undefined) {
+        this.config.language = patch.language;
+        if (!this.activeTurn) {
+            rebuildContextPrefix(this);
+        }
     }
-  }
+    if ("outputStyle" in patch) {
+        this.config.outputStyle = patch.outputStyle;
+        if (!this.activeTurn) {
+            rebuildContextPrefix(this);
+        }
+    }
 }
 
 export function initializeSessionShellEnvironmentIfNeeded(
-  this: AgentRuntimeInternal,
-  selection: SessionShellEnvironmentCandidate,
+    this: AgentRuntimeInternal,
+    selection: SessionShellEnvironmentCandidate,
 ): boolean {
-  return initializeSessionShellEnvironment(this, selection);
+    return initializeSessionShellEnvironment(this, selection);
 }
 
 export function getSessionShellSelection(
-  this: AgentRuntimeInternal,
+    this: AgentRuntimeInternal,
 ): ExecutionShellSelection | undefined {
-  return readSessionShellSelection(this);
+    return readSessionShellSelection(this);
 }
 
 export function getMode(this: AgentRuntimeInternal): CollaborationMode {
-  return this.config.mode ?? "build";
+    return this.config.mode ?? "build";
 }
 
 export function getPlanEnabled(this: AgentRuntimeInternal): boolean {
-  return resolveExecutionState(this.config).planEnabled;
+    return resolveExecutionState(this.config).planEnabled;
 }
 
 export function getSessionModelSelection(this: AgentRuntimeInternal): ModelSelection | undefined {
-  return this.sessionModelSelection && cloneModelSelection(this.sessionModelSelection);
+    return this.sessionModelSelection && cloneModelSelection(this.sessionModelSelection);
 }
 
 export function setSessionModelSelection(
-  this: AgentRuntimeInternal,
-  selection: ModelSelection | undefined,
+    this: AgentRuntimeInternal,
+    selection: ModelSelection | undefined,
 ): void {
-  // 恢复/配置刷新可以清除失效选择；未绑定不应借用默认模型，也不影响正在执行的 Active Model。
-  this.sessionModelSelection = selection && cloneModelSelection(selection);
+    // 恢复/配置刷新可以清除失效选择；未绑定不应借用默认模型，也不影响正在执行的 Active Model。
+    this.sessionModelSelection = selection && cloneModelSelection(selection);
 }
 
 export function getProjectId(this: AgentRuntimeInternal): ProjectId {
-  // Bash cd 会改变执行 cwd，但 project identity 不能随工具内 cwd 漂移。
-  return projectIdFromDirectory(this.workspaceRoot);
+    // Bash cd 会改变执行 cwd，但 project identity 不能随工具内 cwd 漂移。
+    return projectIdFromDirectory(this.workspaceRoot);
 }
 
 export function setWorkingDirectory(this: AgentRuntimeInternal, cwd: string): void {
-  // Bash cwd 持久化只应影响当前 runtime 会话，不能改变工作区身份。
-  this.workingDirectory = cwd;
+    // Bash cwd 持久化只应影响当前 runtime 会话，不能改变工作区身份。
+    this.workingDirectory = cwd;
 }
 
 export async function ensureSessionPersistedForExternalActivity(
-  this: AgentRuntimeInternal,
-  input: string,
-  options?: { traceContext?: TraceContext },
+    this: AgentRuntimeInternal,
+    input: string,
+    options?: { traceContext?: TraceContext },
 ): Promise<void> {
-  await this.ensureSessionPersisted(input, options?.traceContext ?? this.rootTraceContext);
+    await this.ensureSessionPersisted(input, options?.traceContext ?? this.rootTraceContext);
 }
 
 export function getActiveTurnInfo(this: AgentRuntimeInternal): ActiveTurnInfo | undefined {
-  const activeTurn = this.activeTurn;
-  if (!activeTurn) return undefined;
-  return {
-    kind: activeTurn.kind,
-    ...(activeTurn.inputId === undefined ? {} : { inputId: activeTurn.inputId }),
-    queueLength: activeTurn.pendingInputs.length,
-    steerable: activeTurn.steerable,
-    turnId: activeTurn.turnId,
-  };
+    const activeTurn = this.activeTurn;
+    if (!activeTurn) return undefined;
+    return {
+        kind: activeTurn.kind,
+        ...(activeTurn.inputId === undefined ? {} : { inputId: activeTurn.inputId }),
+        queueLength: activeTurn.pendingInputs.length,
+        steerable: activeTurn.steerable,
+        turnId: activeTurn.turnId,
+    };
 }
 
 export function getTools(this: AgentRuntimeInternal, model?: Model): ModelToolContract[] {
-  if (this.cachedTools === null) {
-    this.cachedTools = filterRuntimeVisibleTools.call(this, this.registry.toContracts());
-  }
-  return this.cachedTools
-    .filter(
-      (tool) =>
-        (tool.name !== "ToolSearch" && tool.name !== "DeferredToolCall") ||
-        !model ||
-        resolveToolSearchMode(model, this.config.toolSearch?.mode) !== "off",
-    )
-    .filter((tool) => tool.name !== "WebSearch" || shouldExposeWebSearch.call(this, model))
-    .map((tool) =>
-      projectToolModelContract(tool, this.registry.get(tool.name), {
-        model,
-      }),
-    );
+    if (this.cachedTools === null) {
+        this.cachedTools = filterRuntimeVisibleTools.call(this, this.registry.toContracts());
+    }
+    return this.cachedTools
+        .filter(
+            (tool) =>
+                (tool.name !== "ToolSearch" && tool.name !== "DeferredToolCall") ||
+                !model ||
+                resolveToolSearchMode(model, this.config.toolSearch?.mode) !== "off",
+        )
+        .filter((tool) => tool.name !== "WebSearch" || shouldExposeWebSearch.call(this, model))
+        .map((tool) =>
+            projectToolModelContract(tool, this.registry.get(tool.name), {
+                model,
+            }),
+        );
 }
 
 export function invalidateToolCache(this: AgentRuntimeInternal): void {
-  this.cachedTools = null;
+    this.cachedTools = null;
 }
 
 export function getToolRegistry(this: AgentRuntimeInternal): ToolRegistry {
-  return this.registry;
+    return this.registry;
 }
 
 export function getToolExecutor(this: AgentRuntimeInternal): ToolExecutor {
-  return this.executor;
+    return this.executor;
 }
 
 export function subscribeEvents(this: AgentRuntimeInternal, sink: SessionEventSink): () => void {
-  this.eventSinks.add(sink);
-  return () => {
-    this.eventSinks.delete(sink);
-  };
+    this.eventSinks.add(sink);
+    return () => {
+        this.eventSinks.delete(sink);
+    };
 }
 
 /**
@@ -183,7 +183,7 @@ export function subscribeEvents(this: AgentRuntimeInternal, sink: SessionEventSi
  * `eventStore: this.eventStore` 是同一条约定）。
  */
 export function getSessionEventStore(this: AgentRuntimeInternal): SessionEventStorePort {
-  return this.eventStore;
+    return this.eventStore;
 }
 
 /**
@@ -197,28 +197,28 @@ export function getSessionEventStore(this: AgentRuntimeInternal): SessionEventSt
  * 而 v4 网关只排水连续 seq——构造之后才挂的订阅从 seq 2 起，会永远等一个再也不会来的 seq 1。
  */
 export async function notifyExternalChildSessionEvent(
-  this: AgentRuntimeInternal,
-  input: {
-    childSessionId: SessionId;
-    event: SessionEvent;
-    traceContext?: TraceContext;
-    interactionOrigin?: ChildClientPortsContext;
-  },
+    this: AgentRuntimeInternal,
+    input: {
+        childSessionId: SessionId;
+        event: SessionEvent;
+        traceContext?: TraceContext;
+        interactionOrigin?: ChildClientPortsContext;
+    },
 ): Promise<void> {
-  const traceContext = input.traceContext ?? this.rootTraceContext;
-  // 只通知、绝不 append：子 runtime 已经按自己的 sessionId 把这条事件落库了，
-  // 再走父 runtime 的 append 链路会造成同一事件在共享 store 里出现两份。
-  await this.notifyEventSinks(input.event, { ...traceContext, sessionId: input.childSessionId });
-  if (input.interactionOrigin === undefined) return;
-  // Bug 根因（2026-09-23 实机）：guarded dwf actor 的权限请求经父 broker 到了桌面，但 V4 的
-  // 确认窗只从**父会话**实时投影的 PermissionRequested 生成；这条事件只在子会话里，窗不出现，
-  // actor 永久等待。与 core subagent 同款镜像（只镜像交互，父 timeline 不收工具活动），同样只通知不 append。
-  const mirrored = mirrorSubagentInteractionEvent(input.event, {
-    ...input.interactionOrigin,
-    parentSessionId: this.sessionId,
-  });
-  if (mirrored === undefined) return;
-  await this.notifyEventSinks(mirrored, { ...traceContext, sessionId: this.sessionId });
+    const traceContext = input.traceContext ?? this.rootTraceContext;
+    // 只通知、绝不 append：子 runtime 已经按自己的 sessionId 把这条事件落库了，
+    // 再走父 runtime 的 append 链路会造成同一事件在共享 store 里出现两份。
+    await this.notifyEventSinks(input.event, { ...traceContext, sessionId: input.childSessionId });
+    if (input.interactionOrigin === undefined) return;
+    // Bug 根因（2026-09-23 实机）：guarded dwf actor 的权限请求经父 broker 到了桌面，但 V4 的
+    // 确认窗只从**父会话**实时投影的 PermissionRequested 生成；这条事件只在子会话里，窗不出现，
+    // actor 永久等待。与 core subagent 同款镜像（只镜像交互，父 timeline 不收工具活动），同样只通知不 append。
+    const mirrored = mirrorSubagentInteractionEvent(input.event, {
+        ...input.interactionOrigin,
+        parentSessionId: this.sessionId,
+    });
+    if (mirrored === undefined) return;
+    await this.notifyEventSinks(mirrored, { ...traceContext, sessionId: this.sessionId });
 }
 
 /**
@@ -235,61 +235,63 @@ export async function notifyExternalChildSessionEvent(
  * workflow child）必须经这里取端口。
  */
 export function createChildClientPorts(
-  this: AgentRuntimeInternal,
-  context: ChildClientPortsContext,
+    this: AgentRuntimeInternal,
+    context: ChildClientPortsContext,
 ): ClientFacingPorts {
-  return deriveChildClientPorts(
-    {
-      ...(this.permissionBroker === undefined ? {} : { permissionBroker: this.permissionBroker }),
-      ...(this.providerRuntimeHeadersPort === undefined
-        ? {}
-        : { providerRuntimeHeadersPort: this.providerRuntimeHeadersPort }),
-    },
-    { ...context, parentSessionId: this.sessionId },
-  );
+    return deriveChildClientPorts(
+        {
+            ...(this.permissionBroker === undefined
+                ? {}
+                : { permissionBroker: this.permissionBroker }),
+            ...(this.providerRuntimeHeadersPort === undefined
+                ? {}
+                : { providerRuntimeHeadersPort: this.providerRuntimeHeadersPort }),
+        },
+        { ...context, parentSessionId: this.sessionId },
+    );
 }
 
 export function getContextBuilder(this: AgentRuntimeInternal): ContextBuilder {
-  if (!this.contextBuilder) {
-    this.contextBuilder = this.createContextBuilderFromSnapshot(
-      this.createConfigOnlyContextSnapshot(this.workingDirectory),
-      undefined,
-      { persistEnvInfo: false },
-    );
-  }
-  // 这个 getter 只能提供同步预览 builder，不能初始化 messageHistory。
-  // 否则首轮 executeTurn 会跳过异步 context source 解析，导致真实 workspace context 丢失。
-  return this.contextBuilder;
+    if (!this.contextBuilder) {
+        this.contextBuilder = this.createContextBuilderFromSnapshot(
+            this.createConfigOnlyContextSnapshot(this.workingDirectory),
+            undefined,
+            { persistEnvInfo: false },
+        );
+    }
+    // 这个 getter 只能提供同步预览 builder，不能初始化 messageHistory。
+    // 否则首轮 executeTurn 会跳过异步 context source 解析，导致真实 workspace context 丢失。
+    return this.contextBuilder;
 }
 
 export function getPendingPermissionRequests(
-  this: AgentRuntimeInternal,
+    this: AgentRuntimeInternal,
 ): PermissionBrokerRequest[] {
-  if (!isInspectablePermissionBroker(this.permissionBroker)) return [];
-  return this.permissionBroker.listPendingRequests();
+    if (!isInspectablePermissionBroker(this.permissionBroker)) return [];
+    return this.permissionBroker.listPendingRequests();
 }
 
 export async function getProjection(this: AgentRuntimeInternal): Promise<SessionProjection> {
-  return this.rebuildProjection();
+    return this.rebuildProjection();
 }
 
 export function getSessionId(this: AgentRuntimeInternal): SessionId {
-  return this.sessionId;
+    return this.sessionId;
 }
 
 function filterRuntimeVisibleTools(
-  this: AgentRuntimeInternal,
-  tools: ModelToolContract[],
+    this: AgentRuntimeInternal,
+    tools: ModelToolContract[],
 ): ModelToolContract[] {
-  const visibleTools = filterEmbeddedSearchRuntimeVisibleTools(this, tools);
-  // provider-visible 工具顺序属于最终输出边界；toolset 只决定可见工具集合。
-  return orderProviderVisibleToolContracts(visibleTools);
+    const visibleTools = filterEmbeddedSearchRuntimeVisibleTools(this, tools);
+    // provider-visible 工具顺序属于最终输出边界；toolset 只决定可见工具集合。
+    return orderProviderVisibleToolContracts(visibleTools);
 }
 
 function shouldExposeWebSearch(this: AgentRuntimeInternal, model?: Model): boolean {
-  // 无 Model 的调用只枚举完整注册表，供持久化和 UI 元数据使用；真实执行始终传入
-  // 当前 Active Model，并只读取其冻结的完整能力事实。
-  if (!model) return true;
-  return model.properties.supportsNativeWebSearch;
+    // 无 Model 的调用只枚举完整注册表，供持久化和 UI 元数据使用；真实执行始终传入
+    // 当前 Active Model，并只读取其冻结的完整能力事实。
+    if (!model) return true;
+    return model.properties.supportsNativeWebSearch;
 }
 import { resolveExecutionState } from "@zcode/shared";

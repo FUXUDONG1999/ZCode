@@ -1,5 +1,5 @@
 export {
-  WorkspacePluginPreview,
-  buildWorkspacePluginMention,
-  isWorkspacePluginReferenceable,
+    WorkspacePluginPreview,
+    buildWorkspacePluginMention,
+    isWorkspacePluginReferenceable,
 } from "./WorkspacePluginPreview.js";

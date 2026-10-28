@@ -11,38 +11,40 @@ export const GLOBAL_SAVED_WORKFLOW_TARGET: ZCodeAgentSavedWorkflowTarget = { sco
 
 /** 取路径末段（跨 `/` 与 `\\`），给未打开项目的运行行做兜底 label。 */
 function basenameOfPath(path: string): string {
-  return (
-    path
-      .replace(/[\\/]+$/u, "")
-      .split(/[\\/]/u)
-      .filter(Boolean)
-      .pop() ?? path
-  );
+    return (
+        path
+            .replace(/[\\/]+$/u, "")
+            .split(/[\\/]/u)
+            .filter(Boolean)
+            .pop() ?? path
+    );
 }
 
 /** 「修订」/「通过对话创建」的落点：活动本地项目，不在候选里则第一个本地项目；都没有则 null。 */
 export function resolveGlobalActionTarget(
-  localProjects: readonly AutomationWorkspaceOption[],
-  activeProjectKey: string | null,
+    localProjects: readonly AutomationWorkspaceOption[],
+    activeProjectKey: string | null,
 ): SavedWorkflowProjectTarget | null {
-  const active = localProjects.find((project) => resolveWorkspaceKey(project) === activeProjectKey);
-  const target = active ?? localProjects[0];
-  if (!target) return null;
-  return {
-    projectId: target.projectId,
-    hostId: target.hostId,
-    workspacePath: target.workspacePath,
-    ...(target.workspaceIdentity ? { workspaceIdentity: target.workspaceIdentity } : {}),
-  };
+    const active = localProjects.find(
+        (project) => resolveWorkspaceKey(project) === activeProjectKey,
+    );
+    const target = active ?? localProjects[0];
+    if (!target) return null;
+    return {
+        projectId: target.projectId,
+        hostId: target.hostId,
+        workspacePath: target.workspacePath,
+        ...(target.workspaceIdentity ? { workspaceIdentity: target.workspaceIdentity } : {}),
+    };
 }
 
 /** 运行行的 cwd 命中哪个已打开本地项目（用绝对路径逐字比较）。 */
 export function findProjectByCwd(
-  localProjects: readonly AutomationWorkspaceOption[],
-  cwd: string | undefined,
+    localProjects: readonly AutomationWorkspaceOption[],
+    cwd: string | undefined,
 ): AutomationWorkspaceOption | null {
-  if (!cwd) return null;
-  return localProjects.find((project) => project.workspacePath === cwd) ?? null;
+    if (!cwd) return null;
+    return localProjects.find((project) => project.workspacePath === cwd) ?? null;
 }
 
 /**
@@ -50,14 +52,14 @@ export function findProjectByCwd(
  * 否则以 `basename(cwd)` 兜底、完整路径挂 title、不可「查看实例」；没有 cwd 的老行不画项目列。
  */
 export function buildGlobalRunProjectResolver(
-  localProjects: readonly AutomationWorkspaceOption[],
+    localProjects: readonly AutomationWorkspaceOption[],
 ): (run: ZCodeSavedWorkflowRun) => SavedWorkflowRunProject | null {
-  return (run) => {
-    if (!run.cwd) return null;
-    const project = findProjectByCwd(localProjects, run.cwd);
-    if (project) {
-      return { label: project.label, title: run.cwd, canOpen: true };
-    }
-    return { label: basenameOfPath(run.cwd), title: run.cwd, canOpen: false };
-  };
+    return (run) => {
+        if (!run.cwd) return null;
+        const project = findProjectByCwd(localProjects, run.cwd);
+        if (project) {
+            return { label: project.label, title: run.cwd, canOpen: true };
+        }
+        return { label: basenameOfPath(run.cwd), title: run.cwd, canOpen: false };
+    };
 }

@@ -23,11 +23,11 @@ export const ZCODE_DYNAMIC_WORKFLOW_MODE_ENV = "ZCODE_DYNAMIC_WORKFLOW_MODE";
 export const DEFAULT_DYNAMIC_WORKFLOW_MODE: DynamicWorkflowMode = "disabled";
 
 export function normalizeDynamicWorkflowMode(value: unknown): DynamicWorkflowMode | undefined {
-  if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  return (DYNAMIC_WORKFLOW_MODES as readonly string[]).includes(trimmed)
-    ? (trimmed as DynamicWorkflowMode)
-    : undefined;
+    if (typeof value !== "string") return undefined;
+    const trimmed = value.trim();
+    return (DYNAMIC_WORKFLOW_MODES as readonly string[]).includes(trimmed)
+        ? (trimmed as DynamicWorkflowMode)
+        : undefined;
 }
 
 /**
@@ -36,7 +36,7 @@ export function normalizeDynamicWorkflowMode(value: unknown): DynamicWorkflowMod
  * （launch.md「On demand: activation」），由 CLI 侧按 mode 本身裁决，这里不参与。
  */
 export function isDynamicWorkflowModeEnabled(mode: DynamicWorkflowMode): boolean {
-  return mode !== "disabled";
+    return mode !== "disabled";
 }
 
 /** 快照的来源：观测用，UI 与日志据此区分「服务端关」与「本地覆盖」。只描述「提供」来自哪里。 */
@@ -49,27 +49,27 @@ export type DynamicWorkflowClientConfigSource = "remote" | "override" | "default
  * 旧消费者读 `mode` / `enabled` 即得生效值；设置页读 `offeredMode` 决定「默认」标签。
  */
 export interface DynamicWorkflowClientConfig {
-  /** 生效模式：用户有选择时是用户选择，否则等于 offeredMode。 */
-  readonly mode: DynamicWorkflowMode;
-  /** 等于 isDynamicWorkflowModeEnabled(mode)；单独落字段免得每个消费者各写一遍折叠规则。 */
-  readonly enabled: boolean;
-  readonly source: DynamicWorkflowClientConfigSource;
-  /** 服务端（或本地覆盖）提供的模式：用户没选时的生效模式，也是设置页的「默认」选项。 */
-  readonly offeredMode: DynamicWorkflowMode;
-  /** 实际生效的用户选择；缺席表示跟随提供的模式（未选择或非法值）。 */
-  readonly userMode?: DynamicWorkflowMode;
+    /** 生效模式：用户有选择时是用户选择，否则等于 offeredMode。 */
+    readonly mode: DynamicWorkflowMode;
+    /** 等于 isDynamicWorkflowModeEnabled(mode)；单独落字段免得每个消费者各写一遍折叠规则。 */
+    readonly enabled: boolean;
+    readonly source: DynamicWorkflowClientConfigSource;
+    /** 服务端（或本地覆盖）提供的模式：用户没选时的生效模式，也是设置页的「默认」选项。 */
+    readonly offeredMode: DynamicWorkflowMode;
+    /** 实际生效的用户选择；缺席表示跟随提供的模式（未选择或非法值）。 */
+    readonly userMode?: DynamicWorkflowMode;
 }
 
 export function createDynamicWorkflowClientConfig(
-  offeredMode: DynamicWorkflowMode,
-  source: DynamicWorkflowClientConfigSource,
+    offeredMode: DynamicWorkflowMode,
+    source: DynamicWorkflowClientConfigSource,
 ): DynamicWorkflowClientConfig {
-  return {
-    mode: offeredMode,
-    enabled: isDynamicWorkflowModeEnabled(offeredMode),
-    source,
-    offeredMode,
-  };
+    return {
+        mode: offeredMode,
+        enabled: isDynamicWorkflowModeEnabled(offeredMode),
+        source,
+        offeredMode,
+    };
 }
 
 /**
@@ -81,9 +81,9 @@ export function createDynamicWorkflowClientConfig(
  * 只有认用户选择的 Host 才会写这个字段。
  */
 export function readDynamicWorkflowOfferedMode(
-  config: DynamicWorkflowClientConfig,
+    config: DynamicWorkflowClientConfig,
 ): DynamicWorkflowMode | undefined {
-  return normalizeDynamicWorkflowMode(config.offeredMode);
+    return normalizeDynamicWorkflowMode(config.offeredMode);
 }
 
 /**
@@ -94,18 +94,18 @@ export function readDynamicWorkflowOfferedMode(
  * 每次使用都用最新选择重新应用。
  */
 export function applyDynamicWorkflowUserMode(
-  config: DynamicWorkflowClientConfig,
-  userMode: unknown,
+    config: DynamicWorkflowClientConfig,
+    userMode: unknown,
 ): DynamicWorkflowClientConfig {
-  const offer = createDynamicWorkflowClientConfig(config.offeredMode, config.source);
-  const choice = normalizeDynamicWorkflowMode(userMode);
-  if (!choice) return offer;
-  return {
-    ...offer,
-    mode: choice,
-    enabled: isDynamicWorkflowModeEnabled(choice),
-    userMode: choice,
-  };
+    const offer = createDynamicWorkflowClientConfig(config.offeredMode, config.source);
+    const choice = normalizeDynamicWorkflowMode(userMode);
+    if (!choice) return offer;
+    return {
+        ...offer,
+        mode: choice,
+        enabled: isDynamicWorkflowModeEnabled(choice),
+        userMode: choice,
+    };
 }
 
 /**
@@ -114,24 +114,24 @@ export function applyDynamicWorkflowUserMode(
  * 服务端撤掉 key 等于关闭，不能沿用旧快照（与 desktopContextPromptRollout 同一裁决）。
  */
 export function resolveDynamicWorkflowClientConfig(input: {
-  remote: unknown;
-  env?: Record<string, string | undefined>;
-  userMode?: unknown;
+    remote: unknown;
+    env?: Record<string, string | undefined>;
+    userMode?: unknown;
 }): DynamicWorkflowClientConfig {
-  return applyDynamicWorkflowUserMode(resolveDynamicWorkflowOffer(input), input.userMode);
+    return applyDynamicWorkflowUserMode(resolveDynamicWorkflowOffer(input), input.userMode);
 }
 
 function resolveDynamicWorkflowOffer(input: {
-  remote: unknown;
-  env?: Record<string, string | undefined>;
+    remote: unknown;
+    env?: Record<string, string | undefined>;
 }): DynamicWorkflowClientConfig {
-  const override = normalizeDynamicWorkflowMode(input.env?.[ZCODE_DYNAMIC_WORKFLOW_MODE_ENV]);
-  if (override) return createDynamicWorkflowClientConfig(override, "override");
-  const remoteMode = normalizeDynamicWorkflowMode(
-    typeof input.remote === "object" && input.remote !== null
-      ? (input.remote as { mode?: unknown }).mode
-      : undefined,
-  );
-  if (remoteMode) return createDynamicWorkflowClientConfig(remoteMode, "remote");
-  return createDynamicWorkflowClientConfig(DEFAULT_DYNAMIC_WORKFLOW_MODE, "default");
+    const override = normalizeDynamicWorkflowMode(input.env?.[ZCODE_DYNAMIC_WORKFLOW_MODE_ENV]);
+    if (override) return createDynamicWorkflowClientConfig(override, "override");
+    const remoteMode = normalizeDynamicWorkflowMode(
+        typeof input.remote === "object" && input.remote !== null
+            ? (input.remote as { mode?: unknown }).mode
+            : undefined,
+    );
+    if (remoteMode) return createDynamicWorkflowClientConfig(remoteMode, "remote");
+    return createDynamicWorkflowClientConfig(DEFAULT_DYNAMIC_WORKFLOW_MODE, "default");
 }

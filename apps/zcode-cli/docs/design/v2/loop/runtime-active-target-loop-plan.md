@@ -31,12 +31,12 @@
 同一套“turn 完成后是否继续 active goal”的策略现在写在两处：
 
 1. 普通 user prompt：
-   - 文件：`apps/zcode-cli/packages/bootstrap/src/app/input-facade.ts`
-   - 当前逻辑：`runPromptTurn()` 调 `deps.runtime.executeTurn(...)` 后，再由 bootstrap 本地 `continueActiveTargetTurns()` while loop 继续跑 active target。
+    - 文件：`apps/zcode-cli/packages/bootstrap/src/app/input-facade.ts`
+    - 当前逻辑：`runPromptTurn()` 调 `deps.runtime.executeTurn(...)` 后，再由 bootstrap 本地 `continueActiveTargetTurns()` while loop 继续跑 active target。
 
 2. background task notification：
-   - 文件：`apps/zcode-cli/packages/core/src/runtime/methods/runtime-command-queue.ts`
-   - 当前逻辑：`task-notification` command 跑完 notification turn 后，手写 `continueTargetAfterTaskNotification()` while loop 继续跑 active target。
+    - 文件：`apps/zcode-cli/packages/core/src/runtime/methods/runtime-command-queue.ts`
+    - 当前逻辑：`task-notification` command 跑完 notification turn 后，手写 `continueTargetAfterTaskNotification()` while loop 继续跑 active target。
 
 这两个 loop 的职责本质相同：在一个 turn 完成后，按当前事实判断是否需要 verifier 或 continuation。它们分裂在 bootstrap 和 core runtime 两个层里，导致 task-notification 成为特殊路径，也让后续 queue-aware 让位、verifier disabled、running background defer 这类规则容易重复或分叉。
 
@@ -48,11 +48,11 @@ runtime 内部提供统一 driver：
 
 ```ts
 continueActiveTargetLoop({
-  abortSignal,
-  inputId,
-  traceContext,
-  trigger,
-  verifyBeforeFirstContinue,
+    abortSignal,
+    inputId,
+    traceContext,
+    trigger,
+    verifyBeforeFirstContinue,
 });
 ```
 
@@ -175,11 +175,11 @@ cd apps/zcode-cli/packages/core
 export type ActiveTargetLoopTrigger = "manual" | "user-prompt" | "task-notification";
 
 export interface ContinueActiveTargetLoopOptions {
-  abortSignal?: AbortSignal;
-  inputId?: string;
-  traceContext?: TraceContext;
-  trigger: ActiveTargetLoopTrigger;
-  verifyBeforeFirstContinue?: boolean;
+    abortSignal?: AbortSignal;
+    inputId?: string;
+    traceContext?: TraceContext;
+    trigger: ActiveTargetLoopTrigger;
+    verifyBeforeFirstContinue?: boolean;
 }
 ```
 
@@ -275,15 +275,15 @@ runtime command 执行侧语义：
 ```ts
 const result = await this.executeTurnCommand(command.input, command.attachments, command.options);
 const continuationResult =
-  command.options?.continueActiveTargetAfterTurn === true
-    ? await this.continueActiveTargetLoop({
-        abortSignal: command.options.abortSignal,
-        inputId: command.options.inputId,
-        traceContext: command.options.traceContext ?? command.traceContext,
-        trigger: "user-prompt",
-        verifyBeforeFirstContinue: true,
-      })
-    : null;
+    command.options?.continueActiveTargetAfterTurn === true
+        ? await this.continueActiveTargetLoop({
+              abortSignal: command.options.abortSignal,
+              inputId: command.options.inputId,
+              traceContext: command.options.traceContext ?? command.traceContext,
+              trigger: "user-prompt",
+              verifyBeforeFirstContinue: true,
+          })
+        : null;
 command.resolve(continuationResult ?? result);
 ```
 
@@ -411,17 +411,17 @@ cd apps/zcode-cli
 
 ```ts
 await this.executeTurnCommand(command.text, undefined, {
-  inputSource: "background_task",
-  inputVisibility: "model-only",
-  recordedInputMessageId: messageId,
-  skipInputRecord: true,
-  skipUserPromptSubmitHooks: true,
-  traceContext: command.traceContext,
+    inputSource: "background_task",
+    inputVisibility: "model-only",
+    recordedInputMessageId: messageId,
+    skipInputRecord: true,
+    skipUserPromptSubmitHooks: true,
+    traceContext: command.traceContext,
 });
 await this.continueActiveTargetLoop({
-  traceContext: command.traceContext,
-  trigger: "task-notification",
-  verifyBeforeFirstContinue: true,
+    traceContext: command.traceContext,
+    trigger: "task-notification",
+    verifyBeforeFirstContinue: true,
 });
 ```
 

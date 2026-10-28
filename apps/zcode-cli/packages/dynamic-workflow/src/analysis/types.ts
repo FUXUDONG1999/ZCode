@@ -28,8 +28,8 @@ export type SiteLoc = ScriptLoc;
  * 更差，所以那种 affix 直接丢弃。省略号在**渲染时**才加，这里只搬数据。
  */
 export interface NamePattern {
-  head?: string;
-  tail?: string;
+    head?: string;
+    tail?: string;
 }
 
 /**
@@ -49,18 +49,18 @@ export interface NamePattern {
  * unknowable/uninformative (`any`/`unknown`/`never`/`void`).
  */
 export interface SiteNode {
-  id: string;
-  kind: SiteKind;
-  loc?: SiteLoc;
-  label: string;
-  /**
-   * `label` 只拿到兜底串（内联的 `` agent(`研究员${i}`).ask(…) ``——receiver 是调用式，
-   * 既非字面量也非标识符，于是落到 `"ask"`）时，模板的静态形状。仅 `ask` 节点可能有。
-   */
-  labelPattern?: NamePattern;
-  actors?: string[];
-  within?: string;
-  artifactType?: string;
+    id: string;
+    kind: SiteKind;
+    loc?: SiteLoc;
+    label: string;
+    /**
+     * `label` 只拿到兜底串（内联的 `` agent(`研究员${i}`).ask(…) ``——receiver 是调用式，
+     * 既非字面量也非标识符，于是落到 `"ask"`）时，模板的静态形状。仅 `ask` 节点可能有。
+     */
+    labelPattern?: NamePattern;
+    actors?: string[];
+    within?: string;
+    artifactType?: string;
 }
 
 /**
@@ -70,16 +70,16 @@ export interface SiteNode {
  * single shared lane. Omitted for actors created outside any fan-out.
  */
 export interface ActorSite {
-  id: string;
-  loc: SiteLoc;
-  name?: string;
-  /**
-   * `name` 缺席（`agent()` 的首参不是字面量）而首参是模板字符串时的静态形状。与 `name`
-   * 实际互斥：字面量给名字，模板给形状。**刻意不写进 `name`**——`name` 的契约是「作者原样
-   * 写下的那个词」，把重建物混进去，下游就再也分不清看到的是字面量还是推断。
-   */
-  namePattern?: NamePattern;
-  within?: string;
+    id: string;
+    loc: SiteLoc;
+    name?: string;
+    /**
+     * `name` 缺席（`agent()` 的首参不是字面量）而首参是模板字符串时的静态形状。与 `name`
+     * 实际互斥：字面量给名字，模板给形状。**刻意不写进 `name`**——`name` 的契约是「作者原样
+     * 写下的那个词」，把重建物混进去，下游就再也分不清看到的是字面量还是推断。
+     */
+    namePattern?: NamePattern;
+    within?: string;
 }
 
 /**
@@ -92,16 +92,16 @@ export interface ActorSite {
  * source-completion edges, and when the type is unknowable/uninformative.
  */
 export interface SiteEdge {
-  from: string;
-  to: string;
-  kind: "data" | "context";
-  exact: boolean;
-  port?: number;
-  type?: string;
+    from: string;
+    to: string;
+    kind: "data" | "context";
+    exact: boolean;
+    port?: number;
+    type?: string;
 }
 
 export interface SiteGraph {
-  nodes: SiteNode[];
-  actors: ActorSite[];
-  edges: SiteEdge[];
+    nodes: SiteNode[];
+    actors: ActorSite[];
+    edges: SiteEdge[];
 }

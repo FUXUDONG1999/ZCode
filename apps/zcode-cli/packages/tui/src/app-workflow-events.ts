@@ -8,7 +8,7 @@ import type { WorkflowRunProgressEnvelope } from "@zcode/shared/zcode-protocol-v
 import { applyWorkflowProgressToMirror, type TuiWorkflowMirror } from "./app-workflow-mirror.js";
 
 export type WorkflowMirrorSetter = (
-  updater: (current: TuiWorkflowMirror) => TuiWorkflowMirror,
+    updater: (current: TuiWorkflowMirror) => TuiWorkflowMirror,
 ) => void;
 
 /**
@@ -18,14 +18,14 @@ export type WorkflowMirrorSetter = (
  * 所以 TUI 与桌面不可能对同一串事件算出不同状态。
  */
 export function applyWorkflowProgressEvent(
-  payload: unknown,
-  setWorkflowMirror?: WorkflowMirrorSetter,
+    payload: unknown,
+    setWorkflowMirror?: WorkflowMirrorSetter,
 ): void {
-  if (!setWorkflowMirror) return;
-  // 先转 contracts 的有界 payload、再赋给 shared 的结构化入参：这行赋值是「两边形状不漂移」
-  // 的编译期闸（与 bootstrap 的 v4 投影同一姿态）。
-  const envelope: WorkflowRunProgressEnvelope = payload as DynamicWorkflowRunProgressPayload;
-  // 无变化时 applyWorkflowProgressToMirror 回传同一个引用，React 因此直接跳过重渲染：
-  // 共享 reducer 的「null = 语义无变化」在 UI 侧就是「不重绘」。
-  setWorkflowMirror((current) => applyWorkflowProgressToMirror(current, envelope));
+    if (!setWorkflowMirror) return;
+    // 先转 contracts 的有界 payload、再赋给 shared 的结构化入参：这行赋值是「两边形状不漂移」
+    // 的编译期闸（与 bootstrap 的 v4 投影同一姿态）。
+    const envelope: WorkflowRunProgressEnvelope = payload as DynamicWorkflowRunProgressPayload;
+    // 无变化时 applyWorkflowProgressToMirror 回传同一个引用，React 因此直接跳过重渲染：
+    // 共享 reducer 的「null = 语义无变化」在 UI 侧就是「不重绘」。
+    setWorkflowMirror((current) => applyWorkflowProgressToMirror(current, envelope));
 }

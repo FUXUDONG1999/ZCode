@@ -11,11 +11,11 @@
 // config 拷了一份，装配层闭包里那个 runtimeConfig 对象看不到运行期的翻转。
 
 import {
-  SESSION_ENTRY_DYNAMIC_WORKFLOW_ACTIVATION,
-  type MessageWithParts,
-  type SessionEntryInfo,
-  type SessionId,
-  type TraceContext,
+    SESSION_ENTRY_DYNAMIC_WORKFLOW_ACTIVATION,
+    type MessageWithParts,
+    type SessionEntryInfo,
+    type SessionId,
+    type TraceContext,
 } from "@zcode/contracts";
 import { traceContextToLogContext } from "../deps.js";
 import type { AgentRuntimeInternal } from "../internal.js";
@@ -25,14 +25,14 @@ import { refreshBranchAwareBuiltInTools } from "./embedded-search-branch.js";
 
 /** 激活的来源，落进 session entry 供排查；行为上四者等价。 */
 export type DynamicWorkflowActivationSource =
-  | "command"
-  | "run_control"
-  | "resume_entry"
-  | "resume_history";
+    | "command"
+    | "run_control"
+    | "resume_entry"
+    | "resume_history";
 
 export interface DynamicWorkflowActivationEntryData {
-  activated: true;
-  source: DynamicWorkflowActivationSource;
+    activated: true;
+    source: DynamicWorkflowActivationSource;
 }
 
 /**
@@ -43,7 +43,7 @@ const WORKFLOW_COMMAND_TEXT_PATTERN = /^\/workflow(?:\s|$)/i;
 
 /** 出生即激活的会话：非 onDemand（alwaysOn、TUI / headless / 子代理未设该字段）。 */
 export function resolveInitialDynamicWorkflowToolsActivated(config: AgentRuntimeConfig): boolean {
-  return config.dynamicWorkflowToolsOnDemand !== true;
+    return config.dynamicWorkflowToolsOnDemand !== true;
 }
 
 /**
@@ -52,34 +52,34 @@ export function resolveInitialDynamicWorkflowToolsActivated(config: AgentRuntime
  * 所以调用方在它返回后发出的第一个模型请求必然带着十个工具。
  */
 export async function activateDynamicWorkflowTools(
-  this: AgentRuntimeInternal,
-  input: { source: DynamicWorkflowActivationSource; traceContext?: TraceContext },
+    this: AgentRuntimeInternal,
+    input: { source: DynamicWorkflowActivationSource; traceContext?: TraceContext },
 ): Promise<boolean> {
-  if (this.dynamicWorkflowToolsActivated) return false;
-  markDynamicWorkflowToolsActivated(this, input.source);
-  // entry 写失败只记 warn、不向上抛。原因：过去抛出会让 `/workflow` / Resume 报错，而工具面已经
-  // 激活（只加不减），此后的调用因已激活直接 no-op，形成「操作失败但状态已生效」。entry 只是冷恢复
-  // 历史扫描的捷径——每个激活来源都会在记录里留下 `/workflow` 或 CreateWorkflow 调用，
-  // restoreDynamicWorkflowActivationOnResume 缺 entry 时按历史判出激活并补写。
-  try {
-    await persistDynamicWorkflowActivation(this);
-  } catch (error) {
-    this.logger?.warn("Dynamic workflow activation entry write failed", {
-      ...traceContextToLogContext(input.traceContext ?? this.rootTraceContext),
-      error: error instanceof Error ? error.message : String(error),
-      event: "dynamic_workflow.activation_entry_write_failed",
-      module: "core.runtime",
-      sessionId: this.sessionId,
+    if (this.dynamicWorkflowToolsActivated) return false;
+    markDynamicWorkflowToolsActivated(this, input.source);
+    // entry 写失败只记 warn、不向上抛。原因：过去抛出会让 `/workflow` / Resume 报错，而工具面已经
+    // 激活（只加不减），此后的调用因已激活直接 no-op，形成「操作失败但状态已生效」。entry 只是冷恢复
+    // 历史扫描的捷径——每个激活来源都会在记录里留下 `/workflow` 或 CreateWorkflow 调用，
+    // restoreDynamicWorkflowActivationOnResume 缺 entry 时按历史判出激活并补写。
+    try {
+        await persistDynamicWorkflowActivation(this);
+    } catch (error) {
+        this.logger?.warn("Dynamic workflow activation entry write failed", {
+            ...traceContextToLogContext(input.traceContext ?? this.rootTraceContext),
+            error: error instanceof Error ? error.message : String(error),
+            event: "dynamic_workflow.activation_entry_write_failed",
+            module: "core.runtime",
+            sessionId: this.sessionId,
+        });
+    }
+    this.logger?.info("Dynamic workflow tools activated", {
+        ...traceContextToLogContext(input.traceContext ?? this.rootTraceContext),
+        event: "dynamic_workflow.tools_activated",
+        module: "core.runtime",
+        sessionId: this.sessionId,
+        source: input.source,
     });
-  }
-  this.logger?.info("Dynamic workflow tools activated", {
-    ...traceContextToLogContext(input.traceContext ?? this.rootTraceContext),
-    event: "dynamic_workflow.tools_activated",
-    module: "core.runtime",
-    sessionId: this.sessionId,
-    source: input.source,
-  });
-  return true;
+    return true;
 }
 
 /**
@@ -89,46 +89,50 @@ export async function activateDynamicWorkflowTools(
  * 「有没有过」不随分支变化）。
  */
 export async function restoreDynamicWorkflowActivationOnResume(
-  this: AgentRuntimeInternal,
-  messages: readonly MessageWithParts[],
+    this: AgentRuntimeInternal,
+    messages: readonly MessageWithParts[],
 ): Promise<void> {
-  if (this.dynamicWorkflowToolsActivated) return;
-  const entries = await this.sessionStore?.sessionEntries?.({
-    sessionID: this.sessionId,
-    type: SESSION_ENTRY_DYNAMIC_WORKFLOW_ACTIVATION,
-  });
-  const source: DynamicWorkflowActivationSource | undefined =
-    entries !== undefined && entries.length > 0
-      ? "resume_entry"
-      : persistedMessagesShowDynamicWorkflow(messages)
-        ? "resume_history"
-        : undefined;
-  if (source === undefined) return;
-  markDynamicWorkflowToolsActivated(this, source);
-  // entry 已在场时不重写；从历史判出来的补一条，下次恢复不必再扫。直接写而不经
-  // persistDynamicWorkflowActivation：resume 里 sessionPersisted 要到收尾才置位，而恢复中的会话
-  // 在 store 里必然已经存在。
-  if (source === "resume_history") await writeDynamicWorkflowActivationEntryIfActivated(this);
+    if (this.dynamicWorkflowToolsActivated) return;
+    const entries = await this.sessionStore?.sessionEntries?.({
+        sessionID: this.sessionId,
+        type: SESSION_ENTRY_DYNAMIC_WORKFLOW_ACTIVATION,
+    });
+    const source: DynamicWorkflowActivationSource | undefined =
+        entries !== undefined && entries.length > 0
+            ? "resume_entry"
+            : persistedMessagesShowDynamicWorkflow(messages)
+              ? "resume_history"
+              : undefined;
+    if (source === undefined) return;
+    markDynamicWorkflowToolsActivated(this, source);
+    // entry 已在场时不重写；从历史判出来的补一条，下次恢复不必再扫。直接写而不经
+    // persistDynamicWorkflowActivation：resume 里 sessionPersisted 要到收尾才置位，而恢复中的会话
+    // 在 store 里必然已经存在。
+    if (source === "resume_history") await writeDynamicWorkflowActivationEntryIfActivated(this);
 }
 
 /** 持久化的消息里有没有一次 `/workflow` 命令，或十个工具中任一次调用。 */
 export function persistedMessagesShowDynamicWorkflow(
-  messages: readonly MessageWithParts[],
+    messages: readonly MessageWithParts[],
 ): boolean {
-  for (const message of messages) {
-    const role = message.info.role;
-    for (const part of message.parts) {
-      if (
-        role === "user" &&
-        part.type === "text" &&
-        WORKFLOW_COMMAND_TEXT_PATTERN.test(part.text.trim())
-      )
-        return true;
-      if (role === "assistant" && part.type === "tool" && isDynamicWorkflowToolName(part.tool))
-        return true;
+    for (const message of messages) {
+        const role = message.info.role;
+        for (const part of message.parts) {
+            if (
+                role === "user" &&
+                part.type === "text" &&
+                WORKFLOW_COMMAND_TEXT_PATTERN.test(part.text.trim())
+            )
+                return true;
+            if (
+                role === "assistant" &&
+                part.type === "tool" &&
+                isDynamicWorkflowToolName(part.tool)
+            )
+                return true;
+        }
     }
-  }
-  return false;
+    return false;
 }
 
 /**
@@ -136,47 +140,50 @@ export function persistedMessagesShowDynamicWorkflow(
  * 激活先于会话落盘，那一刻 persistDynamicWorkflowActivation 无处可写。
  */
 export async function writeDynamicWorkflowActivationEntryIfActivated(
-  runtime: AgentRuntimeInternal,
+    runtime: AgentRuntimeInternal,
 ): Promise<void> {
-  if (runtime.config.dynamicWorkflowToolsOnDemand !== true) return;
-  if (
-    !runtime.dynamicWorkflowToolsActivated ||
-    runtime.dynamicWorkflowActivationSource === undefined
-  )
-    return;
-  await runtime.sessionStore?.saveSessionEntry?.(
-    buildDynamicWorkflowActivationEntry(runtime.sessionId, runtime.dynamicWorkflowActivationSource),
-  );
+    if (runtime.config.dynamicWorkflowToolsOnDemand !== true) return;
+    if (
+        !runtime.dynamicWorkflowToolsActivated ||
+        runtime.dynamicWorkflowActivationSource === undefined
+    )
+        return;
+    await runtime.sessionStore?.saveSessionEntry?.(
+        buildDynamicWorkflowActivationEntry(
+            runtime.sessionId,
+            runtime.dynamicWorkflowActivationSource,
+        ),
+    );
 }
 
 export function buildDynamicWorkflowActivationEntry(
-  sessionId: SessionId,
-  source: DynamicWorkflowActivationSource,
+    sessionId: SessionId,
+    source: DynamicWorkflowActivationSource,
 ): SessionEntryInfo {
-  const timestamp = Date.now();
-  const data: DynamicWorkflowActivationEntryData = { activated: true, source };
-  return {
-    id: `${sessionId}:runtime-dynamic-workflow-activation`,
-    sessionID: sessionId,
-    type: SESSION_ENTRY_DYNAMIC_WORKFLOW_ACTIVATION,
-    touchSession: false,
-    time: { created: timestamp, updated: timestamp },
-    data,
-  };
+    const timestamp = Date.now();
+    const data: DynamicWorkflowActivationEntryData = { activated: true, source };
+    return {
+        id: `${sessionId}:runtime-dynamic-workflow-activation`,
+        sessionID: sessionId,
+        type: SESSION_ENTRY_DYNAMIC_WORKFLOW_ACTIVATION,
+        touchSession: false,
+        time: { created: timestamp, updated: timestamp },
+        data,
+    };
 }
 
 function markDynamicWorkflowToolsActivated(
-  runtime: AgentRuntimeInternal,
-  source: DynamicWorkflowActivationSource,
+    runtime: AgentRuntimeInternal,
+    source: DynamicWorkflowActivationSource,
 ): void {
-  runtime.dynamicWorkflowToolsActivated = true;
-  runtime.dynamicWorkflowActivationSource = source;
-  // 与分支刷新同一个入口：它已经会按共用的门重注册全部内置工具（Agent / Task 描述随之换回带
-  // CreateWorkflow 的那版）并清 cachedTools。
-  refreshBranchAwareBuiltInTools(runtime);
+    runtime.dynamicWorkflowToolsActivated = true;
+    runtime.dynamicWorkflowActivationSource = source;
+    // 与分支刷新同一个入口：它已经会按共用的门重注册全部内置工具（Agent / Task 描述随之换回带
+    // CreateWorkflow 的那版）并清 cachedTools。
+    refreshBranchAwareBuiltInTools(runtime);
 }
 
 async function persistDynamicWorkflowActivation(runtime: AgentRuntimeInternal): Promise<void> {
-  if (!runtime.sessionPersisted) return;
-  await writeDynamicWorkflowActivationEntryIfActivated(runtime);
+    if (!runtime.sessionPersisted) return;
+    await writeDynamicWorkflowActivationEntryIfActivated(runtime);
 }

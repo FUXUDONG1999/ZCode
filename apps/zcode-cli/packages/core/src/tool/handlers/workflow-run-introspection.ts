@@ -22,8 +22,8 @@ import type { ToolHandlerFailure } from "../types.js";
  * 两个码必须不同：能力缺席与 run 未知是模型要分别处理的两件事。
  */
 const WORKFLOW_RUN_INTROSPECTION_ERROR_CODE = {
-  INTROSPECTION_UNAVAILABLE: 1,
-  RUN_NOT_FOUND: 2,
+    INTROSPECTION_UNAVAILABLE: 1,
+    RUN_NOT_FOUND: 2,
 } as const;
 
 /**
@@ -31,20 +31,20 @@ const WORKFLOW_RUN_INTROSPECTION_ERROR_CODE = {
  * workflow」和「这个会话读不到 workflow」混成同一个结论（CreateWorkflow 的可见降级同款理由）。
  */
 export function workflowIntrospectionUnavailableFailure(): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: WORKFLOW_RUN_INTROSPECTION_ERROR_CODE.INTROSPECTION_UNAVAILABLE,
-    message:
-      "workflow_introspection_unavailable: this session cannot read workflow runs — workflow execution is not available here, so no run history is reachable. This is a capability gap, not an empty project.",
-  };
+    return {
+        result: false,
+        errorCode: WORKFLOW_RUN_INTROSPECTION_ERROR_CODE.INTROSPECTION_UNAVAILABLE,
+        message:
+            "workflow_introspection_unavailable: this session cannot read workflow runs — workflow execution is not available here, so no run history is reachable. This is a capability gap, not an empty project.",
+    };
 }
 
 export function workflowRunNotFoundFailure(runId: string): ToolHandlerFailure {
-  return {
-    result: false,
-    errorCode: WORKFLOW_RUN_INTROSPECTION_ERROR_CODE.RUN_NOT_FOUND,
-    message: `run_not_found: no workflow run with ID ${runId} exists for this project. Use ListWorkflowRuns to see the runs that do.`,
-  };
+    return {
+        result: false,
+        errorCode: WORKFLOW_RUN_INTROSPECTION_ERROR_CODE.RUN_NOT_FOUND,
+        message: `run_not_found: no workflow run with ID ${runId} exists for this project. Use ListWorkflowRuns to see the runs that do.`,
+    };
 }
 
 /**
@@ -53,8 +53,8 @@ export function workflowRunNotFoundFailure(runId: string): ToolHandlerFailure {
  * 不禁用轮询——用户显式要求盯着在飞 run 时它仍是对的动作；这里只设默认。
  */
 export const WORKFLOW_RUN_INTROSPECTION_STEERING = [
-  "Runs this session starts settle on their own: you receive a completion notification carrying the final output. Do NOT poll this tool while waiting for one — continue with other work.",
-  "Reach for it when: (a) the user asks how a workflow is going, (b) you want to review this project's earlier runs, including ones other sessions started, (c) a completion notification was truncated and you need the run's full record by ID.",
+    "Runs this session starts settle on their own: you receive a completion notification carrying the final output. Do NOT poll this tool while waiting for one — continue with other work.",
+    "Reach for it when: (a) the user asks how a workflow is going, (b) you want to review this project's earlier runs, including ones other sessions started, (c) a completion notification was truncated and you need the run's full record by ID.",
 ].join("\n");
 
 /**
@@ -64,24 +64,24 @@ export const WORKFLOW_RUN_INTROSPECTION_STEERING = [
  * 坏值（NaN / 越界）落回原始数字而不是抛错——一条时间戳不该让整个工具结果失败。
  */
 export function formatWorkflowRunTimestamp(epochMs: number): string {
-  if (!Number.isFinite(epochMs)) return String(epochMs);
-  try {
-    return new Date(epochMs).toISOString();
-  } catch {
-    return String(epochMs);
-  }
+    if (!Number.isFinite(epochMs)) return String(epochMs);
+    try {
+        return new Date(epochMs).toISOString();
+    } catch {
+        return String(epochMs);
+    }
 }
 
 /** 时长阶梯。一处定义，摘要与格式器共用——两处各写一套就会在某次调参时分叉。 */
 const DURATION_MS = {
-  second: 1_000,
-  minute: 60_000,
-  hour: 3_600_000,
-  day: 86_400_000,
+    second: 1_000,
+    minute: 60_000,
+    hour: 3_600_000,
+    day: 86_400_000,
 } as const;
 
 function padTwo(value: number): string {
-  return value < 10 ? `0${value}` : String(value);
+    return value < 10 ? `0${value}` : String(value);
 }
 
 /**
@@ -92,21 +92,21 @@ function padTwo(value: number): string {
  * 非有限值与负值（时钟回拨）折成 0，绝不让一条时间戳把整个工具结果变成 NaN。
  */
 export function formatWorkflowRunDuration(ms: number): string {
-  const total = Number.isFinite(ms) && ms > 0 ? ms : 0;
-  if (total < DURATION_MS.minute) return `${Math.floor(total / DURATION_MS.second)}s`;
-  if (total < DURATION_MS.hour) {
-    const minutes = Math.floor(total / DURATION_MS.minute);
-    const seconds = Math.floor((total % DURATION_MS.minute) / DURATION_MS.second);
-    return `${minutes}m ${padTwo(seconds)}s`;
-  }
-  if (total < DURATION_MS.day) {
-    const hours = Math.floor(total / DURATION_MS.hour);
-    const minutes = Math.floor((total % DURATION_MS.hour) / DURATION_MS.minute);
-    return `${hours}h ${padTwo(minutes)}m`;
-  }
-  const days = Math.floor(total / DURATION_MS.day);
-  const hours = Math.floor((total % DURATION_MS.day) / DURATION_MS.hour);
-  return `${days}d ${hours}h`;
+    const total = Number.isFinite(ms) && ms > 0 ? ms : 0;
+    if (total < DURATION_MS.minute) return `${Math.floor(total / DURATION_MS.second)}s`;
+    if (total < DURATION_MS.hour) {
+        const minutes = Math.floor(total / DURATION_MS.minute);
+        const seconds = Math.floor((total % DURATION_MS.minute) / DURATION_MS.second);
+        return `${minutes}m ${padTwo(seconds)}s`;
+    }
+    if (total < DURATION_MS.day) {
+        const hours = Math.floor(total / DURATION_MS.hour);
+        const minutes = Math.floor((total % DURATION_MS.hour) / DURATION_MS.minute);
+        return `${hours}h ${padTwo(minutes)}m`;
+    }
+    const days = Math.floor(total / DURATION_MS.day);
+    const hours = Math.floor((total % DURATION_MS.day) / DURATION_MS.hour);
+    return `${days}d ${hours}h`;
 }
 
 /**
@@ -114,15 +114,15 @@ export function formatWorkflowRunDuration(ms: number): string {
  * 而不是渲染一个 0 或「unknown」：没有时间戳的老 journal 说不出年龄，这是一件事实。
  */
 export function formatRelativeAge(now: number, at: number | undefined): string | undefined {
-  if (at === undefined || !Number.isFinite(at) || !Number.isFinite(now)) return undefined;
-  return `${formatWorkflowRunDuration(now - at)} ago`;
+    if (at === undefined || !Number.isFinite(at) || !Number.isFinite(now)) return undefined;
+    return `${formatWorkflowRunDuration(now - at)} ago`;
 }
 
 /** 格式化 ISO 时刻与相对年龄；年龄不可知时只显示 ISO 时刻。 */
 export function formatWorkflowRunInstant(now: number, at: number): string {
-  const age = formatRelativeAge(now, at);
-  const iso = formatWorkflowRunTimestamp(at);
-  return age === undefined ? iso : `${iso} (${age})`;
+    const age = formatRelativeAge(now, at);
+    const iso = formatWorkflowRunTimestamp(at);
+    return age === undefined ? iso : `${iso} (${age})`;
 }
 
 /**
@@ -130,10 +130,10 @@ export function formatWorkflowRunInstant(now: number, at: number): string {
  * 逐字钉住，所以这里自己插逗号。
  */
 export function formatWorkflowRunCount(value: number): string {
-  if (!Number.isFinite(value)) return String(value);
-  const sign = value < 0 ? "-" : "";
-  const digits = String(Math.trunc(Math.abs(value)));
-  return sign + digits.replace(/\B(?=(\d{3})+(?!\d))/gu, ",");
+    if (!Number.isFinite(value)) return String(value);
+    const sign = value < 0 ? "-" : "";
+    const digits = String(Math.trunc(Math.abs(value)));
+    return sign + digits.replace(/\B(?=(\d{3})+(?!\d))/gu, ",");
 }
 
 /**
@@ -141,8 +141,8 @@ export function formatWorkflowRunCount(value: number): string {
  * 而 label 是自由文本（用户起的名字或脚本首行）。
  */
 export function workflowRunAttribute(name: string, value: string | number | boolean): string {
-  const text = typeof value === "string" ? value.replace(/\s+/gu, " ").trim() : String(value);
-  return `${name}="${escapeXml(text)}"`;
+    const text = typeof value === "string" ? value.replace(/\s+/gu, " ").trim() : String(value);
+    return `${name}="${escapeXml(text)}"`;
 }
 
 /**

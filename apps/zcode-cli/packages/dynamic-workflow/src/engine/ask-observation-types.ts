@@ -8,16 +8,16 @@
 
 /** driver 每完成一次 ask 上报的用量统计。 */
 export interface AskStats {
-  tokens: number;
-  toolCalls: number;
-  turns: number;
-  /**
-   * 其中**看或动了外部世界**的调用数：读文件、跑命令、访问网络。
-   * 不含只把结果或问题交回引擎的协议工具（`submit_result`、`escalate`），所以一条只作答的 typed ask
-   * 这里是 0——那样的 ask 是**纯**的，只依赖指令与转录前缀，导入缓存关闭之后仍可从缓存结算。
-   * 老 journal 行没有这个键，一律按「碰过」处理（保守）。
-   */
-  worldToolCalls?: number;
+    tokens: number;
+    toolCalls: number;
+    turns: number;
+    /**
+     * 其中**看或动了外部世界**的调用数：读文件、跑命令、访问网络。
+     * 不含只把结果或问题交回引擎的协议工具（`submit_result`、`escalate`），所以一条只作答的 typed ask
+     * 这里是 0——那样的 ask 是**纯**的，只依赖指令与转录前缀，导入缓存关闭之后仍可从缓存结算。
+     * 老 journal 行没有这个键，一律按「碰过」处理（保守）。
+     */
+    worldToolCalls?: number;
 }
 
 /**
@@ -40,10 +40,10 @@ export const LAST_TOOL_TARGET_MAX_CHARS = 120;
  * `target` 是给人看的**线索**，不是入参：文件类工具给路径，Bash 给命令头，认不出就缺席。
  */
 export interface AskLastTool {
-  /** 工具名，≤ {@link LAST_TOOL_NAME_MAX_CHARS}。 */
-  name: string;
-  /** 简短目标，≤ {@link LAST_TOOL_TARGET_MAX_CHARS}；无从判断时缺席（不合成占位串）。 */
-  target?: string;
+    /** 工具名，≤ {@link LAST_TOOL_NAME_MAX_CHARS}。 */
+    name: string;
+    /** 简短目标，≤ {@link LAST_TOOL_TARGET_MAX_CHARS}；无从判断时缺席（不合成占位串）。 */
+    target?: string;
 }
 
 /**
@@ -51,9 +51,9 @@ export interface AskLastTool {
  * 与 {@link AskStats} 是同一次 driver 回报的两半：stats 是账（token），progress 是「还在动吗」。
  */
 export interface AskProgress {
-  /** 本 ask 内已解析的 turn 数，从 1 起（nudge 轮计数；repair 轮不计——它们不结束 turn）。 */
-  turn: number;
-  /** 本 ask 内累计的工具调用数，与 {@link AskStats.toolCalls} 同一个计数器。 */
-  toolCalls: number;
-  lastTool?: AskLastTool;
+    /** 本 ask 内已解析的 turn 数，从 1 起（nudge 轮计数；repair 轮不计——它们不结束 turn）。 */
+    turn: number;
+    /** 本 ask 内累计的工具调用数，与 {@link AskStats.toolCalls} 同一个计数器。 */
+    toolCalls: number;
+    lastTool?: AskLastTool;
 }

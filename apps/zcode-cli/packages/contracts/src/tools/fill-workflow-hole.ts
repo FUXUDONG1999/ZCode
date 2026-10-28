@@ -20,44 +20,44 @@ export const FILL_WORKFLOW_HOLE_TOOL_NAME = "FillWorkflowHole";
  * 与 AmendWorkflow 不同的是两个都不给在这里**也是**违规——没有可沿用的函数体。
  */
 export const FILL_WORKFLOW_HOLE_SOURCE_ERROR =
-  "Provide exactly one body source: `script` for the hole's statements written inline, or `path` for a file holding them (usually the fill file a rejected attempt was saved to). Passing both, or neither, is ambiguous.";
+    "Provide exactly one body source: `script` for the hole's statements written inline, or `path` for a file holding them (usually the fill file a rejected attempt was saved to). Passing both, or neither, is ambiguous.";
 
 /**
  * 模型面入参。`hole` 不在这里——那是 resolveInput 回填的事实（下面），模型的 JSON schema 不列它。
  */
 const FillWorkflowHoleModelInputSchema = z.object({
-  run_id: z
-    .string()
-    .min(1)
-    .describe("ID of the run that is waiting at the hole (from the hole notification)."),
-  hole_id: z
-    .string()
-    .min(1)
-    .describe(
-      "The hole's site id from the notification or from GetWorkflowRun's holes, e.g. `hole#21b40fca`.",
-    ),
-  /**
-   * 函数体**只有语句**：不含 `hole(...)` 调用、不含箭头、不含它周围的脚本。工具把它拼进 run 存档的
-   * 脚本作为留白的函数体再整体编译（docs/dynamic-workflow/launch.md「Input and output」）。
-   */
-  script: z
-    .string()
-    .min(1)
-    .optional()
-    .describe(
-      "The body: only the statements of the hole's function, inline. This OR `path`, never both. It is compiled where the hole stands and sees every binding declared before it; it must return the hole's type.",
-    ),
-  /**
-   * 被拒绝的一次尝试的回程（「The fill file」）：内联提交被写到 fill 文件，诊断给的是那个文件的行号，
-   * 下一次只改一行再把同一个路径交回来。
-   */
-  path: z
-    .string()
-    .min(1)
-    .optional()
-    .describe(
-      "A file holding those statements — usually the fill file named by a rejected attempt, edited in place. This OR `script`, never both.",
-    ),
+    run_id: z
+        .string()
+        .min(1)
+        .describe("ID of the run that is waiting at the hole (from the hole notification)."),
+    hole_id: z
+        .string()
+        .min(1)
+        .describe(
+            "The hole's site id from the notification or from GetWorkflowRun's holes, e.g. `hole#21b40fca`.",
+        ),
+    /**
+     * 函数体**只有语句**：不含 `hole(...)` 调用、不含箭头、不含它周围的脚本。工具把它拼进 run 存档的
+     * 脚本作为留白的函数体再整体编译（docs/dynamic-workflow/launch.md「Input and output」）。
+     */
+    script: z
+        .string()
+        .min(1)
+        .optional()
+        .describe(
+            "The body: only the statements of the hole's function, inline. This OR `path`, never both. It is compiled where the hole stands and sees every binding declared before it; it must return the hole's type.",
+        ),
+    /**
+     * 被拒绝的一次尝试的回程（「The fill file」）：内联提交被写到 fill 文件，诊断给的是那个文件的行号，
+     * 下一次只改一行再把同一个路径交回来。
+     */
+    path: z
+        .string()
+        .min(1)
+        .optional()
+        .describe(
+            "A file holding those statements — usually the fill file named by a rejected attempt, edited in place. This OR `script`, never both.",
+        ),
 });
 
 /**
@@ -71,18 +71,18 @@ const FillWorkflowHoleModelInputSchema = z.object({
  * 一个被用户停下的 run 不可能仍在留白处等待，所以这一位在实践上只会因归属为假。
  */
 export const FillWorkflowHoleHoleSchema = z
-  .object({
-    /** 留白的字面名（`hole<T>("决定分组", …)` 的 `"决定分组"`）。 */
-    name: z.string().min(1),
-    /** 留白的类型实参原文（`Verdict`、`string[]`），照脚本写法。 */
-    type: z.string().min(1),
-    /** run 的草稿文件（绝对路径）；run 没记过文件时缺席。 */
-    draft_path: z.string().min(1).optional(),
-    /** 留白调用在草稿里的行号（1 起）；读不到时缺席。 */
-    line: z.number().int().positive().optional(),
-    owned_by_this_session: z.boolean(),
-  })
-  .strict();
+    .object({
+        /** 留白的字面名（`hole<T>("决定分组", …)` 的 `"决定分组"`）。 */
+        name: z.string().min(1),
+        /** 留白的类型实参原文（`Verdict`、`string[]`），照脚本写法。 */
+        type: z.string().min(1),
+        /** run 的草稿文件（绝对路径）；run 没记过文件时缺席。 */
+        draft_path: z.string().min(1).optional(),
+        /** 留白调用在草稿里的行号（1 起）；读不到时缺席。 */
+        line: z.number().int().positive().optional(),
+        owned_by_this_session: z.boolean(),
+    })
+    .strict();
 
 export type FillWorkflowHoleHole = z.infer<typeof FillWorkflowHoleHoleSchema>;
 
@@ -94,8 +94,8 @@ export type FillWorkflowHoleHole = z.infer<typeof FillWorkflowHoleHoleSchema>;
  * 收 `unknown`：权限服务拿到的是还没解析的工具入参，handler 拿到的是解析好的事实块。
  */
 export function isFillWorkflowHoleOwnedRun(hole: unknown): boolean {
-  if (!hole || typeof hole !== "object") return false;
-  return (hole as Record<string, unknown>).owned_by_this_session === true;
+    if (!hole || typeof hole !== "object") return false;
+    return (hole as Record<string, unknown>).owned_by_this_session === true;
 }
 
 /**
@@ -104,14 +104,14 @@ export function isFillWorkflowHoleOwnedRun(hole: unknown): boolean {
  * 来龙去脉，与 AmendWorkflow 同一条「读一次、只读一次」纪律。
  */
 export const FillWorkflowHoleInputSchema = FillWorkflowHoleModelInputSchema.extend({
-  hole: FillWorkflowHoleHoleSchema.optional(),
+    hole: FillWorkflowHoleHoleSchema.optional(),
 }).strict();
 
 export type FillWorkflowHoleInput = z.infer<typeof FillWorkflowHoleInputSchema>;
 
 /** 交给模型的 JSON schema：不含 `hole`。 */
 export const FillWorkflowHoleInputJsonSchema = toToolJsonSchema(
-  FillWorkflowHoleModelInputSchema.strict(),
+    FillWorkflowHoleModelInputSchema.strict(),
 );
 
 /**

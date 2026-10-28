@@ -1,8 +1,8 @@
 import type { ConversationRow, ToolCallRow } from "@zcode/shared/zcode-protocol-v4";
 import type { WorkflowDraftPosition } from "@/ToolCallBlocks/shared.js";
 import {
-  isPlainRecord,
-  readWorkflowAmendTarget,
+    isPlainRecord,
+    readWorkflowAmendTarget,
 } from "@/ToolCallBlocks/renderers/createWorkflowInput.js";
 import { isAmendWorkflowToolCall, isCreateWorkflowToolCall } from "@/lib/workflowToolNames.js";
 
@@ -21,42 +21,43 @@ import { isAmendWorkflowToolCall, isCreateWorkflowToolCall } from "@/lib/workflo
  * 行窗口是有界的：前面几稿滑出窗口时稿号会偏小。稿号只用于展示，没有别的读者。
  */
 export function buildWorkflowDraftByToolCallId(
-  rows: readonly ConversationRow[] | undefined,
+    rows: readonly ConversationRow[] | undefined,
 ): ReadonlyMap<string, WorkflowDraftPosition> {
-  const byToolCallId = new Map<string, WorkflowDraftPosition>();
-  // 谱系 → 该谱系最近一行的 toolCallId（用来在后一行出现时把它标为被替代）。
-  const latestByLineage = new Map<string, string>();
-  // 「谱系 + 轮」→ 自上次编过以来的连续失败数。
-  const failuresByLineageTurn = new Map<string, number>();
+    const byToolCallId = new Map<string, WorkflowDraftPosition>();
+    // 谱系 → 该谱系最近一行的 toolCallId（用来在后一行出现时把它标为被替代）。
+    const latestByLineage = new Map<string, string>();
+    // 「谱系 + 轮」→ 自上次编过以来的连续失败数。
+    const failuresByLineageTurn = new Map<string, number>();
 
-  for (const row of rows ?? []) {
-    if (row.kind !== "toolCall") continue;
-    const lineage = workflowDraftLineage(row);
-    if (lineage === undefined) continue;
+    for (const row of rows ?? []) {
+        if (row.kind !== "toolCall") continue;
+        const lineage = workflowDraftLineage(row);
+        if (lineage === undefined) continue;
 
-    const previous = latestByLineage.get(lineage);
-    if (previous !== undefined) {
-      const position = byToolCallId.get(previous);
-      if (position !== undefined) byToolCallId.set(previous, { ...position, superseded: true });
+        const previous = latestByLineage.get(lineage);
+        if (previous !== undefined) {
+            const position = byToolCallId.get(previous);
+            if (position !== undefined)
+                byToolCallId.set(previous, { ...position, superseded: true });
+        }
+        latestByLineage.set(lineage, row.toolCallId);
+
+        const turnKey = `${lineage}\u0000${row.turnId}`;
+        const failures = failuresByLineageTurn.get(turnKey) ?? 0;
+        byToolCallId.set(row.toolCallId, { ordinal: failures + 1, superseded: false });
+
+        const compiled = readCompiled(row);
+        if (compiled === false) failuresByLineageTurn.set(turnKey, failures + 1);
+        if (compiled === true) failuresByLineageTurn.set(turnKey, 0);
     }
-    latestByLineage.set(lineage, row.toolCallId);
-
-    const turnKey = `${lineage}\u0000${row.turnId}`;
-    const failures = failuresByLineageTurn.get(turnKey) ?? 0;
-    byToolCallId.set(row.toolCallId, { ordinal: failures + 1, superseded: false });
-
-    const compiled = readCompiled(row);
-    if (compiled === false) failuresByLineageTurn.set(turnKey, failures + 1);
-    if (compiled === true) failuresByLineageTurn.set(turnKey, 0);
-  }
-  return byToolCallId;
+    return byToolCallId;
 }
 
 function workflowDraftLineage(row: ToolCallRow): string | undefined {
-  if (isAmendWorkflowToolCall(row)) {
-    return `amend\u0000${readWorkflowAmendTarget(row.input) ?? ""}`;
-  }
-  return isCreateWorkflowToolCall(row) ? "create" : undefined;
+    if (isAmendWorkflowToolCall(row)) {
+        return `amend\u0000${readWorkflowAmendTarget(row.input) ?? ""}`;
+    }
+    return isCreateWorkflowToolCall(row) ? "create" : undefined;
 }
 
 /**
@@ -65,7 +66,7 @@ function workflowDraftLineage(row: ToolCallRow): string | undefined {
  * （与 `toolCallRowToLegacyNode` 同一优先级，两处读法一旦分叉，卡片与稿号就会各说各话）。
  */
 function readCompiled(row: ToolCallRow): boolean | undefined {
-  const display: unknown = row.output?.display ?? row.display;
-  if (!isPlainRecord(display) || display.kind !== "create_workflow") return undefined;
-  return typeof display.ok === "boolean" ? display.ok : undefined;
+    const display: unknown = row.output?.display ?? row.display;
+    if (!isPlainRecord(display) || display.kind !== "create_workflow") return undefined;
+    return typeof display.ok === "boolean" ? display.ok : undefined;
 }

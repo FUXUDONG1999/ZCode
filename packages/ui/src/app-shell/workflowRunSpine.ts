@@ -1,6 +1,6 @@
 import type {
-  TimelineInk,
-  WorkflowTimelineModel,
+    TimelineInk,
+    WorkflowTimelineModel,
 } from "@/components/workflow-timeline/timeline-model.js";
 
 /**
@@ -40,115 +40,125 @@ const WIDE_PITCH_BRANCHES = 4;
  * 在节边界让出 chevron 的缺口，`below` 那一半负责把 chevron 画在缺口里（presentation.md「The spine」）。
  */
 export interface SpineRailPiece {
-  track: number;
-  ink: TimelineInk;
-  position: "above" | "below" | "full";
-  stream?: true;
+    track: number;
+    ink: TimelineInk;
+    position: "above" | "below" | "full";
+    stream?: true;
 }
 
 /** 一行接头：主轨直穿（墨是跨过它的那条主线段的墨），每条分支一条曲线。 */
 export interface SpineJoint {
-  main: TimelineInk;
-  branches: { track: number; ink: TimelineInk }[];
-  /** 开口：分叉行没有前驱（根）、汇合行没有汇合站（汇点）——主轨只在行外伸出一截短头。 */
-  open?: true;
+    main: TimelineInk;
+    branches: { track: number; ink: TimelineInk }[];
+    /** 开口：分叉行没有前驱（根）、汇合行没有汇合站（汇点）——主轨只在行外伸出一截短头。 */
+    open?: true;
 }
 
 export interface SpineSection {
-  rails: SpineRailPiece[];
-  /** 挂在这一节**之前**的分叉行（这一节是某条带的首节）。 */
-  fork?: SpineJoint;
-  /** 挂在这一节**之后**的汇合行（这一节是某条带的末节）。 */
-  merge?: SpineJoint;
+    rails: SpineRailPiece[];
+    /** 挂在这一节**之前**的分叉行（这一节是某条带的首节）。 */
+    fork?: SpineJoint;
+    /** 挂在这一节**之后**的汇合行（这一节是某条带的末节）。 */
+    merge?: SpineJoint;
 }
 
 export interface SpineLayout {
-  /** 相邻两条轨道的间距。 */
-  pitch: number;
-  /** 文字列比没有带时多让出的宽度：`pitch·(T − 1)`；没有带时 0。 */
-  gutter: number;
-  sections: SpineSection[];
+    /** 相邻两条轨道的间距。 */
+    pitch: number;
+    /** 文字列比没有带时多让出的宽度：`pitch·(T − 1)`；没有带时 0。 */
+    gutter: number;
+    sections: SpineSection[];
 }
 
 export function spineLayout(model: WorkflowTimelineModel): SpineLayout {
-  const { bands, rails, stations } = model;
-  const widest = Math.max(1, ...bands.map((band) => band.tracks.length));
-  const pitch = widest - 1 <= WIDE_PITCH_BRANCHES ? 12 : 8;
-  const bandAt = (i: number) => bands.find((band) => band.from <= i && i <= band.to);
-  // 双线段只说「这两站并行」，脊线不画；分叉 / 汇合段由接头行画，也不在节里画。流轨与普通段
-  // 一样按两半画，只多一个缺口。
-  const plain = rails.filter((rail) => rail.kind === undefined || rail.kind === "stream");
-  const railOf = (from: number, to: number) =>
-    plain.find((rail) => rail.from === from && rail.to === to);
-  const plainInk = (from: number, to: number): TimelineInk => railOf(from, to)?.ink ?? "faint";
-  const streamMark = (from: number, to: number) =>
-    railOf(from, to)?.kind === "stream" ? { stream: true as const } : {};
+    const { bands, rails, stations } = model;
+    const widest = Math.max(1, ...bands.map((band) => band.tracks.length));
+    const pitch = widest - 1 <= WIDE_PITCH_BRANCHES ? 12 : 8;
+    const bandAt = (i: number) => bands.find((band) => band.from <= i && i <= band.to);
+    // 双线段只说「这两站并行」，脊线不画；分叉 / 汇合段由接头行画，也不在节里画。流轨与普通段
+    // 一样按两半画，只多一个缺口。
+    const plain = rails.filter((rail) => rail.kind === undefined || rail.kind === "stream");
+    const railOf = (from: number, to: number) =>
+        plain.find((rail) => rail.from === from && rail.to === to);
+    const plainInk = (from: number, to: number): TimelineInk => railOf(from, to)?.ink ?? "faint";
+    const streamMark = (from: number, to: number) =>
+        railOf(from, to)?.kind === "stream" ? { stream: true as const } : {};
 
-  const sections: SpineSection[] = stations.map((_, i) => {
-    const band = bandAt(i);
-    if (band === undefined) {
-      // 带外的站：与从前一样，上一站画下半截、下一站画上半截；相邻无边就留空。汇合 / 分叉段的
-      // 主线那一条（kind 缺席）照常接在这里，分支那几条归接头行。
-      const pieces: SpineRailPiece[] = [];
-      const above = plain.find((rail) => rail.to === i);
-      const below = plain.find((rail) => rail.from === i);
-      if (above !== undefined)
-        pieces.push({ ink: above.ink, position: "above", ...streamMark(above.from, i), track: 0 });
-      if (below !== undefined)
-        pieces.push({ ink: below.ink, position: "below", ...streamMark(i, below.to), track: 0 });
-      return { rails: pieces };
-    }
-    const pieces: SpineRailPiece[] = [];
-    band.tracks.forEach((track, t) => {
-      const members = track.stations;
-      const at = members.indexOf(i);
-      if (at >= 0) {
-        // 自己的轨道：上半截接前一个成员或分叉行，下半截接后一个成员或汇合行。
-        const previous = members[at - 1];
-        const next = members[at + 1];
-        pieces.push({
-          ink: previous === undefined ? track.entry : plainInk(previous, i),
-          position: "above",
-          ...(previous === undefined ? {} : streamMark(previous, i)),
-          track: t,
+    const sections: SpineSection[] = stations.map((_, i) => {
+        const band = bandAt(i);
+        if (band === undefined) {
+            // 带外的站：与从前一样，上一站画下半截、下一站画上半截；相邻无边就留空。汇合 / 分叉段的
+            // 主线那一条（kind 缺席）照常接在这里，分支那几条归接头行。
+            const pieces: SpineRailPiece[] = [];
+            const above = plain.find((rail) => rail.to === i);
+            const below = plain.find((rail) => rail.from === i);
+            if (above !== undefined)
+                pieces.push({
+                    ink: above.ink,
+                    position: "above",
+                    ...streamMark(above.from, i),
+                    track: 0,
+                });
+            if (below !== undefined)
+                pieces.push({
+                    ink: below.ink,
+                    position: "below",
+                    ...streamMark(i, below.to),
+                    track: 0,
+                });
+            return { rails: pieces };
+        }
+        const pieces: SpineRailPiece[] = [];
+        band.tracks.forEach((track, t) => {
+            const members = track.stations;
+            const at = members.indexOf(i);
+            if (at >= 0) {
+                // 自己的轨道：上半截接前一个成员或分叉行，下半截接后一个成员或汇合行。
+                const previous = members[at - 1];
+                const next = members[at + 1];
+                pieces.push({
+                    ink: previous === undefined ? track.entry : plainInk(previous, i),
+                    position: "above",
+                    ...(previous === undefined ? {} : streamMark(previous, i)),
+                    track: t,
+                });
+                pieces.push({
+                    ink: next === undefined ? track.exit : plainInk(i, next),
+                    position: "below",
+                    ...(next === undefined ? {} : streamMark(i, next)),
+                    track: t,
+                });
+                return;
+            }
+            // 别的轨道整节穿过这一节：首个成员之前是进入墨，末个成员之后是离开墨，其间是那一段的墨。
+            // 主轨穿过分支站也是这一条。
+            const before = members.filter((member) => member < i).pop();
+            const after = members.find((member) => member > i);
+            const ink =
+                before === undefined
+                    ? track.entry
+                    : after === undefined
+                      ? track.exit
+                      : plainInk(before, after);
+            pieces.push({ ink, position: "full", track: t });
         });
-        pieces.push({
-          ink: next === undefined ? track.exit : plainInk(i, next),
-          position: "below",
-          ...(next === undefined ? {} : streamMark(i, next)),
-          track: t,
-        });
-        return;
-      }
-      // 别的轨道整节穿过这一节：首个成员之前是进入墨，末个成员之后是离开墨，其间是那一段的墨。
-      // 主轨穿过分支站也是这一条。
-      const before = members.filter((member) => member < i).pop();
-      const after = members.find((member) => member > i);
-      const ink =
-        before === undefined
-          ? track.entry
-          : after === undefined
-            ? track.exit
-            : plainInk(before, after);
-      pieces.push({ ink, position: "full", track: t });
+        return { rails: pieces };
     });
-    return { rails: pieces };
-  });
 
-  for (const band of bands) {
-    const main = band.tracks[0]!;
-    const branches = (end: "entry" | "exit") =>
-      band.tracks.slice(1).map((track, k) => ({ ink: track[end], track: k + 1 }));
-    sections[band.from]!.fork = {
-      branches: branches("entry"),
-      main: main.entry,
-      ...(band.pred === undefined ? { open: true as const } : {}),
-    };
-    sections[band.to]!.merge = {
-      branches: branches("exit"),
-      main: main.exit,
-      ...(band.join === undefined ? { open: true as const } : {}),
-    };
-  }
-  return { gutter: pitch * (widest - 1), pitch, sections };
+    for (const band of bands) {
+        const main = band.tracks[0]!;
+        const branches = (end: "entry" | "exit") =>
+            band.tracks.slice(1).map((track, k) => ({ ink: track[end], track: k + 1 }));
+        sections[band.from]!.fork = {
+            branches: branches("entry"),
+            main: main.entry,
+            ...(band.pred === undefined ? { open: true as const } : {}),
+        };
+        sections[band.to]!.merge = {
+            branches: branches("exit"),
+            main: main.exit,
+            ...(band.join === undefined ? { open: true as const } : {}),
+        };
+    }
+    return { gutter: pitch * (widest - 1), pitch, sections };
 }

@@ -3,8 +3,8 @@ name: vercel-react-view-transitions
 description: Guide for implementing smooth, native-feeling animations using React's View Transition API (`<ViewTransition>` component, `addTransitionType`, and CSS view transition pseudo-elements). Use this skill whenever the user wants to add page transitions, animate route changes, create shared element animations, animate enter/exit of components, animate list reorder, implement directional (forward/back) navigation animations, or integrate view transitions in Next.js. Also use when the user mentions view transitions, `startViewTransition`, `ViewTransition`, transition types, or asks about animating between UI states in React without third-party animation libraries.
 license: MIT
 metadata:
-  author: vercel
-  version: "1.0.0"
+    author: vercel
+    version: "1.0.0"
 ---
 
 # React View Transitions
@@ -62,7 +62,7 @@ When adding view transitions to an existing app, **follow `references/implementa
 import { ViewTransition } from "react";
 
 <ViewTransition>
-  <Component />
+    <Component />
 </ViewTransition>;
 ```
 
@@ -128,9 +128,9 @@ Tag transitions with `addTransitionType` so VTs can pick different animations ba
 
 ```jsx
 startTransition(() => {
-  addTransitionType("nav-forward");
-  addTransitionType("select-item");
-  router.push("/detail/1");
+    addTransitionType("nav-forward");
+    addTransitionType("select-item");
+    router.push("/detail/1");
 });
 ```
 
@@ -138,12 +138,12 @@ Pass an object to map types to CSS classes. Works on `enter`, `exit`, **and** `s
 
 ```jsx
 <ViewTransition
-  enter={{ "nav-forward": "slide-from-right", "nav-back": "slide-from-left", default: "none" }}
-  exit={{ "nav-forward": "slide-to-left", "nav-back": "slide-to-right", default: "none" }}
-  share={{ "nav-forward": "morph-forward", "nav-back": "morph-back", default: "morph" }}
-  default="none"
+    enter={{ "nav-forward": "slide-from-right", "nav-back": "slide-from-left", default: "none" }}
+    exit={{ "nav-forward": "slide-to-left", "nav-back": "slide-to-right", default: "none" }}
+    share={{ "nav-forward": "morph-forward", "nav-back": "morph-back", default: "morph" }}
+    default="none"
 >
-  <Page />
+    <Page />
 </ViewTransition>
 ```
 
@@ -212,11 +212,11 @@ Same `name` on two VTs — one unmounting, one mounting — creates a shared ele
 
 ```jsx
 {
-  show && (
-    <ViewTransition enter="fade-in" exit="fade-out">
-      <Panel />
-    </ViewTransition>
-  );
+    show && (
+        <ViewTransition enter="fade-in" exit="fade-out">
+            <Panel />
+        </ViewTransition>
+    );
 }
 ```
 
@@ -224,11 +224,11 @@ Same `name` on two VTs — one unmounting, one mounting — creates a shared ele
 
 ```jsx
 {
-  items.map((item) => (
-    <ViewTransition key={item.id}>
-      <ItemCard item={item} />
-    </ViewTransition>
-  ));
+    items.map((item) => (
+        <ViewTransition key={item.id}>
+            <ItemCard item={item} />
+        </ViewTransition>
+    ));
 }
 ```
 
@@ -240,20 +240,20 @@ Shared elements and list identity are independent concerns — don't confuse one
 
 ```jsx
 {
-  items.map((item) => (
-    <ViewTransition key={item.id}>
-      {" "}
-      {/* list identity */}
-      <Link href={`/items/${item.id}`}>
-        <ViewTransition name={`item-image-${item.id}`} share="morph">
-          {" "}
-          {/* shared element */}
-          <Image src={item.image} />
+    items.map((item) => (
+        <ViewTransition key={item.id}>
+            {" "}
+            {/* list identity */}
+            <Link href={`/items/${item.id}`}>
+                <ViewTransition name={`item-image-${item.id}`} share="morph">
+                    {" "}
+                    {/* shared element */}
+                    <Image src={item.image} />
+                </ViewTransition>
+                <p>{item.name}</p>
+            </Link>
         </ViewTransition>
-        <p>{item.name}</p>
-      </Link>
-    </ViewTransition>
-  ));
+    ));
 }
 ```
 
@@ -263,7 +263,7 @@ The outer VT handles list reorder/enter animations. The inner VT handles the cro
 
 ```jsx
 <ViewTransition key={searchParams.toString()} enter="slide-up" default="none">
-  <ResultsGrid />
+    <ResultsGrid />
 </ViewTransition>
 ```
 
@@ -275,9 +275,9 @@ Simple cross-fade:
 
 ```jsx
 <ViewTransition>
-  <Suspense fallback={<Skeleton />}>
-    <Content />
-  </Suspense>
+    <Suspense fallback={<Skeleton />}>
+        <Content />
+    </Suspense>
 </ViewTransition>
 ```
 
@@ -285,15 +285,15 @@ Directional reveal:
 
 ```jsx
 <Suspense
-  fallback={
-    <ViewTransition exit="slide-down">
-      <Skeleton />
-    </ViewTransition>
-  }
+    fallback={
+        <ViewTransition exit="slide-down">
+            <Skeleton />
+        </ViewTransition>
+    }
 >
-  <ViewTransition enter="slide-up" default="none">
-    <Content />
-  </ViewTransition>
+    <ViewTransition enter="slide-up" default="none">
+        <Content />
+    </ViewTransition>
 </Suspense>
 ```
 

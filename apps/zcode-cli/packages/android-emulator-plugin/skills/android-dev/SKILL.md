@@ -16,24 +16,24 @@ If the server is configured with a different name, use the corresponding visible
 ## Default Workflow
 
 1. Call `mcp__android_emulator__android_preflight` first.
-   - If the required environment is not ready, follow `INSTALL_ENVIRONMENT.md` before continuing. Missing emulator-only checks do not block a selected ready USB device target.
-   - Environment setup is done with the fixed macOS shell or Windows PowerShell procedure in that file; do not improvise unrelated install commands.
-   - Do not accept Android SDK licenses, enter passwords, wipe emulator data, or delete AVDs on the user's behalf. Stop and ask the user for those cases.
+    - If the required environment is not ready, follow `INSTALL_ENVIRONMENT.md` before continuing. Missing emulator-only checks do not block a selected ready USB device target.
+    - Environment setup is done with the fixed macOS shell or Windows PowerShell procedure in that file; do not improvise unrelated install commands.
+    - Do not accept Android SDK licenses, enter passwords, wipe emulator data, or delete AVDs on the user's behalf. Stop and ask the user for those cases.
 2. Discover the project with `mcp__android_emulator__android_discover_project`.
-   - If no Android project exists and the user wants a new app, call `mcp__android_emulator__android_create_app`.
-   - Prefer editing Kotlin/Compose files directly after project creation.
-   - `mcp__android_emulator__android_create_app` refuses to overwrite generated files by default; only pass `overwrite: true` after explicit user confirmation.
-   - Read `warnings` in the discovery result before building and repair missing `gradle.properties`, `local.properties`, or Gradle wrapper issues.
+    - If no Android project exists and the user wants a new app, call `mcp__android_emulator__android_create_app`.
+    - Prefer editing Kotlin/Compose files directly after project creation.
+    - `mcp__android_emulator__android_create_app` refuses to overwrite generated files by default; only pass `overwrite: true` after explicit user confirmation.
+    - Read `warnings` in the discovery result before building and repair missing `gradle.properties`, `local.properties`, or Gradle wrapper issues.
 3. Build and launch with `mcp__android_emulator__android_build_and_run`.
-   - Pass `module`, `variant`, or `applicationId` when discovery is ambiguous.
-   - Use a selected `serial` when the user wants a specific USB device or emulator. Use `mcp__android_emulator__android_start_emulator` only when a new GUI emulator is needed, then pass its returned `serial` to follow-up tools.
-   - Read the returned `output` first for compile errors; use the returned log path only when more detail is needed.
+    - Pass `module`, `variant`, or `applicationId` when discovery is ambiguous.
+    - Use a selected `serial` when the user wants a specific USB device or emulator. Use `mcp__android_emulator__android_start_emulator` only when a new GUI emulator is needed, then pass its returned `serial` to follow-up tools.
+    - Read the returned `output` first for compile errors; use the returned log path only when more detail is needed.
 4. Verify the app visually with `mcp__android_emulator__android_screenshot`.
 5. For runtime checks, use `mcp__android_emulator__android_open_url`, `mcp__android_emulator__android_launch_app`, `mcp__android_emulator__android_terminate_app`, and `mcp__android_emulator__android_logs`.
 6. For UI automation, call `mcp__android_emulator__android_ui_status` first.
-   - Prefer `mcp__android_emulator__android_ui_describe` or `mcp__android_emulator__android_ui_resolve` before tapping coordinates.
-   - `mcp__android_emulator__android_ui_tap`, `mcp__android_emulator__android_ui_swipe`, `mcp__android_emulator__android_ui_type_text`, and `mcp__android_emulator__android_ui_keyevent` use ADB/UI Automator based backends.
-   - If UI automation is unavailable, continue with build/run/screenshot checks and say UI automation is unavailable.
+    - Prefer `mcp__android_emulator__android_ui_describe` or `mcp__android_emulator__android_ui_resolve` before tapping coordinates.
+    - `mcp__android_emulator__android_ui_tap`, `mcp__android_emulator__android_ui_swipe`, `mcp__android_emulator__android_ui_type_text`, and `mcp__android_emulator__android_ui_keyevent` use ADB/UI Automator based backends.
+    - If UI automation is unavailable, continue with build/run/screenshot checks and say UI automation is unavailable.
 
 ## Tool Notes
 

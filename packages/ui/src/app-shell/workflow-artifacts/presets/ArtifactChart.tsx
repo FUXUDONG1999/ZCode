@@ -19,52 +19,52 @@ import { cn } from "@/components/lib/utils.js";
 import { ScopedErrorBoundary } from "@/ErrorBoundary.js";
 
 const ArtifactChartView = lazy(
-  () => import("@/app-shell/workflow-artifacts/presets/ArtifactChartView.js"),
+    () => import("@/app-shell/workflow-artifacts/presets/ArtifactChartView.js"),
 );
 
 /** 加载中的占位：只占位不说话——一句「加载中」在 200ms 的懒加载里只会闪一下。 */
 function ChartSkeleton({ compact }: { compact: boolean }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={cn(
-        "w-full animate-pulse rounded-lg bg-surface motion-reduce:animate-none",
-        compact ? "h-14" : "h-56",
-      )}
-      data-testid="artifact-chart-skeleton"
-    />
-  );
+    return (
+        <div
+            aria-hidden="true"
+            className={cn(
+                "w-full animate-pulse rounded-lg bg-surface motion-reduce:animate-none",
+                compact ? "h-14" : "h-56",
+            )}
+            data-testid="artifact-chart-skeleton"
+        />
+    );
 }
 
 export function ArtifactChart({
-  spec,
-  items,
-  compact = false,
-  labels,
-  className,
+    spec,
+    items,
+    compact = false,
+    labels,
+    className,
 }: {
-  spec: ChartSpec;
-  items: readonly ArtifactItem[];
-  compact?: boolean;
-  labels: PresetLabels;
-  className?: string;
+    spec: ChartSpec;
+    items: readonly ArtifactItem[];
+    compact?: boolean;
+    labels: PresetLabels;
+    className?: string;
 }) {
-  return (
-    // 图表崩了只塌这一块，run 侧板的其余部分照常——产物区是交付面，不该是单点故障。
-    <ScopedErrorBoundary
-      resetKeys={[spec, compact]}
-      scope="workflow-artifact-chart"
-      variant={compact ? "compact" : "inline"}
-    >
-      <Suspense fallback={<ChartSkeleton compact={compact} />}>
-        <ArtifactChartView
-          className={className}
-          compact={compact}
-          items={items}
-          labels={labels}
-          spec={spec}
-        />
-      </Suspense>
-    </ScopedErrorBoundary>
-  );
+    return (
+        // 图表崩了只塌这一块，run 侧板的其余部分照常——产物区是交付面，不该是单点故障。
+        <ScopedErrorBoundary
+            resetKeys={[spec, compact]}
+            scope="workflow-artifact-chart"
+            variant={compact ? "compact" : "inline"}
+        >
+            <Suspense fallback={<ChartSkeleton compact={compact} />}>
+                <ArtifactChartView
+                    className={className}
+                    compact={compact}
+                    items={items}
+                    labels={labels}
+                    spec={spec}
+                />
+            </Suspense>
+        </ScopedErrorBoundary>
+    );
 }

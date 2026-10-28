@@ -3,8 +3,8 @@ import type { ICodingPlanSubscriptionService, IZCodeAgentService } from "@zcode/
 import type { DynamicWorkflowMode } from "@zcode/shared";
 import { logger } from "@/logger.js";
 import {
-  useDynamicWorkflowAvailabilityStore,
-  type DynamicWorkflowAvailabilitySnapshot,
+    useDynamicWorkflowAvailabilityStore,
+    type DynamicWorkflowAvailabilitySnapshot,
 } from "@/store/dynamicWorkflowAvailabilityStore.js";
 
 /**
@@ -13,11 +13,11 @@ import {
  * 工作区级 ServiceProvider 内（远程 Host 的 accessor），让它们各自取数会把 app 级那一份覆盖掉。
  */
 export function useDynamicWorkflowAvailability(): DynamicWorkflowAvailabilitySnapshot {
-  // 逐字段订阅：返回对象字面量的 selector 每次都是新引用，useSyncExternalStore 会判定为变化。
-  const status = useDynamicWorkflowAvailabilityStore((state) => state.status);
-  const enabled = useDynamicWorkflowAvailabilityStore((state) => state.enabled);
-  const config = useDynamicWorkflowAvailabilityStore((state) => state.config);
-  return useMemo(() => ({ status, enabled, config }), [config, enabled, status]);
+    // 逐字段订阅：返回对象字面量的 selector 每次都是新引用，useSyncExternalStore 会判定为变化。
+    const status = useDynamicWorkflowAvailabilityStore((state) => state.status);
+    const enabled = useDynamicWorkflowAvailabilityStore((state) => state.enabled);
+    const config = useDynamicWorkflowAvailabilityStore((state) => state.config);
+    return useMemo(() => ({ status, enabled, config }), [config, enabled, status]);
 }
 
 /**
@@ -25,12 +25,12 @@ export function useDynamicWorkflowAvailability(): DynamicWorkflowAvailabilitySna
  * 取数与失败重试的规则见 dynamicWorkflowAvailabilityStore。
  */
 export function useDynamicWorkflowAvailabilityLoader(
-  service: ICodingPlanSubscriptionService,
+    service: ICodingPlanSubscriptionService,
 ): void {
-  const ensureLoaded = useDynamicWorkflowAvailabilityStore((state) => state.ensureLoaded);
-  useEffect(() => {
-    void ensureLoaded(service);
-  }, [ensureLoaded, service]);
+    const ensureLoaded = useDynamicWorkflowAvailabilityStore((state) => state.ensureLoaded);
+    useEffect(() => {
+        void ensureLoaded(service);
+    }, [ensureLoaded, service]);
 }
 
 /**
@@ -42,29 +42,31 @@ export function useDynamicWorkflowAvailabilityLoader(
  *   - Host 同步失败仍重读：快照以 Host 当前算出的结果为准。
  */
 export function useDynamicWorkflowUserModeSync(params: {
-  settingsLoaded: boolean;
-  userMode: DynamicWorkflowMode | undefined;
-  zcodeAgentService: Pick<IZCodeAgentService, "syncDynamicWorkflowUserMode">;
-  codingPlanSubscriptionService: ICodingPlanSubscriptionService;
+    settingsLoaded: boolean;
+    userMode: DynamicWorkflowMode | undefined;
+    zcodeAgentService: Pick<IZCodeAgentService, "syncDynamicWorkflowUserMode">;
+    codingPlanSubscriptionService: ICodingPlanSubscriptionService;
 }): void {
-  const { settingsLoaded, userMode, zcodeAgentService, codingPlanSubscriptionService } = params;
-  const reload = useDynamicWorkflowAvailabilityStore((state) => state.reload);
-  const observedRef = useRef<{ userMode: DynamicWorkflowMode | undefined } | null>(null);
-  const chainRef = useRef<Promise<void>>(Promise.resolve());
-  useEffect(() => {
-    if (!settingsLoaded) return;
-    const observed = observedRef.current;
-    observedRef.current = { userMode };
-    if (observed === null || observed.userMode === userMode) return;
-    chainRef.current = chainRef.current.then(async () => {
-      try {
-        await zcodeAgentService.syncDynamicWorkflowUserMode(userMode ? { mode: userMode } : {});
-      } catch (error) {
-        logger.warn("[dynamic-workflow] 用户选择同步到 Host 失败", {
-          error: error instanceof Error ? error.message : String(error),
+    const { settingsLoaded, userMode, zcodeAgentService, codingPlanSubscriptionService } = params;
+    const reload = useDynamicWorkflowAvailabilityStore((state) => state.reload);
+    const observedRef = useRef<{ userMode: DynamicWorkflowMode | undefined } | null>(null);
+    const chainRef = useRef<Promise<void>>(Promise.resolve());
+    useEffect(() => {
+        if (!settingsLoaded) return;
+        const observed = observedRef.current;
+        observedRef.current = { userMode };
+        if (observed === null || observed.userMode === userMode) return;
+        chainRef.current = chainRef.current.then(async () => {
+            try {
+                await zcodeAgentService.syncDynamicWorkflowUserMode(
+                    userMode ? { mode: userMode } : {},
+                );
+            } catch (error) {
+                logger.warn("[dynamic-workflow] 用户选择同步到 Host 失败", {
+                    error: error instanceof Error ? error.message : String(error),
+                });
+            }
+            await reload(codingPlanSubscriptionService);
         });
-      }
-      await reload(codingPlanSubscriptionService);
-    });
-  }, [codingPlanSubscriptionService, reload, settingsLoaded, userMode, zcodeAgentService]);
+    }, [codingPlanSubscriptionService, reload, settingsLoaded, userMode, zcodeAgentService]);
 }

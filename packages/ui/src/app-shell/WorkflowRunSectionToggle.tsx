@@ -18,44 +18,44 @@ import { cn } from "@/components/lib/utils.js";
  * 换来的是一层永远命中不了的比较。
  */
 export function WorkflowRunSectionToggle({
-  expanded,
-  label,
-  onToggle,
-  testId,
-  title,
-  trailing,
+    expanded,
+    label,
+    onToggle,
+    testId,
+    title,
+    trailing,
 }: {
-  expanded: boolean;
-  /** aria-label：按当前状态给「展开 X」/「收起 X」，标题本身由 `title` 承担。 */
-  label: string;
-  onToggle: () => void;
-  testId: string;
-  title: string;
-  /**
-   * 表头右侧的附属信息（条数、loading 提示等）。收起时也在场——折叠不能让
-   * 「这一节里到底有没有东西」变得不可见。
-   */
-  trailing?: ReactNode;
+    expanded: boolean;
+    /** aria-label：按当前状态给「展开 X」/「收起 X」，标题本身由 `title` 承担。 */
+    label: string;
+    onToggle: () => void;
+    testId: string;
+    title: string;
+    /**
+     * 表头右侧的附属信息（条数、loading 提示等）。收起时也在场——折叠不能让
+     * 「这一节里到底有没有东西」变得不可见。
+     */
+    trailing?: ReactNode;
 }) {
-  return (
-    <button
-      aria-expanded={expanded}
-      aria-label={label}
-      className="flex w-full items-center gap-1.5 px-4 py-2 text-left outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring/40"
-      data-testid={testId}
-      onClick={onToggle}
-      type="button"
-    >
-      <ChevronRightIcon
-        className={cn(
-          "size-3.5 shrink-0 text-foreground-subtlest transition-transform",
-          expanded ? "rotate-90" : undefined,
-        )}
-      />
-      <span className="min-w-0 flex-1 truncate text-ui-xs font-medium text-foreground-subtle">
-        {title}
-      </span>
-      {trailing}
-    </button>
-  );
+    return (
+        <button
+            aria-expanded={expanded}
+            aria-label={label}
+            className="flex w-full items-center gap-1.5 px-4 py-2 text-left outline-none transition-colors hover:bg-hover focus-visible:ring-2 focus-visible:ring-ring/40"
+            data-testid={testId}
+            onClick={onToggle}
+            type="button"
+        >
+            <ChevronRightIcon
+                className={cn(
+                    "size-3.5 shrink-0 text-foreground-subtlest transition-transform",
+                    expanded ? "rotate-90" : undefined,
+                )}
+            />
+            <span className="min-w-0 flex-1 truncate text-ui-xs font-medium text-foreground-subtle">
+                {title}
+            </span>
+            {trailing}
+        </button>
+    );
 }

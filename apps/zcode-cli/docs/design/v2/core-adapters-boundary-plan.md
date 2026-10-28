@@ -239,13 +239,13 @@ packages/core          packages/adapters
 - `ToolRegistry.toContracts()` 生成模型可见 tool schema 时，不直接暴露 I/O handler。
 - Model adapter 收到 tool call 后，以 event 形式返回 core，或通过 callback 进入 core `ToolRuntime`。
 - AgentRuntime 实现最小 tool loop：
-  1. model request
-  2. model tool call event
-  3. schedule tools
-  4. permission check / pending approval
-  5. execute tools through ToolRuntime
-  6. serialize tool results
-  7. continue model request
+    1. model request
+    2. model tool call event
+    3. schedule tools
+    4. permission check / pending approval
+    5. execute tools through ToolRuntime
+    6. serialize tool results
+    7. continue model request
 - 所有 tool lifecycle event 使用同一个 turn trace。
 
 验收：

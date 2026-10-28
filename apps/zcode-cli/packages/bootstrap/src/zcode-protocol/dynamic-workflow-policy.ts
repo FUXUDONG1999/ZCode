@@ -1,6 +1,6 @@
 import {
-  zcodeWorkspaceUpdateDynamicWorkflowPolicyParamsSchema,
-  type DynamicWorkflowMode,
+    zcodeWorkspaceUpdateDynamicWorkflowPolicyParamsSchema,
+    type DynamicWorkflowMode,
 } from "@zcode/shared";
 import { parseParams, type ZCodeProtocolAgentServerContext } from "./server-types.js";
 
@@ -13,20 +13,20 @@ import { parseParams, type ZCodeProtocolAgentServerContext } from "./server-type
  * 只影响之后创建/恢复的 record；已活跃 record 的工具面不回收（灰度中途翻转策略一致）。
  */
 export async function updateDynamicWorkflowPolicy(
-  context: ZCodeProtocolAgentServerContext,
-  rawParams: unknown,
+    context: ZCodeProtocolAgentServerContext,
+    rawParams: unknown,
 ) {
-  const params = parseParams(zcodeWorkspaceUpdateDynamicWorkflowPolicyParamsSchema, rawParams);
-  context.appRuntimePreferences.dynamicWorkflowEnabled = params.enabled;
-  // mode 只在开启时有意义；关闭时清掉，免得下次开启（只发布尔的旧 Host）沿用过期的 onDemand。
-  context.appRuntimePreferences.dynamicWorkflowMode = params.enabled ? params.mode : undefined;
-  return { workspace: params.workspace, enabled: params.enabled };
+    const params = parseParams(zcodeWorkspaceUpdateDynamicWorkflowPolicyParamsSchema, rawParams);
+    context.appRuntimePreferences.dynamicWorkflowEnabled = params.enabled;
+    // mode 只在开启时有意义；关闭时清掉，免得下次开启（只发布尔的旧 Host）沿用过期的 onDemand。
+    context.appRuntimePreferences.dynamicWorkflowMode = params.enabled ? params.mode : undefined;
+    return { workspace: params.workspace, enabled: params.enabled };
 }
 
 /** createRecord 写进 runtimeConfig 的两个灰度字段（launch.md「On demand: activation」「How the mode travels」）。 */
 export interface DynamicWorkflowRuntimeGate {
-  dynamicWorkflowEnabled: boolean;
-  dynamicWorkflowToolsOnDemand: boolean;
+    dynamicWorkflowEnabled: boolean;
+    dynamicWorkflowToolsOnDemand: boolean;
 }
 
 /**
@@ -36,11 +36,11 @@ export interface DynamicWorkflowRuntimeGate {
  * （TUI / headless / workflow_child 的语义），受信 Host 创建的会话不能落进那条豁免。
  */
 export function resolveDynamicWorkflowRuntimeGate(
-  params: { dynamicWorkflowEnabled?: boolean; dynamicWorkflowMode?: DynamicWorkflowMode },
-  preferences: { dynamicWorkflowEnabled: boolean; dynamicWorkflowMode?: DynamicWorkflowMode },
+    params: { dynamicWorkflowEnabled?: boolean; dynamicWorkflowMode?: DynamicWorkflowMode },
+    preferences: { dynamicWorkflowEnabled: boolean; dynamicWorkflowMode?: DynamicWorkflowMode },
 ): DynamicWorkflowRuntimeGate {
-  const enabled = params.dynamicWorkflowEnabled === true || preferences.dynamicWorkflowEnabled;
-  if (!enabled) return { dynamicWorkflowEnabled: false, dynamicWorkflowToolsOnDemand: false };
-  const mode = params.dynamicWorkflowMode ?? preferences.dynamicWorkflowMode ?? "alwaysOn";
-  return { dynamicWorkflowEnabled: true, dynamicWorkflowToolsOnDemand: mode === "onDemand" };
+    const enabled = params.dynamicWorkflowEnabled === true || preferences.dynamicWorkflowEnabled;
+    if (!enabled) return { dynamicWorkflowEnabled: false, dynamicWorkflowToolsOnDemand: false };
+    const mode = params.dynamicWorkflowMode ?? preferences.dynamicWorkflowMode ?? "alwaysOn";
+    return { dynamicWorkflowEnabled: true, dynamicWorkflowToolsOnDemand: mode === "onDemand" };
 }

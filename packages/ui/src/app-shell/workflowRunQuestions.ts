@@ -34,27 +34,27 @@ type FormatMessage = (descriptor: { id: string }, values?: Record<string, string
  *   - 阶梯止于"天"：停驻问题按设计可以无限期等下去（不设超时），所以上界必须有个说法。
  */
 export function workflowRunQuestionWaitedLabel(
-  askedAt: number | undefined,
-  now: number,
-  formatMessage: FormatMessage,
+    askedAt: number | undefined,
+    now: number,
+    formatMessage: FormatMessage,
 ): string | undefined {
-  if (askedAt === undefined || !Number.isFinite(askedAt)) return undefined;
-  const elapsed = now - askedAt;
-  if (elapsed < WAITED_MINUTE_MS) return formatMessage({ id: "sidePane.time.justNow" });
-  if (elapsed < WAITED_HOUR_MS) {
+    if (askedAt === undefined || !Number.isFinite(askedAt)) return undefined;
+    const elapsed = now - askedAt;
+    if (elapsed < WAITED_MINUTE_MS) return formatMessage({ id: "sidePane.time.justNow" });
+    if (elapsed < WAITED_HOUR_MS) {
+        return formatMessage(
+            { id: "sidePane.time.minutesAgo" },
+            { count: String(Math.floor(elapsed / WAITED_MINUTE_MS)) },
+        );
+    }
+    if (elapsed < WAITED_DAY_MS) {
+        return formatMessage(
+            { id: "sidePane.time.hoursAgo" },
+            { count: String(Math.floor(elapsed / WAITED_HOUR_MS)) },
+        );
+    }
     return formatMessage(
-      { id: "sidePane.time.minutesAgo" },
-      { count: String(Math.floor(elapsed / WAITED_MINUTE_MS)) },
+        { id: "sidePane.time.daysAgo" },
+        { count: String(Math.floor(elapsed / WAITED_DAY_MS)) },
     );
-  }
-  if (elapsed < WAITED_DAY_MS) {
-    return formatMessage(
-      { id: "sidePane.time.hoursAgo" },
-      { count: String(Math.floor(elapsed / WAITED_HOUR_MS)) },
-    );
-  }
-  return formatMessage(
-    { id: "sidePane.time.daysAgo" },
-    { count: String(Math.floor(elapsed / WAITED_DAY_MS)) },
-  );
 }

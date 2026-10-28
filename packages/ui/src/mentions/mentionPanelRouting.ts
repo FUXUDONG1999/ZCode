@@ -4,10 +4,10 @@ export type MentionPanelGroupId = "plugins" | "files" | "sessions" | "whiteboard
 export type SessionMentionWorkspaceScope = "current-workspace" | "same-authority-workspaces";
 
 const CONTEXT_GROUP_ORDER: readonly MentionPanelGroupId[] = [
-  "plugins",
-  "files",
-  "sessions",
-  "whiteboards",
+    "plugins",
+    "files",
+    "sessions",
+    "whiteboards",
 ];
 const SESSION_GROUP_ORDER: readonly MentionPanelGroupId[] = ["sessions"];
 const SKILL_GROUP_ORDER: readonly MentionPanelGroupId[] = ["skills"];
@@ -17,18 +17,18 @@ const SKILL_GROUP_ORDER: readonly MentionPanelGroupId[] = ["skills"];
  * `#` 与 `$`（含输入层归一后的 `¥` / `￥`）继续保留旧单分组面板。
  */
 export function getMentionPanelGroupOrder(
-  trigger: PromptInputTrigger | null | undefined,
+    trigger: PromptInputTrigger | null | undefined,
 ): readonly MentionPanelGroupId[] {
-  if (trigger === "@") {
-    return CONTEXT_GROUP_ORDER;
-  }
-  if (trigger === "#") {
-    return SESSION_GROUP_ORDER;
-  }
-  if (trigger === "$") {
-    return SKILL_GROUP_ORDER;
-  }
-  return [];
+    if (trigger === "@") {
+        return CONTEXT_GROUP_ORDER;
+    }
+    if (trigger === "#") {
+        return SESSION_GROUP_ORDER;
+    }
+    if (trigger === "$") {
+        return SKILL_GROUP_ORDER;
+    }
+    return [];
 }
 
 /**
@@ -36,7 +36,7 @@ export function getMentionPanelGroupOrder(
  * 若在共享 provider 内无条件扩展 workspace，`@` 会被连带扩容；范围必须由触发器路由显式决定。
  */
 export function getSessionMentionWorkspaceScope(
-  trigger: PromptInputTrigger | null | undefined,
+    trigger: PromptInputTrigger | null | undefined,
 ): SessionMentionWorkspaceScope {
-  return trigger === "#" ? "same-authority-workspaces" : "current-workspace";
+    return trigger === "#" ? "same-authority-workspaces" : "current-workspace";
 }

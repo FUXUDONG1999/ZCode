@@ -4,28 +4,28 @@ import type { ModelSelection } from "@zcode/contracts";
 import { isHighspeedProviderId } from "@zcode/shared";
 
 export function cloneModelSelection(
-  selection: ModelSelection | undefined,
+    selection: ModelSelection | undefined,
 ): ModelSelection | undefined {
-  if (!selection) return undefined;
-  return {
-    providerId: selection.providerId,
-    modelId: selection.modelId,
-    ...(selection.options ? { options: { ...selection.options } } : {}),
-  };
+    if (!selection) return undefined;
+    return {
+        providerId: selection.providerId,
+        modelId: selection.modelId,
+        ...(selection.options ? { options: { ...selection.options } } : {}),
+    };
 }
 
 export function modelSelectionWithOptionFallback(
-  selection: ModelSelection | undefined,
-  fallback: ModelSelection | undefined,
+    selection: ModelSelection | undefined,
+    fallback: ModelSelection | undefined,
 ): ModelSelection | undefined {
-  if (!selection) return fallback && cloneModelSelection(fallback);
-  // 兼容旧 fork 消息可能缺少 reasoning；输出预算属于单次请求，不属于 Selection。
-  const reasoningLevel = selection.options?.reasoningLevel ?? fallback?.options?.reasoningLevel;
-  return {
-    providerId: selection.providerId,
-    modelId: selection.modelId,
-    ...(reasoningLevel !== undefined ? { options: { reasoningLevel } } : {}),
-  };
+    if (!selection) return fallback && cloneModelSelection(fallback);
+    // 兼容旧 fork 消息可能缺少 reasoning；输出预算属于单次请求，不属于 Selection。
+    const reasoningLevel = selection.options?.reasoningLevel ?? fallback?.options?.reasoningLevel;
+    return {
+        providerId: selection.providerId,
+        modelId: selection.modelId,
+        ...(reasoningLevel !== undefined ? { options: { reasoningLevel } } : {}),
+    };
 }
 
 /**
@@ -39,12 +39,12 @@ export function modelSelectionWithOptionFallback(
  * 退回父会话常驻 Selection——加速期间它正是用户的原模型（与 §3 规则 13 同一口径）。
  */
 export function derivedSessionModelSelection(
-  messageSelection: ModelSelection | undefined,
-  sessionSelection: ModelSelection | undefined,
+    messageSelection: ModelSelection | undefined,
+    sessionSelection: ModelSelection | undefined,
 ): ModelSelection | undefined {
-  const inheritable =
-    messageSelection && isHighspeedProviderId(messageSelection.providerId)
-      ? undefined
-      : messageSelection;
-  return modelSelectionWithOptionFallback(inheritable, sessionSelection);
+    const inheritable =
+        messageSelection && isHighspeedProviderId(messageSelection.providerId)
+            ? undefined
+            : messageSelection;
+    return modelSelectionWithOptionFallback(inheritable, sessionSelection);
 }

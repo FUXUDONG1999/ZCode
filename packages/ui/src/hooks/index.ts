@@ -11,10 +11,10 @@ export { useBaseWorkspaceServices, useWorkspaceServices } from "./useWorkspaceSe
 
 // 平台操作上下文
 export {
-  PlatformProvider,
-  usePlatform,
-  useSelectDirectory,
-  useConnectRemote,
+    PlatformProvider,
+    usePlatform,
+    useSelectDirectory,
+    useConnectRemote,
 } from "./usePlatform.js";
 
 // 文件服务

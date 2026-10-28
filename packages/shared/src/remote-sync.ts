@@ -1,5 +1,5 @@
 export interface RemoteSyncWriteAccessResult {
-  ok: boolean;
-  path: string;
-  error?: string;
+    ok: boolean;
+    path: string;
+    error?: string;
 }

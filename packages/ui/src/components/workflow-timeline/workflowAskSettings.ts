@@ -9,19 +9,19 @@
 // 自己的字段名与三态——agent 侧据此只有一套解析（contracts 的 WorkflowSettingsAdjustmentSchema）。
 
 import {
-  readWorkflowMaxConcurrency,
-  readWorkflowSubagentModel,
+    readWorkflowMaxConcurrency,
+    readWorkflowSubagentModel,
 } from "@/ToolCallBlocks/renderers/createWorkflowInput.js";
 import {
-  workflowRunSettingsChange,
-  workflowRunSettingsModelOf,
-  type WorkflowRunSettingsDraft,
+    workflowRunSettingsChange,
+    workflowRunSettingsModelOf,
+    type WorkflowRunSettingsDraft,
 } from "./workflowRunSettings.js";
 
 /** Allow 应答的 `content`：只含改过的字段；`null` = 回到默认（会话模型 / 默认并发）。 */
 export interface WorkflowAskSettingsContent {
-  subagent_model?: string | null;
-  max_concurrency?: number | null;
+    subagent_model?: string | null;
+    max_concurrency?: number | null;
 }
 
 /**
@@ -29,13 +29,13 @@ export interface WorkflowAskSettingsContent {
  * 默认也未知则为 null（步进器留空，敲一个数才算设了界）。
  */
 export function initialWorkflowAskSettingsDraft(
-  input: unknown,
-  defaultConcurrency: number | undefined,
+    input: unknown,
+    defaultConcurrency: number | undefined,
 ): WorkflowRunSettingsDraft {
-  return {
-    model: workflowRunSettingsModelOf(readWorkflowSubagentModel(input)),
-    bound: readWorkflowMaxConcurrency(input) ?? defaultConcurrency ?? null,
-  };
+    return {
+        model: workflowRunSettingsModelOf(readWorkflowSubagentModel(input)),
+        bound: readWorkflowMaxConcurrency(input) ?? defaultConcurrency ?? null,
+    };
 }
 
 /**
@@ -43,27 +43,27 @@ export function initialWorkflowAskSettingsDraft(
  * 只改思考档也算改了模型，上界等于默认并发发 `null`（高于默认是一个真的数）。
  */
 export function workflowAskSettingsContent(
-  initial: WorkflowRunSettingsDraft,
-  draft: WorkflowRunSettingsDraft,
-  defaultConcurrency: number | undefined,
+    initial: WorkflowRunSettingsDraft,
+    draft: WorkflowRunSettingsDraft,
+    defaultConcurrency: number | undefined,
 ): WorkflowAskSettingsContent | undefined {
-  const change = workflowRunSettingsChange(initial, draft, defaultConcurrency);
-  if (change === undefined) return undefined;
-  return {
-    ...(change.subagentModel === undefined ? {} : { subagent_model: change.subagentModel }),
-    ...(change.maxConcurrency === undefined ? {} : { max_concurrency: change.maxConcurrency }),
-  };
+    const change = workflowRunSettingsChange(initial, draft, defaultConcurrency);
+    if (change === undefined) return undefined;
+    return {
+        ...(change.subagentModel === undefined ? {} : { subagent_model: change.subagentModel }),
+        ...(change.maxConcurrency === undefined ? {} : { max_concurrency: change.maxConcurrency }),
+    };
 }
 
 /** 哪一行改了（改了的那一行加粗并带「原为 …」）。 */
 export function workflowAskSettingsChangedLines(
-  initial: WorkflowRunSettingsDraft,
-  draft: WorkflowRunSettingsDraft,
-  defaultConcurrency: number | undefined,
+    initial: WorkflowRunSettingsDraft,
+    draft: WorkflowRunSettingsDraft,
+    defaultConcurrency: number | undefined,
 ): { model: boolean; bound: boolean } {
-  const content = workflowAskSettingsContent(initial, draft, defaultConcurrency);
-  return {
-    model: content?.subagent_model !== undefined,
-    bound: content?.max_concurrency !== undefined,
-  };
+    const content = workflowAskSettingsContent(initial, draft, defaultConcurrency);
+    return {
+        model: content?.subagent_model !== undefined,
+        bound: content?.max_concurrency !== undefined,
+    };
 }

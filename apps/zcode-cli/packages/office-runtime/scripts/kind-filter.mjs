@@ -6,11 +6,11 @@
  * `$` 锚定的标记匹配全部落空，单格式插件（如 Word）会打进全部渲染器、解析器及其依赖。
  */
 export function keepKindLines(source, kinds) {
-  return source
-    .split(/\r?\n/)
-    .filter((line) => {
-      const kind = / \/\/ kind:(\w+)$/.exec(line)?.[1];
-      return !kind || kinds.includes(kind);
-    })
-    .join("\n");
+    return source
+        .split(/\r?\n/)
+        .filter((line) => {
+            const kind = / \/\/ kind:(\w+)$/.exec(line)?.[1];
+            return !kind || kinds.includes(kind);
+        })
+        .join("\n");
 }

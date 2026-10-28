@@ -23,43 +23,43 @@ const EVALUATOR_PARAM = "__src";
 
 /** 两趟降级共用的擦除选项：主体与留白函数体必须由**同一套**参数产出（execution-engine.md「The text that runs」）。 */
 export const TRANSPILE_OPTIONS: ts.CompilerOptions = {
-  isolatedModules: false,
-  module: ts.ModuleKind.ESNext,
-  newLine: ts.NewLineKind.LineFeed,
-  removeComments: false,
-  target: ts.ScriptTarget.ES2022,
+    isolatedModules: false,
+    module: ts.ModuleKind.ESNext,
+    newLine: ts.NewLineKind.LineFeed,
+    removeComments: false,
+    target: ts.ScriptTarget.ES2022,
 };
 
 /** 一次留白调用的改写；已补全的留白把改写后的函数体记进 `bodies`，供 {@link printHoleBodies} 打印。 */
 export function lowerHoleCall(
-  call: ts.CallExpression,
-  site: HoleSite,
-  factory: ts.NodeFactory,
-  hostMember: (name: string) => ts.Expression,
-  siteArg: (id: string) => ts.Expression,
-  visitExpr: (expr: ts.Expression) => ts.Expression,
-  bodies: Map<string, ts.Expression>,
+    call: ts.CallExpression,
+    site: HoleSite,
+    factory: ts.NodeFactory,
+    hostMember: (name: string) => ts.Expression,
+    siteArg: (id: string) => ts.Expression,
+    visitExpr: (expr: ts.Expression) => ts.Expression,
+    bodies: Map<string, ts.Expression>,
 ): ts.Expression {
-  const [first] = call.arguments;
-  const name = first === undefined ? factory.createVoidZero() : visitExpr(first);
-  const prompt = site.prompt === undefined ? factory.createVoidZero() : visitExpr(site.prompt);
-  const evaluator = factory.createArrowFunction(
-    undefined,
-    undefined,
-    [factory.createParameterDeclaration(undefined, undefined, EVALUATOR_PARAM)],
-    undefined,
-    factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
-    factory.createCallExpression(factory.createIdentifier("eval"), undefined, [
-      factory.createIdentifier(EVALUATOR_PARAM),
-    ]),
-  );
-  const args: ts.Expression[] = [siteArg(site.id), name, prompt, evaluator];
-  if (site.body !== undefined) {
-    const body = visitExpr(site.body);
-    bodies.set(site.id, body);
-    args.push(body);
-  }
-  return factory.createCallExpression(hostMember("hole"), undefined, args);
+    const [first] = call.arguments;
+    const name = first === undefined ? factory.createVoidZero() : visitExpr(first);
+    const prompt = site.prompt === undefined ? factory.createVoidZero() : visitExpr(site.prompt);
+    const evaluator = factory.createArrowFunction(
+        undefined,
+        undefined,
+        [factory.createParameterDeclaration(undefined, undefined, EVALUATOR_PARAM)],
+        undefined,
+        factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+        factory.createCallExpression(factory.createIdentifier("eval"), undefined, [
+            factory.createIdentifier(EVALUATOR_PARAM),
+        ]),
+    );
+    const args: ts.Expression[] = [siteArg(site.id), name, prompt, evaluator];
+    if (site.body !== undefined) {
+        const body = visitExpr(site.body);
+        bodies.set(site.id, body);
+        args.push(body);
+    }
+    return factory.createCallExpression(hostMember("hole"), undefined, args);
 }
 
 /**
@@ -71,18 +71,18 @@ export function lowerHoleCall(
  * 直接 `eval` 成函数值的括号表达式。
  */
 export function printHoleBodies(
-  bodies: ReadonlyMap<string, ts.Expression>,
-  printer: ts.Printer,
-  sourceFile: ts.SourceFile,
+    bodies: ReadonlyMap<string, ts.Expression>,
+    printer: ts.Printer,
+    sourceFile: ts.SourceFile,
 ): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [siteId, body] of bodies) {
-    const printed = printer.printNode(ts.EmitHint.Expression, body, sourceFile);
-    const erased = ts.transpileModule(`(${printed})`, {
-      compilerOptions: TRANSPILE_OPTIONS,
-      reportDiagnostics: false,
-    }).outputText;
-    out[siteId] = erased.replace(/;\n?$/, "");
-  }
-  return out;
+    const out: Record<string, string> = {};
+    for (const [siteId, body] of bodies) {
+        const printed = printer.printNode(ts.EmitHint.Expression, body, sourceFile);
+        const erased = ts.transpileModule(`(${printed})`, {
+            compilerOptions: TRANSPILE_OPTIONS,
+            reportDiagnostics: false,
+        }).outputText;
+        out[siteId] = erased.replace(/;\n?$/, "");
+    }
+    return out;
 }

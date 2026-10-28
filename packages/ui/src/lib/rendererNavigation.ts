@@ -1,16 +1,16 @@
 export interface RendererNavigationEntry {
-  readonly type?: string;
+    readonly type?: string;
 }
 
 function readRendererNavigationEntries(): RendererNavigationEntry[] {
-  try {
-    if (typeof globalThis.performance?.getEntriesByType !== "function") {
-      return [];
+    try {
+        if (typeof globalThis.performance?.getEntriesByType !== "function") {
+            return [];
+        }
+        return globalThis.performance.getEntriesByType("navigation") as RendererNavigationEntry[];
+    } catch {
+        return [];
     }
-    return globalThis.performance.getEntriesByType("navigation") as RendererNavigationEntry[];
-  } catch {
-    return [];
-  }
 }
 
 /**
@@ -18,7 +18,7 @@ function readRendererNavigationEntries(): RendererNavigationEntry[] {
  * workspace/app 入口只应展示草稿，但输出中的 renderer reload 仍要恢复当前 pane 续流。
  */
 export function isRendererReloadNavigation(
-  entries: readonly RendererNavigationEntry[] = readRendererNavigationEntries(),
+    entries: readonly RendererNavigationEntry[] = readRendererNavigationEntries(),
 ): boolean {
-  return entries[0]?.type === "reload";
+    return entries[0]?.type === "reload";
 }

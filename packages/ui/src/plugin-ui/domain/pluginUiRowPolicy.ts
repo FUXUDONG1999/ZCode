@@ -3,9 +3,9 @@ import type { PluginUiRowDisposition } from "./pluginUiInstancePolicy.js";
 
 /** 渲染层提供的按 toolCallId 的裁决：推导结果 + 用户手动固定 / 收起。 */
 export interface PluginUiRowPinContext {
-  disposition?: PluginUiRowDisposition;
-  /** 用户手动固定（true）或收起（false）；undefined 按默认规则。 */
-  manualPinned?: boolean;
+    disposition?: PluginUiRowDisposition;
+    /** 用户手动固定（true）或收起（false）；undefined 按默认规则。 */
+    manualPinned?: boolean;
 }
 
 export type PluginUiRowPinResolver = (toolCallId: string) => PluginUiRowPinContext | undefined;
@@ -16,20 +16,20 @@ export type PluginUiRowPinResolver = (toolCallId: string) => PluginUiRowPinConte
  * 没有 resolver 的调用方（只读分享时间线）沿用"全部常驻"。
  */
 export function isPluginUiPinnedToolRow(
-  row: ConversationRow,
-  resolve?: PluginUiRowPinResolver,
+    row: ConversationRow,
+    resolve?: PluginUiRowPinResolver,
 ): boolean {
-  if (row.kind !== "toolCall") return false;
-  if (row.status === "error" || row.status === "cancelled") return false;
-  const display = row.display;
-  if (display?.kind !== "mcp_tool" || display.ui === undefined) return false;
-  // MCP isError 不一定映射为行级 error；必须先排除，再应用固定/最近回合策略，避免错误卡片常驻。
-  if (display.ui.isError === true) return false;
-  if (!resolve) return true;
-  const context = resolve(row.toolCallId);
-  if (!context) return true;
-  if (context.disposition?.superseded) return false;
-  if (context.manualPinned !== undefined) return context.manualPinned;
-  if (!context.disposition) return true;
-  return context.disposition.forcedInline || context.disposition.autoExpand;
+    if (row.kind !== "toolCall") return false;
+    if (row.status === "error" || row.status === "cancelled") return false;
+    const display = row.display;
+    if (display?.kind !== "mcp_tool" || display.ui === undefined) return false;
+    // MCP isError 不一定映射为行级 error；必须先排除，再应用固定/最近回合策略，避免错误卡片常驻。
+    if (display.ui.isError === true) return false;
+    if (!resolve) return true;
+    const context = resolve(row.toolCallId);
+    if (!context) return true;
+    if (context.disposition?.superseded) return false;
+    if (context.manualPinned !== undefined) return context.manualPinned;
+    if (!context.disposition) return true;
+    return context.disposition.forcedInline || context.disposition.autoExpand;
 }

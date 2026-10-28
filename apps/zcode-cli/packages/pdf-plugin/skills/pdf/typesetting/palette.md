@@ -113,14 +113,14 @@ Accent:          hsl(H+15, S, L)        — Warnings, highlights (micro hue shif
 
 ```css
 :root {
-  --c-primary: #2d5a87; /* Primary (from palette.cascade) */
-  --c-primary-d: #1e3d5c; /* Dark variant */
-  --c-primary-l: #5a8ab8; /* Light variant */
-  --c-primary-bg: #f0f4f8; /* Ultra-light background */
-  --c-accent: #2d6a87; /* Accent (hue +10°) */
-  --c-text: #333; /* Body text */
-  --c-text-muted: #888; /* Secondary text */
-  --c-border: #e0e4e8; /* Border lines */
+    --c-primary: #2d5a87; /* Primary (from palette.cascade) */
+    --c-primary-d: #1e3d5c; /* Dark variant */
+    --c-primary-l: #5a8ab8; /* Light variant */
+    --c-primary-bg: #f0f4f8; /* Ultra-light background */
+    --c-accent: #2d6a87; /* Accent (hue +10°) */
+    --c-text: #333; /* Body text */
+    --c-text-muted: #888; /* Secondary text */
+    --c-border: #e0e4e8; /* Border lines */
 }
 ```
 
@@ -134,16 +134,16 @@ When distinguishing multiple sibling elements (e.g., multiple cards, categories)
 
 ```css
 .card-1 {
-  background: hsl(220, 40%, 95%);
+    background: hsl(220, 40%, 95%);
 } /* Lightest */
 .card-2 {
-  background: hsl(220, 40%, 90%);
+    background: hsl(220, 40%, 90%);
 }
 .card-3 {
-  background: hsl(220, 40%, 85%);
+    background: hsl(220, 40%, 85%);
 }
 .card-4 {
-  background: hsl(220, 40%, 80%);
+    background: hsl(220, 40%, 80%);
 } /* Darkest */
 ```
 
@@ -151,16 +151,16 @@ When distinguishing multiple sibling elements (e.g., multiple cards, categories)
 
 ```css
 .item-1 {
-  background: rgba(30, 58, 95, 0.06);
+    background: rgba(30, 58, 95, 0.06);
 }
 .item-2 {
-  background: rgba(30, 58, 95, 0.12);
+    background: rgba(30, 58, 95, 0.12);
 }
 .item-3 {
-  background: rgba(30, 58, 95, 0.18);
+    background: rgba(30, 58, 95, 0.18);
 }
 .item-4 {
-  background: rgba(30, 58, 95, 0.24);
+    background: rgba(30, 58, 95, 0.24);
 }
 ```
 
@@ -169,13 +169,13 @@ When distinguishing multiple sibling elements (e.g., multiple cards, categories)
 ```css
 /* Differentiate by border color/weight/style, uniform white background */
 .card-1 {
-  border-left: 3px solid var(--primary);
+    border-left: 3px solid var(--primary);
 }
 .card-2 {
-  border-left: 3px solid var(--primary-l);
+    border-left: 3px solid var(--primary-l);
 }
 .card-3 {
-  border-left: 3px solid var(--primary-d);
+    border-left: 3px solid var(--primary-d);
 }
 ```
 

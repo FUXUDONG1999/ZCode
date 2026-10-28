@@ -124,17 +124,17 @@ resume 时 hydrator 从最近 compaction boundary 后恢复 history。这已经�
 
 ```ts
 export const CompactPhase = {
-  StandaloneTurn: "standalone_turn",
-  PreRequest: "pre_request",
-  MidTurn: "mid_turn",
-  Reactive: "reactive",
+    StandaloneTurn: "standalone_turn",
+    PreRequest: "pre_request",
+    MidTurn: "mid_turn",
+    Reactive: "reactive",
 } as const;
 
 export const CompactReason = {
-  UserRequested: "user_requested",
-  ContextLimit: "context_limit",
-  ModelDownshift: "model_downshift",
-  ProviderOverflow: "provider_overflow",
+    UserRequested: "user_requested",
+    ContextLimit: "context_limit",
+    ModelDownshift: "model_downshift",
+    ProviderOverflow: "provider_overflow",
 } as const;
 ```
 
@@ -158,12 +158,12 @@ export const CompactReason = {
 
 ```ts
 type CompactRequestContext = {
-  trigger: CompactTrigger;
-  phase: CompactPhase;
-  compactReason: CompactReason;
-  modelStepIndex: number;
-  hasToolFollowUp: boolean;
-  hasPendingInput: boolean;
+    trigger: CompactTrigger;
+    phase: CompactPhase;
+    compactReason: CompactReason;
+    modelStepIndex: number;
+    hasToolFollowUp: boolean;
+    hasPendingInput: boolean;
 };
 ```
 
@@ -190,14 +190,14 @@ else:
 
 ```ts
 interface HistoryReplacement {
-  boundary: CompactBoundaryPayload;
-  replacementMessages: ModelInputMessage[];
-  summaryMessageId: MessageId;
-  preservedSegment?: CompactPreservedSegment;
-  tokenUsageEstimate: {
-    value: number;
-    method: "estimated" | "provider_usage" | "provider_count";
-  };
+    boundary: CompactBoundaryPayload;
+    replacementMessages: ModelInputMessage[];
+    summaryMessageId: MessageId;
+    preservedSegment?: CompactPreservedSegment;
+    tokenUsageEstimate: {
+        value: number;
+        method: "estimated" | "provider_usage" | "provider_count";
+    };
 }
 ```
 
@@ -215,15 +215,15 @@ reference context baseline 的目的是避免每轮重复注入完整 initial co
 
 ```ts
 interface ContextBaseline {
-  baselineId: string;
-  turnId?: TurnId;
-  modelRef: string;
-  cwd: string;
-  permissionMode: string;
-  userInstructionsHash?: string;
-  projectContextHash?: string;
-  skillsHash?: string;
-  memorySummaryHash?: string;
+    baselineId: string;
+    turnId?: TurnId;
+    modelRef: string;
+    cwd: string;
+    permissionMode: string;
+    userInstructionsHash?: string;
+    projectContextHash?: string;
+    skillsHash?: string;
+    memorySummaryHash?: string;
 }
 ```
 

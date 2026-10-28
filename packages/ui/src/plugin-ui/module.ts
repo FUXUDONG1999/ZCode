@@ -5,8 +5,15 @@
  * 行为边界见本模块 CONTRACT.md。
  */
 export const pluginUiModule = {
-  id: "plugin-ui",
-  requires: ["services", "ui", "shared", "mcp-apps-protocol", "plugin-ui-bridge", "plugin-sandbox"],
-  provides: ["plugin-ui-components"],
-  publicEntrypoints: ["index.ts", "contract.ts", "hostPrimitives.ts"],
+    id: "plugin-ui",
+    requires: [
+        "services",
+        "ui",
+        "shared",
+        "mcp-apps-protocol",
+        "plugin-ui-bridge",
+        "plugin-sandbox",
+    ],
+    provides: ["plugin-ui-components"],
+    publicEntrypoints: ["index.ts", "contract.ts", "hostPrimitives.ts"],
 } as const;

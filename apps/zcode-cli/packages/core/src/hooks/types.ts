@@ -1,23 +1,23 @@
 import type {
-  ExecutionPort,
-  HookEventName,
-  HookExecutionDescriptor,
-  HookInput,
-  HookJSONOutput,
-  HookPermissionDecision,
-  HookSourceKind,
-  HooksRuntimeConfig,
-  WorkspaceHookBundleSnapshot,
-  Logger,
-  PermissionRequestHookDecision,
-  SessionEvent,
+    ExecutionPort,
+    HookEventName,
+    HookExecutionDescriptor,
+    HookInput,
+    HookJSONOutput,
+    HookPermissionDecision,
+    HookSourceKind,
+    HooksRuntimeConfig,
+    WorkspaceHookBundleSnapshot,
+    Logger,
+    PermissionRequestHookDecision,
+    SessionEvent,
 } from "@zcode/contracts";
 
 import type { WorkspaceHookRuntimeAdmissionPort } from "./workspace-hook-runtime-admission.js";
 
 export interface HookCallbackContext {
-  hookIndex: number;
-  signal?: AbortSignal;
+    hookIndex: number;
+    signal?: AbortSignal;
 }
 
 /**
@@ -25,79 +25,79 @@ export interface HookCallbackContext {
  * 不参与 Hook 决策，也不会作为 Hook JSON 输出暴露给模型。
  */
 export interface HookCallbackDiagnostics {
-  errorMessage?: string;
-  stderrPreview?: string;
-  stdoutPreview?: string;
+    errorMessage?: string;
+    stderrPreview?: string;
+    stdoutPreview?: string;
 }
 
 export interface HookCallbackResult {
-  kind: "hookCallbackResult";
-  diagnostics?: HookCallbackDiagnostics;
-  output?: HookJSONOutput;
+    kind: "hookCallbackResult";
+    diagnostics?: HookCallbackDiagnostics;
+    output?: HookJSONOutput;
 }
 
 export type HookCallback = (
-  input: HookInput,
-  context: HookCallbackContext,
+    input: HookInput,
+    context: HookCallbackContext,
 ) =>
-  | HookJSONOutput
-  | HookCallbackResult
-  | void
-  | Promise<HookJSONOutput | HookCallbackResult | void>;
+    | HookJSONOutput
+    | HookCallbackResult
+    | void
+    | Promise<HookJSONOutput | HookCallbackResult | void>;
 
 export interface HookRunAdmissionDecision {
-  allowed: boolean;
-  reasonCode?: string;
-  skipLifecycle?: boolean;
+    allowed: boolean;
+    reasonCode?: string;
+    skipLifecycle?: boolean;
 }
 
 export interface HookRegistration {
-  admission?: (input: HookInput) => HookRunAdmissionDecision;
-  async?: boolean;
-  callback: HookCallback;
-  descriptor?: HookExecutionDescriptor | ((input: HookInput) => HookExecutionDescriptor);
-  event: HookEventName;
-  matcher?: string;
-  source?: string;
-  sourceKind?: HookSourceKind;
-  timeoutMs?: number;
+    admission?: (input: HookInput) => HookRunAdmissionDecision;
+    async?: boolean;
+    callback: HookCallback;
+    descriptor?: HookExecutionDescriptor | ((input: HookInput) => HookExecutionDescriptor);
+    event: HookEventName;
+    matcher?: string;
+    source?: string;
+    sourceKind?: HookSourceKind;
+    timeoutMs?: number;
 }
 
 export interface HookRunOptions {
-  matchValue?: string;
-  matchValues?: readonly string[];
-  signal?: AbortSignal;
+    matchValue?: string;
+    matchValues?: readonly string[];
+    signal?: AbortSignal;
 }
 
 export interface HookRunResult {
-  additionalContexts: string[];
-  blockRequested?: boolean;
-  hookPermissionDecisionReason?: string;
-  permissionBehavior?: HookPermissionDecision;
-  permissionRequestResult?: PermissionRequestHookDecision;
-  preventContinuation?: boolean;
-  stopShouldContinue?: boolean;
-  stopReason?: string;
-  updatedInput?: unknown;
+    additionalContexts: string[];
+    blockRequested?: boolean;
+    hookPermissionDecisionReason?: string;
+    permissionBehavior?: HookPermissionDecision;
+    permissionRequestResult?: PermissionRequestHookDecision;
+    preventContinuation?: boolean;
+    stopShouldContinue?: boolean;
+    stopReason?: string;
+    updatedInput?: unknown;
 }
 
 export interface HookRunner {
-  run(input: HookInput, options?: HookRunOptions): Promise<HookRunResult>;
+    run(input: HookInput, options?: HookRunOptions): Promise<HookRunResult>;
 }
 
 export interface HookRunnerOptions {
-  defaultTimeoutMs?: number;
-  emitEvent?: (event: SessionEvent) => Promise<void>;
-  hooks?: HookRegistration[];
-  logger?: Logger;
+    defaultTimeoutMs?: number;
+    emitEvent?: (event: SessionEvent) => Promise<void>;
+    hooks?: HookRegistration[];
+    logger?: Logger;
 }
 
 export interface ConfiguredHookRunnerOptions {
-  config: HooksRuntimeConfig;
-  emitEvent?: (event: SessionEvent) => Promise<void>;
-  executionPort: ExecutionPort;
-  getWorkingDirectory: () => string;
-  logger?: Logger;
-  workspaceHookAdmission?: WorkspaceHookRuntimeAdmissionPort;
-  workspaceHookSnapshot?: WorkspaceHookBundleSnapshot;
+    config: HooksRuntimeConfig;
+    emitEvent?: (event: SessionEvent) => Promise<void>;
+    executionPort: ExecutionPort;
+    getWorkingDirectory: () => string;
+    logger?: Logger;
+    workspaceHookAdmission?: WorkspaceHookRuntimeAdmissionPort;
+    workspaceHookSnapshot?: WorkspaceHookBundleSnapshot;
 }

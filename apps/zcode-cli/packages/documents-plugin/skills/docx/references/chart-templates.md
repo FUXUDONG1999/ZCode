@@ -330,24 +330,24 @@ const displayWidth = 500;
 const displayHeight = Math.round(displayWidth * (dims.height / dims.width));
 
 new Paragraph({
-  alignment: AlignmentType.CENTER,
-  spacing: { before: 200, after: 100 },
-  children: [
-    new ImageRun({
-      data: chartBuffer,
-      transformation: { width: displayWidth, height: displayHeight },
-      type: "png",
-    }),
-  ],
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 200, after: 100 },
+    children: [
+        new ImageRun({
+            data: chartBuffer,
+            transformation: { width: displayWidth, height: displayHeight },
+            type: "png",
+        }),
+    ],
 });
 ```
 
 ```js
 // ❌ Wrong: hardcoded width and height (pie becomes ellipse, radar becomes diamond)
 new ImageRun({
-  data: chartBuffer,
-  transformation: { width: 500, height: 350 }, // wrong ratio!
-  type: "png",
+    data: chartBuffer,
+    transformation: { width: 500, height: 350 }, // wrong ratio!
+    type: "png",
 });
 ```
 

@@ -64,7 +64,7 @@ core 只暴露 `SessionEventSink`：
 
 ```ts
 interface SessionEventSink {
-  onSessionEvent(event: SessionEvent): void | Promise<void>;
+    onSessionEvent(event: SessionEvent): void | Promise<void>;
 }
 ```
 
@@ -224,12 +224,12 @@ The first implementation still uses `generateText()`, so model text appears when
 
 ```ts
 type ToolResultDisplay = {
-  kind: "file_diff";
-  filePath: string;
-  additions: number;
-  deletions: number;
-  structuredPatch: DiffHunk[];
-  truncated?: boolean;
+    kind: "file_diff";
+    filePath: string;
+    additions: number;
+    deletions: number;
+    structuredPatch: DiffHunk[];
+    truncated?: boolean;
 };
 ```
 

@@ -37,10 +37,10 @@ This scene covers:
 
 ```js
 function selectOfficialType(keywords, purpose) {
-  if (/minutes|meeting/.test(keywords)) return "minutes";
-  if (/reply|respond to request/.test(keywords)) return "reply";
-  if (/letter|inquiry|negotiation/.test(keywords)) return "letter";
-  return "notice"; // default
+    if (/minutes|meeting/.test(keywords)) return "minutes";
+    if (/reply|respond to request/.test(keywords)) return "reply";
+    if (/letter|inquiry|negotiation/.test(keywords)) return "letter";
+    return "notice"; // default
 }
 ```
 
@@ -48,8 +48,8 @@ function selectOfficialType(keywords, purpose) {
 
 ```js
 function needsRedHeader(userRequest) {
-  // Only activate when explicitly requested
-  return /red header|GB\/T 9704|formal issuance|official format/.test(userRequest);
+    // Only activate when explicitly requested
+    return /red header|GB\/T 9704|formal issuance|official format/.test(userRequest);
 }
 ```
 
@@ -268,9 +268,9 @@ Original Chinese numbering:
 1. Document types requiring signatures should have issuing body name and date
 2. Not all types mechanically require signatures (minutes typically do not)
 3. Formal document dates must use Chinese numeral format with proper "〇" character
-   - Example: March 31, 2026 → 二〇二六年三月三十一日
+    - Example: March 31, 2026 → 二〇二六年三月三十一日
 4. Document numbers use tortoiseshell brackets "〔〕" (not square brackets "[]")
-   - Example: X政发〔2026〕1号
+    - Example: X政发〔2026〕1号
 5. Date format must be consistent throughout
 
 ---
@@ -323,7 +323,7 @@ In code, set primary font and note the fallback:
 
 ```js
 font: {
-  eastAsia: "STXiaoBiaoSong";
+    eastAsia: "STXiaoBiaoSong";
 }
 // Fallback: FZXiaoBiaoSong-S13 → SimSun Bold. User may need to install STXiaoBiaoSong for exact rendering.
 ```
@@ -364,22 +364,22 @@ styles: {
 
 ```js
 new Paragraph({
-  alignment: AlignmentType.CENTER,
-  spacing: { before: 0, after: 200, line: Math.ceil(26 * 23), lineRule: "atLeast" },
-  children: [
-    new TextRun({
-      text: "XX Municipal Government",
-      font: { eastAsia: "SimSun" },
-      size: 52,
-      bold: true,
-      color: "FF0000",
-    }),
-  ],
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 0, after: 200, line: Math.ceil(26 * 23), lineRule: "atLeast" },
+    children: [
+        new TextRun({
+            text: "XX Municipal Government",
+            font: { eastAsia: "SimSun" },
+            size: 52,
+            bold: true,
+            color: "FF0000",
+        }),
+    ],
 });
 new Paragraph({
-  border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: "FF0000" } },
-  spacing: { after: 40 },
-  children: [],
+    border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: "FF0000" } },
+    spacing: { after: 40 },
+    children: [],
 });
 ```
 

@@ -56,29 +56,29 @@ contain secrets, such as `/login ... <api-key>`, must not be recorded.
 type InputHistoryKind = "prompt" | "steered_input" | "slash_command";
 
 interface InputHistoryEntry {
-  id: string;
-  projectID: ProjectId;
-  sessionID?: SessionId;
-  text: string;
-  kind: InputHistoryKind;
-  time: {
-    created: number;
-  };
-}
-
-interface InputHistoryStorePort {
-  recordInputHistory(input: {
+    id: string;
     projectID: ProjectId;
     sessionID?: SessionId;
     text: string;
     kind: InputHistoryKind;
-    time?: { created?: number };
-  }): Promise<InputHistoryEntry | null>;
+    time: {
+        created: number;
+    };
+}
 
-  recallPreviousInput(input: {
-    projectID: ProjectId;
-    skip?: number;
-  }): Promise<InputHistoryEntry | null>;
+interface InputHistoryStorePort {
+    recordInputHistory(input: {
+        projectID: ProjectId;
+        sessionID?: SessionId;
+        text: string;
+        kind: InputHistoryKind;
+        time?: { created?: number };
+    }): Promise<InputHistoryEntry | null>;
+
+    recallPreviousInput(input: {
+        projectID: ProjectId;
+        skip?: number;
+    }): Promise<InputHistoryEntry | null>;
 }
 ```
 

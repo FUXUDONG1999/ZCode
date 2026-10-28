@@ -13,9 +13,9 @@
 
 import type { ProcessResourceRuntimeSurface } from "@zcode/shared";
 import {
-  addAppResourceTotals,
-  createEmptyAppResourceTotals,
-  type AppResourceTotals,
+    addAppResourceTotals,
+    createEmptyAppResourceTotals,
+    type AppResourceTotals,
 } from "./processResourceAppTotals.js";
 
 /** 未自报采样周期时的默认周期（CLI 自采节拍）。 */
@@ -29,80 +29,80 @@ export const EXTERNAL_APP_RESOURCE_SAMPLE_DEFAULT_INTERVAL_MS = 60_000;
 export const PROCESS_RESOURCE_MAX_EXTERNAL_SAMPLE_SOURCES = 128;
 
 export interface ExternalAppResourceSample extends AppResourceTotals {
-  /**
-   * 来源的稳定 key（如 CLI 实例、MCP 来源组）：只用于覆盖旧样本与判定过期，
-   * 不进入任何 ARMS 属性，因此不得放 pid、路径或 workspace 标识。
-   */
-  sourceKey: string;
-  /** 设备级总量只统计本机进程；远端 CLI / MCP 的样本在这里直接丢弃。 */
-  runtimeSurface: ProcessResourceRuntimeSurface;
-  /** 该来源的采样周期；过期判据为 2 倍周期未更新。缺省按 60 秒计。 */
-  intervalMs?: number;
-  /** main 侧收到该样本的时刻。 */
-  receivedAt: number;
+    /**
+     * 来源的稳定 key（如 CLI 实例、MCP 来源组）：只用于覆盖旧样本与判定过期，
+     * 不进入任何 ARMS 属性，因此不得放 pid、路径或 workspace 标识。
+     */
+    sourceKey: string;
+    /** 设备级总量只统计本机进程；远端 CLI / MCP 的样本在这里直接丢弃。 */
+    runtimeSurface: ProcessResourceRuntimeSurface;
+    /** 该来源的采样周期；过期判据为 2 倍周期未更新。缺省按 60 秒计。 */
+    intervalMs?: number;
+    /** main 侧收到该样本的时刻。 */
+    receivedAt: number;
 }
 
 interface StoredExternalSample extends AppResourceTotals {
-  receivedAt: number;
-  expiresAfterMs: number;
+    receivedAt: number;
+    expiresAfterMs: number;
 }
 
 const latestSamplesBySource = new Map<string, StoredExternalSample>();
 
 function isNonNegativeFinite(value: number): boolean {
-  return Number.isFinite(value) && value >= 0;
+    return Number.isFinite(value) && value >= 0;
 }
 
 /** 记录某个外部来源的最近一次样本；非法样本直接丢弃，不影响已有合计。 */
 export function recordExternalAppResourceSample(sample: ExternalAppResourceSample): void {
-  if (sample.runtimeSurface !== "local" || !sample.sourceKey) {
-    return;
-  }
-  if (
-    !isNonNegativeFinite(sample.cpuPercent) ||
-    !isNonNegativeFinite(sample.rssKbTotal) ||
-    !isNonNegativeFinite(sample.processCount) ||
-    !Number.isFinite(sample.receivedAt)
-  ) {
-    return;
-  }
-  if (
-    !latestSamplesBySource.has(sample.sourceKey) &&
-    latestSamplesBySource.size >= PROCESS_RESOURCE_MAX_EXTERNAL_SAMPLE_SOURCES
-  ) {
-    return;
-  }
+    if (sample.runtimeSurface !== "local" || !sample.sourceKey) {
+        return;
+    }
+    if (
+        !isNonNegativeFinite(sample.cpuPercent) ||
+        !isNonNegativeFinite(sample.rssKbTotal) ||
+        !isNonNegativeFinite(sample.processCount) ||
+        !Number.isFinite(sample.receivedAt)
+    ) {
+        return;
+    }
+    if (
+        !latestSamplesBySource.has(sample.sourceKey) &&
+        latestSamplesBySource.size >= PROCESS_RESOURCE_MAX_EXTERNAL_SAMPLE_SOURCES
+    ) {
+        return;
+    }
 
-  const intervalMs =
-    typeof sample.intervalMs === "number" &&
-    Number.isFinite(sample.intervalMs) &&
-    sample.intervalMs > 0
-      ? sample.intervalMs
-      : EXTERNAL_APP_RESOURCE_SAMPLE_DEFAULT_INTERVAL_MS;
+    const intervalMs =
+        typeof sample.intervalMs === "number" &&
+        Number.isFinite(sample.intervalMs) &&
+        sample.intervalMs > 0
+            ? sample.intervalMs
+            : EXTERNAL_APP_RESOURCE_SAMPLE_DEFAULT_INTERVAL_MS;
 
-  latestSamplesBySource.set(sample.sourceKey, {
-    cpuPercent: sample.cpuPercent,
-    rssKbTotal: sample.rssKbTotal,
-    processCount: sample.processCount,
-    receivedAt: sample.receivedAt,
-    expiresAfterMs: intervalMs * 2,
-  });
+    latestSamplesBySource.set(sample.sourceKey, {
+        cpuPercent: sample.cpuPercent,
+        rssKbTotal: sample.rssKbTotal,
+        processCount: sample.processCount,
+        receivedAt: sample.receivedAt,
+        expiresAfterMs: intervalMs * 2,
+    });
 }
 
 /** 汇总未过期的外部来源；顺手清掉过期条目，避免长会话里僵尸来源常驻。 */
 export function collectExternalAppResourceTotals(now: number): AppResourceTotals {
-  let totals = createEmptyAppResourceTotals();
-  for (const [sourceKey, sample] of latestSamplesBySource) {
-    if (now - sample.receivedAt > sample.expiresAfterMs) {
-      latestSamplesBySource.delete(sourceKey);
-      continue;
+    let totals = createEmptyAppResourceTotals();
+    for (const [sourceKey, sample] of latestSamplesBySource) {
+        if (now - sample.receivedAt > sample.expiresAfterMs) {
+            latestSamplesBySource.delete(sourceKey);
+            continue;
+        }
+        totals = addAppResourceTotals(totals, sample);
     }
-    totals = addAppResourceTotals(totals, sample);
-  }
-  return totals;
+    return totals;
 }
 
 /** 采样启停时清空全部来源，避免跨采样会话串数据。 */
 export function resetExternalAppResourceSamples(): void {
-  latestSamplesBySource.clear();
+    latestSamplesBySource.clear();
 }

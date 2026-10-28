@@ -70,14 +70,14 @@
 ### Checklist
 
 - [x] 更新或新增 focused tests，明确当前 target：
-  - main runtime provider `tools[]` 不应包含 `Glob` / `Grep` / `GoalRead`。
-  - 即使 main `toolAllowlist` 显式包含 `Glob` / `Grep`，也不能提升 Explore-only tools。
-  - Explore child provider `tools[]` 应包含 `Glob` / `Grep`，且不包含 edit/write/agent tools。
-  - provider-native `web_search` 行为暂不改变，相关断言只保证本轮没有意外删除已有 native projection。
+    - main runtime provider `tools[]` 不应包含 `Glob` / `Grep` / `GoalRead`。
+    - 即使 main `toolAllowlist` 显式包含 `Glob` / `Grep`，也不能提升 Explore-only tools。
+    - Explore child provider `tools[]` 应包含 `Glob` / `Grep`，且不包含 edit/write/agent tools。
+    - provider-native `web_search` 行为暂不改变，相关断言只保证本轮没有意外删除已有 native projection。
 - [x] 新增或更新 prompt-trajectory testcase，覆盖：
-  - main basic request tool list。
-  - Agent-enabled parent request tool list。
-  - Explore child request tool list。
+    - main basic request tool list。
+    - Agent-enabled parent request tool list。
+    - Explore child request tool list。
 - [x] 记录当前会失败的旧断言，例如 `main-tool-pool.test.ts` 里 main 包含 `Glob/Grep` 的旧期望。
 
 ### 预期修改文件

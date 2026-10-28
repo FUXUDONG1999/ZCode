@@ -69,52 +69,52 @@ $zcodeIconBytes=[ZCodeAumidIcon]::Read($zcodeArg0);
 `;
 
 interface WindowsAumidIconDependencies {
-  execute(command: string, args: readonly string[], timeoutMs: number): Promise<string>;
-  systemRoot: string;
+    execute(command: string, args: readonly string[], timeoutMs: number): Promise<string>;
+    systemRoot: string;
 }
 
 const defaultDependencies: WindowsAumidIconDependencies = {
-  execute: (command, args, timeoutMs) =>
-    new Promise((resolve, reject) => {
-      execFile(
-        command,
-        [...args],
-        { encoding: "utf8", timeout: timeoutMs, windowsHide: true },
-        (error, stdout) => (error ? reject(error) : resolve(stdout)),
-      );
-    }),
-  systemRoot: process.env.SystemRoot ?? "C:\\Windows",
+    execute: (command, args, timeoutMs) =>
+        new Promise((resolve, reject) => {
+            execFile(
+                command,
+                [...args],
+                { encoding: "utf8", timeout: timeoutMs, windowsHide: true },
+                (error, stdout) => (error ? reject(error) : resolve(stdout)),
+            );
+        }),
+    systemRoot: process.env.SystemRoot ?? "C:\\Windows",
 };
 
 export function createWindowsAumidIconReader(
-  dependencies: WindowsAumidIconDependencies = defaultDependencies,
+    dependencies: WindowsAumidIconDependencies = defaultDependencies,
 ) {
-  return async (aumid: string): Promise<ApplicationIconInfo | null> => {
-    const normalized = aumid.trim();
-    if (!SAFE_AUMID.test(normalized)) return null;
-    const powershell = win32.join(
-      dependencies.systemRoot,
-      "System32",
-      "WindowsPowerShell",
-      "v1.0",
-      "powershell.exe",
-    );
-    const encoded = (
-      await dependencies.execute(
-        powershell,
-        createEncodedPowerShellArgs(WINDOWS_AUMID_ICON_SCRIPT, [normalized]),
-        5_000,
-      )
-    ).trim();
-    if (
-      !encoded ||
-      encoded.length > MAX_ICON_BASE64_CHARS ||
-      !/^[A-Za-z0-9+/]+={0,2}$/u.test(encoded)
-    ) {
-      return null;
-    }
-    return { iconDataUrl: `data:image/png;base64,${encoded}` };
-  };
+    return async (aumid: string): Promise<ApplicationIconInfo | null> => {
+        const normalized = aumid.trim();
+        if (!SAFE_AUMID.test(normalized)) return null;
+        const powershell = win32.join(
+            dependencies.systemRoot,
+            "System32",
+            "WindowsPowerShell",
+            "v1.0",
+            "powershell.exe",
+        );
+        const encoded = (
+            await dependencies.execute(
+                powershell,
+                createEncodedPowerShellArgs(WINDOWS_AUMID_ICON_SCRIPT, [normalized]),
+                5_000,
+            )
+        ).trim();
+        if (
+            !encoded ||
+            encoded.length > MAX_ICON_BASE64_CHARS ||
+            !/^[A-Za-z0-9+/]+={0,2}$/u.test(encoded)
+        ) {
+            return null;
+        }
+        return { iconDataUrl: `data:image/png;base64,${encoded}` };
+    };
 }
 
 export const readWindowsAumidIcon = createWindowsAumidIconReader();

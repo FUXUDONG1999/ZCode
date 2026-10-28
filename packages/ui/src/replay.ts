@@ -12,19 +12,19 @@
 // 而是 journal 事件的展示规则，浏览器端回放仍在静态数据上用它。
 export { SessionPane, type SessionPaneProps } from "./v4/SessionPane.js";
 export {
-  V4ConversationContext,
-  type V4ConversationContextValue,
+    V4ConversationContext,
+    type V4ConversationContextValue,
 } from "./v4/V4ConversationContext.js";
 export { SessionDataLayer, type SessionLease } from "./v4/sessionDataLayer.js";
 export type { ConversationTransport, ConversationAttachmentReadParams } from "./v4/transport.js";
 export { WorkflowRunPhaseList } from "./app-shell/WorkflowRunPhaseList.js";
 export { WorkflowRunSectionToggle } from "./app-shell/WorkflowRunSectionToggle.js";
 export {
-  workflowRunEventLines,
-  workflowRunResultView,
-  type WorkflowActorInstance,
-  type WorkflowRunEventItem,
-  type WorkflowRunEventLine,
+    workflowRunEventLines,
+    workflowRunResultView,
+    type WorkflowActorInstance,
+    type WorkflowRunEventItem,
+    type WorkflowRunEventLine,
 } from "./app-shell/workflowRunPanel.js";
 export { WorkflowTimeline } from "./components/workflow-timeline/WorkflowTimeline.js";
 export { buildWorkflowTimeline } from "./components/workflow-timeline/timeline-model.js";

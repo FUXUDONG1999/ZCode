@@ -13,39 +13,39 @@ import { toToolJsonSchema } from "./json-schema.js";
 export const RESOLVE_WORKFLOW_QUESTION_TOOL_NAME = "ResolveWorkflowQuestion";
 
 export const ResolveWorkflowQuestionInputSchema = z
-  .object({
-    // snake_case 照 GetWorkflowRun 的 run_id / ResumeWorkflowRun 的 run_id：在模型眼里这是
-    // 同一族的不透明标识键。
-    question_id: z
-      .string()
-      .min(1)
-      .describe(
-        "The question ID from the escalation notification, or from GetWorkflowRun's pending questions (looks like `dwfq-...`)",
-      ),
-    answer: z
-      .string()
-      .min(1)
-      .describe("The answer text, delivered verbatim to the subagent that asked"),
-  })
-  .strict();
+    .object({
+        // snake_case 照 GetWorkflowRun 的 run_id / ResumeWorkflowRun 的 run_id：在模型眼里这是
+        // 同一族的不透明标识键。
+        question_id: z
+            .string()
+            .min(1)
+            .describe(
+                "The question ID from the escalation notification, or from GetWorkflowRun's pending questions (looks like `dwfq-...`)",
+            ),
+        answer: z
+            .string()
+            .min(1)
+            .describe("The answer text, delivered verbatim to the subagent that asked"),
+    })
+    .strict();
 
 export type ResolveWorkflowQuestionInput = z.infer<typeof ResolveWorkflowQuestionInputSchema>;
 
 export const ResolveWorkflowQuestionInputJsonSchema = toToolJsonSchema(
-  ResolveWorkflowQuestionInputSchema,
+    ResolveWorkflowQuestionInputSchema,
 );
 
 export const ResolveWorkflowQuestionOutputSchema = z
-  .object({
-    ok: z.literal(true),
-    qid: z.string().min(1),
-    /** 给模型的确认文案（散文不是契约字段，schema 只保证在场）。 */
-    response: z.string(),
-  })
-  .strict();
+    .object({
+        ok: z.literal(true),
+        qid: z.string().min(1),
+        /** 给模型的确认文案（散文不是契约字段，schema 只保证在场）。 */
+        response: z.string(),
+    })
+    .strict();
 
 export type ResolveWorkflowQuestionOutput = z.infer<typeof ResolveWorkflowQuestionOutputSchema>;
 
 export const ResolveWorkflowQuestionOutputJsonSchema = toToolJsonSchema(
-  ResolveWorkflowQuestionOutputSchema,
+    ResolveWorkflowQuestionOutputSchema,
 );

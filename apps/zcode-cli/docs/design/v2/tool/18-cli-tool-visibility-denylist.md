@@ -159,30 +159,30 @@ zcode -p "分析一下" --disallowedTools "Bash(git *) Edit"
 **Interfaces**
 
 - Produces:
-  - `AgentRuntimeConfig.toolDisallowlist?: readonly string[]`
-  - CLI normalized denylist: `readonly string[] | undefined`
+    - `AgentRuntimeConfig.toolDisallowlist?: readonly string[]`
+    - CLI normalized denylist: `readonly string[] | undefined`
 - Consumes later:
-  - Phase 2 registry filters consume `toolDisallowlist`
-  - Phase 4 subagent inheritance consumes `toolDisallowlist`
+    - Phase 2 registry filters consume `toolDisallowlist`
+    - Phase 4 subagent inheritance consumes `toolDisallowlist`
 
 **Checklist**
 
 - [ ] 在 `AgentRuntimeConfig` 增加 `toolDisallowlist?: readonly string[]`。
 - [ ] 在 `parseGlobalArgs` 的 `prompt` option 增加 `short: "p"`，让文档示例里的 headless prompt 入口可运行。
 - [ ] 在 `parseGlobalArgs` 之前增加 `extractDisallowedToolsArgs` 预处理：
-  - [ ] 支持 `--disallowedTools`
-  - [ ] 支持 `--disallowed-tools`
-  - [ ] 支持 `--disallowedTools=value`
-  - [ ] 支持同一 flag 重复出现
-  - [ ] 消费后续 argv token，直到遇到下一个 option token
+    - [ ] 支持 `--disallowedTools`
+    - [ ] 支持 `--disallowed-tools`
+    - [ ] 支持 `--disallowedTools=value`
+    - [ ] 支持同一 flag 重复出现
+    - [ ] 消费后续 argv token，直到遇到下一个 option token
 - [ ] 不把 `--disallowedTools` 直接交给 `node:util.parseArgs`；当前 Node `parseArgs` 不能表达所需的 `<tools...>` variadic 行为。
 - [ ] 增加 CLI 层归一化 helper，行为为：
-  - [ ] 接受预处理收集到的 `readonly string[]`
-  - [ ] 按逗号或括号外普通空格分割；括号内的逗号/空格保持在当前规则里
-  - [ ] 去掉空项
-  - [ ] `web_search` 转为 `WebSearch`
-  - [ ] 去重且保持首次出现顺序
-  - [ ] 空数组返回 `undefined`
+    - [ ] 接受预处理收集到的 `readonly string[]`
+    - [ ] 按逗号或括号外普通空格分割；括号内的逗号/空格保持在当前规则里
+    - [ ] 去掉空项
+    - [ ] `web_search` 转为 `WebSearch`
+    - [ ] 去重且保持首次出现顺序
+    - [ ] 空数组返回 `undefined`
 - [ ] `runPrompt` 签名增加 `toolDisallowlist?: readonly string[]`。
 - [ ] headless `createZCodeApp` 的 `runtimeConfig` 增加 `toolDisallowlist`。
 - [ ] `runTuiCommand` 签名增加 `toolDisallowlist?: readonly string[]`。
@@ -242,16 +242,16 @@ pnpm -r list --depth -1 | rg "@zcode/cli|zcode-cli"
 **Interfaces**
 
 - Produces:
-  - `normalizeToolNameAlias(toolName: string): string`
-  - `getToolRuleName(rule: string): string`
-  - `createToolRuleNameSet(rules?: readonly string[]): ReadonlySet<string> | undefined`
-  - `isToolNameDisallowed(toolName: string, disallowedTools?: readonly string[]): boolean`
-  - `filterDisallowedToolNames(toolNames: readonly string[], disallowedTools?: readonly string[]): readonly string[]`
-  - `RegisterBuiltInToolsOptions.disallowedTools?: readonly string[]`
-  - `RegisterMcpToolsOptions.disallowedTools?: readonly string[]`
+    - `normalizeToolNameAlias(toolName: string): string`
+    - `getToolRuleName(rule: string): string`
+    - `createToolRuleNameSet(rules?: readonly string[]): ReadonlySet<string> | undefined`
+    - `isToolNameDisallowed(toolName: string, disallowedTools?: readonly string[]): boolean`
+    - `filterDisallowedToolNames(toolNames: readonly string[], disallowedTools?: readonly string[]): readonly string[]`
+    - `RegisterBuiltInToolsOptions.disallowedTools?: readonly string[]`
+    - `RegisterMcpToolsOptions.disallowedTools?: readonly string[]`
 - Consumes:
-  - `AgentRuntimeConfig.toolAllowlist`
-  - `AgentRuntimeConfig.toolDisallowlist`
+    - `AgentRuntimeConfig.toolAllowlist`
+    - `AgentRuntimeConfig.toolDisallowlist`
 
 **Checklist**
 
@@ -259,9 +259,9 @@ pnpm -r list --depth -1 | rg "@zcode/cli|zcode-cli"
 - [ ] 迁移 `web_search -> WebSearch` 归一化到共享 helper，保留现有 `resolveBuiltInToolAllowlist` 行为兼容。
 - [ ] `registerBuiltInTools` options 增加 `disallowedTools`。
 - [ ] built-in 注册循环判断顺序为：
-  - [ ] 如果 `allowedTools` 存在且当前工具不在其中，跳过
-  - [ ] 如果当前工具在 `disallowedTools` 中，跳过
-  - [ ] 否则注册
+    - [ ] 如果 `allowedTools` 存在且当前工具不在其中，跳过
+    - [ ] 如果当前工具在 `disallowedTools` 中，跳过
+    - [ ] 否则注册
 - [ ] `AgentRuntime` 构造时把 `this.config.toolDisallowlist` 传给 `registerBuiltInTools`。
 - [ ] `RegisterMcpToolsOptions` 增加 `disallowedTools`。
 - [ ] MCP 注册循环按 exact tool name 执行 deny 过滤。
@@ -307,18 +307,18 @@ pnpm --filter @zcode/core exec vitest run tests/main-tool-pool.test.ts tests/mcp
 **Interfaces**
 
 - Consumes:
-  - `AgentRuntimeConfig.toolAllowlist`
-  - `AgentRuntimeConfig.toolDisallowlist`
-  - Phase 2 的 visibility helper
+    - `AgentRuntimeConfig.toolAllowlist`
+    - `AgentRuntimeConfig.toolDisallowlist`
+    - Phase 2 的 visibility helper
 - Produces:
-  - `resolveRuntimeEmbeddedSearchEnabled` 正确考虑 denylist
+    - `resolveRuntimeEmbeddedSearchEnabled` 正确考虑 denylist
 
 **Checklist**
 
 - [ ] 更新 `resolveRuntimeEmbeddedSearchEnabled` 的 `bashAvailable` 判断。
 - [ ] 判断语义为：
-  - [ ] allowlist 不存在或包含 `Bash`
-  - [ ] 且 denylist 不包含 `Bash`
+    - [ ] allowlist 不存在或包含 `Bash`
+    - [ ] 且 denylist 不包含 `Bash`
 - [ ] 保持现有 `toolset === "explore"` 行为。
 - [ ] `refreshBranchAwareBuiltInTools` 注册 direct search fallback 工具时继续传入 allowlist 与 denylist。
 - [ ] 明确记录：如果用户只 deny `Bash`，embedded search 关闭后 direct fallback 是否会让 `Glob/Grep` 出现，必须由测试固定当前产品语义。
@@ -363,20 +363,20 @@ pnpm --filter @zcode/core exec vitest run tests/main-tool-pool.test.ts
 **Interfaces**
 
 - Consumes:
-  - `this.config.toolDisallowlist`
-  - `request.allowedTools`
-  - `request.disallowedTools`
-  - subagent profile `disallowedTools`
+    - `this.config.toolDisallowlist`
+    - `request.allowedTools`
+    - `request.disallowedTools`
+    - subagent profile `disallowedTools`
 - Produces:
-  - child runtime config 中的 `toolDisallowlist`
-  - child runtime `toolAllowlist` 已经减去 parent denylist 与 profile/request denylist
+    - child runtime config 中的 `toolDisallowlist`
+    - child runtime `toolAllowlist` 已经减去 parent denylist 与 profile/request denylist
 
 **Checklist**
 
 - [ ] 创建 child runtime config 时传入 `toolDisallowlist: this.config.toolDisallowlist`。
 - [ ] `resolveSubagentToolAllowlist` 合并 deny 来源：
-  - [ ] parent `this.config.toolDisallowlist`
-  - [ ] request/profile 层的 `disallowedTools`
+    - [ ] parent `this.config.toolDisallowlist`
+    - [ ] request/profile 层的 `disallowedTools`
 - [ ] `allowedTools: ["*"]` 展开时，从 `this.getTools()` 得到的 parent-visible tools 再扣掉合并 denylist。
 - [ ] 显式 `allowedTools: ["Bash"]` 时，如果 parent denylist 包含 `Bash`，结果不能包含 `Bash`。
 - [ ] 保持已有 subagent dispatch tool 自过滤逻辑，例如不把 Task/Agent 调度工具错误暴露给 child。

@@ -5,10 +5,10 @@ import { createContext, useContext, useMemo, useRef, type ReactNode } from "reac
 import type { SessionWorkflowRunSummary } from "@zcode/shared/zcode-protocol-v4";
 
 export interface WorkflowRunOpenTarget {
-  workspacePath: string;
-  workspaceIdentity?: string;
-  sessionId: string;
-  run: SessionWorkflowRunSummary;
+    workspacePath: string;
+    workspaceIdentity?: string;
+    sessionId: string;
+    run: SessionWorkflowRunSummary;
 }
 
 type WorkflowRunOpenHandler = (target: WorkflowRunOpenTarget) => void;
@@ -16,20 +16,23 @@ type WorkflowRunOpenHandler = (target: WorkflowRunOpenTarget) => void;
 const WorkflowRunOpenContext = createContext<WorkflowRunOpenHandler | null>(null);
 
 export function WorkflowRunOpenProvider({
-  onOpenRun,
-  children,
+    onOpenRun,
+    children,
 }: {
-  onOpenRun: WorkflowRunOpenHandler;
-  children: ReactNode;
+    onOpenRun: WorkflowRunOpenHandler;
+    children: ReactNode;
 }) {
-  const handlerRef = useRef(onOpenRun);
-  handlerRef.current = onOpenRun;
-  const stable = useMemo<WorkflowRunOpenHandler>(() => (target) => handlerRef.current(target), []);
-  return (
-    <WorkflowRunOpenContext.Provider value={stable}>{children}</WorkflowRunOpenContext.Provider>
-  );
+    const handlerRef = useRef(onOpenRun);
+    handlerRef.current = onOpenRun;
+    const stable = useMemo<WorkflowRunOpenHandler>(
+        () => (target) => handlerRef.current(target),
+        [],
+    );
+    return (
+        <WorkflowRunOpenContext.Provider value={stable}>{children}</WorkflowRunOpenContext.Provider>
+    );
 }
 
 export function useWorkflowRunOpen(): WorkflowRunOpenHandler | null {
-  return useContext(WorkflowRunOpenContext);
+    return useContext(WorkflowRunOpenContext);
 }

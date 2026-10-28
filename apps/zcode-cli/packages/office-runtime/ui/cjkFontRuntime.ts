@@ -1,14 +1,14 @@
 import { readBinary, readText } from "#ui/assets.ts";
 import {
-  CJK_UNICODE_RANGE,
-  FALLBACK_FAMILY,
-  FALLBACK_MANIFEST,
-  LOCAL_FONTS,
-  cjkFamilies,
-  familyOf,
-  withCjkFamilies,
-  type FaceKey,
-  type PdfFontLike,
+    CJK_UNICODE_RANGE,
+    FALLBACK_FAMILY,
+    FALLBACK_MANIFEST,
+    LOCAL_FONTS,
+    cjkFamilies,
+    familyOf,
+    withCjkFamilies,
+    type FaceKey,
+    type PdfFontLike,
 } from "#ui/cjkFonts.ts";
 
 /**
@@ -26,46 +26,48 @@ let fallbackReady = false;
  * is drawn.
  */
 export function prepareCjkFonts(): Promise<void> {
-  return (prepared ??= (async () => {
-    const found = await Promise.all(
-      Object.entries(LOCAL_FONTS).map(async ([key, names]) => {
-        const face = new FontFace(
-          familyOf(key as FaceKey),
-          names.map((name) => `local("${name}")`).join(", "),
-          { unicodeRange: CJK_UNICODE_RANGE },
+    return (prepared ??= (async () => {
+        const found = await Promise.all(
+            Object.entries(LOCAL_FONTS).map(async ([key, names]) => {
+                const face = new FontFace(
+                    familyOf(key as FaceKey),
+                    names.map((name) => `local("${name}")`).join(", "),
+                    { unicodeRange: CJK_UNICODE_RANGE },
+                );
+                try {
+                    await face.load();
+                    document.fonts.add(face);
+                    return true;
+                } catch {
+                    return false;
+                }
+            }),
         );
-        try {
-          await face.load();
-          document.fonts.add(face);
-          return true;
-        } catch {
-          return false;
-        }
-      }),
-    );
-    // 在首次绘制前决定并加载兜底字体：画布不会等字体，事后加载就得重画页面。
-    if (!found.some(Boolean)) fallbackReady = await loadFallback();
-  })());
+        // 在首次绘制前决定并加载兜底字体：画布不会等字体，事后加载就得重画页面。
+        if (!found.some(Boolean)) fallbackReady = await loadFallback();
+    })());
 }
 
 /** Register the bundled Noto Sans SC slices as `zcode-cjk-fallback`; false when that failed. */
 async function loadFallback(): Promise<boolean> {
-  try {
-    const manifest = JSON.parse(await readText(FALLBACK_MANIFEST)) as {
-      faces: { file: string; unicodeRange: string }[];
-    };
-    await Promise.all(
-      manifest.faces.map(async ({ file, unicodeRange }) => {
-        const face = new FontFace(FALLBACK_FAMILY, await readBinary(file), { unicodeRange });
-        await face.load();
-        document.fonts.add(face);
-      }),
-    );
-    return true;
-  } catch (error) {
-    console.warn("CJK fallback font", error);
-    return false;
-  }
+    try {
+        const manifest = JSON.parse(await readText(FALLBACK_MANIFEST)) as {
+            faces: { file: string; unicodeRange: string }[];
+        };
+        await Promise.all(
+            manifest.faces.map(async ({ file, unicodeRange }) => {
+                const face = new FontFace(FALLBACK_FAMILY, await readBinary(file), {
+                    unicodeRange,
+                });
+                await face.load();
+                document.fonts.add(face);
+            }),
+        );
+        return true;
+    } catch (error) {
+        console.warn("CJK fallback font", error);
+        return false;
+    }
 }
 
 /**
@@ -73,5 +75,5 @@ async function loadFallback(): Promise<boolean> {
  * has no file for get the `zcode-cjk-*` faces before its generic family.
  */
 export function pdfTypeface(font: PdfFontLike, css: string): string {
-  return withCjkFamilies(css, cjkFamilies(font, fallbackReady));
+    return withCjkFamilies(css, cjkFamilies(font, fallbackReady));
 }

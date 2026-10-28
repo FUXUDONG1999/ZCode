@@ -15,15 +15,15 @@
  * 走原路，绝不猜。
  */
 export function shouldOpenWorkflowArtifactInBrowser(params: {
-  contentType?: string;
-  supportsEmbeddedBrowser: boolean;
-  workspaceIdentity?: string;
-  remoteSessionId?: string;
+    contentType?: string;
+    supportsEmbeddedBrowser: boolean;
+    workspaceIdentity?: string;
+    remoteSessionId?: string;
 }): boolean {
-  return (
-    params.contentType === "text/html" &&
-    params.supportsEmbeddedBrowser &&
-    !params.workspaceIdentity?.trim() &&
-    !params.remoteSessionId
-  );
+    return (
+        params.contentType === "text/html" &&
+        params.supportsEmbeddedBrowser &&
+        !params.workspaceIdentity?.trim() &&
+        !params.remoteSessionId
+    );
 }

@@ -1,7 +1,7 @@
 import {
-  redactTelemetryText,
-  type ArmsCustomEventPayload,
-  type IPlatformService,
+    redactTelemetryText,
+    type ArmsCustomEventPayload,
+    type IPlatformService,
 } from "@zcode/shared";
 import { logger } from "@/logger.js";
 
@@ -29,11 +29,11 @@ let armsReporter: ArmsReporter | null = null;
  * Root effect 注入，Root 首帧就崩时 effect 从未执行，根级错误依旧丢失。
  */
 export function setReactErrorArmsReporter(reporter: ArmsReporter | null): void {
-  armsReporter = reporter;
+    armsReporter = reporter;
 }
 
 export function clearReactErrorArmsReporterForTest(): void {
-  armsReporter = null;
+    armsReporter = null;
 }
 
 /**
@@ -43,29 +43,29 @@ export function clearReactErrorArmsReporterForTest(): void {
  * 保证最近的抛错组件一定上得去。
  */
 function redactStack(value: string): string {
-  return redactTelemetryText(value, { maxLength: REACT_ERROR_STACK_MAX_LEN });
+    return redactTelemetryText(value, { maxLength: REACT_ERROR_STACK_MAX_LEN });
 }
 
 function buildReactErrorArmsPayload(params: {
-  error: Error;
-  componentStack: string;
-  scope?: string;
+    error: Error;
+    componentStack: string;
+    scope?: string;
 }): ArmsCustomEventPayload {
-  const errorStack = params.error.stack ? redactStack(params.error.stack) : undefined;
-  const componentStack = params.componentStack ? redactStack(params.componentStack) : undefined;
-  return {
-    name: REACT_ERROR_ARMS_EVENT_NAME,
-    group: REACT_ERROR_ARMS_GROUP,
-    value: 1,
-    properties: {
-      error_name: params.error.name,
-      error_message: redactTelemetryText(params.error.message),
-      error_stack: errorStack || undefined,
-      component_stack: componentStack || undefined,
-      // 根级边界无 scope，统一记为 app；scoped 边界用各自的 scope 区分 sidebar/chat/settings 等。
-      boundary_scope: params.scope ?? "app",
-    },
-  };
+    const errorStack = params.error.stack ? redactStack(params.error.stack) : undefined;
+    const componentStack = params.componentStack ? redactStack(params.componentStack) : undefined;
+    return {
+        name: REACT_ERROR_ARMS_EVENT_NAME,
+        group: REACT_ERROR_ARMS_GROUP,
+        value: 1,
+        properties: {
+            error_name: params.error.name,
+            error_message: redactTelemetryText(params.error.message),
+            error_stack: errorStack || undefined,
+            component_stack: componentStack || undefined,
+            // 根级边界无 scope，统一记为 app；scoped 边界用各自的 scope 区分 sidebar/chat/settings 等。
+            boundary_scope: params.scope ?? "app",
+        },
+    };
 }
 
 /**
@@ -77,27 +77,27 @@ function buildReactErrorArmsPayload(params: {
  * 与 perf_crash 同一条 ARMS 自定义事件干道，补上这块盲区。
  */
 export function reportReactErrorToArms(params: {
-  error: Error;
-  componentStack: string;
-  scope?: string;
+    error: Error;
+    componentStack: string;
+    scope?: string;
 }): void {
-  if (!armsReporter) {
-    return;
-  }
+    if (!armsReporter) {
+        return;
+    }
 
-  try {
-    const payload = buildReactErrorArmsPayload(params);
-    void Promise.resolve(armsReporter.reportArmsCustomEvent(payload)).catch((error) => {
-      // 原因：ARMS 属观测链路，错误边界的 fallback 恢复流程不得因埋点失败而中断。
-      logger.warn("[react-error] ARMS 自定义事件上报失败", {
-        scope: params.scope ?? "app",
-        error: error instanceof Error ? error.message : String(error),
-      });
-    });
-  } catch (error) {
-    logger.warn("[react-error] ARMS 自定义事件上报异常", {
-      scope: params.scope ?? "app",
-      error: error instanceof Error ? error.message : String(error),
-    });
-  }
+    try {
+        const payload = buildReactErrorArmsPayload(params);
+        void Promise.resolve(armsReporter.reportArmsCustomEvent(payload)).catch((error) => {
+            // 原因：ARMS 属观测链路，错误边界的 fallback 恢复流程不得因埋点失败而中断。
+            logger.warn("[react-error] ARMS 自定义事件上报失败", {
+                scope: params.scope ?? "app",
+                error: error instanceof Error ? error.message : String(error),
+            });
+        });
+    } catch (error) {
+        logger.warn("[react-error] ARMS 自定义事件上报异常", {
+            scope: params.scope ?? "app",
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
 }

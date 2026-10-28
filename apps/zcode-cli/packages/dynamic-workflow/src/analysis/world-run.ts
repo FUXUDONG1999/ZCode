@@ -18,10 +18,10 @@ import type { SiteTable } from "./sites.js";
 export const WORLD_RUN_LITERAL_CODE = 9003;
 
 export interface WorldRunCommands {
-  /** 脚本声明的命令集：去重、字典序（确认窗与 driver 复验共用的形状）。 */
-  commands: string[];
-  /** 非字面量 cmd 的定位诊断；非空即脚本不可提交。 */
-  diagnostics: CompileDiagnostic[];
+    /** 脚本声明的命令集：去重、字典序（确认窗与 driver 复验共用的形状）。 */
+    commands: string[];
+    /** 非字面量 cmd 的定位诊断；非空即脚本不可提交。 */
+    diagnostics: CompileDiagnostic[];
 }
 
 /**
@@ -29,31 +29,31 @@ export interface WorldRunCommands {
  * `` `lean` ``——`ts.isStringLiteralLike` 覆盖两者；带洞模板与任意表达式都拒绝）。
  */
 export function collectWorldRunCommands(
-  workflow: WorkflowProgram,
-  table: SiteTable,
+    workflow: WorkflowProgram,
+    table: SiteTable,
 ): WorldRunCommands {
-  const commands = new Set<string>();
-  const diagnostics: CompileDiagnostic[] = [];
-  for (const site of table.worldReads) {
-    if (site.op !== "run") continue;
-    const cmd = site.args[0];
-    if (cmd !== undefined && ts.isStringLiteralLike(cmd)) {
-      commands.add(cmd.text);
-      continue;
+    const commands = new Set<string>();
+    const diagnostics: CompileDiagnostic[] = [];
+    for (const site of table.worldReads) {
+        if (site.op !== "run") continue;
+        const cmd = site.args[0];
+        if (cmd !== undefined && ts.isStringLiteralLike(cmd)) {
+            commands.add(cmd.text);
+            continue;
+        }
+        // 元数错误（cmd 缺席）由类型检查先拦：能走到这里的缺席意味着调用点连编译都不该过，
+        // 但诊断收集不该依赖这条推断——按站点位置报，宁可多一条可定位的错误。
+        const loc = cmd === undefined ? site.loc : workflow.toScriptLoc(cmd.getStart());
+        diagnostics.push({
+            code: WORLD_RUN_LITERAL_CODE,
+            column: loc.column,
+            line: loc.line,
+            message:
+                'world.run\'s first argument must be a compile-time string literal ("lean" or a ' +
+                "no-substitution template): the script's command set is shown to the user at " +
+                "confirmation and only those commands are executable. Move the command name out of " +
+                "the variable/template, and put runtime values in the args array instead.",
+        });
     }
-    // 元数错误（cmd 缺席）由类型检查先拦：能走到这里的缺席意味着调用点连编译都不该过，
-    // 但诊断收集不该依赖这条推断——按站点位置报，宁可多一条可定位的错误。
-    const loc = cmd === undefined ? site.loc : workflow.toScriptLoc(cmd.getStart());
-    diagnostics.push({
-      code: WORLD_RUN_LITERAL_CODE,
-      column: loc.column,
-      line: loc.line,
-      message:
-        'world.run\'s first argument must be a compile-time string literal ("lean" or a ' +
-        "no-substitution template): the script's command set is shown to the user at " +
-        "confirmation and only those commands are executable. Move the command name out of " +
-        "the variable/template, and put runtime values in the args array instead.",
-    });
-  }
-  return { commands: [...commands].sort(), diagnostics };
+    return { commands: [...commands].sort(), diagnostics };
 }

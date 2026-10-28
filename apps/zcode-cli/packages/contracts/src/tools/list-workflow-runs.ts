@@ -13,20 +13,20 @@ export const LIST_WORKFLOW_RUNS_TOOL_NAME = "ListWorkflowRuns";
  * 两处一旦分叉，症状是模型传下来的合法状态被工具拒掉——所以端口那一侧的注释也指回这里。
  */
 export const WORKFLOW_RUN_LIFECYCLE_STATUSES = [
-  "completed",
-  "errored",
-  "pending",
-  "running",
-  "stopped",
+    "completed",
+    "errored",
+    "pending",
+    "running",
+    "stopped",
 ] as const;
 
 /** `stopped` 的原因（端口 `DynamicWorkflowRunStopReason` 的 zod 面）。 */
 export const WORKFLOW_RUN_STOP_REASONS = [
-  "user",
-  "model",
-  "provider",
-  "interrupted",
-  "superseded",
+    "user",
+    "model",
+    "provider",
+    "interrupted",
+    "superseded",
 ] as const;
 
 /** limit 的界与默认值。50 是「run 是低基数实体」下不需要游标分页的那个上限。 */
@@ -35,20 +35,20 @@ export const LIST_WORKFLOW_RUNS_MAX_LIMIT = 50;
 export const LIST_WORKFLOW_RUNS_DEFAULT_LIMIT = 20;
 
 export const ListWorkflowRunsInputSchema = z
-  .object({
-    limit: clampedLimit().describe(
-      `Maximum number of runs to return (${LIST_WORKFLOW_RUNS_MIN_LIMIT}-${LIST_WORKFLOW_RUNS_MAX_LIMIT}, default ${LIST_WORKFLOW_RUNS_DEFAULT_LIMIT}). Most recently updated runs come first.`,
-    ),
-    statuses: z
-      .array(z.enum(WORKFLOW_RUN_LIFECYCLE_STATUSES))
-      .optional()
-      .describe(
-        'Optional status filter. Omit to see every run in this project. Pass ["running", "pending"] to see only what is still in flight.',
-      ),
-  })
-  // 刻意没有 cwd 输入：工具恒查当前会话的工作目录（模型无权跨项目扫库，这同时是
-  // `sideEffectScope: "none"` 成立的前提）。.strict() 让"多传一个 cwd"成为可见错误。
-  .strict();
+    .object({
+        limit: clampedLimit().describe(
+            `Maximum number of runs to return (${LIST_WORKFLOW_RUNS_MIN_LIMIT}-${LIST_WORKFLOW_RUNS_MAX_LIMIT}, default ${LIST_WORKFLOW_RUNS_DEFAULT_LIMIT}). Most recently updated runs come first.`,
+        ),
+        statuses: z
+            .array(z.enum(WORKFLOW_RUN_LIFECYCLE_STATUSES))
+            .optional()
+            .describe(
+                'Optional status filter. Omit to see every run in this project. Pass ["running", "pending"] to see only what is still in flight.',
+            ),
+    })
+    // 刻意没有 cwd 输入：工具恒查当前会话的工作目录（模型无权跨项目扫库，这同时是
+    // `sideEffectScope: "none"` 成立的前提）。.strict() 让"多传一个 cwd"成为可见错误。
+    .strict();
 
 export type ListWorkflowRunsInput = z.infer<typeof ListWorkflowRunsInputSchema>;
 
@@ -62,39 +62,39 @@ export const ListWorkflowRunsInputJsonSchema = toToolJsonSchema(ListWorkflowRuns
  * 因为列表就是这个截面最浅的投影；详情按它 extend。
  */
 export const WorkflowRunSummarySchema = z.object({
-  runId: z.string().min(1),
-  /** 已烹熟的展示标签（name → 脚本首行 → runId 由服务侧派生）。 */
-  label: z.string(),
-  /** `"name"` = 用户起的名字；`"script"` = 读时从脚本派生（含 runId 兜底）。 */
-  labelSource: z.enum(["name", "script"]),
-  status: z.enum(WORKFLOW_RUN_LIFECYCLE_STATUSES),
-  /** `status === "stopped"` 才在场。 */
-  stopReason: z.enum(WORKFLOW_RUN_STOP_REASONS).optional(),
-  /** 本 run 修订自哪个 run（`dwf_run.resumed_from`）；不是修订则缺席。 */
-  resumedFrom: z.string().min(1).optional(),
-  /** 本 run 被哪次修订停下并替代（`stopped(superseded)` 的结算袋）；未被替代则缺席。 */
-  supersededBy: z.string().min(1).optional(),
-  ownedByThisSession: z.boolean(),
-  /** 「本会话无法证实它还活着」的标注，为真时才在场。绝不是状态改写。 */
-  possiblyInterrupted: z.boolean().optional(),
-  /** epoch ms（journal 的 time_created / time_updated）。 */
-  createdAt: z.number(),
-  updatedAt: z.number(),
+    runId: z.string().min(1),
+    /** 已烹熟的展示标签（name → 脚本首行 → runId 由服务侧派生）。 */
+    label: z.string(),
+    /** `"name"` = 用户起的名字；`"script"` = 读时从脚本派生（含 runId 兜底）。 */
+    labelSource: z.enum(["name", "script"]),
+    status: z.enum(WORKFLOW_RUN_LIFECYCLE_STATUSES),
+    /** `status === "stopped"` 才在场。 */
+    stopReason: z.enum(WORKFLOW_RUN_STOP_REASONS).optional(),
+    /** 本 run 修订自哪个 run（`dwf_run.resumed_from`）；不是修订则缺席。 */
+    resumedFrom: z.string().min(1).optional(),
+    /** 本 run 被哪次修订停下并替代（`stopped(superseded)` 的结算袋）；未被替代则缺席。 */
+    supersededBy: z.string().min(1).optional(),
+    ownedByThisSession: z.boolean(),
+    /** 「本会话无法证实它还活着」的标注，为真时才在场。绝不是状态改写。 */
+    possiblyInterrupted: z.boolean().optional(),
+    /** epoch ms（journal 的 time_created / time_updated）。 */
+    createdAt: z.number(),
+    updatedAt: z.number(),
 });
 
 export const ListWorkflowRunsRunSchema = WorkflowRunSummarySchema.extend({
-  spentTokens: z.number(),
+    spentTokens: z.number(),
 }).strict();
 
 export type ListWorkflowRunsRun = z.infer<typeof ListWorkflowRunsRunSchema>;
 
 export const ListWorkflowRunsOutputSchema = z
-  .object({
-    runs: z.array(ListWorkflowRunsRunSchema),
-    /** 还有更多 run 没进这一页（按 limit+1 探到）。为真时才在场。 */
-    truncated: z.boolean().optional(),
-  })
-  .strict();
+    .object({
+        runs: z.array(ListWorkflowRunsRunSchema),
+        /** 还有更多 run 没进这一页（按 limit+1 探到）。为真时才在场。 */
+        truncated: z.boolean().optional(),
+    })
+    .strict();
 
 export type ListWorkflowRunsOutput = z.infer<typeof ListWorkflowRunsOutputSchema>;
 
@@ -111,11 +111,11 @@ export const ListWorkflowRunsOutputJsonSchema = toToolJsonSchema(ListWorkflowRun
  * timeout）。
  */
 function clampedLimit(): z.ZodEffects<z.ZodDefault<z.ZodNumber>, number, unknown> {
-  return z.preprocess((value) => {
-    if (typeof value !== "number" || !Number.isFinite(value)) return value;
-    return Math.min(
-      LIST_WORKFLOW_RUNS_MAX_LIMIT,
-      Math.max(LIST_WORKFLOW_RUNS_MIN_LIMIT, Math.trunc(value)),
-    );
-  }, z.number().int().min(LIST_WORKFLOW_RUNS_MIN_LIMIT).max(LIST_WORKFLOW_RUNS_MAX_LIMIT).default(LIST_WORKFLOW_RUNS_DEFAULT_LIMIT));
+    return z.preprocess((value) => {
+        if (typeof value !== "number" || !Number.isFinite(value)) return value;
+        return Math.min(
+            LIST_WORKFLOW_RUNS_MAX_LIMIT,
+            Math.max(LIST_WORKFLOW_RUNS_MIN_LIMIT, Math.trunc(value)),
+        );
+    }, z.number().int().min(LIST_WORKFLOW_RUNS_MIN_LIMIT).max(LIST_WORKFLOW_RUNS_MAX_LIMIT).default(LIST_WORKFLOW_RUNS_DEFAULT_LIMIT));
 }

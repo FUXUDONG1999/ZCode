@@ -9,37 +9,37 @@
 // 透传到 JSON-RPC `error.data.code`；客户端读回时用 readZCodeAttachmentFaultCode。
 
 export const ZCODE_ATTACHMENT_FAULT_CODES = {
-  /** host 未实现 stat 能力。 */
-  statUnsupported: "fault.attachment.statUnsupported",
-  /** host 未实现读取能力。 */
-  readUnsupported: "fault.attachment.readUnsupported",
-  /** ref 指向的路径存在但不是普通文件。 */
-  statNotFile: "fault.attachment.statNotFile",
-  /** share stat 的目标行/ref 不在当前会话投影里，拒绝授权。 */
-  shareStatNotAuthorized: "fault.attachment.shareStatNotAuthorized",
-  /** share read 的目标行/ref 不在当前会话投影里，拒绝授权。 */
-  shareReadNotAuthorized: "fault.attachment.shareReadNotAuthorized",
-  /** share stat 所在连接不受信。 */
-  shareStatConnectionUntrusted: "fault.attachment.shareStatConnectionUntrusted",
-  /** share read 所在连接不受信。 */
-  shareReadConnectionUntrusted: "fault.attachment.shareReadConnectionUntrusted",
-  /** 附件已从磁盘消失（ENOENT 等确定性缺失）。 */
-  shareStatNotFound: "fault.attachment.shareStatNotFound",
-  /** 附件真实大小超出 stat 协议能表达的上界。 */
-  shareStatTooLarge: "fault.attachment.shareStatTooLarge",
-  /** 附件字节数超出预览/读取通道上限，无法搬运。 */
-  previewTooLarge: "fault.attachment.previewTooLarge",
-  /** 读取结果不是可预览媒体类型。 */
-  previewNotMedia: "fault.attachment.previewNotMedia",
+    /** host 未实现 stat 能力。 */
+    statUnsupported: "fault.attachment.statUnsupported",
+    /** host 未实现读取能力。 */
+    readUnsupported: "fault.attachment.readUnsupported",
+    /** ref 指向的路径存在但不是普通文件。 */
+    statNotFile: "fault.attachment.statNotFile",
+    /** share stat 的目标行/ref 不在当前会话投影里，拒绝授权。 */
+    shareStatNotAuthorized: "fault.attachment.shareStatNotAuthorized",
+    /** share read 的目标行/ref 不在当前会话投影里，拒绝授权。 */
+    shareReadNotAuthorized: "fault.attachment.shareReadNotAuthorized",
+    /** share stat 所在连接不受信。 */
+    shareStatConnectionUntrusted: "fault.attachment.shareStatConnectionUntrusted",
+    /** share read 所在连接不受信。 */
+    shareReadConnectionUntrusted: "fault.attachment.shareReadConnectionUntrusted",
+    /** 附件已从磁盘消失（ENOENT 等确定性缺失）。 */
+    shareStatNotFound: "fault.attachment.shareStatNotFound",
+    /** 附件真实大小超出 stat 协议能表达的上界。 */
+    shareStatTooLarge: "fault.attachment.shareStatTooLarge",
+    /** 附件字节数超出预览/读取通道上限，无法搬运。 */
+    previewTooLarge: "fault.attachment.previewTooLarge",
+    /** 读取结果不是可预览媒体类型。 */
+    previewNotMedia: "fault.attachment.previewNotMedia",
 } as const;
 
 export type ZCodeAttachmentFaultCode =
-  (typeof ZCODE_ATTACHMENT_FAULT_CODES)[keyof typeof ZCODE_ATTACHMENT_FAULT_CODES];
+    (typeof ZCODE_ATTACHMENT_FAULT_CODES)[keyof typeof ZCODE_ATTACHMENT_FAULT_CODES];
 
 const KNOWN_FAULT_CODES = new Set<string>(Object.values(ZCODE_ATTACHMENT_FAULT_CODES));
 
 export function isZCodeAttachmentFaultCode(value: unknown): value is ZCodeAttachmentFaultCode {
-  return typeof value === "string" && KNOWN_FAULT_CODES.has(value);
+    return typeof value === "string" && KNOWN_FAULT_CODES.has(value);
 }
 
 /**
@@ -47,17 +47,17 @@ export function isZCodeAttachmentFaultCode(value: unknown): value is ZCodeAttach
  * JSON-RPC `error.data.code`，因此同进程与跨进程都能按码分类。
  */
 export class ZCodeAttachmentFaultError extends Error {
-  readonly code: ZCodeAttachmentFaultCode;
+    readonly code: ZCodeAttachmentFaultCode;
 
-  constructor(code: ZCodeAttachmentFaultCode, options?: { cause?: unknown; message?: string }) {
-    // message 默认就是 fault 码本身，旧版本客户端的文本匹配仍能命中。
-    super(
-      options?.message ?? code,
-      options?.cause === undefined ? undefined : { cause: options.cause },
-    );
-    this.name = "ZCodeAttachmentFaultError";
-    this.code = code;
-  }
+    constructor(code: ZCodeAttachmentFaultCode, options?: { cause?: unknown; message?: string }) {
+        // message 默认就是 fault 码本身，旧版本客户端的文本匹配仍能命中。
+        super(
+            options?.message ?? code,
+            options?.cause === undefined ? undefined : { cause: options.cause },
+        );
+        this.name = "ZCodeAttachmentFaultError";
+        this.code = code;
+    }
 }
 
 /**
@@ -67,15 +67,15 @@ export class ZCodeAttachmentFaultError extends Error {
  * - 旧版本 CLI 只有消息文本时的兼容兜底（见下方注释）。
  */
 export function readZCodeAttachmentFaultCode(error: unknown): ZCodeAttachmentFaultCode | undefined {
-  if (!error || typeof error !== "object") return undefined;
-  const candidate = error as { code?: unknown; data?: unknown };
-  if (isZCodeAttachmentFaultCode(candidate.code)) return candidate.code;
-  if (candidate.data && typeof candidate.data === "object") {
-    const data = candidate.data as { code?: unknown };
-    if (isZCodeAttachmentFaultCode(data.code)) return data.code;
-  }
-  // 兼容兜底：桌面端可能连接尚未带结构化 code 的旧 zcode-cli。仅在消息「整体等于」
-  // 某个 fault 码时命中，不做模糊匹配，避免把包装后的任意文本误判成确定分类。
-  if (error instanceof Error && isZCodeAttachmentFaultCode(error.message)) return error.message;
-  return undefined;
+    if (!error || typeof error !== "object") return undefined;
+    const candidate = error as { code?: unknown; data?: unknown };
+    if (isZCodeAttachmentFaultCode(candidate.code)) return candidate.code;
+    if (candidate.data && typeof candidate.data === "object") {
+        const data = candidate.data as { code?: unknown };
+        if (isZCodeAttachmentFaultCode(data.code)) return data.code;
+    }
+    // 兼容兜底：桌面端可能连接尚未带结构化 code 的旧 zcode-cli。仅在消息「整体等于」
+    // 某个 fault 码时命中，不做模糊匹配，避免把包装后的任意文本误判成确定分类。
+    if (error instanceof Error && isZCodeAttachmentFaultCode(error.message)) return error.message;
+    return undefined;
 }

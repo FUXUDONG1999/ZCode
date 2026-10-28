@@ -305,18 +305,18 @@ declare const args: Readonly<Record<string, unknown>>;
 `;
 
 export const FACADE_DTS =
-  FACADE_ACTOR_SEGMENT +
-  FACADE_ARGS_SEGMENT +
-  FACADE_LOG_SEGMENT +
-  FACADE_REPORT_SEGMENT +
-  FACADE_ARTIFACT_SEGMENT +
-  FACADE_PHASE_SEGMENT +
-  // 留白段只进完整 facade（docs/dynamic-workflow/authoring.md「Holes」）：片段没有 run，也就
-  // 没有可等主代理补全的东西，snippet 里的 `hole(...)` 得到 TS2304，教删除。
-  FACADE_HOLE_SEGMENT +
-  FACADE_WORLD_SEGMENT +
-  FACADE_WORLD_RUN_SEGMENT +
-  FACADE_STREAM_SEGMENT;
+    FACADE_ACTOR_SEGMENT +
+    FACADE_ARGS_SEGMENT +
+    FACADE_LOG_SEGMENT +
+    FACADE_REPORT_SEGMENT +
+    FACADE_ARTIFACT_SEGMENT +
+    FACADE_PHASE_SEGMENT +
+    // 留白段只进完整 facade（docs/dynamic-workflow/authoring.md「Holes」）：片段没有 run，也就
+    // 没有可等主代理补全的东西，snippet 里的 `hole(...)` 得到 TS2304，教删除。
+    FACADE_HOLE_SEGMENT +
+    FACADE_WORLD_SEGMENT +
+    FACADE_WORLD_RUN_SEGMENT +
+    FACADE_STREAM_SEGMENT;
 
 /**
  * snippet（EvalWorkflowSnippet）的 scratch facade：生产 facade 减去 actor 族 / report /
@@ -331,8 +331,8 @@ export const FACADE_DTS =
  * snippet 编译通过却什么都不做。
  */
 export const SNIPPET_FACADE_DTS =
-  FACADE_ARGS_SEGMENT +
-  FACADE_LOG_SEGMENT +
-  FACADE_WORLD_SEGMENT +
-  FACADE_WORLD_RUN_SEGMENT +
-  FACADE_STREAM_SEGMENT;
+    FACADE_ARGS_SEGMENT +
+    FACADE_LOG_SEGMENT +
+    FACADE_WORLD_SEGMENT +
+    FACADE_WORLD_RUN_SEGMENT +
+    FACADE_STREAM_SEGMENT;

@@ -5,7 +5,7 @@ import type { ExecutionPort } from "@zcode/contracts";
 export class NodeExecutionAdapter extends NodeExecutionAdapterLifecycle implements ExecutionPort {}
 
 export function createNodeExecutionAdapter(
-  options: NodeExecutionAdapterOptions = {},
+    options: NodeExecutionAdapterOptions = {},
 ): ExecutionPort {
-  return new NodeExecutionAdapter(options);
+    return new NodeExecutionAdapter(options);
 }

@@ -14,35 +14,35 @@ import { formatProviderModelLabel } from "@/v4/composer/modelTriggerDisplay.js";
  * 纯函数 + 注入的 formatMessage / providerName：与 timeline-summary 同一条纪律，本文件不碰 store。
  */
 type FormatMessage = (
-  descriptor: { id: string },
-  values?: Record<string, string | number>,
+    descriptor: { id: string },
+    values?: Record<string, string | number>,
 ) => string;
 
 export interface WorkflowSubagentModelLabel {
-  /** 屏幕上的模型名；**永远不含 providerId**。 */
-  name: string;
-  /** 本地化的思考强度词；规范串没有 `$level` 时缺席。 */
-  level?: string;
-  /** 规范串原文（trim 过），只进 tooltip。 */
-  canonical: string;
+    /** 屏幕上的模型名；**永远不含 providerId**。 */
+    name: string;
+    /** 本地化的思考强度词；规范串没有 `$level` 时缺席。 */
+    level?: string;
+    /** 规范串原文（trim 过），只进 tooltip。 */
+    canonical: string;
 }
 
 export interface WorkflowSubagentModelDeps {
-  formatMessage: FormatMessage;
-  /**
-   * providerId → 会话模型清单里的 provider 名。缺席（或查不到）时退回裸 modelId——
-   * 这是**刻意**的兜底：解析不到名字也绝不把 providerId 摆出来。
-   */
-  providerName?: (providerId: string) => string | undefined;
+    formatMessage: FormatMessage;
+    /**
+     * providerId → 会话模型清单里的 provider 名。缺席（或查不到）时退回裸 modelId——
+     * 这是**刻意**的兜底：解析不到名字也绝不把 providerId 摆出来。
+     */
+    providerName?: (providerId: string) => string | undefined;
 }
 
 /** 解析不出结构时的兜底取名：砍掉 `providerId/` 前缀与 `$level` 后缀，剩下的就是人能读的那截。 */
 function fallbackName(canonical: string): string {
-  const separatorIndex = canonical.indexOf("/");
-  const rest = separatorIndex > 0 ? canonical.slice(separatorIndex + 1) : canonical;
-  const levelIndex = rest.indexOf("$");
-  const name = levelIndex > 0 ? rest.slice(0, levelIndex) : rest;
-  return name.length > 0 ? name : canonical;
+    const separatorIndex = canonical.indexOf("/");
+    const rest = separatorIndex > 0 ? canonical.slice(separatorIndex + 1) : canonical;
+    const levelIndex = rest.indexOf("$");
+    const name = levelIndex > 0 ? rest.slice(0, levelIndex) : rest;
+    return name.length > 0 ? name : canonical;
 }
 
 /**
@@ -50,51 +50,51 @@ function fallbackName(canonical: string): string {
  * 解析器，拿不准就退回裸 modelId。
  */
 export function describeWorkflowSubagentModel(
-  canonical: string,
-  deps: WorkflowSubagentModelDeps,
+    canonical: string,
+    deps: WorkflowSubagentModelDeps,
 ): WorkflowSubagentModelLabel {
-  const trimmed = canonical.trim();
-  let parsed: ReturnType<typeof parseModelPickerValue> | undefined;
-  try {
-    parsed = parseModelPickerValue(trimmed);
-  } catch {
-    parsed = undefined;
-  }
-  if (parsed === undefined) {
-    return { canonical: trimmed, name: fallbackName(trimmed) };
-  }
+    const trimmed = canonical.trim();
+    let parsed: ReturnType<typeof parseModelPickerValue> | undefined;
+    try {
+        parsed = parseModelPickerValue(trimmed);
+    } catch {
+        parsed = undefined;
+    }
+    if (parsed === undefined) {
+        return { canonical: trimmed, name: fallbackName(trimmed) };
+    }
 
-  // 会话清单里 providerName 查不到时会退回 providerId 本身（见 zcodeSessionSettingsToConfigOptions）；
-  // 那种「名字」正是我们要挡的东西，当作没查到。
-  const resolvedName = deps.providerName?.(parsed.providerId)?.trim();
-  const providerName =
-    resolvedName === undefined || resolvedName === parsed.providerId ? undefined : resolvedName;
-  const name = formatProviderModelLabel(parsed.providerId, providerName, parsed.modelId);
+    // 会话清单里 providerName 查不到时会退回 providerId 本身（见 zcodeSessionSettingsToConfigOptions）；
+    // 那种「名字」正是我们要挡的东西，当作没查到。
+    const resolvedName = deps.providerName?.(parsed.providerId)?.trim();
+    const providerName =
+        resolvedName === undefined || resolvedName === parsed.providerId ? undefined : resolvedName;
+    const name = formatProviderModelLabel(parsed.providerId, providerName, parsed.modelId);
 
-  const rawLevel = parsed.options?.reasoningLevel;
-  if (rawLevel === undefined) {
-    return { canonical: trimmed, name };
-  }
-  // 档位词与思考控件同一张表；表里没有的值原样显示（provider 自定义的档位名）。
-  const labelId = thoughtLevelLabelId(rawLevel);
-  return {
-    canonical: trimmed,
-    level: labelId === undefined ? rawLevel : deps.formatMessage({ id: labelId }),
-    name,
-  };
+    const rawLevel = parsed.options?.reasoningLevel;
+    if (rawLevel === undefined) {
+        return { canonical: trimmed, name };
+    }
+    // 档位词与思考控件同一张表；表里没有的值原样显示（provider 自定义的档位名）。
+    const labelId = thoughtLevelLabelId(rawLevel);
+    return {
+        canonical: trimmed,
+        level: labelId === undefined ? rawLevel : deps.formatMessage({ id: labelId }),
+        name,
+    };
 }
 
 /** 一句话说清模型与强度：没有档位时就是模型名本身（确认窗与 tooltip 共用）。 */
 export function workflowSubagentModelText(
-  formatMessage: FormatMessage,
-  label: WorkflowSubagentModelLabel,
+    formatMessage: FormatMessage,
+    label: WorkflowSubagentModelLabel,
 ): string {
-  return label.level === undefined
-    ? label.name
-    : formatMessage(
-        { id: "chat.toolCall.workflow.subagentModel.withLevel" },
-        { level: label.level, model: label.name },
-      );
+    return label.level === undefined
+        ? label.name
+        : formatMessage(
+              { id: "chat.toolCall.workflow.subagentModel.withLevel" },
+              { level: label.level, model: label.name },
+          );
 }
 
 /**
@@ -102,14 +102,14 @@ export function workflowSubagentModelText(
  * 规范串是给机器回填用的，它只该在这里出现。
  */
 export function workflowSubagentModelTooltip(
-  formatMessage: FormatMessage,
-  label: WorkflowSubagentModelLabel,
+    formatMessage: FormatMessage,
+    label: WorkflowSubagentModelLabel,
 ): string {
-  const explained = formatMessage(
-    { id: "chat.toolCall.workflow.subagentModel.tooltip" },
-    { model: workflowSubagentModelText(formatMessage, label) },
-  );
-  return `${explained}\n${label.canonical}`;
+    const explained = formatMessage(
+        { id: "chat.toolCall.workflow.subagentModel.tooltip" },
+        { model: workflowSubagentModelText(formatMessage, label) },
+    );
+    return `${explained}\n${label.canonical}`;
 }
 
 /**
@@ -117,14 +117,14 @@ export function workflowSubagentModelTooltip(
  * run 没指定过模型时缺席——跟随会话模型是常态，没有可说的。
  */
 export function workflowSubagentModelCardLabel(
-  canonical: string | undefined,
-  deps: WorkflowSubagentModelDeps,
+    canonical: string | undefined,
+    deps: WorkflowSubagentModelDeps,
 ): { name: string; title: string } | undefined {
-  if (canonical === undefined) {
-    return undefined;
-  }
-  const label = describeWorkflowSubagentModel(canonical, deps);
-  return { name: label.name, title: workflowSubagentModelTooltip(deps.formatMessage, label) };
+    if (canonical === undefined) {
+        return undefined;
+    }
+    const label = describeWorkflowSubagentModel(canonical, deps);
+    return { name: label.name, title: workflowSubagentModelTooltip(deps.formatMessage, label) };
 }
 
 /**
@@ -133,17 +133,17 @@ export function workflowSubagentModelCardLabel(
  * 索引一次，行只查不算。跑在 run 模型上的子代理不进表——摘要行已经说过那个模型。
  */
 export function workflowActorModelLabels(
-  actors: readonly { siteId: string; ordinal: number; model?: string }[] | undefined,
-  deps: WorkflowSubagentModelDeps,
+    actors: readonly { siteId: string; ordinal: number; model?: string }[] | undefined,
+    deps: WorkflowSubagentModelDeps,
 ): ReadonlyMap<string, { name: string; canonical: string }> {
-  const labels = new Map<string, { name: string; canonical: string }>();
-  for (const actor of actors ?? []) {
-    if (actor.model === undefined) continue;
-    const label = describeWorkflowSubagentModel(actor.model, deps);
-    labels.set(`${actor.siteId}@${actor.ordinal}`, {
-      name: label.name,
-      canonical: label.canonical,
-    });
-  }
-  return labels;
+    const labels = new Map<string, { name: string; canonical: string }>();
+    for (const actor of actors ?? []) {
+        if (actor.model === undefined) continue;
+        const label = describeWorkflowSubagentModel(actor.model, deps);
+        labels.set(`${actor.siteId}@${actor.ordinal}`, {
+            name: label.name,
+            canonical: label.canonical,
+        });
+    }
+    return labels;
 }

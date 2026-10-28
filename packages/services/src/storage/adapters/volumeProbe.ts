@@ -8,34 +8,34 @@ import type { StorageVolume } from "@zcode/shared";
 import type { VolumeProbePort } from "../app/ports.js";
 
 export async function probeStorageVolume(path: string): Promise<StorageVolume | null> {
-  try {
-    const deviceId = (await stat(path)).dev;
-    let mountPoint = path;
-    // 逐级向上：父目录仍在同一 dev 上就继续；到根或 dev 变化即为挂载点（Windows 会停在盘符根）。
-    for (;;) {
-      const parent = dirname(mountPoint);
-      if (parent === mountPoint) break;
-      let parentDev: number | bigint;
-      try {
-        parentDev = (await stat(parent)).dev;
-      } catch {
-        break;
-      }
-      if (parentDev !== deviceId) break;
-      mountPoint = parent;
+    try {
+        const deviceId = (await stat(path)).dev;
+        let mountPoint = path;
+        // 逐级向上：父目录仍在同一 dev 上就继续；到根或 dev 变化即为挂载点（Windows 会停在盘符根）。
+        for (;;) {
+            const parent = dirname(mountPoint);
+            if (parent === mountPoint) break;
+            let parentDev: number | bigint;
+            try {
+                parentDev = (await stat(parent)).dev;
+            } catch {
+                break;
+            }
+            if (parentDev !== deviceId) break;
+            mountPoint = parent;
+        }
+        const fs = await statfs(mountPoint);
+        return {
+            deviceId: String(deviceId),
+            mountPoint,
+            totalBytes: Number(fs.blocks) * Number(fs.bsize),
+            freeBytes: Number(fs.bavail) * Number(fs.bsize),
+        };
+    } catch {
+        return null;
     }
-    const fs = await statfs(mountPoint);
-    return {
-      deviceId: String(deviceId),
-      mountPoint,
-      totalBytes: Number(fs.blocks) * Number(fs.bsize),
-      freeBytes: Number(fs.bavail) * Number(fs.bsize),
-    };
-  } catch {
-    return null;
-  }
 }
 
 export function createFsVolumeProbe(): VolumeProbePort {
-  return { probe: probeStorageVolume };
+    return { probe: probeStorageVolume };
 }

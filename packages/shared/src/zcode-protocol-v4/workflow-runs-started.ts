@@ -17,11 +17,11 @@ import { WORKFLOW_RUNS_LIMITS, type WorkflowRunState } from "./workflow-runs.js"
  * 超界整条丢弃而不是截断：一个被砍短的模型 id 是假话，宁可什么都不显示。
  */
 function readSubagentModel(value: unknown): string | undefined {
-  if (typeof value !== "string") return undefined;
-  const text = value.trim();
-  return text.length > 0 && text.length <= WORKFLOW_RUNS_LIMITS.maxSubagentModelLength
-    ? text
-    : undefined;
+    if (typeof value !== "string") return undefined;
+    const text = value.trim();
+    return text.length > 0 && text.length <= WORKFLOW_RUNS_LIMITS.maxSubagentModelLength
+        ? text
+        : undefined;
 }
 
 /**
@@ -48,43 +48,43 @@ function readSubagentModel(value: unknown): string | undefined {
  * `subagentModel` 同理，而且更硬：它是用户给这次 run 定下的条件，resume 重臂带同一个值。
  */
 export function reduceRunStarted(
-  run: WorkflowRunState,
-  payload: Record<string, unknown>,
+    run: WorkflowRunState,
+    payload: Record<string, unknown>,
 ): WorkflowRunState {
-  const {
-    error: staleError,
-    resultPreview: staleResultPreview,
-    pendingQuestions: staleQuestions,
-    resumable: staleResumable,
-    stopReason: staleStopReason,
-    unlistedByPhase: staleUnlisted,
-    ...rebased
-  } = run;
-  void [
-    staleError,
-    staleResultPreview,
-    staleQuestions,
-    staleResumable,
-    staleStopReason,
-    staleUnlisted,
-  ];
-  // lineage 指针随 `run-started` 到达（CLI 从 launch 入参或 journal 行派生）；重臂带同一个值，搬运即可。
-  const resumedFrom = readRunIdField(payload.resumedFrom) ?? rebased.resumedFrom;
-  // 子代理模型：与 `limit` 同族的「本 run 自己的条件」，只随
-  // 这条事件到达。读不出就退回已知值——老 CLI 不发这个键，而把已经显示出来的模型抹掉是退化里
-  // 最坏的一种：run 看上去换了模型，其实只是少了一个字段。缺席即整个键不在（不是 undefined）。
-  const subagentModel = readSubagentModel(payload.subagentModel) ?? rebased.subagentModel;
-  // 停驻中的留白与停驻问题同属上一世的残影（workflow-runs-holes.ts）：resume 重跑到那个站点会再发
-  // 一条 `hole-reached`；补上了的留白是接进 run 的代码，跨世保留。
-  return reduceRunStartedConcurrency(
-    {
-      ...withoutWaitingHoles(rebased as WorkflowRunState),
-      ...(resumedFrom === undefined ? {} : { resumedFrom }),
-      ...(subagentModel === undefined ? {} : { subagentModel }),
-      status: "running",
-      usage: { spentTokens: 0, nodesUsed: 0 },
-      ...workflowRunTablesForNewLife(run),
-    },
-    payload,
-  );
+    const {
+        error: staleError,
+        resultPreview: staleResultPreview,
+        pendingQuestions: staleQuestions,
+        resumable: staleResumable,
+        stopReason: staleStopReason,
+        unlistedByPhase: staleUnlisted,
+        ...rebased
+    } = run;
+    void [
+        staleError,
+        staleResultPreview,
+        staleQuestions,
+        staleResumable,
+        staleStopReason,
+        staleUnlisted,
+    ];
+    // lineage 指针随 `run-started` 到达（CLI 从 launch 入参或 journal 行派生）；重臂带同一个值，搬运即可。
+    const resumedFrom = readRunIdField(payload.resumedFrom) ?? rebased.resumedFrom;
+    // 子代理模型：与 `limit` 同族的「本 run 自己的条件」，只随
+    // 这条事件到达。读不出就退回已知值——老 CLI 不发这个键，而把已经显示出来的模型抹掉是退化里
+    // 最坏的一种：run 看上去换了模型，其实只是少了一个字段。缺席即整个键不在（不是 undefined）。
+    const subagentModel = readSubagentModel(payload.subagentModel) ?? rebased.subagentModel;
+    // 停驻中的留白与停驻问题同属上一世的残影（workflow-runs-holes.ts）：resume 重跑到那个站点会再发
+    // 一条 `hole-reached`；补上了的留白是接进 run 的代码，跨世保留。
+    return reduceRunStartedConcurrency(
+        {
+            ...withoutWaitingHoles(rebased as WorkflowRunState),
+            ...(resumedFrom === undefined ? {} : { resumedFrom }),
+            ...(subagentModel === undefined ? {} : { subagentModel }),
+            status: "running",
+            usage: { spentTokens: 0, nodesUsed: 0 },
+            ...workflowRunTablesForNewLife(run),
+        },
+        payload,
+    );
 }

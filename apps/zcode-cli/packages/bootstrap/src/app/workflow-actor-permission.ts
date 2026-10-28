@@ -17,11 +17,11 @@ export type WorkflowSubagentPermissionMode = Exclude<CollaborationMode, "plan">;
 
 /** journal 里认得的值；引擎把它当不透明串，读回时按这张表校验。 */
 const RECORDABLE_MODES: ReadonlySet<string> = new Set<WorkflowSubagentPermissionMode>([
-  "build",
-  "edit",
-  "yolo",
-  "guarded",
-  "auto",
+    "build",
+    "edit",
+    "yolo",
+    "guarded",
+    "auto",
 ]);
 /** 没有记录时子代理的模式：与本特性之前所有 run 一致。 */
 const UNRECORDED_MODE = "yolo" satisfies CollaborationMode;
@@ -33,10 +33,10 @@ const ANONYMOUS_ACTOR_NAME = "subagent";
  * 不在其中）；遗留的 `plan` 枚举值记为 build，与普通子代理拆分 plan 后的回退一致。
  */
 export function workflowSubagentPermissionModeOf(
-  sessionMode: CollaborationMode | undefined,
+    sessionMode: CollaborationMode | undefined,
 ): WorkflowSubagentPermissionMode | undefined {
-  if (sessionMode === undefined) return undefined;
-  return sessionMode === "plan" ? "build" : sessionMode;
+    if (sessionMode === undefined) return undefined;
+    return sessionMode === "plan" ? "build" : sessionMode;
 }
 
 /**
@@ -44,10 +44,10 @@ export function workflowSubagentPermissionModeOf(
  * undefined 值（与 `run-launched` 其余同车字段同规）。
  */
 export function workflowSubagentPermissionModeField(sessionMode: CollaborationMode | undefined): {
-  subagentPermissionMode?: WorkflowSubagentPermissionMode;
+    subagentPermissionMode?: WorkflowSubagentPermissionMode;
 } {
-  const mode = workflowSubagentPermissionModeOf(sessionMode);
-  return mode === undefined ? {} : { subagentPermissionMode: mode };
+    const mode = workflowSubagentPermissionModeOf(sessionMode);
+    return mode === undefined ? {} : { subagentPermissionMode: mode };
 }
 
 /**
@@ -55,23 +55,23 @@ export function workflowSubagentPermissionModeField(sessionMode: CollaborationMo
  * 即 YOLO：旧版本不猜一个它不懂的模式的语义。
  */
 export function parseWorkflowSubagentPermissionMode(
-  raw: unknown,
+    raw: unknown,
 ): WorkflowSubagentPermissionMode | undefined {
-  return typeof raw === "string" && RECORDABLE_MODES.has(raw)
-    ? (raw as WorkflowSubagentPermissionMode)
-    : undefined;
+    return typeof raw === "string" && RECORDABLE_MODES.has(raw)
+        ? (raw as WorkflowSubagentPermissionMode)
+        : undefined;
 }
 
 /** AgentRuntimeConfig 的权限面切片。 */
 interface WorkflowActorPermissionPolicy {
-  mode: CollaborationMode;
+    mode: CollaborationMode;
 }
 
 /** run 记下的模式 → actor runtime 的模式；缺席即 YOLO。 */
 export function workflowActorPermissionPolicy(
-  subagentPermissionMode: WorkflowSubagentPermissionMode | undefined,
+    subagentPermissionMode: WorkflowSubagentPermissionMode | undefined,
 ): WorkflowActorPermissionPolicy {
-  return { mode: subagentPermissionMode ?? UNRECORDED_MODE };
+    return { mode: subagentPermissionMode ?? UNRECORDED_MODE };
 }
 
 /**
@@ -79,8 +79,8 @@ export function workflowActorPermissionPolicy(
  * 据此点名是哪个子代理在问；同一 persona 名的多个子代理靠实例坐标区分。
  */
 export function workflowActorInteractionDescription(input: {
-  actor: ActorRef;
-  persona: Pick<PersonaSpec, "name">;
+    actor: ActorRef;
+    persona: Pick<PersonaSpec, "name">;
 }): string {
-  return `${input.persona.name ?? ANONYMOUS_ACTOR_NAME} (${refToString(input.actor)})`;
+    return `${input.persona.name ?? ANONYMOUS_ACTOR_NAME} (${refToString(input.actor)})`;
 }

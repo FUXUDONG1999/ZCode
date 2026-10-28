@@ -24,15 +24,15 @@ export type OfficialMcpToolErrorCode = (typeof OFFICIAL_MCP_TOOL_ERROR_CODES)[nu
 const OFFICIAL_MCP_TOOL_ERROR_CODE_SET = new Set<string>(OFFICIAL_MCP_TOOL_ERROR_CODES);
 
 export interface OfficialMcpToolError {
-  code: OfficialMcpToolErrorCode;
-  /** 服务端给的英文可读文案；仅用于日志与排障，界面文案走 i18n。 */
-  message?: string;
-  /** 服务端 request id，便于与后端日志对账。 */
-  requestId?: string;
+    code: OfficialMcpToolErrorCode;
+    /** 服务端给的英文可读文案；仅用于日志与排障，界面文案走 i18n。 */
+    message?: string;
+    /** 服务端 request id，便于与后端日志对账。 */
+    requestId?: string;
 }
 
 function readString(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+    return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
 }
 
 /**
@@ -42,27 +42,27 @@ function readString(value: unknown): string | undefined {
  * 不做文案匹配兜底——那会让服务端改一句话就静默失效。
  */
 export function parseOfficialMcpToolError(text: string): OfficialMcpToolError | undefined {
-  const trimmed = text.trim();
-  // 先按首字符快速排除绝大多数普通错误文本，避免每次失败都进 JSON.parse。
-  if (!trimmed.startsWith("{")) return undefined;
+    const trimmed = text.trim();
+    // 先按首字符快速排除绝大多数普通错误文本，避免每次失败都进 JSON.parse。
+    if (!trimmed.startsWith("{")) return undefined;
 
-  let payload: unknown;
-  try {
-    payload = JSON.parse(trimmed) as unknown;
-  } catch {
-    return undefined;
-  }
-  if (typeof payload !== "object" || payload === null) return undefined;
+    let payload: unknown;
+    try {
+        payload = JSON.parse(trimmed) as unknown;
+    } catch {
+        return undefined;
+    }
+    if (typeof payload !== "object" || payload === null) return undefined;
 
-  const record = payload as Record<string, unknown>;
-  const code = readString(record.error_code);
-  if (!code || !OFFICIAL_MCP_TOOL_ERROR_CODE_SET.has(code)) return undefined;
+    const record = payload as Record<string, unknown>;
+    const code = readString(record.error_code);
+    if (!code || !OFFICIAL_MCP_TOOL_ERROR_CODE_SET.has(code)) return undefined;
 
-  const message = readString(record.message);
-  const requestId = readString(record.request_id);
-  return {
-    code: code as OfficialMcpToolErrorCode,
-    ...(message ? { message } : {}),
-    ...(requestId ? { requestId } : {}),
-  };
+    const message = readString(record.message);
+    const requestId = readString(record.request_id);
+    return {
+        code: code as OfficialMcpToolErrorCode,
+        ...(message ? { message } : {}),
+        ...(requestId ? { requestId } : {}),
+    };
 }

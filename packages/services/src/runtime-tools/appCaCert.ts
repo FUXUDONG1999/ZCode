@@ -14,16 +14,16 @@ const CA_VALIDITY_YEARS = 10;
 const CA_KEY_BITS = 2048;
 
 export interface AppCaCertPaths {
-  certPath: string;
-  keyPath: string;
+    certPath: string;
+    keyPath: string;
 }
 
 export function getAppCaCertPaths(): AppCaCertPaths {
-  const certDir = join(getAppConfigDir(), "certs");
-  return {
-    certPath: join(certDir, APP_CA_CERT_FILE),
-    keyPath: join(certDir, APP_CA_KEY_FILE),
-  };
+    const certDir = join(getAppConfigDir(), "certs");
+    return {
+        certPath: join(certDir, APP_CA_CERT_FILE),
+        keyPath: join(certDir, APP_CA_KEY_FILE),
+    };
 }
 
 /**
@@ -31,49 +31,55 @@ export function getAppCaCertPaths(): AppCaCertPaths {
  * 幂等：证书与私钥都已存在时直接返回，不重新生成。
  */
 export function ensureAppCaCert(): string {
-  const { certPath, keyPath } = getAppCaCertPaths();
-  if (existsSync(certPath) && existsSync(keyPath)) {
-    return certPath;
-  }
+    const { certPath, keyPath } = getAppCaCertPaths();
+    if (existsSync(certPath) && existsSync(keyPath)) {
+        return certPath;
+    }
 
-  const { certPem, keyPem } = generateSelfSignedCa();
-  mkdirSync(join(getAppConfigDir(), "certs"), { recursive: true });
-  // 私钥含敏感材料，权限收紧到 0600；公钥证书可读。
-  writeFileSync(certPath, certPem, { mode: 0o644 });
-  writeFileSync(keyPath, keyPem, { mode: 0o600 });
-  return certPath;
+    const { certPem, keyPem } = generateSelfSignedCa();
+    mkdirSync(join(getAppConfigDir(), "certs"), { recursive: true });
+    // 私钥含敏感材料，权限收紧到 0600；公钥证书可读。
+    writeFileSync(certPath, certPem, { mode: 0o644 });
+    writeFileSync(keyPath, keyPem, { mode: 0o600 });
+    return certPath;
 }
 
 function generateSelfSignedCa(): { certPem: string; keyPem: string } {
-  const keys = forge.pki.rsa.generateKeyPair(CA_KEY_BITS);
-  const cert = forge.pki.createCertificate();
-  cert.publicKey = keys.publicKey;
-  // 用密码学随机数做序列号，首字节清零避免被解析成负数。
-  const serial = randomBytes(16);
-  serial[0] = serial[0]! & 0x7f;
-  cert.serialNumber = serial.toString("hex");
+    const keys = forge.pki.rsa.generateKeyPair(CA_KEY_BITS);
+    const cert = forge.pki.createCertificate();
+    cert.publicKey = keys.publicKey;
+    // 用密码学随机数做序列号，首字节清零避免被解析成负数。
+    const serial = randomBytes(16);
+    serial[0] = serial[0]! & 0x7f;
+    cert.serialNumber = serial.toString("hex");
 
-  const notBefore = new Date();
-  const notAfter = new Date(notBefore);
-  notAfter.setFullYear(notAfter.getFullYear() + CA_VALIDITY_YEARS);
-  cert.validity.notBefore = notBefore;
-  cert.validity.notAfter = notAfter;
+    const notBefore = new Date();
+    const notAfter = new Date(notBefore);
+    notAfter.setFullYear(notAfter.getFullYear() + CA_VALIDITY_YEARS);
+    cert.validity.notBefore = notBefore;
+    cert.validity.notAfter = notAfter;
 
-  const attrs = [
-    { name: "commonName", value: "ZCode Network CA" },
-    { name: "organizationName", value: "ZCode" },
-  ];
-  cert.setSubject(attrs);
-  cert.setIssuer(attrs); // 自签：issuer == subject
-  cert.setExtensions([
-    { name: "basicConstraints", cA: true, critical: true },
-    { name: "keyUsage", critical: true, keyCertSign: true, cRLSign: true, digitalSignature: true },
-    { name: "subjectKeyIdentifier" },
-  ]);
+    const attrs = [
+        { name: "commonName", value: "ZCode Network CA" },
+        { name: "organizationName", value: "ZCode" },
+    ];
+    cert.setSubject(attrs);
+    cert.setIssuer(attrs); // 自签：issuer == subject
+    cert.setExtensions([
+        { name: "basicConstraints", cA: true, critical: true },
+        {
+            name: "keyUsage",
+            critical: true,
+            keyCertSign: true,
+            cRLSign: true,
+            digitalSignature: true,
+        },
+        { name: "subjectKeyIdentifier" },
+    ]);
 
-  cert.sign(keys.privateKey, forge.md.sha256.create());
-  return {
-    certPem: forge.pki.certificateToPem(cert),
-    keyPem: forge.pki.privateKeyToPem(keys.privateKey),
-  };
+    cert.sign(keys.privateKey, forge.md.sha256.create());
+    return {
+        certPem: forge.pki.certificateToPem(cert),
+        keyPem: forge.pki.privateKeyToPem(keys.privateKey),
+    };
 }

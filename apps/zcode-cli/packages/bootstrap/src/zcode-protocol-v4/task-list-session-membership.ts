@@ -8,13 +8,13 @@ import type { SessionTaskType } from "@zcode/contracts";
  * 而辅助对话、subagent 与 workflow child 继续由各自专用投影承载。
  */
 export const TASK_LIST_SESSION_TYPES = [
-  "interactive",
-  "fork",
-  "workflow_parent",
+    "interactive",
+    "fork",
+    "workflow_parent",
 ] as const satisfies readonly SessionTaskType[];
 
 const TASK_LIST_SESSION_TYPE_SET = new Set<SessionTaskType>(TASK_LIST_SESSION_TYPES);
 
 export function isTaskListSessionType(taskType: SessionTaskType | undefined): boolean {
-  return TASK_LIST_SESSION_TYPE_SET.has(taskType ?? "interactive");
+    return TASK_LIST_SESSION_TYPE_SET.has(taskType ?? "interactive");
 }

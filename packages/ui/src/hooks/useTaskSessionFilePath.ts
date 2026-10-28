@@ -7,32 +7,32 @@ import { useZCodeTaskService } from "@/hooks/useZCodeTaskService.js";
  * @lintignore
  */
 export interface TaskSessionFilePathState {
-  path: string | null;
-  exists: boolean;
-  loading: boolean;
-  error: string | null;
+    path: string | null;
+    exists: boolean;
+    loading: boolean;
+    error: string | null;
 }
 
 const INITIAL_STATE: TaskSessionFilePathState = {
-  path: null,
-  exists: false,
-  loading: false,
-  error: null,
+    path: null,
+    exists: false,
+    loading: false,
+    error: null,
 };
 
 function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message || error.name || String(error);
-  }
-
-  if (typeof error === "object" && error !== null && "message" in error) {
-    const message = (error as { message?: unknown }).message;
-    if (typeof message === "string" && message.length > 0) {
-      return message;
+    if (error instanceof Error) {
+        return error.message || error.name || String(error);
     }
-  }
 
-  return String(error);
+    if (typeof error === "object" && error !== null && "message" in error) {
+        const message = (error as { message?: unknown }).message;
+        if (typeof message === "string" && message.length > 0) {
+            return message;
+        }
+    }
+
+    return String(error);
 }
 
 /**
@@ -43,80 +43,80 @@ function getErrorMessage(error: unknown): string {
  * 这里改成统一走 zcodeTaskService 解析最终路径，既不让 UI 猜目录规则，也能兼容 remote workspace 的远端 home 目录。
  */
 export function useTaskSessionFilePath(
-  workspacePath: string,
-  taskId: string | null,
-  workspaceIdentity?: string,
-  options: { enabled?: boolean } = {},
+    workspacePath: string,
+    taskId: string | null,
+    workspaceIdentity?: string,
+    options: { enabled?: boolean } = {},
 ) {
-  const zcodeTaskService = useZCodeTaskService(workspacePath, undefined, workspaceIdentity);
-  const [state, setState] = useState<TaskSessionFilePathState>(INITIAL_STATE);
-  const requestVersionRef = useRef(0);
-  const enabled = options.enabled ?? true;
+    const zcodeTaskService = useZCodeTaskService(workspacePath, undefined, workspaceIdentity);
+    const [state, setState] = useState<TaskSessionFilePathState>(INITIAL_STATE);
+    const requestVersionRef = useRef(0);
+    const enabled = options.enabled ?? true;
 
-  useEffect(() => {
-    let disposed = false;
+    useEffect(() => {
+        let disposed = false;
 
-    if (!enabled || !workspacePath || !taskId) {
-      requestVersionRef.current += 1;
-      // task 路径只服务右键菜单；菜单未打开时停止 RPC，避免拖拽重排放大为路径查询风暴。
-      setState(INITIAL_STATE);
-      return () => {
-        disposed = true;
-      };
-    }
-
-    const requestVersion = requestVersionRef.current + 1;
-    requestVersionRef.current = requestVersion;
-
-    setState({
-      path: null,
-      exists: false,
-      loading: true,
-      error: null,
-    });
-
-    void zcodeTaskService
-      .getTaskSessionFilePath({
-        workspacePath,
-        taskId,
-        ...(workspaceIdentity ? { workspaceIdentity } : {}),
-      })
-      .then((result) => {
-        if (disposed || requestVersionRef.current !== requestVersion) {
-          return;
+        if (!enabled || !workspacePath || !taskId) {
+            requestVersionRef.current += 1;
+            // task 路径只服务右键菜单；菜单未打开时停止 RPC，避免拖拽重排放大为路径查询风暴。
+            setState(INITIAL_STATE);
+            return () => {
+                disposed = true;
+            };
         }
 
+        const requestVersion = requestVersionRef.current + 1;
+        requestVersionRef.current = requestVersion;
+
         setState({
-          path: result.path,
-          exists: result.exists,
-          loading: false,
-          error: null,
+            path: null,
+            exists: false,
+            loading: true,
+            error: null,
         });
-      })
-      .catch((error: unknown) => {
-        if (disposed || requestVersionRef.current !== requestVersion) {
-          return;
-        }
 
-        const message = getErrorMessage(error);
-        logger.warn("[useTaskSessionFilePath] 读取 task 快照路径失败", {
-          workspacePath,
-          taskId,
-          workspaceIdentity,
-          error: message,
-        });
-        setState({
-          path: null,
-          exists: false,
-          loading: false,
-          error: message,
-        });
-      });
+        void zcodeTaskService
+            .getTaskSessionFilePath({
+                workspacePath,
+                taskId,
+                ...(workspaceIdentity ? { workspaceIdentity } : {}),
+            })
+            .then((result) => {
+                if (disposed || requestVersionRef.current !== requestVersion) {
+                    return;
+                }
 
-    return () => {
-      disposed = true;
-    };
-  }, [enabled, zcodeTaskService, taskId, workspaceIdentity, workspacePath]);
+                setState({
+                    path: result.path,
+                    exists: result.exists,
+                    loading: false,
+                    error: null,
+                });
+            })
+            .catch((error: unknown) => {
+                if (disposed || requestVersionRef.current !== requestVersion) {
+                    return;
+                }
 
-  return state;
+                const message = getErrorMessage(error);
+                logger.warn("[useTaskSessionFilePath] 读取 task 快照路径失败", {
+                    workspacePath,
+                    taskId,
+                    workspaceIdentity,
+                    error: message,
+                });
+                setState({
+                    path: null,
+                    exists: false,
+                    loading: false,
+                    error: message,
+                });
+            });
+
+        return () => {
+            disposed = true;
+        };
+    }, [enabled, zcodeTaskService, taskId, workspaceIdentity, workspacePath]);
+
+    return state;
 }

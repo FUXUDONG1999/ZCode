@@ -135,20 +135,20 @@ Keep the implementation split so the renderer remains easy for agents to pick
 up:
 
 - `packages/tui/src/app-markdown.tsx`
-  - `MarkdownText` component.
-  - Capability-based choice between native `markdown`,
-    `code filetype="markdown"`, and plain `text`.
-  - Props: `content`, `streaming`, `tone`, `backgroundColor`, `foregroundColor`.
+    - `MarkdownText` component.
+    - Capability-based choice between native `markdown`,
+      `code filetype="markdown"`, and plain `text`.
+    - Props: `content`, `streaming`, `tone`, `backgroundColor`, `foregroundColor`.
 - `packages/tui/src/app-markdown-theme.ts`
-  - Theme-to-markdown/syntax style mapping.
-  - No external I/O.
+    - Theme-to-markdown/syntax style mapping.
+    - No external I/O.
 - `packages/tui/src/app-components.tsx`
-  - `MessageRow` delegates assistant text to `MarkdownText`.
-  - Existing `ToolTranscriptPartView` stays unchanged.
+    - `MessageRow` delegates assistant text to `MarkdownText`.
+    - Existing `ToolTranscriptPartView` stays unchanged.
 - `packages/tui/src/app-model.ts`
-  - Optional projection metadata only if needed, for example
-    `TextTranscriptPart.format?: TuiTextFormat`.
-  - No contract dependency on runtime message types.
+    - Optional projection metadata only if needed, for example
+      `TextTranscriptPart.format?: TuiTextFormat`.
+    - No contract dependency on runtime message types.
 
 If OpenTUI's native markdown renderable requires extra grammar or query assets,
 update the SEA asset collection plan before implementation so packaged macOS,

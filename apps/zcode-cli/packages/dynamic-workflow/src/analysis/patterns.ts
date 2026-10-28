@@ -1,13 +1,13 @@
 import ts from "typescript";
 import {
-  addOcc,
-  addPlaceholder,
-  bindingPropertyKey,
-  collapse,
-  emptyValue,
-  mergeInto,
-  readField,
-  type AbstractValue,
+    addOcc,
+    addPlaceholder,
+    bindingPropertyKey,
+    collapse,
+    emptyValue,
+    mergeInto,
+    readField,
+    type AbstractValue,
 } from "./domain.js";
 import type { EvalContext, Evaluator } from "./taint.js";
 
@@ -27,66 +27,66 @@ import type { EvalContext, Evaluator } from "./taint.js";
  * sources keep value semantics (a folded / field-selected clone).
  */
 export function bindPattern(
-  ev: Evaluator,
-  name: ts.BindingName,
-  value: AbstractValue,
-  ctx: EvalContext,
-  sourcePlace?: AbstractValue,
+    ev: Evaluator,
+    name: ts.BindingName,
+    value: AbstractValue,
+    ctx: EvalContext,
+    sourcePlace?: AbstractValue,
 ): void {
-  if (ts.isIdentifier(name)) {
-    const sym = ev.checker.getSymbolAtLocation(name);
-    if (sym !== undefined) ev.s.bindSymbol(sym, value);
-    return;
-  }
-  if (ts.isObjectBindingPattern(name)) {
+    if (ts.isIdentifier(name)) {
+        const sym = ev.checker.getSymbolAtLocation(name);
+        if (sym !== undefined) ev.s.bindSymbol(sym, value);
+        return;
+    }
+    if (ts.isObjectBindingPattern(name)) {
+        for (const element of name.elements) {
+            if (element.dotDotDotToken !== undefined) {
+                bindPattern(ev, element.name, collapse(value), ctx); // rest: fold, exact preserved (value semantics)
+                continue;
+            }
+            const key = bindingPropertyKey(element);
+            if (sourcePlace !== undefined && key !== undefined) {
+                bindPatternElement(
+                    ev,
+                    element.name,
+                    extractField(ev, sourcePlace, key),
+                    element.initializer,
+                    ctx,
+                );
+            } else {
+                bindPattern(
+                    ev,
+                    element.name,
+                    key === undefined ? collapse(value) : selectField(value, key),
+                    ctx,
+                );
+            }
+        }
+        return;
+    }
+    let index = 0;
     for (const element of name.elements) {
-      if (element.dotDotDotToken !== undefined) {
-        bindPattern(ev, element.name, collapse(value), ctx); // rest: fold, exact preserved (value semantics)
-        continue;
-      }
-      const key = bindingPropertyKey(element);
-      if (sourcePlace !== undefined && key !== undefined) {
-        bindPatternElement(
-          ev,
-          element.name,
-          extractField(ev, sourcePlace, key),
-          element.initializer,
-          ctx,
-        );
-      } else {
-        bindPattern(
-          ev,
-          element.name,
-          key === undefined ? collapse(value) : selectField(value, key),
-          ctx,
-        );
-      }
+        if (ts.isOmittedExpression(element)) {
+            index += 1;
+            continue;
+        }
+        if (element.dotDotDotToken !== undefined) {
+            bindPattern(ev, element.name, collapse(value), ctx); // rest: value semantics
+            continue;
+        }
+        if (sourcePlace !== undefined) {
+            bindPatternElement(
+                ev,
+                element.name,
+                extractField(ev, sourcePlace, String(index)),
+                element.initializer,
+                ctx,
+            );
+        } else {
+            bindPattern(ev, element.name, selectField(value, String(index)), ctx);
+        }
+        index += 1;
     }
-    return;
-  }
-  let index = 0;
-  for (const element of name.elements) {
-    if (ts.isOmittedExpression(element)) {
-      index += 1;
-      continue;
-    }
-    if (element.dotDotDotToken !== undefined) {
-      bindPattern(ev, element.name, collapse(value), ctx); // rest: value semantics
-      continue;
-    }
-    if (sourcePlace !== undefined) {
-      bindPatternElement(
-        ev,
-        element.name,
-        extractField(ev, sourcePlace, String(index)),
-        element.initializer,
-        ctx,
-      );
-    } else {
-      bindPattern(ev, element.name, selectField(value, String(index)), ctx);
-    }
-    index += 1;
-  }
 }
 
 /**
@@ -95,15 +95,15 @@ export function bindPattern(
  * the field is passed as both value and source so nested patterns keep aliasing.
  */
 function bindPatternElement(
-  ev: Evaluator,
-  name: ts.BindingName,
-  field: AbstractValue,
-  initializer: ts.Expression | undefined,
-  ctx: EvalContext,
+    ev: Evaluator,
+    name: ts.BindingName,
+    field: AbstractValue,
+    initializer: ts.Expression | undefined,
+    ctx: EvalContext,
 ): void {
-  if (initializer !== undefined && mergeInto(field, ev.evalExpr(initializer, ctx)))
-    ev.s.changed = true;
-  bindPattern(ev, name, field, ctx, field);
+    if (initializer !== undefined && mergeInto(field, ev.evalExpr(initializer, ctx)))
+        ev.s.changed = true;
+    bindPattern(ev, name, field, ctx, field);
 }
 
 /**
@@ -116,17 +116,17 @@ function bindPatternElement(
  * existing field (that would over-smear a precise sub-object).
  */
 export function extractField(ev: Evaluator, container: AbstractValue, key: string): AbstractValue {
-  const existing = container.fields.get(key);
-  if (existing !== undefined) return existing;
-  const field = emptyValue();
-  for (const occ of container.occs.values()) addOcc(field, occ);
-  for (const ph of container.phs.values()) addPlaceholder(field, ph);
-  container.fields.set(key, field);
-  ev.s.changed = true;
-  return field;
+    const existing = container.fields.get(key);
+    if (existing !== undefined) return existing;
+    const field = emptyValue();
+    for (const occ of container.occs.values()) addOcc(field, occ);
+    for (const ph of container.phs.values()) addPlaceholder(field, ph);
+    container.fields.set(key, field);
+    ev.s.changed = true;
+    return field;
 }
 
 /** Read a statically-known field with smear-on-read, else collapse (exact preserved). */
 export function selectField(value: AbstractValue, key: string): AbstractValue {
-  return readField(value, key);
+    return readField(value, key);
 }

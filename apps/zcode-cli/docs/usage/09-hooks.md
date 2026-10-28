@@ -8,24 +8,24 @@ Hook 是在会话或工具事件上运行的本地程序，可记录事件、补
 
 ```json
 {
-  "hooks": {
-    "enabled": true,
-    "events": {
-      "PreToolUse": [
-        {
-          "matcher": "Bash",
-          "hooks": [
-            {
-              "type": "process",
-              "command": "node",
-              "args": ["/absolute/path/to/guard.mjs"],
-              "timeoutMs": 10000
-            }
-          ]
+    "hooks": {
+        "enabled": true,
+        "events": {
+            "PreToolUse": [
+                {
+                    "matcher": "Bash",
+                    "hooks": [
+                        {
+                            "type": "process",
+                            "command": "node",
+                            "args": ["/absolute/path/to/guard.mjs"],
+                            "timeoutMs": 10000
+                        }
+                    ]
+                }
+            ]
         }
-      ]
     }
-  }
 }
 ```
 
@@ -36,15 +36,15 @@ let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const event = JSON.parse(input);
 if (event.hook_event_name === "PreToolUse") {
-  process.stdout.write(
-    JSON.stringify({
-      hookSpecificOutput: {
-        hookEventName: "PreToolUse",
-        permissionDecision: "deny",
-        permissionDecisionReason: "本次测试禁止 Bash。",
-      },
-    }),
-  );
+    process.stdout.write(
+        JSON.stringify({
+            hookSpecificOutput: {
+                hookEventName: "PreToolUse",
+                permissionDecision: "deny",
+                permissionDecisionReason: "本次测试禁止 Bash。",
+            },
+        }),
+    );
 }
 ```
 

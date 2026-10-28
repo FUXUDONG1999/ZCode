@@ -1,8 +1,8 @@
 import type { QueueItem, QueueState } from "@zcode/shared/zcode-protocol-v4";
 
 export interface PendingGuideQueueProjection {
-  pendingGuides: readonly QueueItem[];
-  visibleQueue: QueueState;
+    pendingGuides: readonly QueueItem[];
+    visibleQueue: QueueState;
 }
 
 /**
@@ -11,18 +11,18 @@ export interface PendingGuideQueueProjection {
  * admitted delivery 分流展示，不复制、不改写 accepted input 状态。
  */
 export function projectPendingGuideQueue(queue: QueueState): PendingGuideQueueProjection {
-  const pendingGuides: QueueItem[] = [];
-  const visibleItems: QueueItem[] = [];
-  for (const item of queue.items) {
-    if (item.delivery.admitted === "guide") {
-      pendingGuides.push(item);
-    } else {
-      visibleItems.push(item);
+    const pendingGuides: QueueItem[] = [];
+    const visibleItems: QueueItem[] = [];
+    for (const item of queue.items) {
+        if (item.delivery.admitted === "guide") {
+            pendingGuides.push(item);
+        } else {
+            visibleItems.push(item);
+        }
     }
-  }
-  return {
-    pendingGuides,
-    visibleQueue:
-      visibleItems.length === queue.items.length ? queue : { ...queue, items: visibleItems },
-  };
+    return {
+        pendingGuides,
+        visibleQueue:
+            visibleItems.length === queue.items.length ? queue : { ...queue, items: visibleItems },
+    };
 }

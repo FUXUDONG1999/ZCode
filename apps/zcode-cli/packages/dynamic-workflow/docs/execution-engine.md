@@ -45,15 +45,15 @@ The engine core between A and B is pure: it owns state and decisions, performs n
 
 ```ts
 export interface WorkflowHostApi {
-  createActor(siteId: string, name?: string, persona?: string | PersonaSpec): ActorId;
-  ask(siteId: string, actor: ActorId, instructions: string): Promise<unknown>;
-  worldRead(siteId: string, op: WorldReadOp, args: unknown[]): Promise<unknown>;
-  report(siteId: string, item: unknown, artifactId?: string): void;
-  enterPhase(name: string): void;
-  hole(siteId: string, name: string, prompt?: string): Promise<{ code: string }>;
-  publishArtifact(siteId: string, op: string, args: unknown[]): Promise<ArtifactRef>;
-  declareArtifact(siteId: string, op: string, args: unknown[]): void;
-  log(message: string): void;
+    createActor(siteId: string, name?: string, persona?: string | PersonaSpec): ActorId;
+    ask(siteId: string, actor: ActorId, instructions: string): Promise<unknown>;
+    worldRead(siteId: string, op: WorldReadOp, args: unknown[]): Promise<unknown>;
+    report(siteId: string, item: unknown, artifactId?: string): void;
+    enterPhase(name: string): void;
+    hole(siteId: string, name: string, prompt?: string): Promise<{ code: string }>;
+    publishArtifact(siteId: string, op: string, args: unknown[]): Promise<ArtifactRef>;
+    declareArtifact(siteId: string, op: string, args: unknown[]): void;
+    log(message: string): void;
 }
 ```
 
@@ -257,9 +257,9 @@ The schema of a typed ask is synthesized from the TypeScript type at compile tim
 
 ```ts
 interface Violation {
-  path: string;
-  expected: string;
-  got: string;
+    path: string;
+    expected: string;
+    got: string;
 }
 ```
 
@@ -267,54 +267,57 @@ interface Violation {
 
 ```ts
 export interface WorkflowDriver {
-  createActorSession(
-    actor: ActorRef,
-    persona: PersonaSpec,
-    seed?: ActorSessionSeed,
-  ): Promise<SessionRef>;
-  startAsk(
-    session: SessionRef,
-    instance: InstanceRef,
-    message: { instructions: string; typed: boolean; schema?: unknown },
-  ): void;
-  respondToSubmit(
-    instance: InstanceRef,
-    verdict: { kind: "accept" } | { kind: "reject"; violations: Violation[] } | { kind: "nudge" },
-  ): void;
-  cancelAsk(instance: InstanceRef): void;
-  executeWorldRead(op: WorldReadOp, args: unknown[]): Promise<unknown>;
-  executeArtifactPublish?(request: ArtifactPublishRequest): Promise<ArtifactVersionRecord>;
-  journal: JournalStorePort;
-  emit(event: RunEvent): void;
-  dispose?(): void;
+    createActorSession(
+        actor: ActorRef,
+        persona: PersonaSpec,
+        seed?: ActorSessionSeed,
+    ): Promise<SessionRef>;
+    startAsk(
+        session: SessionRef,
+        instance: InstanceRef,
+        message: { instructions: string; typed: boolean; schema?: unknown },
+    ): void;
+    respondToSubmit(
+        instance: InstanceRef,
+        verdict:
+            | { kind: "accept" }
+            | { kind: "reject"; violations: Violation[] }
+            | { kind: "nudge" },
+    ): void;
+    cancelAsk(instance: InstanceRef): void;
+    executeWorldRead(op: WorldReadOp, args: unknown[]): Promise<unknown>;
+    executeArtifactPublish?(request: ArtifactPublishRequest): Promise<ArtifactVersionRecord>;
+    journal: JournalStorePort;
+    emit(event: RunEvent): void;
+    dispose?(): void;
 }
 
 export interface WorkflowReportSink {
-  askSubmitAttempted(instance: InstanceRef, result: unknown): void;
-  askTurnEnded(instance: InstanceRef, finalText: string): void;
-  askProgress(
-    instance: InstanceRef,
-    progress: { turn: number; toolCalls: number; lastTool?: { name: string; target?: string } },
-  ): void;
-  askStats(
-    instance: InstanceRef,
-    stats: { tokens: number; toolCalls: number; turns: number },
-  ): void;
-  askFailed(instance: InstanceRef, error: WorkflowError): void;
-  stopRun(error: WorkflowError): void; // code ProviderStop
-  runStalled(info: { sinceMs: number; reason?: string; cap?: number }): void;
-  askWaiting(
-    instance: InstanceRef,
-    info: {
-      cause: "slot" | "backoff";
-      reason?: string;
-      attempt?: number;
-      delayMs?: number;
-      retryAfterMs?: number;
-    },
-  ): void;
-  askExecuting(instance: InstanceRef): void;
-  concurrencyChanged(change: unknown): void;
+    askSubmitAttempted(instance: InstanceRef, result: unknown): void;
+    askTurnEnded(instance: InstanceRef, finalText: string): void;
+    askProgress(
+        instance: InstanceRef,
+        progress: { turn: number; toolCalls: number; lastTool?: { name: string; target?: string } },
+    ): void;
+    askStats(
+        instance: InstanceRef,
+        stats: { tokens: number; toolCalls: number; turns: number },
+    ): void;
+    askFailed(instance: InstanceRef, error: WorkflowError): void;
+    stopRun(error: WorkflowError): void; // code ProviderStop
+    runStalled(info: { sinceMs: number; reason?: string; cap?: number }): void;
+    askWaiting(
+        instance: InstanceRef,
+        info: {
+            cause: "slot" | "backoff";
+            reason?: string;
+            attempt?: number;
+            delayMs?: number;
+            retryAfterMs?: number;
+        },
+    ): void;
+    askExecuting(instance: InstanceRef): void;
+    concurrencyChanged(change: unknown): void;
 }
 ```
 
@@ -413,46 +416,46 @@ Glob results are workspace-relative and sorted, so a journaled list does not dep
 
 ```ts
 export interface JournalStorePort {
-  createRun(record: RunRecord): void;
-  getRun(runId: string): RunRecord | undefined;
-  updateRunStatus(
-    runId: string,
-    status: RunStatus,
-    settlement?: { stopReason?: RunStopReason; failure?: WorkflowErrorJson; result?: unknown },
-  ): void;
-  updateRunUsage(runId: string, spentTokens: number): void;
-  updateRunCaps(runId: string, caps: Caps): void;
-  putActor(record: ActorRecord): void;
-  getActor(runId: string, siteId: string, ordinal: number): ActorRecord | undefined;
-  listActors(runId: string, options: { name?: string; withPersona: boolean }): ActorRecord[];
-  putNode(record: NodeRecord): void;
-  getNode(
-    runId: string,
-    siteId: string,
-    ordinal: number,
-    options?: { withResult: boolean },
-  ): NodeRecord | undefined;
-  listNodes(
-    runId: string,
-    options: {
-      kinds: readonly NodeKind[] | "all";
-      withResult: boolean;
-      limit?: number;
-      maxResultBytes?: number;
-    },
-  ): NodeRecord[];
-  countNodes(runId: string, kind: NodeKind): number;
-  sumResultBytes(runId: string, kind: NodeKind): number;
-  appendEvent(runId: string, event: RunEvent): { sequence: number; event: RunEvent };
-  listEvents(
-    runId: string,
-    options: {
-      types: readonly RunEvent["type"][] | "all";
-      reportItems: "all" | { limit: number };
-      afterSequence?: number;
-      limit?: number;
-    },
-  ): StoredEvent[];
+    createRun(record: RunRecord): void;
+    getRun(runId: string): RunRecord | undefined;
+    updateRunStatus(
+        runId: string,
+        status: RunStatus,
+        settlement?: { stopReason?: RunStopReason; failure?: WorkflowErrorJson; result?: unknown },
+    ): void;
+    updateRunUsage(runId: string, spentTokens: number): void;
+    updateRunCaps(runId: string, caps: Caps): void;
+    putActor(record: ActorRecord): void;
+    getActor(runId: string, siteId: string, ordinal: number): ActorRecord | undefined;
+    listActors(runId: string, options: { name?: string; withPersona: boolean }): ActorRecord[];
+    putNode(record: NodeRecord): void;
+    getNode(
+        runId: string,
+        siteId: string,
+        ordinal: number,
+        options?: { withResult: boolean },
+    ): NodeRecord | undefined;
+    listNodes(
+        runId: string,
+        options: {
+            kinds: readonly NodeKind[] | "all";
+            withResult: boolean;
+            limit?: number;
+            maxResultBytes?: number;
+        },
+    ): NodeRecord[];
+    countNodes(runId: string, kind: NodeKind): number;
+    sumResultBytes(runId: string, kind: NodeKind): number;
+    appendEvent(runId: string, event: RunEvent): { sequence: number; event: RunEvent };
+    listEvents(
+        runId: string,
+        options: {
+            types: readonly RunEvent["type"][] | "all";
+            reportItems: "all" | { limit: number };
+            afterSequence?: number;
+            limit?: number;
+        },
+    ): StoredEvent[];
 }
 ```
 
@@ -601,17 +604,17 @@ The driver classifies every rejected model turn with `resolveWorkflowModelFailur
 
 ```ts
 export interface ProviderStopDetails {
-  kind: "auth" | "not_configured" | "model_unavailable" | "invalid_request" | "quota" | "other";
-  reason: string;
-  providerId?: string;
-  providerLabel?: string;
-  modelId?: string;
-  providerCode?: string;
-  subagent?: string;
-  subagentName?: string;
-  phase?: string;
-  rawMessage?: string; // bounded to 2,000 characters
-  resetAt?: number; // quota only, epoch ms, when Retry-After was parseable
+    kind: "auth" | "not_configured" | "model_unavailable" | "invalid_request" | "quota" | "other";
+    reason: string;
+    providerId?: string;
+    providerLabel?: string;
+    modelId?: string;
+    providerCode?: string;
+    subagent?: string;
+    subagentName?: string;
+    phase?: string;
+    rawMessage?: string; // bounded to 2,000 characters
+    resetAt?: number; // quota only, epoch ms, when Retry-After was parseable
 }
 ```
 
@@ -686,18 +689,23 @@ The new run row records `resumedFrom`; the lineage can be several runs long.
 
 ```ts
 export interface ImportedRunCache {
-  actors: Map<
-    string,
-    {
-      // keyed by subagent name
-      persona: PersonaSpec;
-      entries: { inputHash: string; result: unknown; stats?: AskStats; messageBoundary: number }[]; // by actorSeq
-      inFlight?: { inputHash: string; messageBoundary: number }; // the running ask at actorSeq === entries.length
-      transcriptSourceSessionId: string;
-      resolvedModel?: string;
-    }
-  >;
-  world: Map<string, { inputHash: string; kind: NodeKind; result: unknown }[]>; // by inputHash, nth occurrence
+    actors: Map<
+        string,
+        {
+            // keyed by subagent name
+            persona: PersonaSpec;
+            entries: {
+                inputHash: string;
+                result: unknown;
+                stats?: AskStats;
+                messageBoundary: number;
+            }[]; // by actorSeq
+            inFlight?: { inputHash: string; messageBoundary: number }; // the running ask at actorSeq === entries.length
+            transcriptSourceSessionId: string;
+            resolvedModel?: string;
+        }
+    >;
+    world: Map<string, { inputHash: string; kind: NodeKind; result: unknown }[]>; // by inputHash, nth occurrence
 }
 ```
 
@@ -830,9 +838,9 @@ Every `WorkflowError` and `DriverError` message the engine or the driver produce
 
 ```ts
 export interface PersonaSpec {
-  name?: string;
-  system?: string;
-  model?: string;
+    name?: string;
+    system?: string;
+    model?: string;
 }
 ```
 
@@ -844,12 +852,12 @@ The engine produces structured payloads only. Every `RunEvent` becomes, in order
 
 ```ts
 export interface DynamicWorkflowRunProgressPayload {
-  runId: string;
-  toolCallId?: string; // the CreateWorkflow call, for the tool card
-  sequence: number; // the journal sequence
-  eventType: string; // the RunEvent type
-  payload: Record<string, unknown>; // the event minus its type, size-bounded
-  truncated?: boolean;
+    runId: string;
+    toolCallId?: string; // the CreateWorkflow call, for the tool card
+    sequence: number; // the journal sequence
+    eventType: string; // the RunEvent type
+    payload: Record<string, unknown>; // the event minus its type, size-bounded
+    truncated?: boolean;
 }
 ```
 

@@ -13,20 +13,20 @@
  * 配额 / 兜底），读文案表时用它而不是 reason。
  */
 export interface ProviderStopDetails {
-  kind: "auth" | "not_configured" | "model_unavailable" | "invalid_request" | "quota" | "other";
-  reason: string;
-  providerId?: string;
-  providerLabel?: string;
-  modelId?: string;
-  providerCode?: string;
-  /** 触发停止的子代理（`refToString(instance)`）与它的名字 / 出生阶段（有则带）。 */
-  subagent?: string;
-  subagentName?: string;
-  phase?: string;
-  /** provider 的原文，逐字（有界，由 driver 截断）。 */
-  rawMessage?: string;
-  /** 配额类：provider 给出的重置时刻（epoch ms），能解析出来才在场。 */
-  resetAt?: number;
+    kind: "auth" | "not_configured" | "model_unavailable" | "invalid_request" | "quota" | "other";
+    reason: string;
+    providerId?: string;
+    providerLabel?: string;
+    modelId?: string;
+    providerCode?: string;
+    /** 触发停止的子代理（`refToString(instance)`）与它的名字 / 出生阶段（有则带）。 */
+    subagent?: string;
+    subagentName?: string;
+    phase?: string;
+    /** provider 的原文，逐字（有界，由 driver 截断）。 */
+    rawMessage?: string;
+    /** 配额类：provider 给出的重置时刻（epoch ms），能解析出来才在场。 */
+    resetAt?: number;
 }
 
 /**
@@ -36,7 +36,7 @@ export interface ProviderStopDetails {
  * 值，开放字符串），`cap` 是此刻该 provider 桶的 cap。
  */
 export interface RunStallInfo {
-  sinceMs: number;
-  reason?: string;
-  cap?: number;
+    sinceMs: number;
+    reason?: string;
+    cap?: number;
 }

@@ -10,22 +10,24 @@ import type { IZCodeAgentService } from "@zcode/services";
  * 不影响其它连接，也不阻断远程连接建立。
  */
 export async function pushDynamicWorkflowUserModeToRemoteHosts(
-  connections: ReadonlyArray<{
-    target: RemoteTarget;
-    zcodeAgentService: Pick<IZCodeAgentService, "syncDynamicWorkflowUserMode">;
-  }>,
-  mode: DynamicWorkflowMode | undefined,
-  onError: (error: unknown) => void,
+    connections: ReadonlyArray<{
+        target: RemoteTarget;
+        zcodeAgentService: Pick<IZCodeAgentService, "syncDynamicWorkflowUserMode">;
+    }>,
+    mode: DynamicWorkflowMode | undefined,
+    onError: (error: unknown) => void,
 ): Promise<void> {
-  await Promise.all(
-    connections
-      .filter((connection) => connection.target.kind !== "server")
-      .map(async (connection) => {
-        try {
-          await connection.zcodeAgentService.syncDynamicWorkflowUserMode(mode ? { mode } : {});
-        } catch (error) {
-          onError(error);
-        }
-      }),
-  );
+    await Promise.all(
+        connections
+            .filter((connection) => connection.target.kind !== "server")
+            .map(async (connection) => {
+                try {
+                    await connection.zcodeAgentService.syncDynamicWorkflowUserMode(
+                        mode ? { mode } : {},
+                    );
+                } catch (error) {
+                    onError(error);
+                }
+            }),
+    );
 }

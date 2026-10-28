@@ -11,34 +11,36 @@ const ComposerClientNamespaceContext = createContext("desktop");
 
 /** 手机同源可连接多台桌面；稳定设备身份不能用临时 bridge ID 替代。 */
 export function useComposerClientNamespace(): string {
-  return useContext(ComposerClientNamespaceContext);
+    return useContext(ComposerClientNamespaceContext);
 }
 
 export function ServiceProvider({
-  services,
-  children,
-  composerClientNamespace,
+    services,
+    children,
+    composerClientNamespace,
 }: {
-  services: IServiceAccessor;
-  children: ReactNode;
-  composerClientNamespace?: string;
+    services: IServiceAccessor;
+    children: ReactNode;
+    composerClientNamespace?: string;
 }) {
-  const inheritedNamespace = useComposerClientNamespace();
-  return (
-    <ComposerClientNamespaceContext.Provider value={composerClientNamespace ?? inheritedNamespace}>
-      <ServiceContext.Provider value={services}>{children}</ServiceContext.Provider>
-    </ComposerClientNamespaceContext.Provider>
-  );
+    const inheritedNamespace = useComposerClientNamespace();
+    return (
+        <ComposerClientNamespaceContext.Provider
+            value={composerClientNamespace ?? inheritedNamespace}
+        >
+            <ServiceContext.Provider value={services}>{children}</ServiceContext.Provider>
+        </ComposerClientNamespaceContext.Provider>
+    );
 }
 
 export function useServices(): IServiceAccessor {
-  const ctx = useContext(ServiceContext);
-  if (!ctx) {
-    throw new Error("useServices 必须在 ServiceProvider 内使用");
-  }
-  return ctx;
+    const ctx = useContext(ServiceContext);
+    if (!ctx) {
+        throw new Error("useServices 必须在 ServiceProvider 内使用");
+    }
+    return ctx;
 }
 
 export function useOptionalServices(): IServiceAccessor | null {
-  return useContext(ServiceContext);
+    return useContext(ServiceContext);
 }

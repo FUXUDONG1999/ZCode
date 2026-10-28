@@ -19,19 +19,19 @@
 // ——**逐字节**，不只是深相等。键序因此是本模块的一等公民，见 {@link canonicalWorkflowRun}。
 
 import type {
-  ConversationDelta,
-  WorkflowRunEntryRef,
-  WorkflowRunHeaderKey,
-  WorkflowRunRemovedDelta,
-  WorkflowRunUpdatedDelta,
+    ConversationDelta,
+    WorkflowRunEntryRef,
+    WorkflowRunHeaderKey,
+    WorkflowRunRemovedDelta,
+    WorkflowRunUpdatedDelta,
 } from "./delta.js";
 import {
-  WORKFLOW_RUNS_LIMITS,
-  workflowRunSchema,
-  type WorkflowRunActor,
-  type WorkflowRunNode,
-  type WorkflowRunState,
-  type WorkflowRunsState,
+    WORKFLOW_RUNS_LIMITS,
+    workflowRunSchema,
+    type WorkflowRunActor,
+    type WorkflowRunNode,
+    type WorkflowRunState,
+    type WorkflowRunsState,
 } from "./workflow-runs.js";
 
 /**
@@ -49,7 +49,7 @@ const WORKFLOW_RUN_KEY_SET: ReadonlySet<string> = new Set<string>(WORKFLOW_RUN_K
 
 /** header = run 减去两张按 (siteId, ordinal) 增量同步的表。顺序仍是 schema 声明序。 */
 export const WORKFLOW_RUN_HEADER_KEYS: readonly WorkflowRunHeaderKey[] = WORKFLOW_RUN_KEYS.filter(
-  (key): key is WorkflowRunHeaderKey => key !== "actors" && key !== "nodes",
+    (key): key is WorkflowRunHeaderKey => key !== "actors" && key !== "nodes",
 );
 
 /**
@@ -57,15 +57,15 @@ export const WORKFLOW_RUN_HEADER_KEYS: readonly WorkflowRunHeaderKey[] = WORKFLO
  * 它只用在一处：判一条 `workflowRun.updated` 的 header 够不够格让一条未知 run **出生**。
  */
 const runShape = workflowRunSchema.shape as unknown as Record<
-  string,
-  { safeParse: (value: unknown) => { success: boolean } }
+    string,
+    { safeParse: (value: unknown) => { success: boolean } }
 >;
 const WORKFLOW_RUN_REQUIRED_HEADER_KEYS: readonly WorkflowRunHeaderKey[] =
-  WORKFLOW_RUN_HEADER_KEYS.filter((key) => !runShape[key]!.safeParse(undefined).success);
+    WORKFLOW_RUN_HEADER_KEYS.filter((key) => !runShape[key]!.safeParse(undefined).success);
 
 /** 两张实例表的去重键。`\0` 分隔的理由与 reducer 的派生 actor 状态逐字相同：("a",12) 与 ("a1",2) 不能撞车。 */
 export function workflowRunEntryKey(entry: { siteId: string; ordinal: number }): string {
-  return `${entry.siteId}\0${entry.ordinal}`;
+    return `${entry.siteId}\0${entry.ordinal}`;
 }
 
 /**
@@ -75,18 +75,18 @@ export function workflowRunEntryKey(entry: { siteId: string; ordinal: number }):
  * 「键缺席」两态，没有第三态。schema 之外的键按原序缀在尾部：本模块没有资格替调用方丢数据。
  */
 export function canonicalWorkflowRun(run: WorkflowRunState): WorkflowRunState {
-  const source = run as unknown as Record<string, unknown>;
-  const canonical: Record<string, unknown> = {};
-  for (const key of WORKFLOW_RUN_KEYS) {
-    const value = source[key];
-    if (value !== undefined) canonical[key] = value;
-  }
-  for (const key of Object.keys(source)) {
-    if (WORKFLOW_RUN_KEY_SET.has(key)) continue;
-    const value = source[key];
-    if (value !== undefined) canonical[key] = value;
-  }
-  return canonical as unknown as WorkflowRunState;
+    const source = run as unknown as Record<string, unknown>;
+    const canonical: Record<string, unknown> = {};
+    for (const key of WORKFLOW_RUN_KEYS) {
+        const value = source[key];
+        if (value !== undefined) canonical[key] = value;
+    }
+    for (const key of Object.keys(source)) {
+        if (WORKFLOW_RUN_KEY_SET.has(key)) continue;
+        const value = source[key];
+        if (value !== undefined) canonical[key] = value;
+    }
+    return canonical as unknown as WorkflowRunState;
 }
 
 /**
@@ -97,29 +97,29 @@ export function canonicalWorkflowRun(run: WorkflowRunState): WorkflowRunState {
  * 与缺席等同（stringify 也会丢掉它们）。
  */
 export function jsonValueEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (Array.isArray(a) || Array.isArray(b)) {
-    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
-    return a.every((item, index) => jsonValueEqual(item, b[index]));
-  }
-  if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
-  const left = a as Record<string, unknown>;
-  const right = b as Record<string, unknown>;
-  let present = 0;
-  for (const key of Object.keys(left)) {
-    const value = left[key];
-    if (value === undefined) continue;
-    present += 1;
-    if (!jsonValueEqual(value, right[key])) return false;
-  }
-  let expected = 0;
-  for (const key of Object.keys(right)) if (right[key] !== undefined) expected += 1;
-  return present === expected;
+    if (a === b) return true;
+    if (Array.isArray(a) || Array.isArray(b)) {
+        if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+        return a.every((item, index) => jsonValueEqual(item, b[index]));
+    }
+    if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
+    const left = a as Record<string, unknown>;
+    const right = b as Record<string, unknown>;
+    let present = 0;
+    for (const key of Object.keys(left)) {
+        const value = left[key];
+        if (value === undefined) continue;
+        present += 1;
+        if (!jsonValueEqual(value, right[key])) return false;
+    }
+    let expected = 0;
+    for (const key of Object.keys(right)) if (right[key] !== undefined) expected += 1;
+    return present === expected;
 }
 
 /** reducer 的幂等判据：同一条事件重放后内容无变化即不产 delta、不抬 revision。 */
 export function workflowRunUnchanged(previous: WorkflowRunState, next: WorkflowRunState): boolean {
-  return jsonValueEqual(previous, next);
+    return jsonValueEqual(previous, next);
 }
 
 /**
@@ -130,9 +130,9 @@ export function workflowRunUnchanged(previous: WorkflowRunState, next: WorkflowR
  * 合并规则得以成立的支点：合并不会把两条对未知 run 的 no-op 变成一次凭空出生。
  */
 export function isCompleteWorkflowRunHeader(header: unknown): boolean {
-  if (typeof header !== "object" || header === null) return false;
-  const record = header as Record<string, unknown>;
-  return WORKFLOW_RUN_REQUIRED_HEADER_KEYS.every((key) => record[key] !== undefined);
+    if (typeof header !== "object" || header === null) return false;
+    const record = header as Record<string, unknown>;
+    return WORKFLOW_RUN_REQUIRED_HEADER_KEYS.every((key) => record[key] !== undefined);
 }
 
 /**
@@ -143,94 +143,94 @@ export function isCompleteWorkflowRunHeader(header: unknown): boolean {
  * 在 coalesce 里是一道屏障，代价只是退回改造前的字节数。
  */
 export function diffWorkflowRunsState(
-  prior: WorkflowRunsState | undefined,
-  next: WorkflowRunsState,
+    prior: WorkflowRunsState | undefined,
+    next: WorkflowRunsState,
 ): ConversationDelta[] {
-  const priorRuns = prior?.runs ?? [];
-  const nextIds = new Set(next.runs.map((run) => run.runId));
-  const ops: ConversationDelta[] = [];
-  // 淘汰先发、按 prior 序：客户端先把走了的 run 摘掉，剩下的增量都作用在活着的表上。
-  for (const run of priorRuns) {
-    if (nextIds.has(run.runId)) continue;
-    ops.push({ op: "workflowRun.removed", runId: run.runId, revision: next.revision });
-  }
-  const priorById = new Map(priorRuns.map((run) => [run.runId, run]));
-  for (const run of next.runs) {
-    const before = priorById.get(run.runId);
-    if (before === run) continue;
-    const op = diffWorkflowRun(before, run, next.revision);
-    if (op === null) return [{ op: "state.updated", patch: { workflowRuns: next } }];
-    if (op !== undefined) ops.push(op);
-  }
-  // 一条 op 都没有却 revision 变了：容器版本没有自己的载体，只能整键重发。
-  // reducer 不产生这种输入（无变化时它返回 null），所以这条在生产上不会走到。
-  if (ops.length === 0 && (prior?.revision ?? -1) !== next.revision) {
-    return [{ op: "state.updated", patch: { workflowRuns: next } }];
-  }
-  return ops;
+    const priorRuns = prior?.runs ?? [];
+    const nextIds = new Set(next.runs.map((run) => run.runId));
+    const ops: ConversationDelta[] = [];
+    // 淘汰先发、按 prior 序：客户端先把走了的 run 摘掉，剩下的增量都作用在活着的表上。
+    for (const run of priorRuns) {
+        if (nextIds.has(run.runId)) continue;
+        ops.push({ op: "workflowRun.removed", runId: run.runId, revision: next.revision });
+    }
+    const priorById = new Map(priorRuns.map((run) => [run.runId, run]));
+    for (const run of next.runs) {
+        const before = priorById.get(run.runId);
+        if (before === run) continue;
+        const op = diffWorkflowRun(before, run, next.revision);
+        if (op === null) return [{ op: "state.updated", patch: { workflowRuns: next } }];
+        if (op !== undefined) ops.push(op);
+    }
+    // 一条 op 都没有却 revision 变了：容器版本没有自己的载体，只能整键重发。
+    // reducer 不产生这种输入（无变化时它返回 null），所以这条在生产上不会走到。
+    if (ops.length === 0 && (prior?.revision ?? -1) !== next.revision) {
+        return [{ op: "state.updated", patch: { workflowRuns: next } }];
+    }
+    return ops;
 }
 
 /** 单条 run 的增量：`undefined` = 无变化，`null` = 认不出的结构变化（整键重发）。 */
 function diffWorkflowRun(
-  before: WorkflowRunState | undefined,
-  run: WorkflowRunState,
-  revision: number,
+    before: WorkflowRunState | undefined,
+    run: WorkflowRunState,
+    revision: number,
 ): WorkflowRunUpdatedDelta | undefined | null {
-  const source = run as unknown as Record<string, unknown>;
-  // key 是 header 键的联合，逐键写回时 TS 会把值收窄成 never；这里按记录装配、出口处再定型。
-  const patch: Record<string, unknown> = {};
-  const cleared: WorkflowRunHeaderKey[] = [];
-  if (before === undefined) {
-    // 诞生：整条 header（含 runId，客户端据它判断这条 op 够不够格建表）+ 全部条目。
+    const source = run as unknown as Record<string, unknown>;
+    // key 是 header 键的联合，逐键写回时 TS 会把值收窄成 never；这里按记录装配、出口处再定型。
+    const patch: Record<string, unknown> = {};
+    const cleared: WorkflowRunHeaderKey[] = [];
+    if (before === undefined) {
+        // 诞生：整条 header（含 runId，客户端据它判断这条 op 够不够格建表）+ 全部条目。
+        for (const key of WORKFLOW_RUN_HEADER_KEYS) {
+            const value = source[key];
+            if (value !== undefined) patch[key] = value;
+        }
+        return {
+            op: "workflowRun.updated",
+            runId: run.runId,
+            revision,
+            run: patch as WorkflowRunUpdatedDelta["run"],
+            ...(run.actors.length > 0 ? { actors: [...run.actors] } : {}),
+            ...(run.nodes.length > 0 ? { nodes: [...run.nodes] } : {}),
+        };
+    }
+    const previous = before as unknown as Record<string, unknown>;
     for (const key of WORKFLOW_RUN_HEADER_KEYS) {
-      const value = source[key];
-      if (value !== undefined) patch[key] = value;
+        const left = previous[key];
+        const right = source[key];
+        if (left === right) continue;
+        if (right === undefined) {
+            cleared.push(key);
+            continue;
+        }
+        if (left !== undefined && jsonValueEqual(left, right)) continue;
+        patch[key] = right;
     }
+    const actors = diffWorkflowRunEntries(before.actors, run.actors);
+    const nodes = diffWorkflowRunEntries(before.nodes, run.nodes);
+    if (actors === null || nodes === null) return null;
+    const changedHeader = Object.keys(patch).length > 0 || cleared.length > 0;
+    if (!changedHeader && actors === undefined && nodes === undefined) return undefined;
+    // 键序 = 施加序（header → 删除 → upsert）：同一个键被删又被加时它落在表尾，与顺序施加
+    // 两条 op 一致。
     return {
-      op: "workflowRun.updated",
-      runId: run.runId,
-      revision,
-      run: patch as WorkflowRunUpdatedDelta["run"],
-      ...(run.actors.length > 0 ? { actors: [...run.actors] } : {}),
-      ...(run.nodes.length > 0 ? { nodes: [...run.nodes] } : {}),
+        op: "workflowRun.updated",
+        runId: run.runId,
+        revision,
+        ...(Object.keys(patch).length > 0 ? { run: patch as WorkflowRunUpdatedDelta["run"] } : {}),
+        ...(cleared.length > 0 ? { cleared } : {}),
+        ...(actors?.removed.length ? { removedActors: actors.removed } : {}),
+        ...(nodes?.removed.length ? { removedNodes: nodes.removed } : {}),
+        ...(actors?.changed.length ? { actors: actors.changed } : {}),
+        ...(nodes?.changed.length ? { nodes: nodes.changed } : {}),
     };
-  }
-  const previous = before as unknown as Record<string, unknown>;
-  for (const key of WORKFLOW_RUN_HEADER_KEYS) {
-    const left = previous[key];
-    const right = source[key];
-    if (left === right) continue;
-    if (right === undefined) {
-      cleared.push(key);
-      continue;
-    }
-    if (left !== undefined && jsonValueEqual(left, right)) continue;
-    patch[key] = right;
-  }
-  const actors = diffWorkflowRunEntries(before.actors, run.actors);
-  const nodes = diffWorkflowRunEntries(before.nodes, run.nodes);
-  if (actors === null || nodes === null) return null;
-  const changedHeader = Object.keys(patch).length > 0 || cleared.length > 0;
-  if (!changedHeader && actors === undefined && nodes === undefined) return undefined;
-  // 键序 = 施加序（header → 删除 → upsert）：同一个键被删又被加时它落在表尾，与顺序施加
-  // 两条 op 一致。
-  return {
-    op: "workflowRun.updated",
-    runId: run.runId,
-    revision,
-    ...(Object.keys(patch).length > 0 ? { run: patch as WorkflowRunUpdatedDelta["run"] } : {}),
-    ...(cleared.length > 0 ? { cleared } : {}),
-    ...(actors?.removed.length ? { removedActors: actors.removed } : {}),
-    ...(nodes?.removed.length ? { removedNodes: nodes.removed } : {}),
-    ...(actors?.changed.length ? { actors: actors.changed } : {}),
-    ...(nodes?.changed.length ? { nodes: nodes.changed } : {}),
-  };
 }
 
 /** 一张实例表这一步的变化：走掉的条目（只带身份）+ 变了的条目（整条，按 next 的顺序）。 */
 interface EntryDiff<T> {
-  removed: WorkflowRunEntryRef[];
-  changed: T[];
+    removed: WorkflowRunEntryRef[];
+    changed: T[];
 }
 
 /**
@@ -244,56 +244,57 @@ interface EntryDiff<T> {
  * 条目移动语法），只能整键重发。
  */
 function diffWorkflowRunEntries<T extends { siteId: string; ordinal: number }>(
-  before: readonly T[],
-  after: readonly T[],
+    before: readonly T[],
+    after: readonly T[],
 ): EntryDiff<T> | undefined | null {
-  if (before === after) return undefined;
-  if (before.length <= after.length) {
-    const changed: T[] = [];
-    let aligned = true;
-    for (let index = 0; index < after.length && aligned; index += 1) {
-      const entry = after[index]!;
-      const previous = before[index];
-      if (previous === undefined) {
-        changed.push(entry);
-        continue;
-      }
-      if (previous === entry) continue;
-      if (previous.siteId !== entry.siteId || previous.ordinal !== entry.ordinal) aligned = false;
-      else if (!jsonValueEqual(previous, entry)) changed.push(entry);
+    if (before === after) return undefined;
+    if (before.length <= after.length) {
+        const changed: T[] = [];
+        let aligned = true;
+        for (let index = 0; index < after.length && aligned; index += 1) {
+            const entry = after[index]!;
+            const previous = before[index];
+            if (previous === undefined) {
+                changed.push(entry);
+                continue;
+            }
+            if (previous === entry) continue;
+            if (previous.siteId !== entry.siteId || previous.ordinal !== entry.ordinal)
+                aligned = false;
+            else if (!jsonValueEqual(previous, entry)) changed.push(entry);
+        }
+        if (aligned) return changed.length > 0 ? { removed: [], changed } : undefined;
     }
-    if (aligned) return changed.length > 0 ? { removed: [], changed } : undefined;
-  }
-  return diffWorkflowRunEntriesByKey(before, after);
+    return diffWorkflowRunEntriesByKey(before, after);
 }
 
 function diffWorkflowRunEntriesByKey<T extends { siteId: string; ordinal: number }>(
-  before: readonly T[],
-  after: readonly T[],
+    before: readonly T[],
+    after: readonly T[],
 ): EntryDiff<T> | undefined | null {
-  const survives = new Set(after.map(workflowRunEntryKey));
-  const removed: WorkflowRunEntryRef[] = [];
-  const survivors: T[] = [];
-  for (const entry of before) {
-    if (survives.has(workflowRunEntryKey(entry))) survivors.push(entry);
-    else removed.push({ siteId: entry.siteId, ordinal: entry.ordinal });
-  }
-  if (survivors.length > after.length) return null;
-  const changed: T[] = [];
-  for (let index = 0; index < after.length; index += 1) {
-    const entry = after[index]!;
-    const previous = survivors[index];
-    if (previous === undefined) {
-      changed.push(entry);
-      continue;
+    const survives = new Set(after.map(workflowRunEntryKey));
+    const removed: WorkflowRunEntryRef[] = [];
+    const survivors: T[] = [];
+    for (const entry of before) {
+        if (survives.has(workflowRunEntryKey(entry))) survivors.push(entry);
+        else removed.push({ siteId: entry.siteId, ordinal: entry.ordinal });
     }
-    // 幸存者必须仍按原序坐在 next 的前缀上，否则就是重排——退回整键重发。
-    if (previous.siteId !== entry.siteId || previous.ordinal !== entry.ordinal) return null;
-    if (previous === entry || jsonValueEqual(previous, entry)) continue;
-    changed.push(entry);
-  }
-  if (removed.length === 0 && changed.length === 0) return undefined;
-  return { removed, changed };
+    if (survivors.length > after.length) return null;
+    const changed: T[] = [];
+    for (let index = 0; index < after.length; index += 1) {
+        const entry = after[index]!;
+        const previous = survivors[index];
+        if (previous === undefined) {
+            changed.push(entry);
+            continue;
+        }
+        // 幸存者必须仍按原序坐在 next 的前缀上，否则就是重排——退回整键重发。
+        if (previous.siteId !== entry.siteId || previous.ordinal !== entry.ordinal) return null;
+        if (previous === entry || jsonValueEqual(previous, entry)) continue;
+        changed.push(entry);
+    }
+    if (removed.length === 0 && changed.length === 0) return undefined;
+    return { removed, changed };
 }
 
 /**
@@ -307,58 +308,58 @@ function diffWorkflowRunEntriesByKey<T extends { siteId: string; ordinal: number
  * 这两级引用做 memo。
  */
 export function applyWorkflowRunUpdated(
-  state: WorkflowRunsState | undefined,
-  delta: WorkflowRunUpdatedDelta,
+    state: WorkflowRunsState | undefined,
+    delta: WorkflowRunUpdatedDelta,
 ): WorkflowRunsState {
-  const runs = state?.runs ?? [];
-  const revision = Math.max(state?.revision ?? 0, delta.revision);
-  const index = runs.findIndex((run) => run.runId === delta.runId);
-  if (index < 0) {
-    // 未知 run + 完整 header = 诞生；未知 run + 残缺 header = 这条 op 说的不是客户端手上的事实，
-    // 按 no-op 处理（与 row.upserted 命中未加载行同一条裁决），只让容器 revision 跟上。
-    if (!isCompleteWorkflowRunHeader(delta.run)) {
-      return state !== undefined && state.revision === revision ? state : { revision, runs };
+    const runs = state?.runs ?? [];
+    const revision = Math.max(state?.revision ?? 0, delta.revision);
+    const index = runs.findIndex((run) => run.runId === delta.runId);
+    if (index < 0) {
+        // 未知 run + 完整 header = 诞生；未知 run + 残缺 header = 这条 op 说的不是客户端手上的事实，
+        // 按 no-op 处理（与 row.upserted 命中未加载行同一条裁决），只让容器 revision 跟上。
+        if (!isCompleteWorkflowRunHeader(delta.run)) {
+            return state !== undefined && state.revision === revision ? state : { revision, runs };
+        }
+        const born = canonicalWorkflowRun({
+            ...(delta.run as Partial<WorkflowRunState>),
+            actors: delta.actors === undefined ? [] : [...delta.actors],
+            nodes: delta.nodes === undefined ? [] : [...delta.nodes],
+        } as WorkflowRunState);
+        return { revision, runs: [...runs, born] };
     }
-    const born = canonicalWorkflowRun({
-      ...(delta.run as Partial<WorkflowRunState>),
-      actors: delta.actors === undefined ? [] : [...delta.actors],
-      nodes: delta.nodes === undefined ? [] : [...delta.nodes],
-    } as WorkflowRunState);
-    return { revision, runs: [...runs, born] };
-  }
-  const existing = runs[index]!;
-  const merged: Record<string, unknown> = { ...existing, ...delta.run };
-  // 「零条 ⇒ 键缺席」是好几个键的协议约定，所以增量必须说得出「这个键没了」。
-  for (const key of delta.cleared ?? []) delete merged[key];
-  // 施加序：header → 删除 → upsert。同一个键在一条 op 里被删又被加时它落在表尾，与顺序施加
-  // 两条 op 的结果一致；反过来（先加后删）会把一条刚回来的条目又摘掉。
-  const actors = removeWorkflowRunEntries(existing.actors, delta.removedActors);
-  const nodes = removeWorkflowRunEntries(existing.nodes, delta.removedNodes);
-  if (actors !== existing.actors) merged.actors = actors;
-  if (nodes !== existing.nodes) merged.nodes = nodes;
-  if (delta.actors !== undefined && delta.actors.length > 0) {
-    merged.actors = upsertWorkflowRunEntries(actors, delta.actors);
-  }
-  if (delta.nodes !== undefined && delta.nodes.length > 0) {
-    merged.nodes = upsertWorkflowRunEntries(nodes, delta.nodes);
-  }
-  const next = [...runs];
-  next[index] = canonicalWorkflowRun(merged as unknown as WorkflowRunState);
-  return { revision, runs: next };
+    const existing = runs[index]!;
+    const merged: Record<string, unknown> = { ...existing, ...delta.run };
+    // 「零条 ⇒ 键缺席」是好几个键的协议约定，所以增量必须说得出「这个键没了」。
+    for (const key of delta.cleared ?? []) delete merged[key];
+    // 施加序：header → 删除 → upsert。同一个键在一条 op 里被删又被加时它落在表尾，与顺序施加
+    // 两条 op 的结果一致；反过来（先加后删）会把一条刚回来的条目又摘掉。
+    const actors = removeWorkflowRunEntries(existing.actors, delta.removedActors);
+    const nodes = removeWorkflowRunEntries(existing.nodes, delta.removedNodes);
+    if (actors !== existing.actors) merged.actors = actors;
+    if (nodes !== existing.nodes) merged.nodes = nodes;
+    if (delta.actors !== undefined && delta.actors.length > 0) {
+        merged.actors = upsertWorkflowRunEntries(actors, delta.actors);
+    }
+    if (delta.nodes !== undefined && delta.nodes.length > 0) {
+        merged.nodes = upsertWorkflowRunEntries(nodes, delta.nodes);
+    }
+    const next = [...runs];
+    next[index] = canonicalWorkflowRun(merged as unknown as WorkflowRunState);
+    return { revision, runs: next };
 }
 
 /** `workflowRun.removed` 的应用：把这条 run 摘掉。未知 runId 只让 revision 跟上。 */
 export function applyWorkflowRunRemoved(
-  state: WorkflowRunsState | undefined,
-  delta: WorkflowRunRemovedDelta,
+    state: WorkflowRunsState | undefined,
+    delta: WorkflowRunRemovedDelta,
 ): WorkflowRunsState {
-  const runs = state?.runs ?? [];
-  const revision = Math.max(state?.revision ?? 0, delta.revision);
-  const remaining = runs.filter((run) => run.runId !== delta.runId);
-  if (remaining.length === runs.length) {
-    return state !== undefined && state.revision === revision ? state : { revision, runs };
-  }
-  return { revision, runs: remaining };
+    const runs = state?.runs ?? [];
+    const revision = Math.max(state?.revision ?? 0, delta.revision);
+    const remaining = runs.filter((run) => run.runId !== delta.runId);
+    if (remaining.length === runs.length) {
+        return state !== undefined && state.revision === revision ? state : { revision, runs };
+    }
+    return { revision, runs: remaining };
 }
 
 /**
@@ -367,13 +368,13 @@ export function applyWorkflowRunRemoved(
  * 根本没到过。
  */
 function removeWorkflowRunEntries<T extends { siteId: string; ordinal: number }>(
-  current: readonly T[],
-  removed: readonly { siteId: string; ordinal: number }[] | undefined,
+    current: readonly T[],
+    removed: readonly { siteId: string; ordinal: number }[] | undefined,
 ): T[] {
-  if (removed === undefined || removed.length === 0) return current as T[];
-  const dropped = new Set(removed.map(workflowRunEntryKey));
-  const next = current.filter((entry) => !dropped.has(workflowRunEntryKey(entry)));
-  return next.length === current.length ? (current as T[]) : next;
+    if (removed === undefined || removed.length === 0) return current as T[];
+    const dropped = new Set(removed.map(workflowRunEntryKey));
+    const next = current.filter((entry) => !dropped.has(workflowRunEntryKey(entry)));
+    return next.length === current.length ? (current as T[]) : next;
 }
 
 /**
@@ -384,23 +385,23 @@ function removeWorkflowRunEntries<T extends { siteId: string; ordinal: number }>
  * 只会让两侧悄悄分叉。
  */
 function upsertWorkflowRunEntries<T extends { siteId: string; ordinal: number }>(
-  current: readonly T[],
-  incoming: readonly T[],
+    current: readonly T[],
+    incoming: readonly T[],
 ): T[] {
-  const next = [...current];
-  const indexByKey = new Map<string, number>();
-  next.forEach((entry, index) => indexByKey.set(workflowRunEntryKey(entry), index));
-  for (const entry of incoming) {
-    const key = workflowRunEntryKey(entry);
-    const index = indexByKey.get(key);
-    if (index === undefined) {
-      indexByKey.set(key, next.length);
-      next.push(entry);
-      continue;
+    const next = [...current];
+    const indexByKey = new Map<string, number>();
+    next.forEach((entry, index) => indexByKey.set(workflowRunEntryKey(entry), index));
+    for (const entry of incoming) {
+        const key = workflowRunEntryKey(entry);
+        const index = indexByKey.get(key);
+        if (index === undefined) {
+            indexByKey.set(key, next.length);
+            next.push(entry);
+            continue;
+        }
+        next[index] = entry;
     }
-    next[index] = entry;
-  }
-  return next;
+    return next;
 }
 
 /**
@@ -419,15 +420,15 @@ function upsertWorkflowRunEntries<T extends { siteId: string; ordinal: number }>
  * 合并是**优化**，所以拒绝合并永远是安全的：两条 op 各自都在界内，逐条投递的终态一个字节都不差。
  */
 export function workflowRunUpdateWithinWireBounds(
-  delta: WorkflowRunUpdatedDelta,
-  limits: WorkflowRunWireBounds = WORKFLOW_RUNS_LIMITS,
+    delta: WorkflowRunUpdatedDelta,
+    limits: WorkflowRunWireBounds = WORKFLOW_RUNS_LIMITS,
 ): boolean {
-  return (
-    (delta.actors?.length ?? 0) <= limits.maxActors &&
-    (delta.removedActors?.length ?? 0) <= limits.maxActors &&
-    (delta.nodes?.length ?? 0) <= limits.maxNodes &&
-    (delta.removedNodes?.length ?? 0) <= limits.maxNodes
-  );
+    return (
+        (delta.actors?.length ?? 0) <= limits.maxActors &&
+        (delta.removedActors?.length ?? 0) <= limits.maxActors &&
+        (delta.nodes?.length ?? 0) <= limits.maxNodes &&
+        (delta.removedNodes?.length ?? 0) <= limits.maxNodes
+    );
 }
 
 /**
@@ -435,64 +436,64 @@ export function workflowRunUpdateWithinWireBounds(
  * 而「合并被拒」这条路径在小界下才走得到，property 测试需要它真的被走到。
  */
 export interface WorkflowRunWireBounds {
-  readonly maxActors: number;
-  readonly maxNodes: number;
+    readonly maxActors: number;
+    readonly maxNodes: number;
 }
 
 /** 合并两条同 run 的 `workflowRun.updated`（coalesce 规则 6 的载荷部分，规则本身在 coalesce.ts）。 */
 export function mergeWorkflowRunUpdates(
-  earlier: WorkflowRunUpdatedDelta,
-  later: WorkflowRunUpdatedDelta,
+    earlier: WorkflowRunUpdatedDelta,
+    later: WorkflowRunUpdatedDelta,
 ): WorkflowRunUpdatedDelta {
-  const run: Record<string, unknown> = { ...earlier.run, ...later.run };
-  // header 键与 `cleared` 互为反面，合并时必须彼此对消：后设值的键不再是"被清掉的"，
-  // 后清掉的键也不再有值。留一半会让 apply 先写后删（或先删后写），结果取决于键序。
-  const laterCleared = new Set<string>(later.cleared ?? []);
-  for (const key of laterCleared) delete run[key];
-  const cleared: WorkflowRunHeaderKey[] = [];
-  for (const key of earlier.cleared ?? []) {
-    if (run[key] === undefined && !cleared.includes(key)) cleared.push(key);
-  }
-  for (const key of later.cleared ?? []) {
-    if (!cleared.includes(key)) cleared.push(key);
-  }
-  const removedActors = mergeRemovedRefs(earlier.removedActors, later.removedActors);
-  const removedNodes = mergeRemovedRefs(earlier.removedNodes, later.removedNodes);
-  const actors = mergeEntryLists<WorkflowRunActor>(
-    earlier.actors,
-    later.actors,
-    later.removedActors,
-  );
-  const nodes = mergeEntryLists<WorkflowRunNode>(earlier.nodes, later.nodes, later.removedNodes);
-  return {
-    op: "workflowRun.updated",
-    runId: later.runId,
-    // 取最高水位：合并后的 op 坐在靠前的位置上，靠 apply 的 max 让容器版本仍然收在最高 revision。
-    revision: Math.max(earlier.revision, later.revision),
-    ...(Object.keys(run).length > 0 ? { run: run as WorkflowRunUpdatedDelta["run"] } : {}),
-    ...(cleared.length > 0 ? { cleared } : {}),
-    ...(removedActors === undefined ? {} : { removedActors }),
-    ...(removedNodes === undefined ? {} : { removedNodes }),
-    ...(actors === undefined ? {} : { actors }),
-    ...(nodes === undefined ? {} : { nodes }),
-  };
+    const run: Record<string, unknown> = { ...earlier.run, ...later.run };
+    // header 键与 `cleared` 互为反面，合并时必须彼此对消：后设值的键不再是"被清掉的"，
+    // 后清掉的键也不再有值。留一半会让 apply 先写后删（或先删后写），结果取决于键序。
+    const laterCleared = new Set<string>(later.cleared ?? []);
+    for (const key of laterCleared) delete run[key];
+    const cleared: WorkflowRunHeaderKey[] = [];
+    for (const key of earlier.cleared ?? []) {
+        if (run[key] === undefined && !cleared.includes(key)) cleared.push(key);
+    }
+    for (const key of later.cleared ?? []) {
+        if (!cleared.includes(key)) cleared.push(key);
+    }
+    const removedActors = mergeRemovedRefs(earlier.removedActors, later.removedActors);
+    const removedNodes = mergeRemovedRefs(earlier.removedNodes, later.removedNodes);
+    const actors = mergeEntryLists<WorkflowRunActor>(
+        earlier.actors,
+        later.actors,
+        later.removedActors,
+    );
+    const nodes = mergeEntryLists<WorkflowRunNode>(earlier.nodes, later.nodes, later.removedNodes);
+    return {
+        op: "workflowRun.updated",
+        runId: later.runId,
+        // 取最高水位：合并后的 op 坐在靠前的位置上，靠 apply 的 max 让容器版本仍然收在最高 revision。
+        revision: Math.max(earlier.revision, later.revision),
+        ...(Object.keys(run).length > 0 ? { run: run as WorkflowRunUpdatedDelta["run"] } : {}),
+        ...(cleared.length > 0 ? { cleared } : {}),
+        ...(removedActors === undefined ? {} : { removedActors }),
+        ...(removedNodes === undefined ? {} : { removedNodes }),
+        ...(actors === undefined ? {} : { actors }),
+        ...(nodes === undefined ? {} : { nodes }),
+    };
 }
 
 /** 两侧的删除取并集，按首次出现去重（删除是按键过滤，顺序不影响结果，只影响字节）。 */
 function mergeRemovedRefs(
-  earlier: readonly WorkflowRunEntryRef[] | undefined,
-  later: readonly WorkflowRunEntryRef[] | undefined,
+    earlier: readonly WorkflowRunEntryRef[] | undefined,
+    later: readonly WorkflowRunEntryRef[] | undefined,
 ): WorkflowRunEntryRef[] | undefined {
-  if (earlier === undefined && later === undefined) return undefined;
-  const merged: WorkflowRunEntryRef[] = [];
-  const seen = new Set<string>();
-  for (const ref of [...(earlier ?? []), ...(later ?? [])]) {
-    const key = workflowRunEntryKey(ref);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    merged.push(ref);
-  }
-  return merged.length > 0 ? merged : undefined;
+    if (earlier === undefined && later === undefined) return undefined;
+    const merged: WorkflowRunEntryRef[] = [];
+    const seen = new Set<string>();
+    for (const ref of [...(earlier ?? []), ...(later ?? [])]) {
+        const key = workflowRunEntryKey(ref);
+        if (seen.has(key)) continue;
+        seen.add(key);
+        merged.push(ref);
+    }
+    return merged.length > 0 ? merged : undefined;
 }
 
 /**
@@ -503,16 +504,16 @@ function mergeRemovedRefs(
  * ——顺序施加得到的正是这个位置。
  */
 function mergeEntryLists<T extends { siteId: string; ordinal: number }>(
-  earlier: readonly T[] | undefined,
-  later: readonly T[] | undefined,
-  laterRemoved: readonly WorkflowRunEntryRef[] | undefined,
+    earlier: readonly T[] | undefined,
+    later: readonly T[] | undefined,
+    laterRemoved: readonly WorkflowRunEntryRef[] | undefined,
 ): T[] | undefined {
-  if (earlier === undefined && later === undefined) return undefined;
-  const dropped = new Set((laterRemoved ?? []).map(workflowRunEntryKey));
-  const kept =
-    dropped.size === 0
-      ? (earlier ?? [])
-      : (earlier ?? []).filter((entry) => !dropped.has(workflowRunEntryKey(entry)));
-  const merged = upsertWorkflowRunEntries(kept, later ?? []);
-  return merged.length > 0 ? merged : undefined;
+    if (earlier === undefined && later === undefined) return undefined;
+    const dropped = new Set((laterRemoved ?? []).map(workflowRunEntryKey));
+    const kept =
+        dropped.size === 0
+            ? (earlier ?? [])
+            : (earlier ?? []).filter((entry) => !dropped.has(workflowRunEntryKey(entry)));
+    const merged = upsertWorkflowRunEntries(kept, later ?? []);
+    return merged.length > 0 ? merged : undefined;
 }

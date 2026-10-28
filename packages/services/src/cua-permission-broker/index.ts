@@ -28,81 +28,81 @@ export * from "@zcode/zcode-cua/broker/server";
 
 /** @deprecated 默认 CUA 装配不再使用，仅为旧注入方保留兼容导出。 */
 export {
-  CuaAgentAdmissionGate,
-  type CuaAgentSpawnAdmissionContext,
+    CuaAgentAdmissionGate,
+    type CuaAgentSpawnAdmissionContext,
 } from "./cuaAgentAdmissionGate.js";
 // Services 自己拥有 permission-service descriptor value，并复用 producer ports type。
 export {
-  ICuaPermissionService,
-  isCuaPermissionStatusAvailable,
-  shouldRunCuaScreenCaptureProbe,
+    ICuaPermissionService,
+    isCuaPermissionStatusAvailable,
+    shouldRunCuaScreenCaptureProbe,
 } from "./cuaPermissionService.js";
 export type {
-  CuaPermissionState,
-  CuaPermissionStatus,
-  CuaPermissionStatusUnavailable,
-  CuaPermissionStatusResult,
-  CuaPermissionStatusQueryOptions,
-  CuaPermissionRestartResult,
-  CuaPermissionRestartOptions,
+    CuaPermissionState,
+    CuaPermissionStatus,
+    CuaPermissionStatusUnavailable,
+    CuaPermissionStatusResult,
+    CuaPermissionStatusQueryOptions,
+    CuaPermissionRestartResult,
+    CuaPermissionRestartOptions,
 } from "./cuaPermissionService.js";
 
 // Protocol-layer symbols services actually consumes (node.ts) that the 51
 // server files do not re-export. Listed explicitly to avoid TS2308 collisions
 // on the shared ax-types names.
 export {
-  // brokerProtocol.ts / types.ts -- these intentionally live in the protocol
-  // barrel, not the server barrel. Keep the services compatibility shim
-  // complete when the producer tightens its server export boundary.
-  BrokerError,
-  actionUnavailable,
-  dispatchRequest,
-  errorResponse,
-  errorResponseFromException,
-  handleRequestLine,
-  elementUnavailable,
-  foregroundRequired,
-  isBrokerMethod,
-  isReadOnlyBrokerMethod,
-  okResponse,
-  notAuthorized,
-  notSelectable,
-  notSettable,
-  parseRequestLine,
-  serializeResponse,
-  // helperHealth.ts -- client-side broker RPC. Only the protocol barrel exports
-  // it (the 51 server files do not), so the PiP turn-boundary closer reaches it
-  // through here rather than importing the producer barrel per call site.
-  callBrokerMethod,
-  // socketPath.ts
-  BROKER_SOCKET_ENV,
-  BROKER_UNAVAILABLE_ENV,
-  mintBrokerSocketPath,
-  resolveBrokerSocketPath,
-  // helperErrors.ts
-  CuaHelperError,
-  isCuaHelperError,
+    // brokerProtocol.ts / types.ts -- these intentionally live in the protocol
+    // barrel, not the server barrel. Keep the services compatibility shim
+    // complete when the producer tightens its server export boundary.
+    BrokerError,
+    actionUnavailable,
+    dispatchRequest,
+    errorResponse,
+    errorResponseFromException,
+    handleRequestLine,
+    elementUnavailable,
+    foregroundRequired,
+    isBrokerMethod,
+    isReadOnlyBrokerMethod,
+    okResponse,
+    notAuthorized,
+    notSelectable,
+    notSettable,
+    parseRequestLine,
+    serializeResponse,
+    // helperHealth.ts -- client-side broker RPC. Only the protocol barrel exports
+    // it (the 51 server files do not), so the PiP turn-boundary closer reaches it
+    // through here rather than importing the producer barrel per call site.
+    callBrokerMethod,
+    // socketPath.ts
+    BROKER_SOCKET_ENV,
+    BROKER_UNAVAILABLE_ENV,
+    mintBrokerSocketPath,
+    resolveBrokerSocketPath,
+    // helperErrors.ts
+    CuaHelperError,
+    isCuaHelperError,
 } from "@zcode/zcode-cua/broker";
 export type {
-  BrokerErrorCode,
-  BrokerMethod,
-  BrokerRequest,
-  BrokerResponse,
-  CuaHelperErrorCode,
-  NativeAutomationBackend,
+    BrokerErrorCode,
+    BrokerMethod,
+    BrokerRequest,
+    BrokerResponse,
+    CuaHelperErrorCode,
+    NativeAutomationBackend,
 } from "@zcode/zcode-cua/broker";
 
 export { WindowsCuaHelperHost } from "./windowsCuaDevHelperHost.js";
 export type {
-  ManagedCuaProductHelperHost,
-  WindowsCuaChild,
-  WindowsCuaChildProcessAdapter,
-  WindowsCuaHelperHostOptions,
+    ManagedCuaProductHelperHost,
+    WindowsCuaChild,
+    WindowsCuaChildProcessAdapter,
+    WindowsCuaHelperHostOptions,
 } from "./windowsCuaDevHelperHost.js";
 
 export {
-  resolveStandaloneStatusLaunchAppPath,
-  resolveStandaloneStatusLaunchCandidates,
+    resolveStandaloneStatusLaunchAppPath,
+    resolveStandaloneStatusLaunchCandidates,
 } from "./cuaStandaloneStatusLaunch.js";
 
 export { createCuaPipSessionService } from "./cuaPipSessionService.js";

@@ -3,7 +3,7 @@ import type { ProviderEndpointRoutingFactoryOptions } from "../provider-endpoint
 import { createStaticProviderEndpointRoutingPort } from "../official-coding-plan-gateway.js";
 
 export function createProviderEndpointRoutingPort(
-  options: ProviderEndpointRoutingFactoryOptions,
+    options: ProviderEndpointRoutingFactoryOptions,
 ): ProviderEndpointRoutingPort {
-  return createStaticProviderEndpointRoutingPort(options.endpointOrigin);
+    return createStaticProviderEndpointRoutingPort(options.endpointOrigin);
 }

@@ -11,12 +11,12 @@ key 为对应 `.md` 文件的绝对路径（skill 用 `SKILL.md`，命令用命�
 
 ```json
 {
-  "skill": {
-    "/Users/me/.zcode/skills/demo/SKILL.md": { "enable": false }
-  },
-  "command": {
-    "/Users/me/.zcode/commands/demo.md": { "enable": false }
-  }
+    "skill": {
+        "/Users/me/.zcode/skills/demo/SKILL.md": { "enable": false }
+    },
+    "command": {
+        "/Users/me/.zcode/commands/demo.md": { "enable": false }
+    }
 }
 ```
 

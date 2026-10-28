@@ -6,14 +6,14 @@ import { readPluginUiPresentation } from "@/plugin-ui/domain/readPluginUiPresent
 
 /** 宿主工具行渲染插槽，普通 MCP 卡片作为模块外的展示依赖注入。 */
 export function PluginUiToolCallBlock(context: ToolCallBlockRenderContext) {
-  const model = usePluginUiToolCallModel(context);
-  return <PluginUiToolCallView {...model} fallback={<McpToolCallBlock {...context} />} />;
+    const model = usePluginUiToolCallModel(context);
+    return <PluginUiToolCallView {...model} fallback={<McpToolCallBlock {...context} />} />;
 }
 export function shouldRenderPluginUi(
-  context: Pick<ToolCallBlockRenderContext, "toolCallNode" | "pluginUi">,
+    context: Pick<ToolCallBlockRenderContext, "toolCallNode" | "pluginUi">,
 ): boolean {
-  return Boolean(
-    context.pluginUi?.scope.sessionId &&
-    readPluginUiPresentation(context.toolCallNode.toolCall.raw),
-  );
+    return Boolean(
+        context.pluginUi?.scope.sessionId &&
+        readPluginUiPresentation(context.toolCallNode.toolCall.raw),
+    );
 }

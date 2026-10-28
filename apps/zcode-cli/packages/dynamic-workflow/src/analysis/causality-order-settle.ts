@@ -4,10 +4,10 @@ import { isFunctionLike } from "./sites.js";
 import { boundIdentifiers } from "./causality-order-functions.js";
 import type { TraceState } from "./causality-order-state.js";
 import {
-  currentFrame,
-  isVisiblySettled,
-  joinStrands,
-  type AwaitedOperand,
+    currentFrame,
+    isVisiblySettled,
+    joinStrands,
+    type AwaitedOperand,
 } from "./causality-order-strands.js";
 
 // causality-order.ts 顶到 oxlint max-lines 上限（400 行），把 await 屏障与神谕读取
@@ -18,8 +18,8 @@ import {
 /** An oracle lookup split by the settle-certainty rule. Readonly because {@link NO_CLAIM}
  * is a shared singleton — an in-place edit of an empty result would leak everywhere. */
 interface OracleClaim {
-  certain: readonly string[];
-  maybe: readonly string[];
+    certain: readonly string[];
+    maybe: readonly string[];
 }
 
 const NO_CLAIM: OracleClaim = { certain: [], maybe: [] };
@@ -30,24 +30,24 @@ const NO_CLAIM: OracleClaim = { certain: [], maybe: [] };
  * not-yet-issued step realizable, so this is the test {@link admissionOf} needs.
  */
 function iterationAncestorsOf(state: TraceState, node: ts.Node): Set<ts.Node> {
-  const cached = state.iterationAncestorCache.get(node);
-  if (cached !== undefined) return cached;
-  const out = new Set<ts.Node>();
-  for (let cur = node.parent; cur !== undefined; cur = cur.parent) {
-    if (
-      ts.isForStatement(cur) ||
-      ts.isForOfStatement(cur) ||
-      ts.isForInStatement(cur) ||
-      ts.isWhileStatement(cur) ||
-      ts.isDoStatement(cur) ||
-      state.candByCallback.has(cur) ||
-      state.eachCallbackFns.has(cur)
-    ) {
-      out.add(cur);
+    const cached = state.iterationAncestorCache.get(node);
+    if (cached !== undefined) return cached;
+    const out = new Set<ts.Node>();
+    for (let cur = node.parent; cur !== undefined; cur = cur.parent) {
+        if (
+            ts.isForStatement(cur) ||
+            ts.isForOfStatement(cur) ||
+            ts.isForInStatement(cur) ||
+            ts.isWhileStatement(cur) ||
+            ts.isDoStatement(cur) ||
+            state.candByCallback.has(cur) ||
+            state.eachCallbackFns.has(cur)
+        ) {
+            out.add(cur);
+        }
     }
-  }
-  state.iterationAncestorCache.set(node, out);
-  return out;
+    state.iterationAncestorCache.set(node, out);
+    return out;
 }
 
 /**
@@ -75,19 +75,19 @@ function iterationAncestorsOf(state: TraceState, node: ts.Node): Set<ts.Node> {
  * the same "a shared iteration region is what repetition can realize" rule.
  */
 function admissionOf(
-  state: TraceState,
-  awaitNode: ts.Node,
-  step: string,
+    state: TraceState,
+    awaitNode: ts.Node,
+    step: string,
 ): "issued" | "repetition" | undefined {
-  if (state.issued.has(step)) return "issued";
-  const call = state.callByStep.get(step);
-  if (call === undefined) return undefined;
-  const enclosing = iterationAncestorsOf(state, awaitNode);
-  if (enclosing.size === 0) return undefined;
-  for (const ancestor of iterationAncestorsOf(state, call)) {
-    if (enclosing.has(ancestor)) return "repetition";
-  }
-  return undefined;
+    if (state.issued.has(step)) return "issued";
+    const call = state.callByStep.get(step);
+    if (call === undefined) return undefined;
+    const enclosing = iterationAncestorsOf(state, awaitNode);
+    if (enclosing.size === 0) return undefined;
+    for (const ancestor of iterationAncestorsOf(state, call)) {
+        if (enclosing.has(ancestor)) return "repetition";
+    }
+    return undefined;
 }
 
 /**
@@ -112,33 +112,33 @@ function admissionOf(
  * Guard lookups pass no `admit` — see the note on {@link controllersOf}.
  */
 function claimAt(
-  state: TraceState,
-  map: Map<number, TaintOcc[]>,
-  at: number,
-  admit?: (step: string) => "issued" | "repetition" | undefined,
+    state: TraceState,
+    map: Map<number, TaintOcc[]>,
+    at: number,
+    admit?: (step: string) => "issued" | "repetition" | undefined,
 ): OracleClaim {
-  const occs = (map.get(at) ?? []).filter((occ) => state.realSteps.has(occ.site));
-  // Dedupe by site, OR-ing exactness the way the domain's own addOcc merges witnesses.
-  // `certainOk` is per-SITE: admission is a property of the site, not of an occurrence.
-  const bySite = new Map<string, { exact: boolean; certainOk: boolean }>();
-  for (const occ of occs) {
-    const how = admit === undefined ? "issued" : admit(occ.site);
-    if (how === undefined) continue; // temporally impossible at this point in the walk
-    const existing = bySite.get(occ.site);
-    if (existing === undefined)
-      bySite.set(occ.site, { certainOk: how === "issued", exact: occ.exact });
-    else existing.exact = existing.exact || occ.exact;
-  }
-  const sites = [...bySite.keys()];
-  if (sites.length === 0) return NO_CLAIM;
-  const only = sites[0] as string;
-  const solo = bySite.get(only) as { exact: boolean; certainOk: boolean };
-  if (sites.length === 1 && solo.exact && solo.certainOk) return { certain: [only], maybe: [] };
-  return { certain: [], maybe: sites };
+    const occs = (map.get(at) ?? []).filter((occ) => state.realSteps.has(occ.site));
+    // Dedupe by site, OR-ing exactness the way the domain's own addOcc merges witnesses.
+    // `certainOk` is per-SITE: admission is a property of the site, not of an occurrence.
+    const bySite = new Map<string, { exact: boolean; certainOk: boolean }>();
+    for (const occ of occs) {
+        const how = admit === undefined ? "issued" : admit(occ.site);
+        if (how === undefined) continue; // temporally impossible at this point in the walk
+        const existing = bySite.get(occ.site);
+        if (existing === undefined)
+            bySite.set(occ.site, { certainOk: how === "issued", exact: occ.exact });
+        else existing.exact = existing.exact || occ.exact;
+    }
+    const sites = [...bySite.keys()];
+    if (sites.length === 0) return NO_CLAIM;
+    const only = sites[0] as string;
+    const solo = bySite.get(only) as { exact: boolean; certainOk: boolean };
+    if (sites.length === 1 && solo.exact && solo.certainOk) return { certain: [only], maybe: [] };
+    return { certain: [], maybe: sites };
 }
 
 export function settlesAt(state: TraceState, node: ts.Node, at: number): OracleClaim {
-  return claimAt(state, state.oracle.awaitSettles, at, (step) => admissionOf(state, node, step));
+    return claimAt(state, state.oracle.awaitSettles, at, (step) => admissionOf(state, node, step));
 }
 
 /**
@@ -165,82 +165,88 @@ export function settlesAt(state: TraceState, node: ts.Node, at: number): OracleC
  * prologue) can still LIFT a strand out of its own claim.
  */
 export function barrier(
-  state: TraceState,
-  certain: readonly string[],
-  maybe: readonly string[],
-  chain: readonly string[],
-  awaited?: AwaitedOperand,
+    state: TraceState,
+    certain: readonly string[],
+    maybe: readonly string[],
+    chain: readonly string[],
+    awaited?: AwaitedOperand,
 ): void {
-  const { events, issued } = state;
-  const joins = joinStrands(state, certain, maybe, awaited);
-  const summaryOf = (regions: readonly string[]): string[] =>
-    regions.flatMap((region) => [
-      ...(state.strands.find((record) => record.region === region)?.summary ?? []),
-    ]);
-  // A joined strand contributes what IT awaited: syntactically joined certainly, lifted
-  // with the certainty of the claim that lifted it.
-  const allCertain = [...certain, ...summaryOf(joins.certain)];
-  const allMaybe = [...maybe, ...summaryOf(joins.maybe)];
-  const joined = [...joins.certain, ...joins.maybe];
+    const { events, issued } = state;
+    const joins = joinStrands(state, certain, maybe, awaited);
+    const summaryOf = (regions: readonly string[]): string[] =>
+        regions.flatMap((region) => [
+            ...(state.strands.find((record) => record.region === region)?.summary ?? []),
+        ]);
+    // A joined strand contributes what IT awaited: syntactically joined certainly, lifted
+    // with the certainty of the claim that lifted it.
+    const allCertain = [...certain, ...summaryOf(joins.certain)];
+    const allMaybe = [...maybe, ...summaryOf(joins.maybe)];
+    const joined = [...joins.certain, ...joins.maybe];
 
-  const frame = currentFrame(state);
-  const freshCertain: string[] = [];
-  for (const step of allCertain) {
-    if (!isVisiblySettled(state, step) && !freshCertain.includes(step)) freshCertain.push(step);
-  }
-  for (const step of freshCertain) frame.settled.add(step);
-  const freshMaybe: string[] = [];
-  for (const step of allMaybe) {
-    if (!isVisiblySettled(state, step) && !freshMaybe.includes(step)) freshMaybe.push(step);
-  }
-  for (const step of freshMaybe) frame.settled.add(step);
+    const frame = currentFrame(state);
+    const freshCertain: string[] = [];
+    for (const step of allCertain) {
+        if (!isVisiblySettled(state, step) && !freshCertain.includes(step)) freshCertain.push(step);
+    }
+    for (const step of freshCertain) frame.settled.add(step);
+    const freshMaybe: string[] = [];
+    for (const step of allMaybe) {
+        if (!isVisiblySettled(state, step) && !freshMaybe.includes(step)) freshMaybe.push(step);
+    }
+    for (const step of freshMaybe) frame.settled.add(step);
 
-  // `joins` rides the FIRST event this barrier emits: it is a property of the barrier, not
-  // of either certainty side, and the control-flow projection reads it as one set.
-  const withJoins = joined.length === 0 ? {} : { joins: joined };
-  if (freshCertain.length > 0) {
-    events.push({ at: "settle", maybe: false, regions: chain, steps: freshCertain, ...withJoins });
-  }
-  if (freshMaybe.length > 0) {
-    events.push({
-      at: "settle",
-      maybe: true,
-      regions: chain,
-      steps: freshMaybe,
-      ...(freshCertain.length > 0 ? {} : withJoins),
-    });
-  }
-  if (freshCertain.length > 0 || freshMaybe.length > 0) return;
-  // Nothing fresh to settle, but a join is a control-flow fact of its own: it is where the
-  // strand's parked exits reconnect, so it is recorded even with no steps to its name.
-  const joinOnly = (): void => {
-    if (joined.length === 0) return;
-    events.push({ at: "settle", joins: joined, maybe: false, regions: chain, steps: [] });
-  };
-  if (allCertain.length > 0 || allMaybe.length > 0) {
-    joinOnly(); // already settled: adds no step
-    return;
-  }
-  // Widened barrier: neither half resolved anything, so assume everything in flight
-  // settled. Over-orders (understates parallelism), never invents concurrency.
-  const pending = [...issued].filter((step) => !isVisiblySettled(state, step));
-  if (pending.length === 0) {
-    joinOnly();
-    return;
-  }
-  for (const step of pending) frame.settled.add(step);
-  events.push({ at: "settle", maybe: true, regions: chain, steps: pending, ...withJoins });
+    // `joins` rides the FIRST event this barrier emits: it is a property of the barrier, not
+    // of either certainty side, and the control-flow projection reads it as one set.
+    const withJoins = joined.length === 0 ? {} : { joins: joined };
+    if (freshCertain.length > 0) {
+        events.push({
+            at: "settle",
+            maybe: false,
+            regions: chain,
+            steps: freshCertain,
+            ...withJoins,
+        });
+    }
+    if (freshMaybe.length > 0) {
+        events.push({
+            at: "settle",
+            maybe: true,
+            regions: chain,
+            steps: freshMaybe,
+            ...(freshCertain.length > 0 ? {} : withJoins),
+        });
+    }
+    if (freshCertain.length > 0 || freshMaybe.length > 0) return;
+    // Nothing fresh to settle, but a join is a control-flow fact of its own: it is where the
+    // strand's parked exits reconnect, so it is recorded even with no steps to its name.
+    const joinOnly = (): void => {
+        if (joined.length === 0) return;
+        events.push({ at: "settle", joins: joined, maybe: false, regions: chain, steps: [] });
+    };
+    if (allCertain.length > 0 || allMaybe.length > 0) {
+        joinOnly(); // already settled: adds no step
+        return;
+    }
+    // Widened barrier: neither half resolved anything, so assume everything in flight
+    // settled. Over-orders (understates parallelism), never invents concurrency.
+    const pending = [...issued].filter((step) => !isVisiblySettled(state, step));
+    if (pending.length === 0) {
+        joinOnly();
+        return;
+    }
+    for (const step of pending) frame.settled.add(step);
+    events.push({ at: "settle", maybe: true, regions: chain, steps: pending, ...withJoins });
 }
 
 export function bindSteps(state: TraceState, name: ts.BindingName, steps: readonly string[]): void {
-  if (steps.length === 0) return;
-  for (const identifier of boundIdentifiers(name)) {
-    const symbol = state.checker.getSymbolAtLocation(identifier);
-    if (symbol === undefined) continue;
-    const set = state.stepsBySymbol.get(symbol) ?? new Set<string>();
-    for (const step of steps) set.add(step);
-    state.stepsBySymbol.set(symbol, set);
-  }
+    if (steps.length === 0) return;
+    for (const identifier of boundIdentifiers(name)) {
+        const symbol = state.checker.getSymbolAtLocation(identifier);
+        if (symbol === undefined) continue;
+        const set = state.stepsBySymbol.get(symbol) ?? new Set<string>();
+        for (const step of steps) set.add(step);
+        state.stepsBySymbol.set(symbol, set);
+    }
 }
 
 /**
@@ -256,35 +262,35 @@ export function bindSteps(state: TraceState, name: ts.BindingName, steps: readon
  * pinned (order-implicit-flow-guard, order-derived-guard-control).
  */
 function controllersOf(
-  state: TraceState,
-  guard: ts.Expression,
+    state: TraceState,
+    guard: ts.Expression,
 ): { controllers: string[]; maybeControllers: string[] } {
-  const controllers: string[] = [];
-  const scan = (node: ts.Node): void => {
-    if (isFunctionLike(node)) return;
-    if (ts.isIdentifier(node)) {
-      const symbol = state.checker.getSymbolAtLocation(node);
-      const steps = symbol === undefined ? undefined : state.stepsBySymbol.get(symbol);
-      if (steps !== undefined) {
-        for (const step of steps) if (!controllers.includes(step)) controllers.push(step);
-      }
-      return;
-    }
-    ts.forEachChild(node, scan);
-  };
-  scan(guard);
-  const claim = claimAt(state, state.oracle.guardReads, guard.getStart(state.scriptFile));
-  for (const step of claim.certain) if (!controllers.includes(step)) controllers.push(step);
-  return {
-    controllers,
-    maybeControllers: claim.maybe.filter((step) => !controllers.includes(step)),
-  };
+    const controllers: string[] = [];
+    const scan = (node: ts.Node): void => {
+        if (isFunctionLike(node)) return;
+        if (ts.isIdentifier(node)) {
+            const symbol = state.checker.getSymbolAtLocation(node);
+            const steps = symbol === undefined ? undefined : state.stepsBySymbol.get(symbol);
+            if (steps !== undefined) {
+                for (const step of steps) if (!controllers.includes(step)) controllers.push(step);
+            }
+            return;
+        }
+        ts.forEachChild(node, scan);
+    };
+    scan(guard);
+    const claim = claimAt(state, state.oracle.guardReads, guard.getStart(state.scriptFile));
+    for (const step of claim.certain) if (!controllers.includes(step)) controllers.push(step);
+    return {
+        controllers,
+        maybeControllers: claim.maybe.filter((step) => !controllers.includes(step)),
+    };
 }
 
 /** Record a guard's control dependence against a region, when it has any. */
 export function recordControl(state: TraceState, guard: ts.Expression, region: string): void {
-  const { controllers, maybeControllers } = controllersOf(state, guard);
-  if (controllers.length > 0 || maybeControllers.length > 0) {
-    state.controls.push({ controllers, maybeControllers, region });
-  }
+    const { controllers, maybeControllers } = controllersOf(state, guard);
+    if (controllers.length > 0 || maybeControllers.length > 0) {
+        state.controls.push({ controllers, maybeControllers, region });
+    }
 }

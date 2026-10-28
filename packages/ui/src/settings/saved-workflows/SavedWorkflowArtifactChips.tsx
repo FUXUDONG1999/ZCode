@@ -13,26 +13,26 @@ import { WorkflowArtifactStrip } from "@/components/workflow-timeline/WorkflowAr
  * 两边都有，条只读这四个。
  */
 export function SavedWorkflowArtifactChips({
-  artifacts,
-  onOpenArtifact,
-  className,
-  size = "sm",
+    artifacts,
+    onOpenArtifact,
+    className,
+    size = "sm",
 }: {
-  artifacts: NonNullable<ZCodeSavedWorkflowRun["artifacts"]>;
-  /** 缺席即药丸禁用（老行没有 `parentSessionId`，或宿主没注入打开能力）。 */
-  onOpenArtifact?: (artifactId: string) => void;
-  size?: ArtifactPillSize;
-  className?: string;
+    artifacts: NonNullable<ZCodeSavedWorkflowRun["artifacts"]>;
+    /** 缺席即药丸禁用（老行没有 `parentSessionId`，或宿主没注入打开能力）。 */
+    onOpenArtifact?: (artifactId: string) => void;
+    size?: ArtifactPillSize;
+    className?: string;
 }) {
-  return (
-    <WorkflowArtifactStrip
-      artifacts={artifacts}
-      moreTestId="workflow-run-artifact-chips-more"
-      pillTestId={TID_WORKFLOW_ARTIFACT_CHIP}
-      size={size}
-      testId="workflow-run-artifact-chips"
-      {...(className === undefined ? {} : { className })}
-      {...(onOpenArtifact === undefined ? {} : { onOpenArtifact })}
-    />
-  );
+    return (
+        <WorkflowArtifactStrip
+            artifacts={artifacts}
+            moreTestId="workflow-run-artifact-chips-more"
+            pillTestId={TID_WORKFLOW_ARTIFACT_CHIP}
+            size={size}
+            testId="workflow-run-artifact-chips"
+            {...(className === undefined ? {} : { className })}
+            {...(onOpenArtifact === undefined ? {} : { onOpenArtifact })}
+        />
+    );
 }

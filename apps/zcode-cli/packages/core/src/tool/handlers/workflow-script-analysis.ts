@@ -16,8 +16,8 @@ let lastAnalysis: { script: string; result: AnalyzeResult } | null = null;
 
 /** 编译并分析一段 workflow 脚本，紧邻的重复调用命中记忆槽。 */
 export function analyzeScript(script: string): AnalyzeResult {
-  if (lastAnalysis?.script === script) return lastAnalysis.result;
-  const result = analyzeWorkflowScript(script);
-  lastAnalysis = { script, result };
-  return result;
+    if (lastAnalysis?.script === script) return lastAnalysis.result;
+    const result = analyzeWorkflowScript(script);
+    lastAnalysis = { script, result };
+    return result;
 }

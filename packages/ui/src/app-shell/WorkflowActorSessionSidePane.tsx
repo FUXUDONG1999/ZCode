@@ -11,11 +11,11 @@ import { useConversationProjection } from "@/v4/useConversationProjection.js";
 import { useV4Conversation, V4PaneConversationProvider } from "@/v4/V4ConversationContext.js";
 
 interface WorkflowActorSessionSidePaneProps {
-  tab: WorkflowActorSessionSidePaneTab;
-  focused: boolean;
-  onOpenBrowserUrl?: (url: string) => void;
-  onOpenCodeViewer?: (source: CodeViewerSource) => void;
-  onOpenFileLink?: (target: MessageFileLinkTarget) => void;
+    tab: WorkflowActorSessionSidePaneTab;
+    focused: boolean;
+    onOpenBrowserUrl?: (url: string) => void;
+    onOpenCodeViewer?: (source: CodeViewerSource) => void;
+    onOpenFileLink?: (target: MessageFileLinkTarget) => void;
 }
 
 /**
@@ -25,21 +25,21 @@ interface WorkflowActorSessionSidePaneProps {
  * 一个并不存在的重试。状态不靠颜色单独表达：图标 + 标题 + 正文都在说同一件事。
  */
 function WorkflowActorNotStarted() {
-  const { intl } = useZCodeIntl();
-  return (
-    <div
-      className="flex h-full flex-col items-center justify-center px-6 text-center"
-      data-testid="workflow-actor-not-started"
-    >
-      <HourglassIcon className="size-8 text-foreground-subtlest" />
-      <p className="mt-3 text-ui-base font-medium text-foreground">
-        {intl.formatMessage({ id: "chat.toolCall.workflow.run.actor.notStarted.title" })}
-      </p>
-      <p className="mt-1 text-ui-base text-foreground-subtle">
-        {intl.formatMessage({ id: "chat.toolCall.workflow.run.actor.notStarted.body" })}
-      </p>
-    </div>
-  );
+    const { intl } = useZCodeIntl();
+    return (
+        <div
+            className="flex h-full flex-col items-center justify-center px-6 text-center"
+            data-testid="workflow-actor-not-started"
+        >
+            <HourglassIcon className="size-8 text-foreground-subtlest" />
+            <p className="mt-3 text-ui-base font-medium text-foreground">
+                {intl.formatMessage({ id: "chat.toolCall.workflow.run.actor.notStarted.title" })}
+            </p>
+            <p className="mt-1 text-ui-base text-foreground-subtle">
+                {intl.formatMessage({ id: "chat.toolCall.workflow.run.actor.notStarted.body" })}
+            </p>
+        </div>
+    );
 }
 
 /**
@@ -54,58 +54,58 @@ function WorkflowActorNotStarted() {
  * 也就没有那个停在 error 只等手动 retry 的投影 store。
  */
 const WorkflowActorSessionContent = memo(function WorkflowActorSessionContent({
-  tab,
-  focused,
-  onOpenBrowserUrl,
-  onOpenCodeViewer,
-  onOpenFileLink,
+    tab,
+    focused,
+    onOpenBrowserUrl,
+    onOpenCodeViewer,
+    onOpenFileLink,
 }: WorkflowActorSessionSidePaneProps) {
-  const { layer } = useV4Conversation();
+    const { layer } = useV4Conversation();
 
-  // 父会话租约走**渲染期同步建连**（`useMemo`，同 `ReadyV4PaneConversationProvider`），
-  // 不是 `WorkflowRunSidePane` 的 `useEffect` + `setLease`。区别是要紧的：effect 版的**首帧**
-  // 没有投影，门只能判 unknown，SessionPane 于是挂上一帧、对着还不存在的会话订阅一次并失败。
-  // 而失败的 store 会带着 status:"error" 在 SessionDataLayer 的 keep-warm 里活满 30 秒，
-  // 门后来放行时的 acquire 直接复用它（refCount++，不再 connect）——那正是本要修掉的死面板。
-  // 详情页可以承受晚一帧（它只是先画个空态），这道门不行。
-  const lease = useMemo(() => layer.acquire(tab.parentSessionId), [layer, tab.parentSessionId]);
-  useEffect(() => () => lease.release(), [lease]);
+    // 父会话租约走**渲染期同步建连**（`useMemo`，同 `ReadyV4PaneConversationProvider`），
+    // 不是 `WorkflowRunSidePane` 的 `useEffect` + `setLease`。区别是要紧的：effect 版的**首帧**
+    // 没有投影，门只能判 unknown，SessionPane 于是挂上一帧、对着还不存在的会话订阅一次并失败。
+    // 而失败的 store 会带着 status:"error" 在 SessionDataLayer 的 keep-warm 里活满 30 秒，
+    // 门后来放行时的 acquire 直接复用它（refCount++，不再 connect）——那正是本要修掉的死面板。
+    // 详情页可以承受晚一帧（它只是先画个空态），这道门不行。
+    const lease = useMemo(() => layer.acquire(tab.parentSessionId), [layer, tab.parentSessionId]);
+    useEffect(() => () => lease.release(), [lease]);
 
-  const snapshot = useConversationProjection(lease).snapshot;
-  const gate = useMemo(
-    () =>
-      workflowActorStartState(snapshot?.workflowRuns?.runs, {
-        runId: tab.runId,
-        siteId: tab.siteId,
-        ordinal: tab.ordinal,
-        ...(tab.actorSessionId === undefined ? {} : { actorSessionId: tab.actorSessionId }),
-      }),
-    [snapshot?.workflowRuns, tab.actorSessionId, tab.ordinal, tab.runId, tab.siteId],
-  );
+    const snapshot = useConversationProjection(lease).snapshot;
+    const gate = useMemo(
+        () =>
+            workflowActorStartState(snapshot?.workflowRuns?.runs, {
+                runId: tab.runId,
+                siteId: tab.siteId,
+                ordinal: tab.ordinal,
+                ...(tab.actorSessionId === undefined ? {} : { actorSessionId: tab.actorSessionId }),
+            }),
+        [snapshot?.workflowRuns, tab.actorSessionId, tab.ordinal, tab.runId, tab.siteId],
+    );
 
-  // `unknown` 与 `started` 都照旧订阅：前者是 run 被淘汰 / 冷恢复后的常态，直接订阅是
-  // transcript 唯一的路，真失败时既有的 error + 手动 retry 面板原样保留。没有会话 id 的
-  // 槽位（未启动的药丸开的 tab）只能占位——门读实时投影，actor 带着会话出现即自愈。
-  if (gate.state === "notStarted" || gate.sessionId === undefined) {
-    return <WorkflowActorNotStarted />;
-  }
+    // `unknown` 与 `started` 都照旧订阅：前者是 run 被淘汰 / 冷恢复后的常态，直接订阅是
+    // transcript 唯一的路，真失败时既有的 error + 手动 retry 面板原样保留。没有会话 id 的
+    // 槽位（未启动的药丸开的 tab）只能占位——门读实时投影，actor 带着会话出现即自愈。
+    if (gate.state === "notStarted" || gate.sessionId === undefined) {
+        return <WorkflowActorNotStarted />;
+    }
 
-  return (
-    <SessionPane
-      paneId={tab.id}
-      sessionId={gate.sessionId}
-      readOnly
-      allowWorkspaceFileRewind
-      focused={focused}
-      telemetryVisible={focused}
-      workspacePath={tab.workspacePath}
-      workspaceIdentity={tab.workspaceIdentity}
-      remoteSessionId={tab.remoteSessionId}
-      onOpenBrowserUrl={onOpenBrowserUrl}
-      onOpenCodeViewer={onOpenCodeViewer}
-      onOpenFileLink={onOpenFileLink}
-    />
-  );
+    return (
+        <SessionPane
+            paneId={tab.id}
+            sessionId={gate.sessionId}
+            readOnly
+            allowWorkspaceFileRewind
+            focused={focused}
+            telemetryVisible={focused}
+            workspacePath={tab.workspacePath}
+            workspaceIdentity={tab.workspaceIdentity}
+            remoteSessionId={tab.remoteSessionId}
+            onOpenBrowserUrl={onOpenBrowserUrl}
+            onOpenCodeViewer={onOpenCodeViewer}
+            onOpenFileLink={onOpenFileLink}
+        />
+    );
 });
 
 /**
@@ -123,30 +123,30 @@ const WorkflowActorSessionContent = memo(function WorkflowActorSessionContent({
  *   订阅一条与它无关的会话。
  */
 export const WorkflowActorSessionSidePane = memo(function WorkflowActorSessionSidePane({
-  tab,
-  focused,
-  onOpenBrowserUrl,
-  onOpenCodeViewer,
-  onOpenFileLink,
+    tab,
+    focused,
+    onOpenBrowserUrl,
+    onOpenCodeViewer,
+    onOpenFileLink,
 }: WorkflowActorSessionSidePaneProps) {
-  const scope = useMemo<PaneWorkspaceScope>(
-    () => ({
-      workspacePath: tab.workspacePath,
-      ...(tab.workspaceIdentity ? { workspaceIdentity: tab.workspaceIdentity } : {}),
-      ...(tab.remoteSessionId ? { remoteSessionId: tab.remoteSessionId } : {}),
-    }),
-    [tab.remoteSessionId, tab.workspaceIdentity, tab.workspacePath],
-  );
+    const scope = useMemo<PaneWorkspaceScope>(
+        () => ({
+            workspacePath: tab.workspacePath,
+            ...(tab.workspaceIdentity ? { workspaceIdentity: tab.workspaceIdentity } : {}),
+            ...(tab.remoteSessionId ? { remoteSessionId: tab.remoteSessionId } : {}),
+        }),
+        [tab.remoteSessionId, tab.workspaceIdentity, tab.workspacePath],
+    );
 
-  return (
-    <V4PaneConversationProvider scope={scope}>
-      <WorkflowActorSessionContent
-        tab={tab}
-        focused={focused}
-        onOpenBrowserUrl={onOpenBrowserUrl}
-        onOpenCodeViewer={onOpenCodeViewer}
-        onOpenFileLink={onOpenFileLink}
-      />
-    </V4PaneConversationProvider>
-  );
+    return (
+        <V4PaneConversationProvider scope={scope}>
+            <WorkflowActorSessionContent
+                tab={tab}
+                focused={focused}
+                onOpenBrowserUrl={onOpenBrowserUrl}
+                onOpenCodeViewer={onOpenCodeViewer}
+                onOpenFileLink={onOpenFileLink}
+            />
+        </V4PaneConversationProvider>
+    );
 });

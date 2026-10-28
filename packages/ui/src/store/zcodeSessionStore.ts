@@ -14,25 +14,25 @@ import { createWorkspaceSlice } from "./zcodeSessionStoreWorkspaceSlice.js";
 import { uiMemoryDiagnosticsRegistry } from "@/lib/memoryDiagnostics.js";
 
 export const useZCodeSessionStore = create<ZCodeSessionStoreState>()((set, get) => ({
-  workspaces: {},
-  ...createNavigationSlice(set, get),
-  ...createWorkspaceSlice(set),
-  ...createTaskSlice(set),
-  getWorkspaceState: (workspacePath: string, workspaceIdentity?: string) =>
-    getWorkspaceState(get(), workspacePath, workspaceIdentity),
+    workspaces: {},
+    ...createNavigationSlice(set, get),
+    ...createWorkspaceSlice(set),
+    ...createTaskSlice(set),
+    getWorkspaceState: (workspacePath: string, workspaceIdentity?: string) =>
+        getWorkspaceState(get(), workspacePath, workspaceIdentity),
 }));
 
 type ZCodeSessionStoreE2EBridge = typeof useZCodeSessionStore;
 
 declare global {
-  interface Window {
-    __zcodeSessionStoreE2E?: ZCodeSessionStoreE2EBridge;
-  }
+    interface Window {
+        __zcodeSessionStoreE2E?: ZCodeSessionStoreE2EBridge;
+    }
 }
 
 if (shouldExposeE2EStoreBridge()) {
-  // E2E 诊断入口必须由 WDIO 显式打开，不能复用 ZCODE_ENV=test，避免产品测试环境暴露可变全局 store。
-  window.__zcodeSessionStoreE2E = useZCodeSessionStore;
+    // E2E 诊断入口必须由 WDIO 显式打开，不能复用 ZCODE_ENV=test，避免产品测试环境暴露可变全局 store。
+    window.__zcodeSessionStoreE2E = useZCodeSessionStore;
 }
 
 // ────────────────────────────────────────────
@@ -42,12 +42,12 @@ export * from "./zcodeSessionStoreTypes.js";
 export * from "./zcodeSessionStoreSelectors.js";
 // Re-export navigation types used externally:
 export type {
-  TaskNavigationHistory,
-  TaskNavEntry,
-  WorkspaceNavEntry,
+    TaskNavigationHistory,
+    TaskNavEntry,
+    WorkspaceNavEntry,
 } from "@/lib/taskNavigationHistory.js";
 
 // 内存诊断计数器：workspace 桶全仓无删除路径，先落日志。
 uiMemoryDiagnosticsRegistry.register("sessionStore", () => ({
-  workspaces: Object.keys(useZCodeSessionStore.getState().workspaces).length,
+    workspaces: Object.keys(useZCodeSessionStore.getState().workspaces).length,
 }));

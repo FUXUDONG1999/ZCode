@@ -241,13 +241,13 @@ Compact boundary 需要记录附件摘要字段，供 debug、fork 和 rewind �
 ## 后续里程碑
 
 1. `contracts: rewind checkpoint payloads`
-   - schema、event payload、projection、纯函数。
+    - schema、event payload、projection、纯函数。
 2. `core: create checkpoints around file mutations`
-   - 写文件前后通过 file-system adapter 建 snapshot，事件带 traceId。
+    - 写文件前后通过 file-system adapter 建 snapshot，事件带 traceId。
 3. `core: file-only rewind`
-   - 恢复 snapshot，追加 synthetic context message。
+    - 恢复 snapshot，追加 synthetic context message。
 4. `tui: checkpoint selector`
-   - 当前先通过 `/rewind` 命令和 live event 展示；后续再做 active chain target selector，compact-covered checkpoint 进入高级列表。
+    - 当前先通过 `/rewind` 命令和 live event 展示；后续再做 active chain target selector，compact-covered checkpoint 进入高级列表。
 5. `core: fork-required conversation rewind`
-   - compact 前 conversation rewind 创建 fork，而不是污染当前 active chain。
-   - 第一版通过 `/fork` 明确触发；后续可以在 message selector 中把 compact-covered conversation rewind 自动转成 fork proposal。
+    - compact 前 conversation rewind 创建 fork，而不是污染当前 active chain。
+    - 第一版通过 `/fork` 明确触发；后续可以在 message selector 中把 compact-covered conversation rewind 自动转成 fork proposal。

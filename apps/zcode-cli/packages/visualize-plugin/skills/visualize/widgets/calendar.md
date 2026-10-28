@@ -9,19 +9,19 @@ Assign an array directly to `calendar.events`. Configure it before appending so 
 ```html
 <div id="calendar-host"></div>
 <script>
-  {
-    const root = document.getElementById("calendar-host");
-    const calendar = document.createElement("viz-calendar");
-    calendar.setAttribute("date", "2026-09-08");
-    calendar.setAttribute("start", "11:00");
-    calendar.setAttribute("end", "14:00");
-    calendar.events = [
-      { title: "Standup", start: "12:00", end: "12:30" },
-      { title: "Email block", start: "12:00", end: "12:30", tone: "green" },
-      { title: "Design sync", start: "13:00", end: "14:00", video: true },
-    ];
-    root.append(calendar);
-  }
+    {
+        const root = document.getElementById("calendar-host");
+        const calendar = document.createElement("viz-calendar");
+        calendar.setAttribute("date", "2026-09-08");
+        calendar.setAttribute("start", "11:00");
+        calendar.setAttribute("end", "14:00");
+        calendar.events = [
+            { title: "Standup", start: "12:00", end: "12:30" },
+            { title: "Email block", start: "12:00", end: "12:30", tone: "green" },
+            { title: "Design sync", start: "13:00", end: "14:00", video: true },
+        ];
+        root.append(calendar);
+    }
 </script>
 ```
 
@@ -39,8 +39,8 @@ selection.setAttribute("aria-live", "polite");
 calendar.after(selection);
 calendar.setAttribute("interactive", "");
 calendar.addEventListener("eventselect", ({ detail: { event } }) => {
-  // Update a local detail view using the selected source event.
-  selection.textContent = `${event.title} · ${event.start}-${event.end}`;
+    // Update a local detail view using the selected source event.
+    selection.textContent = `${event.title} · ${event.start}-${event.end}`;
 });
 ```
 
@@ -56,11 +56,11 @@ For a fixed snapshot, the JSON attribute remains sufficient:
 
 ```html
 <viz-calendar
-  date="2026-09-08"
-  start="11:00"
-  end="14:00"
-  now="11:50"
-  events='[{"title":"Standup","start":"12:00","end":"12:30"},{"title":"Design sync","start":"13:00","end":"14:00","video":true}]'
+    date="2026-09-08"
+    start="11:00"
+    end="14:00"
+    now="11:50"
+    events='[{"title":"Standup","start":"12:00","end":"12:30"},{"title":"Design sync","start":"13:00","end":"14:00","video":true}]'
 >
 </viz-calendar>
 ```

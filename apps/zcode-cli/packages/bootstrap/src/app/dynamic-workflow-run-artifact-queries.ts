@@ -17,9 +17,9 @@ import { WORKFLOW_ARTIFACT_LIMITS } from "@zcode/shared/zcode-protocol-v4";
  * 只能靠能力探测接上。
  */
 interface ArtifactReadableJournal
-  extends
-    JournalStorePort,
-    Pick<DwfRunIntrospectionQueries, "listArtifactItems" | "listArtifactRows"> {}
+    extends
+        JournalStorePort,
+        Pick<DwfRunIntrospectionQueries, "listArtifactItems" | "listArtifactRows"> {}
 
 /**
  * journal 是否带产物读面。**刻意是 `supportsRunIntrospection` 的兄弟，而不是把它扩成六条。**
@@ -31,13 +31,13 @@ interface ArtifactReadableJournal
  * 会让这类 journal 上两个早已工作的工具静默消失，而症状离成因极远。
  */
 export function supportsArtifactReads(
-  journal: JournalStorePort,
+    journal: JournalStorePort,
 ): journal is ArtifactReadableJournal {
-  const candidate = journal as Partial<DwfRunIntrospectionQueries>;
-  return (
-    typeof candidate.listArtifactItems === "function" &&
-    typeof candidate.listArtifactRows === "function"
-  );
+    const candidate = journal as Partial<DwfRunIntrospectionQueries>;
+    return (
+        typeof candidate.listArtifactItems === "function" &&
+        typeof candidate.listArtifactRows === "function"
+    );
 }
 
 /**
@@ -48,27 +48,27 @@ export function supportsArtifactReads(
  * 尾巴是正常的翻页结局，不是异常。
  */
 export function listArtifactItemsFrom(
-  journal: JournalStorePort,
-  runId: string,
-  artifactId: string,
-  page: { afterSequence?: number; limit: number; maxBytes: number; fields?: readonly string[] },
+    journal: JournalStorePort,
+    runId: string,
+    artifactId: string,
+    page: { afterSequence?: number; limit: number; maxBytes: number; fields?: readonly string[] },
 ): { items: DynamicWorkflowRunArtifactItem[]; hasMore: boolean } {
-  if (!supportsArtifactReads(journal)) return { items: [], hasMore: false };
-  const { items, hasMore } = journal.listArtifactItems(runId, artifactId, {
-    ...(page.afterSequence === undefined ? {} : { afterSequence: page.afterSequence }),
-    limit: page.limit,
-    maxBytes: page.maxBytes,
-    // 只取字段：值的界是协议常量，存储层不自己定。
-    ...(page.fields === undefined
-      ? {}
-      : {
-          fields: {
-            paths: page.fields,
-            maxValueBytes: WORKFLOW_ARTIFACT_LIMITS.maxFieldValueBytes,
-          },
-        }),
-  });
-  return { items: items.map(toArtifactItem), hasMore };
+    if (!supportsArtifactReads(journal)) return { items: [], hasMore: false };
+    const { items, hasMore } = journal.listArtifactItems(runId, artifactId, {
+        ...(page.afterSequence === undefined ? {} : { afterSequence: page.afterSequence }),
+        limit: page.limit,
+        maxBytes: page.maxBytes,
+        // 只取字段：值的界是协议常量，存储层不自己定。
+        ...(page.fields === undefined
+            ? {}
+            : {
+                  fields: {
+                      paths: page.fields,
+                      maxValueBytes: WORKFLOW_ARTIFACT_LIMITS.maxFieldValueBytes,
+                  },
+              }),
+    });
+    return { items: items.map(toArtifactItem), hasMore };
 }
 
 /**
@@ -77,12 +77,12 @@ export function listArtifactItemsFrom(
  * 了。单条由写入侧的 `REPORT_CAPS.maxItemSerializedBytes` 有界，一页由 `maxBytes` 有界。
  */
 function toArtifactItem(row: DwfArtifactItem): DynamicWorkflowRunArtifactItem {
-  return {
-    sequence: row.sequence,
-    siteId: row.siteId,
-    ordinal: row.ordinal,
-    ...(row.fields === undefined ? { item: row.item } : { fields: row.fields }),
-  };
+    return {
+        sequence: row.sequence,
+        siteId: row.siteId,
+        ordinal: row.ordinal,
+        ...(row.fields === undefined ? { item: row.item } : { fields: row.fields }),
+    };
 }
 
 /**
@@ -92,9 +92,9 @@ function toArtifactItem(row: DwfArtifactItem): DynamicWorkflowRunArtifactItem {
  * 两者由引擎在同一次 putNode 里写下、恒相等，但列为 NULL 的老行不该让整行读不出来。
  */
 export function artifactRowId(row: NodeRecord): string | undefined {
-  if (typeof row.artifactId === "string" && row.artifactId.length > 0) return row.artifactId;
-  const record = row.result;
-  if (record === null || typeof record !== "object" || Array.isArray(record)) return undefined;
-  const id = (record as Record<string, unknown>).id;
-  return typeof id === "string" && id.length > 0 ? id : undefined;
+    if (typeof row.artifactId === "string" && row.artifactId.length > 0) return row.artifactId;
+    const record = row.result;
+    if (record === null || typeof record !== "object" || Array.isArray(record)) return undefined;
+    const id = (record as Record<string, unknown>).id;
+    return typeof id === "string" && id.length > 0 ? id : undefined;
 }

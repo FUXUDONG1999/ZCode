@@ -5,7 +5,7 @@ export type RemoteAssetInstallMode = (typeof REMOTE_ASSET_INSTALL_MODES)[number]
 export const DEFAULT_REMOTE_ASSET_INSTALL_MODE: RemoteAssetInstallMode = "local-download-upload";
 
 export function normalizeRemoteAssetInstallMode(
-  mode?: RemoteAssetInstallMode | null,
+    mode?: RemoteAssetInstallMode | null,
 ): RemoteAssetInstallMode {
-  return mode === "remote-download" ? mode : DEFAULT_REMOTE_ASSET_INSTALL_MODE;
+    return mode === "remote-download" ? mode : DEFAULT_REMOTE_ASSET_INSTALL_MODE;
 }

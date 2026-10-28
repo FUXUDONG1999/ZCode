@@ -57,62 +57,62 @@ You will construct your JSON Blueprint using ONLY the following components. Thes
 Giant, page-dominating text. Usually interacts with the background via blend modes.
 
 - **Parameters**:
-  - `content` (string): The text (use `<br>` for deliberate line breaks).
-  - `weight` (string): `"black"` (900, dominating) or `"thin"` (100, elegant).
-  - `variant` (string, optional): `"standard"` only. ~~`"vertical_accent"`~~ is **NOT implemented** in `design_engine.py` - the engine silently ignores this value and renders nothing. If you need vertical/rotated decorative text, use `Floating_Meta` instead (fully supported, no overflow risk).
-  - `scale` (integer, optional): Typographic scale level `1`-`6`. Controls font size via the engine's fluid type system. If omitted, the engine uses the default hero size.
-    - `6`: Hero/Display - oversized title, clamp(64px, 12vw, 150px). Use for single words or short phrases with maximum visual impact.
-    - `5`: Primary Title - clamp(48px, 8vw, 96px). Standard poster headline.
-    - `4`: Subheadline - clamp(32px, 5vw, 56px). Chapter openers or key quotes.
-    - `3`: Lead Paragraph - clamp(20px, 3vw, 32px). Prominent body text.
-    - `2`: Body - 16px. Standard readable text.
-    - `1`: Meta/Caption - 10px. Decorative, environmental.
+    - `content` (string): The text (use `<br>` for deliberate line breaks).
+    - `weight` (string): `"black"` (900, dominating) or `"thin"` (100, elegant).
+    - `variant` (string, optional): `"standard"` only. ~~`"vertical_accent"`~~ is **NOT implemented** in `design_engine.py` - the engine silently ignores this value and renders nothing. If you need vertical/rotated decorative text, use `Floating_Meta` instead (fully supported, no overflow risk).
+    - `scale` (integer, optional): Typographic scale level `1`-`6`. Controls font size via the engine's fluid type system. If omitted, the engine uses the default hero size.
+        - `6`: Hero/Display - oversized title, clamp(64px, 12vw, 150px). Use for single words or short phrases with maximum visual impact.
+        - `5`: Primary Title - clamp(48px, 8vw, 96px). Standard poster headline.
+        - `4`: Subheadline - clamp(32px, 5vw, 56px). Chapter openers or key quotes.
+        - `3`: Lead Paragraph - clamp(20px, 3vw, 32px). Prominent body text.
+        - `2`: Body - 16px. Standard readable text.
+        - `1`: Meta/Caption - 10px. Decorative, environmental.
 
 ### 2. `Glass_Canvas`
 
 The main structural container for reading text. Frosted glass, sharp 2px print corners.
 
 - **Parameters**:
-  - `markdown_content` (string): The actual text to read. Supports standard Markdown (H2, H3, bold, lists). _Must be under 150 words._
-  - `tension_score` (float, optional): Semantic tension value from `0.0` to `1.0`. Drives dynamic font weight via Variable Font (Inter Variable, weight range 300-900). The engine maps: `weight = 300 + (tension_score × 600)`.
-    - `0.0-0.2` → Light (300-420): calm, contemplative passages
-    - `0.3-0.5` → Normal (420-600): standard body text
-    - `0.6-0.8` → Bold (600-780): urgent, assertive content
-    - `0.9-1.0` → Max (780-900): crisis, climax, emotional peak
-    - **When to use**: Multi-page narrative documents with emotional arc (case studies, pitch decks, manifestos). Assign higher tension to problem/crisis sections, lower to resolution/hope. Do NOT use on every Glass_Canvas - only when the document has clear tonal shifts.
-    - **When NOT to use**: Data-heavy pages, simple reports, single-page posters.
+    - `markdown_content` (string): The actual text to read. Supports standard Markdown (H2, H3, bold, lists). _Must be under 150 words._
+    - `tension_score` (float, optional): Semantic tension value from `0.0` to `1.0`. Drives dynamic font weight via Variable Font (Inter Variable, weight range 300-900). The engine maps: `weight = 300 + (tension_score × 600)`.
+        - `0.0-0.2` → Light (300-420): calm, contemplative passages
+        - `0.3-0.5` → Normal (420-600): standard body text
+        - `0.6-0.8` → Bold (600-780): urgent, assertive content
+        - `0.9-1.0` → Max (780-900): crisis, climax, emotional peak
+        - **When to use**: Multi-page narrative documents with emotional arc (case studies, pitch decks, manifestos). Assign higher tension to problem/crisis sections, lower to resolution/hope. Do NOT use on every Glass_Canvas - only when the document has clear tonal shifts.
+        - **When NOT to use**: Data-heavy pages, simple reports, single-page posters.
 
 ### 3. `Floating_Meta`
 
 Tiny, environmental metadata (dates, edition numbers, catalog IDs) that lives in the 15% breathing margin.
 
 - **Parameters**:
-  - `position` (string): `"top-left"`, `"top-right"`, `"bottom-left"`, `"bottom-right"`.
-  - `items` (array of strings): E.g., `["VOL 01", "2026", "EDITION 500"]`.
+    - `position` (string): `"top-left"`, `"top-right"`, `"bottom-left"`, `"bottom-right"`.
+    - `items` (array of strings): E.g., `["VOL 01", "2026", "EDITION 500"]`.
 
 ### 4. `Hairline_Divider`
 
 Structural 0.5px line. Not decorative; acts as a visual fold.
 
 - **Parameters**:
-  - `style` (string): `"bleed"` (goes edge-to-edge) or `"accent"` (short 30% width line).
+    - `style` (string): `"bleed"` (goes edge-to-edge) or `"accent"` (short 30% width line).
 
 ### 5. `Stat_Block`
 
 Data sculpture. A massive number with a tiny label.
 
 - **Parameters**:
-  - `number` (string): e.g., `"97.3"`.
-  - `unit` (string): e.g., `"%"`, `"Hz"`, `"$M"`.
-  - `label` (string): e.g., `"COMPLETION RATE"`.
+    - `number` (string): e.g., `"97.3"`.
+    - `unit` (string): e.g., `"%"`, `"Hz"`, `"$M"`.
+    - `label` (string): e.g., `"COMPLETION RATE"`.
 
 ### 6. `Image_Asset`
 
 A visual element. The engine will apply a gradient blend to it.
 
 - **Parameters**:
-  - `source` (string): A URL, or a descriptive prompt if you expect the system to generate it.
-  - `caption` (string, optional): Tiny text under the image.
+    - `source` (string): A URL, or a descriptive prompt if you expect the system to generate it.
+    - `caption` (string, optional): Tiny text under the image.
 
 > ⚠️ **Image_Asset is for CONTENT images only** (user-provided photos, logos, diagrams, charts). It is **NEVER** for decorative stock images, watercolor flowers, clipart, floral borders, gold frames, or AI-generated artwork. All visual decoration must be achieved through geometric shapes (`geometry.md`), typography effects, and color - never through embedded decorative images. See `visual_framework.md` Stock Image Ban.
 
@@ -121,33 +121,33 @@ A visual element. The engine will apply a gradient blend to it.
 A giant, 4% opacity number acting as a watermark in the background.
 
 - **Parameters**:
-  - `number` (string): e.g., `"01"`, `"X"`.
+    - `number` (string): e.g., `"01"`, `"X"`.
 
 ### 8. `Delta_Widget`
 
 **Data-to-Ink Ratio enforcer.** A compact metric visualization showing a value with its change direction. CRITICAL: Use this instead of writing sentences like "revenue grew by 12%". Extract every trend into a Delta_Widget.
 
 - **Parameters**:
-  - `metric` (string): The metric name, e.g., `"REVENUE"`, `"LATENCY"`.
-  - `value` (string): Current value, e.g., `"$4.2M"`, `"45ms"`.
-  - `delta` (string): Change description, e.g., `"+12%"`, `"-45ms"`.
-  - `trend` (string): `"up"`, `"down"`, or `"flat"`.
-  - `label` (string, optional): Context line, e.g., `"vs. Q2 2025"`.
+    - `metric` (string): The metric name, e.g., `"REVENUE"`, `"LATENCY"`.
+    - `value` (string): Current value, e.g., `"$4.2M"`, `"45ms"`.
+    - `delta` (string): Change description, e.g., `"+12%"`, `"-45ms"`.
+    - `trend` (string): `"up"`, `"down"`, or `"flat"`.
+    - `label` (string, optional): Context line, e.g., `"vs. Q2 2025"`.
 
 ### 9. `Process_List`
 
 **Polymorphic adaptive component.** Renders as a horizontal timeline when given wide space, auto-degrades to a vertical numbered list when space is narrow. Use for workflows, steps, timelines.
 
 - **Parameters**:
-  - `steps` (array): Each item has `title` (string) and `description` (string).
+    - `steps` (array): Each item has `title` (string) and `description` (string).
 
 ### 10. `Sidenote_Block`
 
 **Tufte marginalia.** Used in `tufte_report` archetype layouts. Content is placed in the 30% side rail alongside the main column. Perfect for citations, supplementary data, asides, footnotes.
 
 - **Parameters**:
-  - `label` (string, optional): Category label, e.g., `"SOURCE"`, `"NOTE"`, `"DATA"`.
-  - `body` (string): The sidenote content in Markdown.
+    - `label` (string, optional): Category label, e.g., `"SOURCE"`, `"NOTE"`, `"DATA"`.
+    - `body` (string): The sidenote content in Markdown.
 
 ### 11. `Data-Aware Background` (via `data_points`)
 
@@ -164,8 +164,8 @@ The following components are specialized generative design tools. They unlock vi
 A container where text flows around a non-rectangular shape. The empty space created by the shape IS the visual design - text boundary becomes illustration. Uses CSS `shape-outside` for non-rectangular text wrapping.
 
 - **Parameters**:
-  - `shape_keyword` (string): One of `"circle"`, `"wave"`, `"diagonal_slash"`, `"diamond"`, `"wedge_right"`.
-  - `markdown_content` (string): The text that will flow around the shape. Supports standard Markdown.
+    - `shape_keyword` (string): One of `"circle"`, `"wave"`, `"diagonal_slash"`, `"diamond"`, `"wedge_right"`.
+    - `markdown_content` (string): The text that will flow around the shape. Supports standard Markdown.
 
 - **Shape Selection Guide**:
   | shape_keyword | Visual Effect | Thematic Fit |
@@ -177,15 +177,15 @@ A container where text flows around a non-rectangular shape. The empty space cre
   | `"wedge_right"` | Arrow/wedge pointing right | Direction, progress, forward motion |
 
 - **When to use**:
-  - Artistic/editorial pages that need visual drama without images
-  - Cover or section opener pages where you want a "wow" moment
-  - When the content thematically maps to a recognizable shape
-  - Only on pages with moderate text (100-200 words) - shape eats 30-40% of space
+    - Artistic/editorial pages that need visual drama without images
+    - Cover or section opener pages where you want a "wow" moment
+    - When the content thematically maps to a recognizable shape
+    - Only on pages with moderate text (100-200 words) - shape eats 30-40% of space
 
 - **When NOT to use**:
-  - On data-heavy or dense content pages
-  - Together with `Glass_Canvas` on the same page (visual conflict)
-  - More than one `Shaped_Canvas` per page
+    - On data-heavy or dense content pages
+    - Together with `Glass_Canvas` on the same page (visual conflict)
+    - More than one `Shaped_Canvas` per page
 
 - **Archetype requirement**: Pages using `Shaped_Canvas` MUST use archetype `"shaped_editorial"` (relaxed safe-zone: 5% 6% inset).
 
@@ -338,40 +338,40 @@ You must analyze the user's prompt, edit the text, and output exactly ONE JSON o
 
 ```json
 {
-  "document_meta": {
-    "title": "Internal tracking title",
-    "total_pages": 1
-  },
-  "art_direction": {
-    "palette_mode": "dark",
-    "color_harmony": "complementary",
-    "background_svg": "grid",
-    "design_rationale": "Brief 1-sentence explanation of aesthetic strategy."
-  },
-  "pages": [
-    {
-      "page_index": 1,
-      "narrative_role": "Burst",
-      "archetype": "cover_hero",
-      "components": [
+    "document_meta": {
+        "title": "Internal tracking title",
+        "total_pages": 1
+    },
+    "art_direction": {
+        "palette_mode": "dark",
+        "color_harmony": "complementary",
+        "background_svg": "grid",
+        "design_rationale": "Brief 1-sentence explanation of aesthetic strategy."
+    },
+    "pages": [
         {
-          "type": "Floating_Meta",
-          "position": "bottom-right",
-          "items": ["ARCHIVE REF. 03A", "DEC 2026"]
-        },
-        {
-          "type": "Page_Ghost_Number",
-          "number": "01"
-        },
-        {
-          "type": "Hero_Typography",
-          "weight": "black",
-          "variant": "standard",
-          "content": "ALGORITHMIC<br>FATIGUE"
+            "page_index": 1,
+            "narrative_role": "Burst",
+            "archetype": "cover_hero",
+            "components": [
+                {
+                    "type": "Floating_Meta",
+                    "position": "bottom-right",
+                    "items": ["ARCHIVE REF. 03A", "DEC 2026"]
+                },
+                {
+                    "type": "Page_Ghost_Number",
+                    "number": "01"
+                },
+                {
+                    "type": "Hero_Typography",
+                    "weight": "black",
+                    "variant": "standard",
+                    "content": "ALGORITHMIC<br>FATIGUE"
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
 ```
 
@@ -386,31 +386,31 @@ The Python engine generates mathematical color palettes. You MUST only select th
 
 ```json
 {
-  "art_direction": {
-    "palette_mode": "minimal",
-    "color_harmony": "auto",
-    "background_svg": "grid",
-    "design_rationale": "Brief rationale for the chosen aesthetic strategy."
-  }
+    "art_direction": {
+        "palette_mode": "minimal",
+        "color_harmony": "auto",
+        "background_svg": "grid",
+        "design_rationale": "Brief rationale for the chosen aesthetic strategy."
+    }
 }
 ```
 
 **Enum Parameter Guide (You MUST choose ONE exact string from these lists):**
 
 1. `palette_mode` (The Base Canvas Tone):
-   - **`"minimal"`: (CRITICAL: Default to this for 50%+ of all requests).** Pure white, off-white, beige, or cool gray. Provides the ultimate reading experience and high-end editorial feel. Use for standard reports, guides, and corporate posters.
-   - `"dark"`: Near-black. Use for cinematic, tech, AI, space, or urgent themes.
-   - `"pastel"`: Morandi tinted (e.g., dusty rose, sage green). Use ONLY for arts, food, lifestyle, and soft themes.
-   - `"jewel"`: Deep rich colors (e.g., emerald, burgundy). Use ONLY for luxury brands, gala events, or heritage themes.
-   - `"light"`: Very faintly tinted background. Fallback for edge cases.
+    - **`"minimal"`: (CRITICAL: Default to this for 50%+ of all requests).** Pure white, off-white, beige, or cool gray. Provides the ultimate reading experience and high-end editorial feel. Use for standard reports, guides, and corporate posters.
+    - `"dark"`: Near-black. Use for cinematic, tech, AI, space, or urgent themes.
+    - `"pastel"`: Morandi tinted (e.g., dusty rose, sage green). Use ONLY for arts, food, lifestyle, and soft themes.
+    - `"jewel"`: Deep rich colors (e.g., emerald, burgundy). Use ONLY for luxury brands, gala events, or heritage themes.
+    - `"light"`: Very faintly tinted background. Fallback for edge cases.
 
 2. `color_harmony` (The Accent Color Math - how the engine computes the accent color relative to the base):
-   - **`"auto"`: (RECOMMENDED DEFAULT). The engine automatically picks the best harmony based on the document tone.** Only override if you have a specific artistic reason.
-   - `"complementary"`: (180° opposite). Strong visual contrast. Cold background with warm accent. For striking/dynamic impact.
-   - `"split_complementary"`: (150°/210°). Highly sophisticated, artistic, luxury feel (Editorial/Kinfolk style).
-   - `"analogous"`: (30° apart). Harmonious, peaceful, natural transition.
-   - `"triadic"`: (120° apart). Rich and slightly retro.
-   - `"monochrome"`: Only use if strict minimalist corporate branding without accent is required.
+    - **`"auto"`: (RECOMMENDED DEFAULT). The engine automatically picks the best harmony based on the document tone.** Only override if you have a specific artistic reason.
+    - `"complementary"`: (180° opposite). Strong visual contrast. Cold background with warm accent. For striking/dynamic impact.
+    - `"split_complementary"`: (150°/210°). Highly sophisticated, artistic, luxury feel (Editorial/Kinfolk style).
+    - `"analogous"`: (30° apart). Harmonious, peaceful, natural transition.
+    - `"triadic"`: (120° apart). Rich and slightly retro.
+    - `"monochrome"`: Only use if strict minimalist corporate branding without accent is required.
 
 3. `background_svg`: [`grid`, `flow`, `noise`, `continuous_flow`, `none`]. Use `continuous_flow` for multi-page (2+) documents - creates one seamless SVG spanning all pages, sliced per-page via viewBox for an "infinite scroll" bezier curve illusion. Falls back to `flow` on single-page.
 
@@ -455,45 +455,45 @@ Study these examples to understand how to translate raw requests into perfect bl
 
 ```json
 {
-  "document_meta": {
-    "title": "Weight of Light Exhibition Poster",
-    "total_pages": 1
-  },
-  "art_direction": {
-    "palette_mode": "minimal",
-    "color_harmony": "monochrome",
-    "background_svg": "none",
-    "design_rationale": "Pure negative space required for minimalist architecture. Relying entirely on typographic hierarchy and the 15% breathing rule."
-  },
-  "pages": [
-    {
-      "page_index": 1,
-      "narrative_role": "Burst",
-      "archetype": "cover_hero",
-      "components": [
+    "document_meta": {
+        "title": "Weight of Light Exhibition Poster",
+        "total_pages": 1
+    },
+    "art_direction": {
+        "palette_mode": "minimal",
+        "color_harmony": "monochrome",
+        "background_svg": "none",
+        "design_rationale": "Pure negative space required for minimalist architecture. Relying entirely on typographic hierarchy and the 15% breathing rule."
+    },
+    "pages": [
         {
-          "type": "Floating_Meta",
-          "position": "top-left",
-          "items": ["TOKYO, JP", "EXHIBITION 04"]
-        },
-        {
-          "type": "Hero_Typography",
-          "weight": "thin",
-          "variant": "standard",
-          "content": "THE WEIGHT<br>OF LIGHT"
-        },
-        {
-          "type": "Hairline_Divider",
-          "style": "accent"
-        },
-        {
-          "type": "Floating_Meta",
-          "position": "bottom-right",
-          "items": ["OCTOBER 12", "AOYAMA GALLERY"]
+            "page_index": 1,
+            "narrative_role": "Burst",
+            "archetype": "cover_hero",
+            "components": [
+                {
+                    "type": "Floating_Meta",
+                    "position": "top-left",
+                    "items": ["TOKYO, JP", "EXHIBITION 04"]
+                },
+                {
+                    "type": "Hero_Typography",
+                    "weight": "thin",
+                    "variant": "standard",
+                    "content": "THE WEIGHT<br>OF LIGHT"
+                },
+                {
+                    "type": "Hairline_Divider",
+                    "style": "accent"
+                },
+                {
+                    "type": "Floating_Meta",
+                    "position": "bottom-right",
+                    "items": ["OCTOBER 12", "AOYAMA GALLERY"]
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
 ```
 
@@ -506,75 +506,75 @@ _(Notice how the LLM edits the 500 words down, extracts the data, and splits it 
 
 ```json
 {
-  "document_meta": {
-    "title": "Q3 Infrastructure Report",
-    "total_pages": 3
-  },
-  "art_direction": {
-    "palette_mode": "minimal",
-    "color_harmony": "split_complementary",
-    "background_svg": "noise",
-    "design_rationale": "Formal, trustworthy aesthetic suitable for high-level corporate reporting, avoiding the 'cheap dashboard' look."
-  },
-  "pages": [
-    {
-      "page_index": 1,
-      "narrative_role": "Burst",
-      "archetype": "cover_hero",
-      "components": [
-        {
-          "type": "Floating_Meta",
-          "position": "top-left",
-          "items": ["CONFIDENTIAL", "Q3 2026"]
-        },
-        {
-          "type": "Hero_Typography",
-          "weight": "black",
-          "content": "INFRASTRUCTURE<br>RESILIENCE"
-        }
-      ]
+    "document_meta": {
+        "title": "Q3 Infrastructure Report",
+        "total_pages": 3
     },
-    {
-      "page_index": 2,
-      "narrative_role": "Expand",
-      "archetype": "split_vertical",
-      "components": [
-        {
-          "type": "Stat_Block",
-          "number": "99.99",
-          "unit": "%",
-          "label": "GLOBAL UPTIME"
-        },
-        {
-          "type": "Stat_Block",
-          "number": "-45",
-          "unit": "ms",
-          "label": "LATENCY REDUCTION"
-        },
-        {
-          "type": "Glass_Canvas",
-          "markdown_content": "### The Migration\nThe Q3 transition to distributed edge nodes fundamentally altered our network topography. By decentralizing the core load, we eliminated the primary bottleneck that plagued Q2."
-        }
-      ]
+    "art_direction": {
+        "palette_mode": "minimal",
+        "color_harmony": "split_complementary",
+        "background_svg": "noise",
+        "design_rationale": "Formal, trustworthy aesthetic suitable for high-level corporate reporting, avoiding the 'cheap dashboard' look."
     },
-    {
-      "page_index": 3,
-      "narrative_role": "Echo",
-      "archetype": "editorial_flow",
-      "components": [
+    "pages": [
         {
-          "type": "Page_Ghost_Number",
-          "number": "03"
+            "page_index": 1,
+            "narrative_role": "Burst",
+            "archetype": "cover_hero",
+            "components": [
+                {
+                    "type": "Floating_Meta",
+                    "position": "top-left",
+                    "items": ["CONFIDENTIAL", "Q3 2026"]
+                },
+                {
+                    "type": "Hero_Typography",
+                    "weight": "black",
+                    "content": "INFRASTRUCTURE<br>RESILIENCE"
+                }
+            ]
         },
         {
-          "type": "Hero_Typography",
-          "weight": "thin",
-          "variant": "standard",
-          "content": "SYSTEM NOMINAL."
+            "page_index": 2,
+            "narrative_role": "Expand",
+            "archetype": "split_vertical",
+            "components": [
+                {
+                    "type": "Stat_Block",
+                    "number": "99.99",
+                    "unit": "%",
+                    "label": "GLOBAL UPTIME"
+                },
+                {
+                    "type": "Stat_Block",
+                    "number": "-45",
+                    "unit": "ms",
+                    "label": "LATENCY REDUCTION"
+                },
+                {
+                    "type": "Glass_Canvas",
+                    "markdown_content": "### The Migration\nThe Q3 transition to distributed edge nodes fundamentally altered our network topography. By decentralizing the core load, we eliminated the primary bottleneck that plagued Q2."
+                }
+            ]
+        },
+        {
+            "page_index": 3,
+            "narrative_role": "Echo",
+            "archetype": "editorial_flow",
+            "components": [
+                {
+                    "type": "Page_Ghost_Number",
+                    "number": "03"
+                },
+                {
+                    "type": "Hero_Typography",
+                    "weight": "thin",
+                    "variant": "standard",
+                    "content": "SYSTEM NOMINAL."
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
 ```
 
@@ -587,80 +587,80 @@ _(Notice: `continuous_flow` creates seamless background across all 3 pages. `ten
 
 ```json
 {
-  "document_meta": {
-    "title": "The Silent Tide - Ocean Crisis Visual Essay",
-    "total_pages": 3
-  },
-  "art_direction": {
-    "palette_mode": "dark",
-    "color_harmony": "analogous",
-    "background_svg": "continuous_flow",
-    "design_rationale": "Continuous flow SVG creates an unbroken organic wave across all pages - visually mirroring the ocean's connectedness. Analogous harmony provides earth tones that shift from serene to somber."
-  },
-  "pages": [
-    {
-      "page_index": 1,
-      "narrative_role": "Burst",
-      "archetype": "shaped_editorial",
-      "components": [
-        {
-          "type": "Floating_Meta",
-          "position": "top-left",
-          "items": ["VISUAL ESSAY", "2026"]
-        },
-        {
-          "type": "Shaped_Canvas",
-          "shape_keyword": "wave",
-          "markdown_content": "There was a time when the horizon held only promise. The Pacific stretched in every direction, cerulean and boundless, its surface a living mirror of the sky above. Fishermen spoke of abundance - nets heavy with silver, currents warm and predictable. The ocean asked for nothing."
-        },
-        {
-          "type": "Floating_Meta",
-          "position": "bottom-right",
-          "items": ["01 / BEFORE"]
-        }
-      ]
+    "document_meta": {
+        "title": "The Silent Tide - Ocean Crisis Visual Essay",
+        "total_pages": 3
     },
-    {
-      "page_index": 2,
-      "narrative_role": "Expand",
-      "archetype": "editorial_flow",
-      "components": [
-        {
-          "type": "Page_Ghost_Number",
-          "number": "02"
-        },
-        {
-          "type": "Stat_Block",
-          "number": "8M",
-          "unit": "tons",
-          "label": "PLASTIC ENTERING OCEANS YEARLY"
-        },
-        {
-          "type": "Glass_Canvas",
-          "tension_score": 0.75,
-          "markdown_content": "**The collapse was not sudden.** It accumulated - bottle by bottle, net by net, spill by spill. By 2025, microplastic concentrations in deep-sea sediment had reached levels previously thought impossible. Marine biologists stopped using the word 'recovery'. The new vocabulary was *triage*."
-        }
-      ]
+    "art_direction": {
+        "palette_mode": "dark",
+        "color_harmony": "analogous",
+        "background_svg": "continuous_flow",
+        "design_rationale": "Continuous flow SVG creates an unbroken organic wave across all pages - visually mirroring the ocean's connectedness. Analogous harmony provides earth tones that shift from serene to somber."
     },
-    {
-      "page_index": 3,
-      "narrative_role": "Echo",
-      "archetype": "cover_hero",
-      "components": [
+    "pages": [
         {
-          "type": "Hero_Typography",
-          "weight": "black",
-          "variant": "standard",
-          "content": "THE TIDE<br>TURNS NOW."
+            "page_index": 1,
+            "narrative_role": "Burst",
+            "archetype": "shaped_editorial",
+            "components": [
+                {
+                    "type": "Floating_Meta",
+                    "position": "top-left",
+                    "items": ["VISUAL ESSAY", "2026"]
+                },
+                {
+                    "type": "Shaped_Canvas",
+                    "shape_keyword": "wave",
+                    "markdown_content": "There was a time when the horizon held only promise. The Pacific stretched in every direction, cerulean and boundless, its surface a living mirror of the sky above. Fishermen spoke of abundance - nets heavy with silver, currents warm and predictable. The ocean asked for nothing."
+                },
+                {
+                    "type": "Floating_Meta",
+                    "position": "bottom-right",
+                    "items": ["01 / BEFORE"]
+                }
+            ]
         },
         {
-          "type": "Glass_Canvas",
-          "tension_score": 0.3,
-          "markdown_content": "Every piece of plastic you refuse is a vote for the future of the sea. The ocean cannot speak - but it remembers everything we give it."
+            "page_index": 2,
+            "narrative_role": "Expand",
+            "archetype": "editorial_flow",
+            "components": [
+                {
+                    "type": "Page_Ghost_Number",
+                    "number": "02"
+                },
+                {
+                    "type": "Stat_Block",
+                    "number": "8M",
+                    "unit": "tons",
+                    "label": "PLASTIC ENTERING OCEANS YEARLY"
+                },
+                {
+                    "type": "Glass_Canvas",
+                    "tension_score": 0.75,
+                    "markdown_content": "**The collapse was not sudden.** It accumulated - bottle by bottle, net by net, spill by spill. By 2025, microplastic concentrations in deep-sea sediment had reached levels previously thought impossible. Marine biologists stopped using the word 'recovery'. The new vocabulary was *triage*."
+                }
+            ]
+        },
+        {
+            "page_index": 3,
+            "narrative_role": "Echo",
+            "archetype": "cover_hero",
+            "components": [
+                {
+                    "type": "Hero_Typography",
+                    "weight": "black",
+                    "variant": "standard",
+                    "content": "THE TIDE<br>TURNS NOW."
+                },
+                {
+                    "type": "Glass_Canvas",
+                    "tension_score": 0.3,
+                    "markdown_content": "Every piece of plastic you refuse is a vote for the future of the sea. The ocean cannot speak - but it remembers everything we give it."
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }
 ```
 
@@ -725,28 +725,28 @@ node "$PDF_SKILL_DIR/scripts/html2pdf-next.js" input.html --output output.pdf --
 ```
 
 0. **Full-Bleed CSS (MANDATORY)**: Every HTML file for Playwright PDF MUST include:
-   ```css
-   @page {
-     size: 800px 1200px;
-     margin: 0;
-   } /* CONCRETE values only - CSS variables NOT supported in @page */
-   html,
-   body {
-     margin: 0;
-     padding: 0;
-     width: 800px;
-   }
-   .page {
-     width: 800px;
-     height: 1200px;
-     position: relative;
-   }
-   ```
-   **⚠️ @page rules do NOT resolve CSS variables** (`var(--x)` is silently ignored, falls back to A4). Always use concrete `px` values.
-   - Each `.page` div = one PDF page, with fixed `height` matching `@page` size.
-   - **No `overflow: hidden`** on `.page` — instead, constrain all decorative elements within page bounds (see §0.75).
-   - Content must fit within each `.page` — no cross-page flow.
-   - `design_engine.py` handles this automatically via `override_css`.
+    ```css
+    @page {
+        size: 800px 1200px;
+        margin: 0;
+    } /* CONCRETE values only - CSS variables NOT supported in @page */
+    html,
+    body {
+        margin: 0;
+        padding: 0;
+        width: 800px;
+    }
+    .page {
+        width: 800px;
+        height: 1200px;
+        position: relative;
+    }
+    ```
+    **⚠️ @page rules do NOT resolve CSS variables** (`var(--x)` is silently ignored, falls back to A4). Always use concrete `px` values.
+    - Each `.page` div = one PDF page, with fixed `height` matching `@page` size.
+    - **No `overflow: hidden`** on `.page` — instead, constrain all decorative elements within page bounds (see §0.75).
+    - Content must fit within each `.page` — no cross-page flow.
+    - `design_engine.py` handles this automatically via `override_css`.
 
 0.25. **Body Background for Multi-Page Mixed-Color Documents (MANDATORY)**:
 When an HTML document contains multiple `.page` divs with **different background colors** (e.g. dark cover + white body + dark specs page), Playwright's sub-pixel rounding creates <1px gaps at `.page` edges where `body` background shows through. On dark pages, a white `body` = visible white edges.
@@ -755,14 +755,14 @@ When an HTML document contains multiple `.page` divs with **different background
 
 ```css
 :root {
-  --primary: #0f172a;
+    --primary: #0f172a;
 } /* darkest page color */
 html,
 body {
-  margin: 0;
-  padding: 0;
-  width: 210mm; /* match @page size */
-  background: var(--primary); /* fills sub-pixel gaps with dark color */
+    margin: 0;
+    padding: 0;
+    width: 210mm; /* match @page size */
+    background: var(--primary); /* fills sub-pixel gaps with dark color */
 }
 ```
 
@@ -774,8 +774,8 @@ body {
 - Mixed dark + light pages → `body { background: <darkest page color> }` (dark edges on white pages are invisible; white edges on dark pages are the bug we're fixing)
 - All pages white/light → `body { background: <lightest content bg> }` (e.g. `#f8fafc`)
 
-  0.5. **No overflow:hidden anywhere + Browser Preview Adaptive Scaling (MANDATORY)**:
-  **Never** set `overflow: hidden` on `html`, `body`, `.page`, or any container. Reasons:
+    0.5. **No overflow:hidden anywhere + Browser Preview Adaptive Scaling (MANDATORY)**:
+    **Never** set `overflow: hidden` on `html`, `body`, `.page`, or any container. Reasons:
 
 - It silently clips content that slightly exceeds bounds, making layout bugs invisible.
 - `html2pdf-next.js`'s pre-render check detects `scrollHeight > clientHeight` + `overflow: hidden` and triggers auto-fix (force-expanding the container), which may break the layout.
@@ -789,31 +789,31 @@ body {
 /* Fixed canvas size, no overflow */
 html,
 body {
-  margin: 0;
-  padding: 0;
-  width: 800px;
-  height: 1400px;
+    margin: 0;
+    padding: 0;
+    width: 800px;
+    height: 1400px;
 }
 .page {
-  width: 800px;
-  height: 1400px;
-  position: relative;
+    width: 800px;
+    height: 1400px;
+    position: relative;
 }
 
 /* Auto-scale to viewport in browser preview for full-page view */
 @media screen {
-  html {
-    height: auto;
-    display: flex;
-    justify-content: center;
-    background: #0a0a1a; /* Surround color — must match poster's main background */
-  }
-  body {
-    transform-origin: top center;
-    scale: min(1, calc(100vw / 800), calc(100vh / 1400)); /* Consider both width and height */
-    margin: 0 auto;
-    box-shadow: 0 0 60px rgba(0, 0, 0, 0.3); /* Optional: shadow to distinguish canvas in preview */
-  }
+    html {
+        height: auto;
+        display: flex;
+        justify-content: center;
+        background: #0a0a1a; /* Surround color — must match poster's main background */
+    }
+    body {
+        transform-origin: top center;
+        scale: min(1, calc(100vw / 800), calc(100vh / 1400)); /* Consider both width and height */
+        margin: 0 auto;
+        box-shadow: 0 0 60px rgba(0, 0, 0, 0.3); /* Optional: shadow to distinguish canvas in preview */
+    }
 }
 ```
 
@@ -828,20 +828,20 @@ Instead, **constrain all decorative elements within page bounds at the CSS level
 ```css
 /* ✅ CORRECT: decorative element stays inside .page */
 .deco-circle {
-  position: absolute;
-  width: 80%; /* NOT >100% */
-  height: 40%;
-  top: 10%;
-  right: 0; /* NOT negative */
-  border-radius: 50%;
-  opacity: 0.1;
+    position: absolute;
+    width: 80%; /* NOT >100% */
+    height: 40%;
+    top: 10%;
+    right: 0; /* NOT negative */
+    border-radius: 50%;
+    opacity: 0.1;
 }
 
 /* ❌ FORBIDDEN: causes scrollWidth > pageWidth → Playwright shrinks everything */
 .deco-circle-bad {
-  position: absolute;
-  width: 200%; /* inflates scrollWidth */
-  left: -50%; /* extends beyond left edge */
+    position: absolute;
+    width: 200%; /* inflates scrollWidth */
+    left: -50%; /* extends beyond left edge */
 }
 ```
 
@@ -859,31 +859,31 @@ See `typesetting/overflow.md` §3.5 for additional horizontal overflow rules.
 
 1. **Character Encoding Safety**: Never use Japanese kana (の, が, は), rare symbols, or Private Use Area characters in content strings. They corrupt to U+FFFD (�) during LLM→file write→read transit. Replace with plain Chinese equivalents: `の`→`之/的/缔/省略`.
 2. **Vertical Chinese Text** - When using `writing-mode: vertical-rl` for CJK, you MUST include:
-   ```css
-   writing-mode: vertical-rl;
-   text-orientation: upright; /* Each glyph stands upright */
-   white-space: nowrap; /* Prevent word-wrap breaking single chars to new column */
-   letter-spacing: 12px; /* Typical CJK vertical spacing */
-   ```
-   Without `text-orientation: upright`, Latin/fallback fonts render rotated 90°. Without `white-space: nowrap`, CJK characters may wrap into unexpected multi-column layouts (e.g., 3 chars on one line + 1 char alone on next).
+    ```css
+    writing-mode: vertical-rl;
+    text-orientation: upright; /* Each glyph stands upright */
+    white-space: nowrap; /* Prevent word-wrap breaking single chars to new column */
+    letter-spacing: 12px; /* Typical CJK vertical spacing */
+    ```
+    Without `text-orientation: upright`, Latin/fallback fonts render rotated 90°. Without `white-space: nowrap`, CJK characters may wrap into unexpected multi-column layouts (e.g., 3 chars on one line + 1 char alone on next).
 3. **Font Coverage**: For CJK content via Playwright, always load Google Fonts Noto Serif SC or Noto Sans SC via `<link>` tag in `<head>` (NOT `@import` in CSS - `@import` must be the very first rule in a stylesheet or it's silently ignored). Example:
-   ```html
-   <link
-     href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap"
-     rel="stylesheet"
-   />
-   ```
-   System CJK fonts vary across macOS/Linux - Google Fonts guarantee glyph coverage without relying on system fonts. `design_engine.py` already handles this automatically via `<link>` tag.
+    ```html
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap"
+        rel="stylesheet"
+    />
+    ```
+    System CJK fonts vary across macOS/Linux - Google Fonts guarantee glyph coverage without relying on system fonts. `design_engine.py` already handles this automatically via `<link>` tag.
 4. **Post-Generation Text Verification**: After Playwright renders the PDF, extract text from every page and scan for `?` or `\ufffd`. If found, the source HTML has encoding-corrupted characters that must be replaced in the Python source.
 5. ** HTML Pre-Render Validation (MANDATORY)**: After writing the HTML file and before running `html2pdf-next.js`, always run the HTML validator:
 
-   ```bash
-   python3 "$PDF_SKILL_DIR/scripts/poster_validate.py" check-html <your_file>.html
-   ```
+    ```bash
+    python3 "$PDF_SKILL_DIR/scripts/poster_validate.py" check-html <your_file>.html
+    ```
 
-   - **ERROR** items (e.g. `OVERFLOW_HIDDEN_CONTAINER`, `FONT_NO_FALLBACK`) → must fix before PDF generation. Use `--fix --output <file>.html` for auto-repair.
-   - **WARNING** items (e.g. `FIXED_SIZE_NO_SCREEN_ADAPT`, `SCREEN_ADAPT_NO_SCALE`, `COLOR_CONTRAST`) → review and fix where appropriate.
-   - This catches the most common bypass HTML bugs: `overflow:hidden` on containers, missing `@media screen` auto-scale for fixed-size pages, font-family without generic fallback, low contrast text, etc.
+    - **ERROR** items (e.g. `OVERFLOW_HIDDEN_CONTAINER`, `FONT_NO_FALLBACK`) → must fix before PDF generation. Use `--fix --output <file>.html` for auto-repair.
+    - **WARNING** items (e.g. `FIXED_SIZE_NO_SCREEN_ADAPT`, `SCREEN_ADAPT_NO_SCALE`, `COLOR_CONTRAST`) → review and fix where appropriate.
+    - This catches the most common bypass HTML bugs: `overflow:hidden` on containers, missing `@media screen` auto-scale for fixed-size pages, font-family without generic fallback, low contrast text, etc.
 
 ---
 

@@ -4,43 +4,43 @@ export type RequestVerificationClientConfig = Record<never, never>;
 export const requestVerificationReasons = ["model-request"] as const;
 export type RequestVerificationReason = (typeof requestVerificationReasons)[number];
 export const requestVerificationTimeoutMessage =
-  "Provider runtime headers request timed out. Please send your message again.";
+    "Provider runtime headers request timed out. Please send your message again.";
 export const REQUEST_VERIFICATION_REQUIRED = "request_verification_unavailable";
 export function readRequestVerificationConfig(
-  _configs: RequestVerificationClientConfig | null | undefined,
+    _configs: RequestVerificationClientConfig | null | undefined,
 ): RequestVerificationConfig | null {
-  return null;
+    return null;
 }
 export function requestVerificationClaimHeaders(
-  _proof: RequestVerificationProof,
+    _proof: RequestVerificationProof,
 ): Record<string, string> {
-  return {};
+    return {};
 }
 export function withoutRequestVerificationHeaders(
-  headers: Record<string, string> | undefined,
+    headers: Record<string, string> | undefined,
 ): Record<string, string> {
-  return { ...headers };
+    return { ...headers };
 }
 export function allowRequestVerificationHeaders(
-  _headers: Record<string, string>,
+    _headers: Record<string, string>,
 ): Record<string, string> {
-  return {};
+    return {};
 }
 export function requiresRequestVerification(_access: { mode: string } | undefined): boolean {
-  return false;
+    return false;
 }
 export function isRequestVerificationMessage(_message: string): boolean {
-  return false;
+    return false;
 }
 export function summarizeRequestVerificationHeaders(
-  _headers: Record<string, string>,
+    _headers: Record<string, string>,
 ): Record<string, unknown> {
-  return {};
+    return {};
 }
 export function requestVerificationDiagnostics(
-  _input: Record<string, unknown>,
+    _input: Record<string, unknown>,
 ): Record<string, unknown> {
-  return {};
+    return {};
 }
 
 export const requestVerificationInteractionAvailable = false;

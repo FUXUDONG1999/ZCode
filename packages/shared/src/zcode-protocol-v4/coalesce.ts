@@ -10,13 +10,13 @@
 //   6. 同 runId 的 workflowRun.updated 向**最早**的那条合并（详见下面 mergeWorkflowRunUpdate）。
 import type { ConversationDelta, WorkflowRunUpdatedDelta } from "./delta.js";
 import {
-  mergeWorkflowRunUpdates,
-  workflowRunUpdateWithinWireBounds,
-  type WorkflowRunWireBounds,
+    mergeWorkflowRunUpdates,
+    workflowRunUpdateWithinWireBounds,
+    type WorkflowRunWireBounds,
 } from "./workflow-runs-delta.js";
 
 function isBarrier(delta: ConversationDelta): boolean {
-  return delta.op === "row.removed";
+    return delta.op === "row.removed";
 }
 
 /**
@@ -25,8 +25,8 @@ function isBarrier(delta: ConversationDelta): boolean {
  * 行操作不碰状态键，别的 run 的增量不碰这条 run，不带 workflowRuns 的 state.updated 不碰这个键。
  */
 function isWorkflowRunBarrier(delta: ConversationDelta, runId: string): boolean {
-  if (delta.op === "state.updated") return delta.patch.workflowRuns !== undefined;
-  return delta.op === "workflowRun.removed" && delta.runId === runId;
+    if (delta.op === "state.updated") return delta.patch.workflowRuns !== undefined;
+    return delta.op === "workflowRun.removed" && delta.runId === runId;
 }
 
 /**
@@ -51,25 +51,25 @@ function isWorkflowRunBarrier(delta: ConversationDelta, runId: string): boolean 
  * 返回 true 表示已被合并（调用方不再 push）。
  */
 function mergeWorkflowRunUpdate(
-  result: ConversationDelta[],
-  delta: WorkflowRunUpdatedDelta,
-  bounds: WorkflowRunWireBounds | undefined,
+    result: ConversationDelta[],
+    delta: WorkflowRunUpdatedDelta,
+    bounds: WorkflowRunWireBounds | undefined,
 ): boolean {
-  let target = -1;
-  for (let i = result.length - 1; i >= 0; i--) {
-    const prev = result[i];
-    if (prev === undefined || isWorkflowRunBarrier(prev, delta.runId)) break;
-    if (prev.op === "workflowRun.updated" && prev.runId === delta.runId) {
-      target = i;
-      break;
+    let target = -1;
+    for (let i = result.length - 1; i >= 0; i--) {
+        const prev = result[i];
+        if (prev === undefined || isWorkflowRunBarrier(prev, delta.runId)) break;
+        if (prev.op === "workflowRun.updated" && prev.runId === delta.runId) {
+            target = i;
+            break;
+        }
     }
-  }
-  if (target < 0) return false;
-  const merged = mergeWorkflowRunUpdates(result[target] as WorkflowRunUpdatedDelta, delta);
-  // 被拒时**不再往更早那条试**：那正是上面说的跨过中间那条删除的走法。
-  if (!workflowRunUpdateWithinWireBounds(merged, bounds)) return false;
-  result[target] = merged;
-  return true;
+    if (target < 0) return false;
+    const merged = mergeWorkflowRunUpdates(result[target] as WorkflowRunUpdatedDelta, delta);
+    // 被拒时**不再往更早那条试**：那正是上面说的跨过中间那条删除的走法。
+    if (!workflowRunUpdateWithinWireBounds(merged, bounds)) return false;
+    result[target] = merged;
+    return true;
 }
 
 /**
@@ -80,86 +80,87 @@ function mergeWorkflowRunUpdate(
  * 事件才走得到，而它恰好是**合并等于顺序施加**这条定律最容易破的地方。
  */
 export function coalesceConversationDeltas(
-  deltas: readonly ConversationDelta[],
-  bounds?: WorkflowRunWireBounds,
+    deltas: readonly ConversationDelta[],
+    bounds?: WorkflowRunWireBounds,
 ): ConversationDelta[] {
-  const result: ConversationDelta[] = [];
+    const result: ConversationDelta[] = [];
 
-  for (const delta of deltas) {
-    // 规则 3：row.upserted 吞掉同 rowId 更早的 row.delta。
-    // 只回溯到最近的屏障（规则 4），且不越过同 rowId 的前一次 upserted/appended——
-    // 越过会吞掉「上一代行」的追加，改变终态。
-    if (delta.op === "row.upserted") {
-      for (let i = result.length - 1; i >= 0; i--) {
-        const prev = result[i];
-        if (prev === undefined || isBarrier(prev)) break;
-        if (prev.op === "row.delta" && prev.rowId === delta.row.rowId) {
-          result.splice(i, 1);
-          continue;
+    for (const delta of deltas) {
+        // 规则 3：row.upserted 吞掉同 rowId 更早的 row.delta。
+        // 只回溯到最近的屏障（规则 4），且不越过同 rowId 的前一次 upserted/appended——
+        // 越过会吞掉「上一代行」的追加，改变终态。
+        if (delta.op === "row.upserted") {
+            for (let i = result.length - 1; i >= 0; i--) {
+                const prev = result[i];
+                if (prev === undefined || isBarrier(prev)) break;
+                if (prev.op === "row.delta" && prev.rowId === delta.row.rowId) {
+                    result.splice(i, 1);
+                    continue;
+                }
+                if (
+                    (prev.op === "row.upserted" || prev.op === "row.appended") &&
+                    prev.row.rowId === delta.row.rowId
+                ) {
+                    break;
+                }
+            }
         }
+
+        // 规则 6：淘汰吞掉该 run 此前的全部增量（出生 + 淘汰同在一个窗口 = 客户端从没见过这条 run，
+        // 与逐条投递的终态等价）。回溯同样只到最近的屏障。
+        if (delta.op === "workflowRun.removed") {
+            for (let i = result.length - 1; i >= 0; i--) {
+                const prev = result[i];
+                if (prev === undefined || isWorkflowRunBarrier(prev, delta.runId)) break;
+                if (prev.op === "workflowRun.updated" && prev.runId === delta.runId)
+                    result.splice(i, 1);
+            }
+        }
+
+        if (delta.op === "workflowRun.updated" && mergeWorkflowRunUpdate(result, delta, bounds))
+            continue;
+
+        const last = result[result.length - 1];
+
+        // 规则 1：相邻同 (rowId, path) 的 row.delta 拼接。
         if (
-          (prev.op === "row.upserted" || prev.op === "row.appended") &&
-          prev.row.rowId === delta.row.rowId
+            delta.op === "row.delta" &&
+            last?.op === "row.delta" &&
+            last.rowId === delta.rowId &&
+            last.path === delta.path
         ) {
-          break;
+            result[result.length - 1] = {
+                op: "row.delta",
+                rowId: delta.rowId,
+                path: delta.path,
+                append: last.append + delta.append,
+            };
+            continue;
         }
-      }
+
+        // 规则 2：相邻 state.updated 浅合并（后者的键覆盖前者；键内整体替换所以安全）。
+        if (delta.op === "state.updated" && last?.op === "state.updated") {
+            result[result.length - 1] = {
+                op: "state.updated",
+                patch: { ...last.patch, ...delta.patch },
+            };
+            continue;
+        }
+
+        // 相邻同 rowId 的 row.upserted：留最后一条（整行替换的传递性）。
+        if (
+            delta.op === "row.upserted" &&
+            last?.op === "row.upserted" &&
+            last.row.rowId === delta.row.rowId
+        ) {
+            result[result.length - 1] = delta;
+            continue;
+        }
+
+        result.push(delta);
     }
 
-    // 规则 6：淘汰吞掉该 run 此前的全部增量（出生 + 淘汰同在一个窗口 = 客户端从没见过这条 run，
-    // 与逐条投递的终态等价）。回溯同样只到最近的屏障。
-    if (delta.op === "workflowRun.removed") {
-      for (let i = result.length - 1; i >= 0; i--) {
-        const prev = result[i];
-        if (prev === undefined || isWorkflowRunBarrier(prev, delta.runId)) break;
-        if (prev.op === "workflowRun.updated" && prev.runId === delta.runId) result.splice(i, 1);
-      }
-    }
-
-    if (delta.op === "workflowRun.updated" && mergeWorkflowRunUpdate(result, delta, bounds))
-      continue;
-
-    const last = result[result.length - 1];
-
-    // 规则 1：相邻同 (rowId, path) 的 row.delta 拼接。
-    if (
-      delta.op === "row.delta" &&
-      last?.op === "row.delta" &&
-      last.rowId === delta.rowId &&
-      last.path === delta.path
-    ) {
-      result[result.length - 1] = {
-        op: "row.delta",
-        rowId: delta.rowId,
-        path: delta.path,
-        append: last.append + delta.append,
-      };
-      continue;
-    }
-
-    // 规则 2：相邻 state.updated 浅合并（后者的键覆盖前者；键内整体替换所以安全）。
-    if (delta.op === "state.updated" && last?.op === "state.updated") {
-      result[result.length - 1] = {
-        op: "state.updated",
-        patch: { ...last.patch, ...delta.patch },
-      };
-      continue;
-    }
-
-    // 相邻同 rowId 的 row.upserted：留最后一条（整行替换的传递性）。
-    if (
-      delta.op === "row.upserted" &&
-      last?.op === "row.upserted" &&
-      last.row.rowId === delta.row.rowId
-    ) {
-      result[result.length - 1] = delta;
-      continue;
-    }
-
-    result.push(delta);
-  }
-
-  return result;
+    return result;
 }
 
 /**
@@ -167,9 +168,9 @@ export function coalesceConversationDeltas(
  * 保序：保留项按其「最后一次出现」的相对顺序输出。
  */
 export function conflateByKey<T>(items: readonly T[], keyOf: (item: T) => string): T[] {
-  const lastIndexByKey = new Map<string, number>();
-  items.forEach((item, index) => {
-    lastIndexByKey.set(keyOf(item), index);
-  });
-  return items.filter((item, index) => lastIndexByKey.get(keyOf(item)) === index);
+    const lastIndexByKey = new Map<string, number>();
+    items.forEach((item, index) => {
+        lastIndexByKey.set(keyOf(item), index);
+    });
+    return items.filter((item, index) => lastIndexByKey.get(keyOf(item)) === index);
 }

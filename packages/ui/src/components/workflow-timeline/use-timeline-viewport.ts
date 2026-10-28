@@ -14,88 +14,88 @@ import { useEffect, useLayoutEffect, useState } from "react";
  * 计数记账。
  */
 export interface TimelineViewport {
-  scrollLeft: number;
-  clientWidth: number;
-  scrollWidth: number;
-  /** 最近 800ms 内滚过（滚动条据此露出）。 */
-  scrolling: boolean;
+    scrollLeft: number;
+    clientWidth: number;
+    scrollWidth: number;
+    /** 最近 800ms 内滚过（滚动条据此露出）。 */
+    scrolling: boolean;
 }
 
 const SCROLLING_MS = 800;
 const EMPTY: TimelineViewport = { clientWidth: 0, scrollLeft: 0, scrollWidth: 0, scrolling: false };
 
 function measure(element: HTMLElement): Omit<TimelineViewport, "scrolling"> {
-  return {
-    clientWidth: element.clientWidth,
-    scrollLeft: element.scrollLeft,
-    scrollWidth: element.scrollWidth,
-  };
+    return {
+        clientWidth: element.clientWidth,
+        scrollLeft: element.scrollLeft,
+        scrollWidth: element.scrollWidth,
+    };
 }
 
 /** 把一次测量并进上一份视口；三个数与 scrolling 都没变就返回上一份，React 据此跳过这轮渲染。 */
 function merge(
-  previous: TimelineViewport,
-  measured: Omit<TimelineViewport, "scrolling">,
-  scrolling = previous.scrolling,
+    previous: TimelineViewport,
+    measured: Omit<TimelineViewport, "scrolling">,
+    scrolling = previous.scrolling,
 ): TimelineViewport {
-  return previous.clientWidth === measured.clientWidth &&
-    previous.scrollLeft === measured.scrollLeft &&
-    previous.scrollWidth === measured.scrollWidth &&
-    previous.scrolling === scrolling
-    ? previous
-    : { ...measured, scrolling };
+    return previous.clientWidth === measured.clientWidth &&
+        previous.scrollLeft === measured.scrollLeft &&
+        previous.scrollWidth === measured.scrollWidth &&
+        previous.scrolling === scrolling
+        ? previous
+        : { ...measured, scrolling };
 }
 
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export function useTimelineViewport(
-  /** 滚动层元素；还没挂上（草稿首帧）或已卸下时为 null。 */
-  element: HTMLElement | null,
-  /** 内容变化的抓手（站数、宽度）：变了就重新量一次。 */
-  contentKey: number,
+    /** 滚动层元素；还没挂上（草稿首帧）或已卸下时为 null。 */
+    element: HTMLElement | null,
+    /** 内容变化的抓手（站数、宽度）：变了就重新量一次。 */
+    contentKey: number,
 ): TimelineViewport {
-  const [viewport, setViewport] = useState<TimelineViewport>(EMPTY);
+    const [viewport, setViewport] = useState<TimelineViewport>(EMPTY);
 
-  useIsomorphicLayoutEffect(() => {
-    if (element === null) return;
-    setViewport((previous) => merge(previous, measure(element)));
-  }, [element, contentKey]);
-
-  useEffect(() => {
-    if (element === null) return;
-    let frame: number | undefined;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const onScroll = () => {
-      if (frame !== undefined) return;
-      frame = requestAnimationFrame(() => {
-        frame = undefined;
-        setViewport((previous) => merge(previous, measure(element), true));
-        if (timer !== undefined) clearTimeout(timer);
-        timer = setTimeout(() => {
-          timer = undefined;
-          setViewport((previous) =>
-            previous.scrolling ? { ...previous, scrolling: false } : previous,
-          );
-        }, SCROLLING_MS);
-      });
-    };
-    element.addEventListener("scroll", onScroll, { passive: true });
-    let observer: ResizeObserver | undefined;
-    if (typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(() => {
+    useIsomorphicLayoutEffect(() => {
+        if (element === null) return;
         setViewport((previous) => merge(previous, measure(element)));
-      });
-      observer.observe(element);
-      const content = element.firstElementChild;
-      if (content !== null) observer.observe(content);
-    }
-    return () => {
-      element.removeEventListener("scroll", onScroll);
-      if (frame !== undefined) cancelAnimationFrame(frame);
-      if (timer !== undefined) clearTimeout(timer);
-      observer?.disconnect();
-    };
-  }, [element]);
+    }, [element, contentKey]);
 
-  return viewport;
+    useEffect(() => {
+        if (element === null) return;
+        let frame: number | undefined;
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const onScroll = () => {
+            if (frame !== undefined) return;
+            frame = requestAnimationFrame(() => {
+                frame = undefined;
+                setViewport((previous) => merge(previous, measure(element), true));
+                if (timer !== undefined) clearTimeout(timer);
+                timer = setTimeout(() => {
+                    timer = undefined;
+                    setViewport((previous) =>
+                        previous.scrolling ? { ...previous, scrolling: false } : previous,
+                    );
+                }, SCROLLING_MS);
+            });
+        };
+        element.addEventListener("scroll", onScroll, { passive: true });
+        let observer: ResizeObserver | undefined;
+        if (typeof ResizeObserver !== "undefined") {
+            observer = new ResizeObserver(() => {
+                setViewport((previous) => merge(previous, measure(element)));
+            });
+            observer.observe(element);
+            const content = element.firstElementChild;
+            if (content !== null) observer.observe(content);
+        }
+        return () => {
+            element.removeEventListener("scroll", onScroll);
+            if (frame !== undefined) cancelAnimationFrame(frame);
+            if (timer !== undefined) clearTimeout(timer);
+            observer?.disconnect();
+        };
+    }, [element]);
+
+    return viewport;
 }

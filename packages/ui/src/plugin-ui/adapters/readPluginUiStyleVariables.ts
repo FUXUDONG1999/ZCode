@@ -6,9 +6,9 @@ import { buildPluginUiStyleVariables } from "../domain/pluginUiStyleVariables.js
  * 非 DOM 环境（单测、SSR）全部落到兜底值。
  */
 export function readPluginUiStyleVariables(): McpAppsStyleVariables {
-  if (typeof document === "undefined" || typeof getComputedStyle !== "function") {
-    return buildPluginUiStyleVariables(() => undefined);
-  }
-  const style = getComputedStyle(document.documentElement);
-  return buildPluginUiStyleVariables((token) => style.getPropertyValue(token));
+    if (typeof document === "undefined" || typeof getComputedStyle !== "function") {
+        return buildPluginUiStyleVariables(() => undefined);
+    }
+    const style = getComputedStyle(document.documentElement);
+    return buildPluginUiStyleVariables((token) => style.getPropertyValue(token));
 }

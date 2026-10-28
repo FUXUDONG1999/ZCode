@@ -19,73 +19,73 @@ import { WORKFLOW_FUNCTION_NAME, type ScriptLoc } from "../compiler/compile.js";
 
 /** A taint occurrence: a site/actor label with an exactness bit and optional join port. */
 export interface TaintOcc {
-  site: string;
-  exact: boolean;
-  port?: number;
+    site: string;
+    exact: boolean;
+    port?: number;
 }
 
 /** Symbolic taint of a function parameter, used to express context-sensitive summaries. */
 export interface Placeholder {
-  fnId: number;
-  param: number;
-  /**
-   * A rest parameter (`...parts`) is a single formal that gathers every actual at
-   * index >= `param`. Resolution (substitute in calls.ts, emitFacts in state.ts)
-   * unions ALL those actuals into the formal rather than the single positional one.
-   */
-  rest?: boolean;
+    fnId: number;
+    param: number;
+    /**
+     * A rest parameter (`...parts`) is a single formal that gathers every actual at
+     * index >= `param`. Resolution (substitute in calls.ts, emitFacts in state.ts)
+     * unions ALL those actuals into the formal rather than the single positional one.
+     */
+    rest?: boolean;
 }
 
 export interface AbstractValue {
-  /** Keyed by `${site}|${port ?? ""}`. */
-  occs: Map<string, TaintOcc>;
-  /** Keyed by `${fnId}:${param}`. */
-  phs: Map<string, Placeholder>;
-  fields: Map<string, AbstractValue>;
-  fns: Set<ts.Node>;
-  /**
-   * A partial-application prefix from `Function.prototype.bind`: `f.bind(null, a)` yields
-   * a value carrying f in `fns` plus `bound = [a]`. At the eventual call the prefix is
-   * PREPENDED to the actuals (`applyToFns`), so `g()` reaches f's param 0 as `a`. Rebinding
-   * composes (earlier bind's args first). Because `fns` is a set, a merged bound/plain
-   * value (`flag ? f : f.bind(null, a)`) can't say which fn is bound, so application unions
-   * BOTH alignments (with and without the prefix) — sound either way. Undefined for the
-   * overwhelmingly common non-bound value (kept off the hot path).
-   */
-  bound?: AbstractValue[];
-  /**
-   * MAY-ALIAS back-references: live places a WRITE through this value must ALSO weakly
-   * reach, because at runtime this value may BE one of them. Set for a conditional binding
-   * (`const a = flag ? box1 : box2` → a's value may-aliases box1 AND box2) and for a
-   * `Promise.all` result element that aliases its (place) input. Consulted ONLY at the
-   * write primitives ({@link replayMayAliasWrite} in writeField / handleHeapMutator): the
-   * write is replayed into each target INEXACTLY (it happens on one arm only — never a
-   * strong update), recursing into each target's OWN mayAlias (chained aliases). A Set so
-   * unions dedup by slot IDENTITY (loop-carried merges stay finite → the fixpoint
-   * terminates). Undefined for the overwhelmingly common non-aliased value.
-   *
-   * That termination argument has a PREMISE — the **canonical-heap invariant**: every
-   * target is drawn from the pass-stable heap, i.e. values keyed by a static program point
-   * and created once for the whole fixpoint (env slots per symbol, class instances per
-   * class, join results per join call, conditional places per ternary node, and the
-   * persistent fields of any of those). A per-pass temporary must NEVER become a target:
-   * identity dedup cannot recognize it, so each pass would add one more member, `changed`
-   * would stay true forever, and the analysis would hit `ITERATION_CAP` instead of
-   * converging (state.ts `joinResultOf` / `condPlaceOf` record the two repros that did).
-   */
-  mayAlias?: Set<AbstractValue>;
+    /** Keyed by `${site}|${port ?? ""}`. */
+    occs: Map<string, TaintOcc>;
+    /** Keyed by `${fnId}:${param}`. */
+    phs: Map<string, Placeholder>;
+    fields: Map<string, AbstractValue>;
+    fns: Set<ts.Node>;
+    /**
+     * A partial-application prefix from `Function.prototype.bind`: `f.bind(null, a)` yields
+     * a value carrying f in `fns` plus `bound = [a]`. At the eventual call the prefix is
+     * PREPENDED to the actuals (`applyToFns`), so `g()` reaches f's param 0 as `a`. Rebinding
+     * composes (earlier bind's args first). Because `fns` is a set, a merged bound/plain
+     * value (`flag ? f : f.bind(null, a)`) can't say which fn is bound, so application unions
+     * BOTH alignments (with and without the prefix) — sound either way. Undefined for the
+     * overwhelmingly common non-bound value (kept off the hot path).
+     */
+    bound?: AbstractValue[];
+    /**
+     * MAY-ALIAS back-references: live places a WRITE through this value must ALSO weakly
+     * reach, because at runtime this value may BE one of them. Set for a conditional binding
+     * (`const a = flag ? box1 : box2` → a's value may-aliases box1 AND box2) and for a
+     * `Promise.all` result element that aliases its (place) input. Consulted ONLY at the
+     * write primitives ({@link replayMayAliasWrite} in writeField / handleHeapMutator): the
+     * write is replayed into each target INEXACTLY (it happens on one arm only — never a
+     * strong update), recursing into each target's OWN mayAlias (chained aliases). A Set so
+     * unions dedup by slot IDENTITY (loop-carried merges stay finite → the fixpoint
+     * terminates). Undefined for the overwhelmingly common non-aliased value.
+     *
+     * That termination argument has a PREMISE — the **canonical-heap invariant**: every
+     * target is drawn from the pass-stable heap, i.e. values keyed by a static program point
+     * and created once for the whole fixpoint (env slots per symbol, class instances per
+     * class, join results per join call, conditional places per ternary node, and the
+     * persistent fields of any of those). A per-pass temporary must NEVER become a target:
+     * identity dedup cannot recognize it, so each pass would add one more member, `changed`
+     * would stay true forever, and the analysis would hit `ITERATION_CAP` instead of
+     * converging (state.ts `joinResultOf` / `condPlaceOf` record the two repros that did).
+     */
+    mayAlias?: Set<AbstractValue>;
 }
 
 export function emptyValue(): AbstractValue {
-  return { fields: new Map(), fns: new Set(), occs: new Map(), phs: new Map() };
+    return { fields: new Map(), fns: new Set(), occs: new Map(), phs: new Map() };
 }
 
 function occKey(site: string, port: number | undefined): string {
-  return `${site}|${port ?? ""}`;
+    return `${site}|${port ?? ""}`;
 }
 
 export function phKey(ph: Placeholder): string {
-  return `${ph.fnId}:${ph.param}`;
+    return `${ph.fnId}:${ph.param}`;
 }
 
 /**
@@ -96,70 +96,70 @@ export function phKey(ph: Placeholder): string {
  * precision; a selected element keeps its port until a whole-node read joins it.
  */
 export function addOcc(target: AbstractValue, occ: TaintOcc): boolean {
-  if (occ.port === undefined) return addPortless(target, occ);
-  // Ported: if a portless occurrence of the site already exists, it subsumes this one.
-  const portless = target.occs.get(occKey(occ.site, undefined));
-  if (portless !== undefined) {
-    if (occ.exact && !portless.exact) {
-      portless.exact = true;
-      return true;
+    if (occ.port === undefined) return addPortless(target, occ);
+    // Ported: if a portless occurrence of the site already exists, it subsumes this one.
+    const portless = target.occs.get(occKey(occ.site, undefined));
+    if (portless !== undefined) {
+        if (occ.exact && !portless.exact) {
+            portless.exact = true;
+            return true;
+        }
+        return false;
     }
-    return false;
-  }
-  return addExact(target, occ);
+    return addExact(target, occ);
 }
 
 function addPortless(target: AbstractValue, occ: TaintOcc): boolean {
-  // Drop any ported occurrences of the same site, folding their exactness in.
-  let exact = occ.exact;
-  let changed = false;
-  const drop: string[] = [];
-  for (const [key, existing] of target.occs) {
-    if (existing.site === occ.site && existing.port !== undefined) {
-      exact = exact || existing.exact;
-      drop.push(key);
+    // Drop any ported occurrences of the same site, folding their exactness in.
+    let exact = occ.exact;
+    let changed = false;
+    const drop: string[] = [];
+    for (const [key, existing] of target.occs) {
+        if (existing.site === occ.site && existing.port !== undefined) {
+            exact = exact || existing.exact;
+            drop.push(key);
+        }
     }
-  }
-  for (const key of drop) {
-    target.occs.delete(key);
-    changed = true;
-  }
-  return addExact(target, { exact, site: occ.site }) || changed;
+    for (const key of drop) {
+        target.occs.delete(key);
+        changed = true;
+    }
+    return addExact(target, { exact, site: occ.site }) || changed;
 }
 
 function addExact(target: AbstractValue, occ: TaintOcc): boolean {
-  const key = occKey(occ.site, occ.port);
-  const existing = target.occs.get(key);
-  if (existing === undefined) {
-    target.occs.set(key, { exact: occ.exact, port: occ.port, site: occ.site });
-    return true;
-  }
-  if (occ.exact && !existing.exact) {
-    existing.exact = true;
-    return true;
-  }
-  return false;
+    const key = occKey(occ.site, occ.port);
+    const existing = target.occs.get(key);
+    if (existing === undefined) {
+        target.occs.set(key, { exact: occ.exact, port: occ.port, site: occ.site });
+        return true;
+    }
+    if (occ.exact && !existing.exact) {
+        existing.exact = true;
+        return true;
+    }
+    return false;
 }
 
 export function addPlaceholder(target: AbstractValue, ph: Placeholder): boolean {
-  const key = phKey(ph);
-  const existing = target.phs.get(key);
-  if (existing !== undefined) {
-    // A rest bit must not be lost when the same placeholder is merged from a
-    // non-rest witness (e.g. the keystone rule) — otherwise resolution would
-    // stop gathering the tail actuals.
-    if (ph.rest === true && existing.rest !== true) {
-      existing.rest = true;
-      return true;
+    const key = phKey(ph);
+    const existing = target.phs.get(key);
+    if (existing !== undefined) {
+        // A rest bit must not be lost when the same placeholder is merged from a
+        // non-rest witness (e.g. the keystone rule) — otherwise resolution would
+        // stop gathering the tail actuals.
+        if (ph.rest === true && existing.rest !== true) {
+            existing.rest = true;
+            return true;
+        }
+        return false;
     }
-    return false;
-  }
-  target.phs.set(key, {
-    fnId: ph.fnId,
-    param: ph.param,
-    ...(ph.rest === true ? { rest: true } : {}),
-  });
-  return true;
+    target.phs.set(key, {
+        fnId: ph.fnId,
+        param: ph.param,
+        ...(ph.rest === true ? { rest: true } : {}),
+    });
+    return true;
 }
 
 /**
@@ -175,45 +175,46 @@ export const VALUE_DEPTH_CAP = 8;
 
 /** Deep weak-merge `source` into `target`; returns true iff `target` grew. */
 export function mergeInto(target: AbstractValue, source: AbstractValue, depth = 0): boolean {
-  if (target === source) return false; // identity guard: mergeInto(x, x) is a no-op (cycle-safe)
-  let changed = false;
-  for (const occ of source.occs.values()) changed = addOcc(target, occ) || changed;
-  for (const ph of source.phs.values()) changed = addPlaceholder(target, ph) || changed;
-  for (const fn of source.fns) {
-    if (!target.fns.has(fn)) {
-      target.fns.add(fn);
-      changed = true;
+    if (target === source) return false; // identity guard: mergeInto(x, x) is a no-op (cycle-safe)
+    let changed = false;
+    for (const occ of source.occs.values()) changed = addOcc(target, occ) || changed;
+    for (const ph of source.phs.values()) changed = addPlaceholder(target, ph) || changed;
+    for (const fn of source.fns) {
+        if (!target.fns.has(fn)) {
+            target.fns.add(fn);
+            changed = true;
+        }
     }
-  }
-  if (source.bound !== undefined) changed = mergeBound(target, source.bound, depth) || changed;
-  if (source.mayAlias !== undefined) {
-    // Union may-alias back-references, deduped by slot IDENTITY (Set): a conditional
-    // binding merged across fixpoint passes must reach a fixed point, not append duplicates.
-    const targets = (target.mayAlias ??= new Set());
-    for (const m of source.mayAlias) {
-      if (!targets.has(m)) {
-        targets.add(m);
-        changed = true;
-      }
+    if (source.bound !== undefined) changed = mergeBound(target, source.bound, depth) || changed;
+    if (source.mayAlias !== undefined) {
+        // Union may-alias back-references, deduped by slot IDENTITY (Set): a conditional
+        // binding merged across fixpoint passes must reach a fixed point, not append duplicates.
+        const targets = (target.mayAlias ??= new Set());
+        for (const m of source.mayAlias) {
+            if (!targets.has(m)) {
+                targets.add(m);
+                changed = true;
+            }
+        }
     }
-  }
-  if (depth >= VALUE_DEPTH_CAP) {
-    // Depth cap reached: do not descend (a cycle would recurse forever, and unbounded
-    // nesting would break the finite-lattice premise). Fold the remaining structure
-    // into this node's occurrence set instead. collapseInto is cycle-safe and reports
-    // growth, so the fixpoint's `changed` signal stays sound.
-    for (const field of source.fields.values()) changed = collapseInto(target, field) || changed;
+    if (depth >= VALUE_DEPTH_CAP) {
+        // Depth cap reached: do not descend (a cycle would recurse forever, and unbounded
+        // nesting would break the finite-lattice premise). Fold the remaining structure
+        // into this node's occurrence set instead. collapseInto is cycle-safe and reports
+        // growth, so the fixpoint's `changed` signal stays sound.
+        for (const field of source.fields.values())
+            changed = collapseInto(target, field) || changed;
+        return changed;
+    }
+    for (const [key, field] of source.fields) {
+        let slot = target.fields.get(key);
+        if (slot === undefined) {
+            slot = emptyValue();
+            target.fields.set(key, slot);
+        }
+        changed = mergeInto(slot, field, depth + 1) || changed;
+    }
     return changed;
-  }
-  for (const [key, field] of source.fields) {
-    let slot = target.fields.get(key);
-    if (slot === undefined) {
-      slot = emptyValue();
-      target.fields.set(key, slot);
-    }
-    changed = mergeInto(slot, field, depth + 1) || changed;
-  }
-  return changed;
 }
 
 /**
@@ -241,51 +242,51 @@ export function mergeInto(target: AbstractValue, source: AbstractValue, depth = 
  * `substitute`, whose output prefix is a 1:1 map of an already-capped summary prefix.
  */
 export function mergeBound(
-  target: AbstractValue,
-  sourceBound: AbstractValue[],
-  depth: number,
+    target: AbstractValue,
+    sourceBound: AbstractValue[],
+    depth: number,
 ): boolean {
-  let changed = false;
-  if (depth >= VALUE_DEPTH_CAP) {
-    for (const el of sourceBound) changed = collapseInto(target, el) || changed;
+    let changed = false;
+    if (depth >= VALUE_DEPTH_CAP) {
+        for (const el of sourceBound) changed = collapseInto(target, el) || changed;
+        return changed;
+    }
+    if (target.bound === undefined) target.bound = [];
+    const tb = target.bound;
+    for (let i = 0; i < sourceBound.length; i += 1) {
+        const el = sourceBound[i] as AbstractValue;
+        if (i >= VALUE_DEPTH_CAP) {
+            changed = collapseInto(target, el) || changed; // degrade: smear into occs (never drop)
+            continue;
+        }
+        let slot = tb[i];
+        if (slot === undefined) {
+            slot = emptyValue();
+            tb[i] = slot;
+            changed = true;
+        }
+        changed = mergeInto(slot, el, depth + 1) || changed;
+    }
     return changed;
-  }
-  if (target.bound === undefined) target.bound = [];
-  const tb = target.bound;
-  for (let i = 0; i < sourceBound.length; i += 1) {
-    const el = sourceBound[i] as AbstractValue;
-    if (i >= VALUE_DEPTH_CAP) {
-      changed = collapseInto(target, el) || changed; // degrade: smear into occs (never drop)
-      continue;
-    }
-    let slot = tb[i];
-    if (slot === undefined) {
-      slot = emptyValue();
-      tb[i] = slot;
-      changed = true;
-    }
-    changed = mergeInto(slot, el, depth + 1) || changed;
-  }
-  return changed;
 }
 
 export function cloneValue(v: AbstractValue): AbstractValue {
-  const out = emptyValue();
-  mergeInto(out, v);
-  return out;
+    const out = emptyValue();
+    mergeInto(out, v);
+    return out;
 }
 
 /** Union of several values into a fresh owned value. */
 export function unionValues(...values: AbstractValue[]): AbstractValue {
-  const out = emptyValue();
-  for (const v of values) mergeInto(out, v);
-  return out;
+    const out = emptyValue();
+    for (const v of values) mergeInto(out, v);
+    return out;
 }
 
 export function singleOcc(site: string, exact: boolean, port?: number): AbstractValue {
-  const out = emptyValue();
-  addOcc(out, { exact, port, site });
-  return out;
+    const out = emptyValue();
+    addOcc(out, { exact, port, site });
+    return out;
 }
 
 /**
@@ -304,9 +305,9 @@ export function singleOcc(site: string, exact: boolean, port?: number): Abstract
  * through collapse stays monotone and cannot diverge the fixpoint.
  */
 export function collapse(v: AbstractValue): AbstractValue {
-  const out = emptyValue();
-  collapseInto(out, v);
-  return out;
+    const out = emptyValue();
+    collapseInto(out, v);
+    return out;
 }
 
 /**
@@ -316,28 +317,28 @@ export function collapse(v: AbstractValue): AbstractValue {
  * finite time. Returning growth keeps the depth-cap fold in {@link mergeInto} sound.
  */
 export function collapseInto(
-  out: AbstractValue,
-  v: AbstractValue,
-  seen = new Set<AbstractValue>(),
+    out: AbstractValue,
+    v: AbstractValue,
+    seen = new Set<AbstractValue>(),
 ): boolean {
-  if (seen.has(v)) return false;
-  seen.add(v);
-  let changed = false;
-  for (const occ of v.occs.values()) changed = addOcc(out, occ) || changed;
-  for (const ph of v.phs.values()) changed = addPlaceholder(out, ph) || changed;
-  // Carry nested function values so widening never drops a callee (see collapse's doc).
-  for (const fn of v.fns) {
-    if (!out.fns.has(fn)) {
-      out.fns.add(fn);
-      changed = true;
+    if (seen.has(v)) return false;
+    seen.add(v);
+    let changed = false;
+    for (const occ of v.occs.values()) changed = addOcc(out, occ) || changed;
+    for (const ph of v.phs.values()) changed = addPlaceholder(out, ph) || changed;
+    // Carry nested function values so widening never drops a callee (see collapse's doc).
+    for (const fn of v.fns) {
+        if (!out.fns.has(fn)) {
+            out.fns.add(fn);
+            changed = true;
+        }
     }
-  }
-  for (const field of v.fields.values()) changed = collapseInto(out, field, seen) || changed;
-  // Bound-prefix args carry taint (occs/placeholders/fns) that must survive folding —
-  // otherwise a bound function collapsed at a summary/emission boundary silently drops its
-  // captured labels.
-  for (const el of v.bound ?? []) changed = collapseInto(out, el, seen) || changed;
-  return changed;
+    for (const field of v.fields.values()) changed = collapseInto(out, field, seen) || changed;
+    // Bound-prefix args carry taint (occs/placeholders/fns) that must survive folding —
+    // otherwise a bound function collapsed at a summary/emission boundary silently drops its
+    // captured labels.
+    for (const el of v.bound ?? []) changed = collapseInto(out, el, seen) || changed;
+    return changed;
 }
 
 /**
@@ -356,37 +357,37 @@ export function collapseInto(
  * (which never have a matching ported field occ).
  */
 export function readField(container: AbstractValue, key: string): AbstractValue {
-  const field = container.fields.get(key);
-  if (field === undefined) return collapse(container);
-  const out = cloneValue(field);
-  for (const occ of container.occs.values()) {
-    if (occ.port === undefined && hasPortedOcc(out, occ.site)) continue;
-    addOcc(out, occ);
-  }
-  for (const ph of container.phs.values()) addPlaceholder(out, ph);
-  return out;
+    const field = container.fields.get(key);
+    if (field === undefined) return collapse(container);
+    const out = cloneValue(field);
+    for (const occ of container.occs.values()) {
+        if (occ.port === undefined && hasPortedOcc(out, occ.site)) continue;
+        addOcc(out, occ);
+    }
+    for (const ph of container.phs.values()) addPlaceholder(out, ph);
+    return out;
 }
 
 function hasPortedOcc(v: AbstractValue, site: string): boolean {
-  for (const occ of v.occs.values()) {
-    if (occ.site === site && occ.port !== undefined) return true;
-  }
-  return false;
+    for (const occ of v.occs.values()) {
+        if (occ.site === site && occ.port !== undefined) return true;
+    }
+    return false;
 }
 
 /** Copy of `v` with every occurrence's exactness bit cleared (recursively). */
 export function clearExact(v: AbstractValue): AbstractValue {
-  const out = cloneValue(v);
-  clearExactInPlace(out);
-  return out;
+    const out = cloneValue(v);
+    clearExactInPlace(out);
+    return out;
 }
 
 function clearExactInPlace(v: AbstractValue, seen = new Set<AbstractValue>()): void {
-  if (seen.has(v)) return; // cycle-safe: a shared/cyclic field is cleared once
-  seen.add(v);
-  for (const occ of v.occs.values()) occ.exact = false;
-  for (const field of v.fields.values()) clearExactInPlace(field, seen);
-  for (const el of v.bound ?? []) clearExactInPlace(el, seen);
+    if (seen.has(v)) return; // cycle-safe: a shared/cyclic field is cleared once
+    seen.add(v);
+    for (const occ of v.occs.values()) occ.exact = false;
+    for (const field of v.fields.values()) clearExactInPlace(field, seen);
+    for (const el of v.bound ?? []) clearExactInPlace(el, seen);
 }
 
 /** True for actor labels; everything else (ask/world-read/join/fan-out) is an artifact. */
@@ -394,7 +395,7 @@ export { isActorSite } from "./core.js";
 
 /** Provisional fan-out id used inside occurrences before ordinals are assigned. */
 export function provisionalFanoutId(order: number): string {
-  return `fan-out@${order}`;
+    return `fan-out@${order}`;
 }
 
 // --- small AST helpers shared by the analysis ------------------------------
@@ -420,46 +421,46 @@ export const HEAP_MUTATORS = new Set<string>(["push", "unshift", "splice", "set"
  * weak-merges the RHS into the target (the old value stays) and yields their union.
  */
 export const COMPOUND_ASSIGNMENT_OPS = new Set<ts.SyntaxKind>([
-  ts.SyntaxKind.PlusEqualsToken,
-  ts.SyntaxKind.MinusEqualsToken,
-  ts.SyntaxKind.AsteriskEqualsToken,
-  ts.SyntaxKind.AsteriskAsteriskEqualsToken,
-  ts.SyntaxKind.SlashEqualsToken,
-  ts.SyntaxKind.PercentEqualsToken,
-  ts.SyntaxKind.LessThanLessThanEqualsToken,
-  ts.SyntaxKind.GreaterThanGreaterThanEqualsToken,
-  ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
-  ts.SyntaxKind.AmpersandEqualsToken,
-  ts.SyntaxKind.BarEqualsToken,
-  ts.SyntaxKind.CaretEqualsToken,
-  ts.SyntaxKind.BarBarEqualsToken,
-  ts.SyntaxKind.AmpersandAmpersandEqualsToken,
-  ts.SyntaxKind.QuestionQuestionEqualsToken,
+    ts.SyntaxKind.PlusEqualsToken,
+    ts.SyntaxKind.MinusEqualsToken,
+    ts.SyntaxKind.AsteriskEqualsToken,
+    ts.SyntaxKind.AsteriskAsteriskEqualsToken,
+    ts.SyntaxKind.SlashEqualsToken,
+    ts.SyntaxKind.PercentEqualsToken,
+    ts.SyntaxKind.LessThanLessThanEqualsToken,
+    ts.SyntaxKind.GreaterThanGreaterThanEqualsToken,
+    ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken,
+    ts.SyntaxKind.AmpersandEqualsToken,
+    ts.SyntaxKind.BarEqualsToken,
+    ts.SyntaxKind.CaretEqualsToken,
+    ts.SyntaxKind.BarBarEqualsToken,
+    ts.SyntaxKind.AmpersandAmpersandEqualsToken,
+    ts.SyntaxKind.QuestionQuestionEqualsToken,
 ]);
 
 export function findWorkflowBody(scriptFile: ts.SourceFile): ts.Block {
-  for (const statement of scriptFile.statements) {
-    if (
-      ts.isFunctionDeclaration(statement) &&
-      statement.name?.text === WORKFLOW_FUNCTION_NAME &&
-      statement.body !== undefined
-    ) {
-      return statement.body;
+    for (const statement of scriptFile.statements) {
+        if (
+            ts.isFunctionDeclaration(statement) &&
+            statement.name?.text === WORKFLOW_FUNCTION_NAME &&
+            statement.body !== undefined
+        ) {
+            return statement.body;
+        }
     }
-  }
-  throw new Error(`workflow wrapper function ${WORKFLOW_FUNCTION_NAME} not found`);
+    throw new Error(`workflow wrapper function ${WORKFLOW_FUNCTION_NAME} not found`);
 }
 
 export function isFunctionLike(node: ts.Node): boolean {
-  return (
-    ts.isFunctionDeclaration(node) ||
-    ts.isFunctionExpression(node) ||
-    ts.isArrowFunction(node) ||
-    ts.isMethodDeclaration(node) ||
-    ts.isGetAccessorDeclaration(node) ||
-    ts.isSetAccessorDeclaration(node) ||
-    ts.isConstructorDeclaration(node)
-  );
+    return (
+        ts.isFunctionDeclaration(node) ||
+        ts.isFunctionExpression(node) ||
+        ts.isArrowFunction(node) ||
+        ts.isMethodDeclaration(node) ||
+        ts.isGetAccessorDeclaration(node) ||
+        ts.isSetAccessorDeclaration(node) ||
+        ts.isConstructorDeclaration(node)
+    );
 }
 
 /**
@@ -468,33 +469,33 @@ export function isFunctionLike(node: ts.Node): boolean {
  * to the right function's actuals.
  */
 export function isNonArrowFunctionLike(node: ts.Node): boolean {
-  return isFunctionLike(node) && !ts.isArrowFunction(node);
+    return isFunctionLike(node) && !ts.isArrowFunction(node);
 }
 
 /** A directly-referenced callee (an identifier or a function literal) preserves exactness. */
 export function isDirectCallee(callee: ts.Expression): boolean {
-  const expr = ts.isParenthesizedExpression(callee) ? callee.expression : callee;
-  return (
-    ts.isIdentifier(expr) ||
-    ts.isPropertyAccessExpression(expr) ||
-    ts.isFunctionExpression(expr) ||
-    ts.isArrowFunction(expr)
-  );
+    const expr = ts.isParenthesizedExpression(callee) ? callee.expression : callee;
+    return (
+        ts.isIdentifier(expr) ||
+        ts.isPropertyAccessExpression(expr) ||
+        ts.isFunctionExpression(expr) ||
+        ts.isArrowFunction(expr)
+    );
 }
 
 export function isJsonStringify(access: ts.PropertyAccessExpression): boolean {
-  return (
-    ts.isIdentifier(access.expression) &&
-    access.expression.text === "JSON" &&
-    access.name.text === "stringify"
-  );
+    return (
+        ts.isIdentifier(access.expression) &&
+        access.expression.text === "JSON" &&
+        access.name.text === "stringify"
+    );
 }
 
 /** The static field key for `x[k]` when `k` is a string/number literal, else undefined. */
 export function staticIndexKey(arg: ts.Expression): string | undefined {
-  if (ts.isNumericLiteral(arg)) return arg.text;
-  if (ts.isStringLiteralLike(arg)) return arg.text;
-  return undefined;
+    if (ts.isNumericLiteral(arg)) return arg.text;
+    if (ts.isStringLiteralLike(arg)) return arg.text;
+    return undefined;
 }
 
 /**
@@ -508,28 +509,28 @@ export function staticIndexKey(arg: ts.Expression): string | undefined {
  * evaluated value.
  */
 export function peelPlace(expr: ts.Expression): ts.Expression {
-  let cur = expr;
-  while (true) {
-    if (ts.isParenthesizedExpression(cur)) cur = cur.expression;
-    else if (ts.isNonNullExpression(cur)) cur = cur.expression;
-    else if (ts.isAsExpression(cur) || ts.isSatisfiesExpression(cur)) cur = cur.expression;
-    else if (ts.isTypeAssertionExpression(cur)) cur = cur.expression;
-    else if (ts.isBinaryExpression(cur) && cur.operatorToken.kind === ts.SyntaxKind.CommaToken)
-      cur = cur.right;
-    else if (ts.isCommaListExpression(cur) && cur.elements.length > 0) {
-      cur = cur.elements[cur.elements.length - 1] as ts.Expression;
-    } else return cur;
-  }
+    let cur = expr;
+    while (true) {
+        if (ts.isParenthesizedExpression(cur)) cur = cur.expression;
+        else if (ts.isNonNullExpression(cur)) cur = cur.expression;
+        else if (ts.isAsExpression(cur) || ts.isSatisfiesExpression(cur)) cur = cur.expression;
+        else if (ts.isTypeAssertionExpression(cur)) cur = cur.expression;
+        else if (ts.isBinaryExpression(cur) && cur.operatorToken.kind === ts.SyntaxKind.CommaToken)
+            cur = cur.right;
+        else if (ts.isCommaListExpression(cur) && cur.elements.length > 0) {
+            cur = cur.elements[cur.elements.length - 1] as ts.Expression;
+        } else return cur;
+    }
 }
 
 /** The live field object at `key`, created empty on demand (shared reference). */
 export function liveField(container: AbstractValue, key: string): AbstractValue {
-  let field = container.fields.get(key);
-  if (field === undefined) {
-    field = emptyValue();
-    container.fields.set(key, field);
-  }
-  return field;
+    let field = container.fields.get(key);
+    if (field === undefined) {
+        field = emptyValue();
+        container.fields.set(key, field);
+    }
+    return field;
 }
 
 /**
@@ -543,34 +544,34 @@ export function liveField(container: AbstractValue, key: string): AbstractValue 
  * target's occs — a widening, never a drop). Returns true iff any target grew.
  */
 export function replayMayAliasWrite(
-  container: AbstractValue,
-  key: string,
-  value: AbstractValue,
+    container: AbstractValue,
+    key: string,
+    value: AbstractValue,
 ): boolean {
-  if (container.mayAlias === undefined) return false;
-  return replayFieldInto(container.mayAlias, key, clearExact(value), new Set(), 0);
+    if (container.mayAlias === undefined) return false;
+    return replayFieldInto(container.mayAlias, key, clearExact(value), new Set(), 0);
 }
 
 function replayFieldInto(
-  targets: Set<AbstractValue>,
-  key: string,
-  write: AbstractValue,
-  seen: Set<AbstractValue>,
-  depth: number,
+    targets: Set<AbstractValue>,
+    key: string,
+    write: AbstractValue,
+    seen: Set<AbstractValue>,
+    depth: number,
 ): boolean {
-  let changed = false;
-  for (const target of targets) {
-    if (seen.has(target)) continue;
-    seen.add(target);
-    if (depth >= VALUE_DEPTH_CAP) {
-      changed = collapseInto(target, write) || changed; // degrade: smear into occs (never drop)
-      continue;
+    let changed = false;
+    for (const target of targets) {
+        if (seen.has(target)) continue;
+        seen.add(target);
+        if (depth >= VALUE_DEPTH_CAP) {
+            changed = collapseInto(target, write) || changed; // degrade: smear into occs (never drop)
+            continue;
+        }
+        changed = mergeInto(liveField(target, key), write) || changed;
+        if (target.mayAlias !== undefined)
+            changed = replayFieldInto(target.mayAlias, key, write, seen, depth + 1) || changed;
     }
-    changed = mergeInto(liveField(target, key), write) || changed;
-    if (target.mayAlias !== undefined)
-      changed = replayFieldInto(target.mayAlias, key, write, seen, depth + 1) || changed;
-  }
-  return changed;
+    return changed;
 }
 
 /**
@@ -580,24 +581,24 @@ function replayFieldInto(
  * target grew.
  */
 export function replayMayAliasMerge(container: AbstractValue, value: AbstractValue): boolean {
-  if (container.mayAlias === undefined) return false;
-  return replayMergeInto(container.mayAlias, clearExact(collapse(value)), new Set());
+    if (container.mayAlias === undefined) return false;
+    return replayMergeInto(container.mayAlias, clearExact(collapse(value)), new Set());
 }
 
 function replayMergeInto(
-  targets: Set<AbstractValue>,
-  write: AbstractValue,
-  seen: Set<AbstractValue>,
+    targets: Set<AbstractValue>,
+    write: AbstractValue,
+    seen: Set<AbstractValue>,
 ): boolean {
-  let changed = false;
-  for (const target of targets) {
-    if (seen.has(target)) continue;
-    seen.add(target);
-    changed = mergeInto(target, write) || changed;
-    if (target.mayAlias !== undefined)
-      changed = replayMergeInto(target.mayAlias, write, seen) || changed;
-  }
-  return changed;
+    let changed = false;
+    for (const target of targets) {
+        if (seen.has(target)) continue;
+        seen.add(target);
+        changed = mergeInto(target, write) || changed;
+        if (target.mayAlias !== undefined)
+            changed = replayMergeInto(target.mayAlias, write, seen) || changed;
+    }
+    return changed;
 }
 
 /**
@@ -611,55 +612,55 @@ function replayMergeInto(
  * shared (a genuine shallow copy), so no recursion / cycle risk.
  */
 export function adoptFields(target: AbstractValue, source: AbstractValue): boolean {
-  let changed = false;
-  for (const [key, srcField] of source.fields) {
-    const existing = target.fields.get(key);
-    if (existing === srcField) continue;
-    if (existing !== undefined) mergeInto(srcField, existing);
-    target.fields.set(key, srcField);
-    changed = true;
-  }
-  return changed;
+    let changed = false;
+    for (const [key, srcField] of source.fields) {
+        const existing = target.fields.get(key);
+        if (existing === srcField) continue;
+        if (existing !== undefined) mergeInto(srcField, existing);
+        target.fields.set(key, srcField);
+        changed = true;
+    }
+    return changed;
 }
 
 /** The statically-known member name a binding element reads, if any. */
 export function bindingPropertyKey(element: ts.BindingElement): string | undefined {
-  if (element.propertyName !== undefined) {
-    if (
-      ts.isIdentifier(element.propertyName) ||
-      ts.isStringLiteralLike(element.propertyName) ||
-      ts.isNumericLiteral(element.propertyName)
-    ) {
-      return element.propertyName.text;
+    if (element.propertyName !== undefined) {
+        if (
+            ts.isIdentifier(element.propertyName) ||
+            ts.isStringLiteralLike(element.propertyName) ||
+            ts.isNumericLiteral(element.propertyName)
+        ) {
+            return element.propertyName.text;
+        }
+        return undefined;
     }
-    return undefined;
-  }
-  return ts.isIdentifier(element.name) ? element.name.text : undefined;
+    return ts.isIdentifier(element.name) ? element.name.text : undefined;
 }
 
 /** The edge-bearing facts consumed by graph assembly. Fan-out ids are provisional. */
 export interface TaintFacts {
-  /** Artifact occurrences reaching each ask instruction (data in-edges to the ask). */
-  askData: Map<string, TaintOcc[]>;
-  /** Actor occurrences of each ask receiver (drive the context relation). */
-  askActor: Map<string, TaintOcc[]>;
-  /** Artifact occurrences reaching each world-read argument. */
-  worldReadData: Map<string, TaintOcc[]>;
-  /** Artifact occurrences reaching each OPEN hole's prompt (a sink, like an ask's instructions). */
-  holeData: Map<string, TaintOcc[]>;
-  /** Artifact occurrences reaching each join, carrying the join input port. */
-  joinIn: Map<string, TaintOcc[]>;
-  /** Artifact occurrences reaching each promoted fan-out (provisional id). */
-  fanoutIn: Map<string, TaintOcc[]>;
-  /** Artifact occurrences reaching the script's return expression(s). */
-  returnData: TaintOcc[];
-  /** Promoted iteration candidates, in source order; `id` is provisional (`fan-out@N`). */
-  promoted: PromotedFanout[];
+    /** Artifact occurrences reaching each ask instruction (data in-edges to the ask). */
+    askData: Map<string, TaintOcc[]>;
+    /** Actor occurrences of each ask receiver (drive the context relation). */
+    askActor: Map<string, TaintOcc[]>;
+    /** Artifact occurrences reaching each world-read argument. */
+    worldReadData: Map<string, TaintOcc[]>;
+    /** Artifact occurrences reaching each OPEN hole's prompt (a sink, like an ask's instructions). */
+    holeData: Map<string, TaintOcc[]>;
+    /** Artifact occurrences reaching each join, carrying the join input port. */
+    joinIn: Map<string, TaintOcc[]>;
+    /** Artifact occurrences reaching each promoted fan-out (provisional id). */
+    fanoutIn: Map<string, TaintOcc[]>;
+    /** Artifact occurrences reaching the script's return expression(s). */
+    returnData: TaintOcc[];
+    /** Promoted iteration candidates, in source order; `id` is provisional (`fan-out@N`). */
+    promoted: PromotedFanout[];
 }
 
 export interface PromotedFanout {
-  order: number;
-  id: string;
-  loc: ScriptLoc;
-  label: string;
+    order: number;
+    id: string;
+    loc: ScriptLoc;
+    label: string;
 }

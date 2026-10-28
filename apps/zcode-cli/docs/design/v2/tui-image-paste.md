@@ -118,12 +118,12 @@ Add TUI-only draft attachment state:
 
 ```ts
 type TuiDraftAttachment = {
-  id: number;
-  type: "image";
-  placeholder: string;
-  dataUrl: string;
-  mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp";
-  sizeBytes?: number;
+    id: number;
+    type: "image";
+    placeholder: string;
+    dataUrl: string;
+    mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp";
+    sizeBytes?: number;
 };
 ```
 
@@ -170,13 +170,13 @@ adapter-facing option:
 
 ```ts
 type TuiReadClipboardImage = (options: {
-  abortSignal?: AbortSignal;
+    abortSignal?: AbortSignal;
 }) => Promise<TuiClipboardImage | null>;
 
 type TuiClipboardImage = {
-  dataUrl: string;
-  mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp";
-  sizeBytes?: number;
+    dataUrl: string;
+    mediaType: "image/png" | "image/jpeg" | "image/gif" | "image/webp";
+    sizeBytes?: number;
 };
 ```
 

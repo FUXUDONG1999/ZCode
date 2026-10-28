@@ -11,21 +11,21 @@ const modelConfigMutationTails = new WeakMap<ZCodeApp, Promise<void>>();
  * operation，不污染后续 tail。WeakMap 不延长 session 生命周期。
  */
 export async function runSessionModelConfigMutation<T>(
-  app: ZCodeApp,
-  operation: () => Promise<T>,
+    app: ZCodeApp,
+    operation: () => Promise<T>,
 ): Promise<T> {
-  const previousTail = modelConfigMutationTails.get(app) ?? Promise.resolve();
-  const currentOperation = previousTail.catch(() => undefined).then(operation);
-  const currentTail = currentOperation.then(
-    () => undefined,
-    () => undefined,
-  );
-  modelConfigMutationTails.set(app, currentTail);
-  try {
-    return await currentOperation;
-  } finally {
-    if (modelConfigMutationTails.get(app) === currentTail) {
-      modelConfigMutationTails.delete(app);
+    const previousTail = modelConfigMutationTails.get(app) ?? Promise.resolve();
+    const currentOperation = previousTail.catch(() => undefined).then(operation);
+    const currentTail = currentOperation.then(
+        () => undefined,
+        () => undefined,
+    );
+    modelConfigMutationTails.set(app, currentTail);
+    try {
+        return await currentOperation;
+    } finally {
+        if (modelConfigMutationTails.get(app) === currentTail) {
+            modelConfigMutationTails.delete(app);
+        }
     }
-  }
 }

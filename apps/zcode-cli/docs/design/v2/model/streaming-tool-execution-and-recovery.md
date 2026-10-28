@@ -162,23 +162,23 @@ Minimum record shape:
 
 ```ts
 interface StreamingToolLedgerRecord {
-  attemptId: string;
-  assistantMessageId: string;
-  toolCallId: string;
-  toolName: string;
-  input?: Record<string, unknown>;
-  status: StreamingToolLedgerStatus;
-  providerExecuted: boolean;
-  sideEffectScope: ToolSideEffectScope;
-  readOnly: boolean;
-  destructive: boolean;
-  concurrentSafe: boolean;
-  startedAt?: number;
-  committedAt?: number;
-  resultMessageId?: string;
-  resultPartId?: string;
-  checkpointId?: string;
-  recoveryAnchorId?: string;
+    attemptId: string;
+    assistantMessageId: string;
+    toolCallId: string;
+    toolName: string;
+    input?: Record<string, unknown>;
+    status: StreamingToolLedgerStatus;
+    providerExecuted: boolean;
+    sideEffectScope: ToolSideEffectScope;
+    readOnly: boolean;
+    destructive: boolean;
+    concurrentSafe: boolean;
+    startedAt?: number;
+    committedAt?: number;
+    resultMessageId?: string;
+    resultPartId?: string;
+    checkpointId?: string;
+    recoveryAnchorId?: string;
 }
 ```
 

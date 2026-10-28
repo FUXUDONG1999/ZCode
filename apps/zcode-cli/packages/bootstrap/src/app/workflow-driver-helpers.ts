@@ -6,34 +6,34 @@
 // 映射、turn 失败归一）拆到本文件；公开面（mintActorSessionId）仍从 workflow-driver.ts 导出。
 
 import {
-  CoreErrorType,
-  createSessionId,
-  type SessionId,
-  type SubmitVerdict as ContractsSubmitVerdict,
-  type SubmitViolation,
+    CoreErrorType,
+    createSessionId,
+    type SessionId,
+    type SubmitVerdict as ContractsSubmitVerdict,
+    type SubmitViolation,
 } from "@zcode/contracts";
 import type { TurnResult } from "@zcode/core";
 import {
-  refToString,
-  WorkflowError,
-  type ActorRef,
-  type AskStats,
-  type InstanceRef,
-  type PersonaSpec,
-  type Violation,
-  type WorkflowReportSink,
+    refToString,
+    WorkflowError,
+    type ActorRef,
+    type AskStats,
+    type InstanceRef,
+    type PersonaSpec,
+    type Violation,
+    type WorkflowReportSink,
 } from "@zcode/dynamic-workflow";
 import type { ActorToolCounts } from "./workflow-driver-tool-activity.js";
 import type { Deferred, SessionState } from "./workflow-driver-types.js";
 
 export function defer<T>(): Deferred<T> {
-  let resolve!: (value: T) => void;
-  let reject!: (reason: unknown) => void;
-  const promise = new Promise<T>((res, rej) => {
-    resolve = res;
-    reject = rej;
-  });
-  return { promise, resolve, reject };
+    let resolve!: (value: T) => void;
+    let reject!: (reason: unknown) => void;
+    const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+    });
+    return { promise, resolve, reject };
 }
 
 /**
@@ -51,9 +51,9 @@ export function defer<T>(): Deferred<T> {
  * 表现是详情页打开一个不存在的会话。run service 调用的就是这个函数（测试钉住两边相等）。
  */
 export function mintActorSessionId(runId: string, actor: ActorRef): SessionId {
-  return createSessionId(
-    `dwf-${sanitizeIdSegment(runId)}-${sanitizeIdSegment(refToString(actor))}`,
-  );
+    return createSessionId(
+        `dwf-${sanitizeIdSegment(runId)}-${sanitizeIdSegment(refToString(actor))}`,
+    );
 }
 
 /**
@@ -72,7 +72,7 @@ export function mintActorSessionId(runId: string, actor: ActorRef): SessionId {
  * 不存在这种同形异构对；真要消除，就得给每个特殊字符一个独立编码。
  */
 function sanitizeIdSegment(value: string): string {
-  return value.replace(/_/g, "__").replace(/[^A-Za-z0-9.-]/g, "_");
+    return value.replace(/_/g, "__").replace(/[^A-Za-z0-9.-]/g, "_");
 }
 
 /**
@@ -85,18 +85,18 @@ export const MAX_ESCALATIONS_PER_ASK = 3;
 
 /** 预算耗尽时回给模型的工具结果文案（普通结果，不是错误）。 */
 export const ESCALATION_BUDGET_EXHAUSTED =
-  `Escalation budget exhausted: at most ${MAX_ESCALATIONS_PER_ASK} escalations per task. ` +
-  "Do not call escalate again. Proceed on your best judgement with the information you have, " +
-  "and state in your final result the assumptions you relied on and the doubts that remain.";
+    `Escalation budget exhausted: at most ${MAX_ESCALATIONS_PER_ASK} escalations per task. ` +
+    "Do not call escalate again. Proceed on your best judgement with the information you have, " +
+    "and state in your final result the assumptions you relied on and the doubts that remain.";
 
 /** actor 会话 id 片段之外，qid 片段的候选序列（由短到长，最后一个是完整 runId）。 */
 export function questionIdFragments(runId: string): string[] {
-  // `dwfrun-` 前缀对每个 run 都一样，留着只会把 qid 变长而不增加辨识度。
-  const body = runId.startsWith("dwfrun-") ? runId.slice("dwfrun-".length) : runId;
-  const full = sanitizeIdSegment(body);
-  const candidates = [full.slice(0, 8), full.slice(0, 16), full];
-  // 短 runId 上三个候选会退化成同一个串；去重只为不做无谓的重复查表。
-  return [...new Set(candidates)];
+    // `dwfrun-` 前缀对每个 run 都一样，留着只会把 qid 变长而不增加辨识度。
+    const body = runId.startsWith("dwfrun-") ? runId.slice("dwfrun-".length) : runId;
+    const full = sanitizeIdSegment(body);
+    const candidates = [full.slice(0, 8), full.slice(0, 16), full];
+    // 短 runId 上三个候选会退化成同一个串；去重只为不做无谓的重复查表。
+    return [...new Set(candidates)];
 }
 
 /**
@@ -113,19 +113,19 @@ export function questionIdFragments(runId: string): string[] {
  * 这件事上给出两个答案——而那正是升级记录要拿来标识提问者的东西。跟着引擎走。
  */
 export function effectiveActorName(persona: PersonaSpec): string | undefined {
-  const name = persona.name;
-  return name === undefined || name === "" ? undefined : name;
+    const name = persona.name;
+    return name === undefined || name === "" ? undefined : name;
 }
 
 /** `escalate` 的可选 context：空白等同缺席（模型常传空串，落进事件里只是噪音）。 */
 export function normalizeEscalationContext(context: string | undefined): string | undefined {
-  const trimmed = context?.trim();
-  return trimmed === undefined || trimmed.length === 0 ? undefined : trimmed;
+    const trimmed = context?.trim();
+    return trimmed === undefined || trimmed.length === 0 ? undefined : trimmed;
 }
 
 /** turn 结束未提交时促模型提交的 nudge 提示。 */
 export const NUDGE_PROMPT =
-  "You ended your turn without submitting a result. Call the submit_result tool now with a payload conforming to the required schema.";
+    "You ended your turn without submitting a result. Call the submit_result tool now with a payload conforming to the required schema.";
 
 /**
  * typed ask 的 schema 尾注：追加到指令正文，告诉模型用 submit_result 提交符合 schema 的结果。
@@ -133,17 +133,17 @@ export const NUDGE_PROMPT =
  * 措辞不含「exactly once」——修复回合里模型会合法地多次调用 submit_result。
  */
 export function schemaEpilogue(schema: unknown): string {
-  const rendered = schema === undefined ? "(any JSON value)" : JSON.stringify(schema, null, 2);
-  return [
-    "",
-    "",
-    "---",
-    "When you have finished, call the `submit_result` tool to submit your final result. Its `result` argument must be a JSON value conforming to this JSON Schema:",
-    "",
-    rendered,
-    "",
-    "Pass the conforming JSON as the `result` argument — do not wrap it or add commentary.",
-  ].join("\n");
+    const rendered = schema === undefined ? "(any JSON value)" : JSON.stringify(schema, null, 2);
+    return [
+        "",
+        "",
+        "---",
+        "When you have finished, call the `submit_result` tool to submit your final result. Its `result` argument must be a JSON value conforming to this JSON Schema:",
+        "",
+        rendered,
+        "",
+        "Pass the conforming JSON as the `result` argument — do not wrap it or add commentary.",
+    ].join("\n");
 }
 
 /**
@@ -151,23 +151,23 @@ export function schemaEpilogue(schema: unknown): string {
  * 同一格式骨架（两个空行 + 分隔线），GUI 的尾注折叠按边界索引而不是文本，不受影响。
  */
 export const TYPED_TOOL_EPILOGUE = [
-  "",
-  "",
-  "---",
-  "When you have finished, call the `submit_result` tool to submit your final result. Its `result` argument must match the tool's declared schema — pass the conforming JSON directly, do not wrap it or add commentary.",
+    "",
+    "",
+    "---",
+    "When you have finished, call the `submit_result` tool to submit your final result. Its `result` argument must match the tool's declared schema — pass the conforming JSON directly, do not wrap it or add commentary.",
 ].join("\n");
 
 /** 引擎 Violation → contracts SubmitViolation（结构同构，1:1）。 */
 export function mapViolations(violations: readonly Violation[]): SubmitViolation[] {
-  return violations.map((v) => ({ path: v.path, expected: v.expected, got: v.got }));
+    return violations.map((v) => ({ path: v.path, expected: v.expected, got: v.got }));
 }
 
 /** 合成一条二值 rejection（driver 本地拦截用，不经引擎）。 */
 export function rejectWith(message: string): ContractsSubmitVerdict {
-  return {
-    accept: false,
-    violations: [{ path: "$", expected: message, got: "submit_result call" }],
-  };
+    return {
+        accept: false,
+        violations: [{ path: "$", expected: message, got: "submit_result call" }],
+    };
 }
 
 /**
@@ -182,29 +182,29 @@ export function rejectWith(message: string): ContractsSubmitVerdict {
  * 改由 driver 的工具活动面从**会话事件流**数（那里是工具调用真正现身的地方），按 ask 累加后传进来。
  */
 export function statsFromTurn(result: TurnResult, toolCounts: ActorToolCounts): AskStats {
-  const usage = result.usage;
-  return {
-    tokens: usage?.totalTokens ?? 0,
-    toolCalls: toolCounts.toolCalls,
-    turns: usage?.modelRequestCount ?? 1,
-    worldToolCalls: toolCounts.worldToolCalls,
-  };
+    const usage = result.usage;
+    return {
+        tokens: usage?.totalTokens ?? 0,
+        toolCalls: toolCounts.toolCalls,
+        turns: usage?.modelRequestCount ?? 1,
+        worldToolCalls: toolCounts.worldToolCalls,
+    };
 }
 
 /** 判断 executeTurn 的 reject 是否为「用户/引擎取消」（正常结束，不算 driver 失败）。 */
 export function isTurnCancelled(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    (error as { type?: unknown }).type === CoreErrorType.TurnCancelled
-  );
+    return (
+        typeof error === "object" &&
+        error !== null &&
+        (error as { type?: unknown }).type === CoreErrorType.TurnCancelled
+    );
 }
 
 /** 把任意（非模型层的）turn 失败归一成 node 级 WorkflowError（DriverError），保留原始 cause。 */
 export function toWorkflowError(error: unknown): WorkflowError {
-  if (error instanceof WorkflowError) return error;
-  const message = error instanceof Error ? error.message : String(error);
-  return new WorkflowError("DriverError", `Subagent turn failed: ${message}`, { cause: error });
+    if (error instanceof WorkflowError) return error;
+    const message = error instanceof Error ? error.message : String(error);
+    return new WorkflowError("DriverError", `Subagent turn failed: ${message}`, { cause: error });
 }
 
 // ——————————— 模型侧失败的收容：常量与纯辅助 ———————————
@@ -214,36 +214,37 @@ export const PROVIDER_STOP_RAW_MESSAGE_MAX_CHARS = 2000;
 
 /** 瞬态重驱的续跑提示（与 nudge 同一机制：同一持久 runtime 上的一轮新 turn）。 */
 export const TRANSIENT_CONTINUE_PROMPT =
-  "The previous model request failed transiently and was abandoned; continue from where you left off.";
+    "The previous model request failed transiently and was abandoned; continue from where you left off.";
 
 const TRANSIENT_BACKOFF_BASE_MS = 2_000;
 const TRANSIENT_BACKOFF_MAX_MS = 60_000;
 
 /** runner 同一条曲线：2s 起翻倍到 60s 封顶，乘 [0.5, 1] 的抖动。 */
 export function transientBackoffMs(attempt: number, random: () => number = Math.random): number {
-  const raw = Math.min(TRANSIENT_BACKOFF_MAX_MS, TRANSIENT_BACKOFF_BASE_MS * 2 ** (attempt - 1));
-  return Math.round(raw * (0.5 + 0.5 * random()));
+    const raw = Math.min(TRANSIENT_BACKOFF_MAX_MS, TRANSIENT_BACKOFF_BASE_MS * 2 ** (attempt - 1));
+    return Math.round(raw * (0.5 + 0.5 * random()));
 }
 
 /** adapter 错误上的 Retry-After（`context.retryAfterMs`，一层 cause 之内），按形状读。 */
 export function readRetryAfterMs(error: unknown): number | undefined {
-  for (const candidate of [error, (error as { cause?: unknown } | undefined)?.cause]) {
-    const context = (candidate as { context?: { retryAfterMs?: unknown } } | undefined)?.context;
-    const value = context?.retryAfterMs;
-    if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
-  }
-  return undefined;
+    for (const candidate of [error, (error as { cause?: unknown } | undefined)?.cause]) {
+        const context = (candidate as { context?: { retryAfterMs?: unknown } } | undefined)
+            ?.context;
+        const value = context?.retryAfterMs;
+        if (typeof value === "number" && Number.isFinite(value) && value > 0) return value;
+    }
+    return undefined;
 }
 
 /** 通知文案里子代理的称呼：有名字用名字，否则 `site@ordinal`。 */
 export function subagentLabel(state: Pick<SessionState, "actor" | "actorName">): string {
-  return state.actorName ?? refToString(state.actor);
+    return state.actorName ?? refToString(state.actor);
 }
 
 export const defaultSchedule = (callback: () => void, delayMs: number): (() => void) => {
-  const timer = setTimeout(callback, delayMs);
-  if (typeof timer === "object" && timer !== null && "unref" in timer) timer.unref();
-  return () => clearTimeout(timer);
+    const timer = setTimeout(callback, delayMs);
+    if (typeof timer === "object" && timer !== null && "unref" in timer) timer.unref();
+    return () => clearTimeout(timer);
 };
 
 /**
@@ -254,11 +255,11 @@ export const defaultSchedule = (callback: () => void, delayMs: number): (() => v
  * 让这个顺序有一个能被指着看的地方，而不是散在调用点的两行。
  */
 export function reportTurnObservations(
-  sink: WorkflowReportSink,
-  state: SessionState,
-  instance: InstanceRef,
-  result: TurnResult,
+    sink: WorkflowReportSink,
+    state: SessionState,
+    instance: InstanceRef,
+    result: TurnResult,
 ): void {
-  sink.askProgress(instance, state.modelActivity.noteTurnResolved());
-  sink.askStats(instance, statsFromTurn(result, state.modelActivity.toolCounts()));
+    sink.askProgress(instance, state.modelActivity.noteTurnResolved());
+    sink.askStats(instance, statsFromTurn(result, state.modelActivity.toolCounts()));
 }

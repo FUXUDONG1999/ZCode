@@ -7,13 +7,13 @@
 
 import type { WorkflowSettingsAmendMeta } from "@zcode/shared/zcode-protocol-v4";
 import {
-  describeWorkflowSubagentModel,
-  type WorkflowSubagentModelDeps,
+    describeWorkflowSubagentModel,
+    type WorkflowSubagentModelDeps,
 } from "./subagent-model-label.js";
 
 /** 模型的屏幕名：只要名字（档位留给 tooltip），与 run 卡上的模型段同一个词。 */
 function modelName(canonical: string, deps: WorkflowSubagentModelDeps): string {
-  return describeWorkflowSubagentModel(canonical, deps).name;
+    return describeWorkflowSubagentModel(canonical, deps).name;
 }
 
 /**
@@ -22,39 +22,39 @@ function modelName(canonical: string, deps: WorkflowSubagentModelDeps): string {
  * 其余的数——高于默认也一样——念它自己。
  */
 export function workflowSettingsChangeSegments(
-  amend: WorkflowSettingsAmendMeta,
-  deps: WorkflowSubagentModelDeps,
+    amend: WorkflowSettingsAmendMeta,
+    deps: WorkflowSubagentModelDeps,
 ): string[] {
-  const { formatMessage } = deps;
-  const segments: string[] = [];
-  if (amend.subagentModel !== undefined) {
-    const to = amend.subagentModel.to;
-    segments.push(
-      to === undefined
-        ? formatMessage({ id: "chat.toolCall.workflow.settingsChange.modelSession" })
-        : formatMessage(
-            { id: "chat.toolCall.workflow.settingsChange.model" },
-            { model: modelName(to, deps) },
-          ),
-    );
-  }
-  if (amend.maxConcurrency !== undefined) {
-    const to = amend.maxConcurrency.to;
-    const atDefault = to === undefined || to === amend.ceiling;
-    segments.push(
-      atDefault
-        ? formatMessage({ id: "chat.toolCall.workflow.settingsChange.limitDefault" })
-        : formatMessage({ id: "chat.toolCall.workflow.settingsChange.limit" }, { n: to }),
-    );
-  }
-  return segments;
+    const { formatMessage } = deps;
+    const segments: string[] = [];
+    if (amend.subagentModel !== undefined) {
+        const to = amend.subagentModel.to;
+        segments.push(
+            to === undefined
+                ? formatMessage({ id: "chat.toolCall.workflow.settingsChange.modelSession" })
+                : formatMessage(
+                      { id: "chat.toolCall.workflow.settingsChange.model" },
+                      { model: modelName(to, deps) },
+                  ),
+        );
+    }
+    if (amend.maxConcurrency !== undefined) {
+        const to = amend.maxConcurrency.to;
+        const atDefault = to === undefined || to === amend.ceiling;
+        segments.push(
+            atDefault
+                ? formatMessage({ id: "chat.toolCall.workflow.settingsChange.limitDefault" })
+                : formatMessage({ id: "chat.toolCall.workflow.settingsChange.limit" }, { n: to }),
+        );
+    }
+    return segments;
 }
 
 export interface WorkflowSettingsProvenanceRow {
-  key: "model" | "limit";
-  label: string;
-  /** 「{from} → {to}」。 */
-  value: string;
+    key: "model" | "limit";
+    label: string;
+    /** 「{from} → {to}」。 */
+    value: string;
 }
 
 /**
@@ -62,38 +62,38 @@ export interface WorkflowSettingsProvenanceRow {
  * 并发时带上数字，「默认 13 → 4」）。等于默认的一端同样写默认；高于默认的一端念数。
  */
 export function workflowSettingsProvenanceRows(
-  amend: WorkflowSettingsAmendMeta,
-  deps: WorkflowSubagentModelDeps,
+    amend: WorkflowSettingsAmendMeta,
+    deps: WorkflowSubagentModelDeps,
 ): WorkflowSettingsProvenanceRow[] {
-  const { formatMessage } = deps;
-  const rows: WorkflowSettingsProvenanceRow[] = [];
-  if (amend.subagentModel !== undefined) {
-    const end = (canonical: string | undefined) =>
-      canonical === undefined
-        ? formatMessage({ id: "chat.workflowLaunch.settings.sessionModel" })
-        : modelName(canonical, deps);
-    rows.push({
-      key: "model",
-      label: formatMessage({ id: "chat.workflowLaunch.settings.model" }),
-      value: `${end(amend.subagentModel.from)} → ${end(amend.subagentModel.to)}`,
-    });
-  }
-  if (amend.maxConcurrency !== undefined) {
-    const defaultConcurrency = amend.ceiling;
-    const end = (bound: number | undefined) =>
-      bound !== undefined && bound !== defaultConcurrency
-        ? String(bound)
-        : defaultConcurrency === undefined
-          ? formatMessage({ id: "chat.workflowLaunch.settings.defaultLimit" })
-          : formatMessage(
-              { id: "chat.workflowLaunch.settings.defaultLimitValue" },
-              { n: defaultConcurrency },
-            );
-    rows.push({
-      key: "limit",
-      label: formatMessage({ id: "chat.workflowLaunch.settings.limit" }),
-      value: `${end(amend.maxConcurrency.from)} → ${end(amend.maxConcurrency.to)}`,
-    });
-  }
-  return rows;
+    const { formatMessage } = deps;
+    const rows: WorkflowSettingsProvenanceRow[] = [];
+    if (amend.subagentModel !== undefined) {
+        const end = (canonical: string | undefined) =>
+            canonical === undefined
+                ? formatMessage({ id: "chat.workflowLaunch.settings.sessionModel" })
+                : modelName(canonical, deps);
+        rows.push({
+            key: "model",
+            label: formatMessage({ id: "chat.workflowLaunch.settings.model" }),
+            value: `${end(amend.subagentModel.from)} → ${end(amend.subagentModel.to)}`,
+        });
+    }
+    if (amend.maxConcurrency !== undefined) {
+        const defaultConcurrency = amend.ceiling;
+        const end = (bound: number | undefined) =>
+            bound !== undefined && bound !== defaultConcurrency
+                ? String(bound)
+                : defaultConcurrency === undefined
+                  ? formatMessage({ id: "chat.workflowLaunch.settings.defaultLimit" })
+                  : formatMessage(
+                        { id: "chat.workflowLaunch.settings.defaultLimitValue" },
+                        { n: defaultConcurrency },
+                    );
+        rows.push({
+            key: "limit",
+            label: formatMessage({ id: "chat.workflowLaunch.settings.limit" }),
+            value: `${end(amend.maxConcurrency.from)} → ${end(amend.maxConcurrency.to)}`,
+        });
+    }
+    return rows;
 }

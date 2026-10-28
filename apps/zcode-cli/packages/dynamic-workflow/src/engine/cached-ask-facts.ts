@@ -11,11 +11,11 @@ import { INSTRUCTIONS_HEAD_MAX_CHARS, type ActorRef } from "./types.js";
 
 /** 缓存命中的 ask 结算在 `{type, instance, outcome, cached, error?}` 之外多带的键。 */
 export interface CachedAskFacts {
-  kind: "ask";
-  actor: ActorRef;
-  actorSeq: number;
-  instructionsHead?: string;
-  sourceSessionId?: string;
+    kind: "ask";
+    actor: ActorRef;
+    actorSeq: number;
+    instructionsHead?: string;
+    sourceSessionId?: string;
 }
 
 /**
@@ -23,20 +23,20 @@ export interface CachedAskFacts {
  * （{@link ImportedActorState.sourceSessionAt}），而事件本身可能被结算次序闸推迟。
  */
 export function cachedAskFacts(
-  actor: ActorRef,
-  seq: number,
-  instructions: string,
-  imported: ImportedActorState | undefined,
+    actor: ActorRef,
+    seq: number,
+    instructions: string,
+    imported: ImportedActorState | undefined,
 ): CachedAskFacts {
-  const instructionsHead = headOfInstructions(instructions);
-  const sourceSessionId = imported?.sourceSessionAt(seq);
-  return {
-    kind: "ask",
-    actor,
-    actorSeq: seq,
-    ...(instructionsHead === undefined ? {} : { instructionsHead }),
-    ...(sourceSessionId === undefined ? {} : { sourceSessionId }),
-  };
+    const instructionsHead = headOfInstructions(instructions);
+    const sourceSessionId = imported?.sourceSessionAt(seq);
+    return {
+        kind: "ask",
+        actor,
+        actorSeq: seq,
+        ...(instructionsHead === undefined ? {} : { instructionsHead }),
+        ...(sourceSessionId === undefined ? {} : { sourceSessionId }),
+    };
 }
 
 /**
@@ -44,9 +44,9 @@ export function cachedAskFacts(
  * 空指令返回 undefined：缺席的键比一个空串诚实——读面据此退回「不知道它被交代了什么」。
  */
 export function headOfInstructions(instructions: string): string | undefined {
-  const trimmed = instructions.trim();
-  if (trimmed.length === 0) return undefined;
-  return trimmed.length <= INSTRUCTIONS_HEAD_MAX_CHARS
-    ? trimmed
-    : trimmed.slice(0, INSTRUCTIONS_HEAD_MAX_CHARS);
+    const trimmed = instructions.trim();
+    if (trimmed.length === 0) return undefined;
+    return trimmed.length <= INSTRUCTIONS_HEAD_MAX_CHARS
+        ? trimmed
+        : trimmed.slice(0, INSTRUCTIONS_HEAD_MAX_CHARS);
 }
