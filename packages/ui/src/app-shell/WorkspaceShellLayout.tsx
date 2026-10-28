@@ -106,7 +106,11 @@ import {
   buildSelectionSideChatKey,
   requestSelectionSideChatOpen,
 } from "@/lib/selectionSideChatRuntime.js";
-import { getActiveSelectionSideChatTab } from "@/lib/workspaceSidePane.js";
+import {
+  getActiveSelectionSideChatTab,
+  getActiveSidePaneTab,
+  type WorkspaceSidePaneTab,
+} from "@/lib/workspaceSidePane.js";
 import { logger } from "@/logger.js";
 import {
   areWorkspaceFilePathsEqual,
@@ -140,6 +144,15 @@ const EMPTY_REMOTE_WORKSPACE_RECOVERY_BY_WORKSPACE_KEY: NonNullable<
 > = {};
 const CONVERSATION_AUTO_COLLAPSE_SIDEBAR_WIDTH_PX = 360;
 const CONVERSATION_AUTO_COLLAPSE_RESIZE_IDLE_MS = 300;
+// 个人定制：左侧标签式侧面板（新标签页 hub、文件树/浏览器/审查等外部标签页）已移除，
+// 仅子智能体会话、子智能体目录、模型调用轨迹与聊天内文件预览仍以侧面板承载，
+// 详见 WorkspaceShellLayoutContent 内闸门。
+const PERSONAL_EDITION_EXPANDABLE_SIDE_PANE_TAB_TYPES = new Set<WorkspaceSidePaneTab["type"]>([
+  "subagent-session",
+  "subagent-directory",
+  "model-trajectory",
+  "code-viewer",
+]);
 // 性能修复：ResizablePanelGroup 收到深相等的新 panelIds 数组，
 // 会跟随 chat streaming render 重算布局上下文；固定数组语义上不会随消息变化。
 // 个人定制：browser（文件/代码侧面板）已移到左侧，DOM 顺序与 ID 列表保持一致。
@@ -344,6 +357,7 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
   supportsEmbeddedBrowser,
   summaryPanelVariantOverride,
   onSummaryPanelVariantOverrideChange,
+  isSidePaneOpen: isUpstreamSidePaneOpen,
   sidePaneState,
   recentClosedSidePaneTabs,
   projectName,
@@ -430,10 +444,16 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
   taskFindDialogProps,
 }: WorkspaceShellLayoutProps) {
   const { intl } = useZCodeIntl();
-  // 个人定制：移除左侧标签式侧面板（新标签页 hub、文件/浏览器/审查等外部标签页）。
-  // 面板保持挂载仅为承载 browser-use 标签与截图合成层（见 useAnimatedResizablePanel 注释）；
-  // 对用户永久收起：忽略上游 isSidePaneOpen，恒按“已关闭”处理，任何入口都不再展开。
-  const isSidePaneOpen = false as const;
+  // 个人定制：左侧标签式侧面板（新标签页 hub、文件树/浏览器/审查等外部标签页）已移除，
+  // 但子智能体会话 / 子智能体目录 / 模型调用轨迹 / 聊天内文件预览仍以侧面板承载——
+  // 只有当前激活 tab 属于这几类时才放开面板；其余类型（含 browser-use 等后台打开）保持不可见。
+  // 上游展开态仍参与判断：手动收起后再点子 agent / 调用轨迹 / 文件入口会重新展开，
+  // 点面板关闭按钮则整体收起，与移除前的开合语义一致。
+  const activeSidePaneTab = getActiveSidePaneTab(sidePaneState);
+  const isSidePaneOpen =
+    isUpstreamSidePaneOpen &&
+    activeSidePaneTab !== null &&
+    PERSONAL_EDITION_EXPANDABLE_SIDE_PANE_TAB_TYPES.has(activeSidePaneTab.type);
   const isOfficeMode = useIsOfficeMode();
   const baseServices = useBaseWorkspaceServices();
   const tabStoreApi = useTabStoreApi();
@@ -808,9 +828,10 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
     // 截图 surface 由 browser-use tab 自己的 fixed 承载层提供尺寸，不能再把整个右侧
     // ResizablePanel 撑开；否则自动化页会闪出空白的 tab 栏，且面板过渡期间 guest surface
     // 仍可能被 Chromium 判定为不可合成。
-    // 个人定制：面板永久收起（open 恒 false）。标签内容仍按 AnimatedSidePanePanel 的
-    // hasRenderedSidePane 条件挂载，browser-use 截图合成层不受影响。
-    open: false,
+    // 个人定制：仅在激活 tab 为子智能体 / 调用轨迹 / 文件预览时展开（见 isSidePaneOpen 派生）。
+    // 标签内容仍按 AnimatedSidePanePanel 的 hasRenderedSidePane 条件挂载，browser-use
+    // 截图合成层不受影响。
+    open: workspaceMainView === "chat" && isSidePaneOpen,
     expandedSize: SIDE_PANE_DEFAULT_EXPANDED_SIZE,
     rememberExpandedSize: true,
     resizeOnInitialVisibleMount: false,
@@ -2079,6 +2100,8 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
       onCloseGit={handleCloseGit}
       onActivateTab={handleActivateSidePaneTab}
       onOpenNewTab={handleOpenNewSidePaneTab}
+      // 个人定制：新标签页 hub 已移除，隐藏「+」按钮（见 AnimatedSidePanePanel prop 注释）。
+      showAddTabButton={false}
       onReorderTab={handleReorderSidePaneTab}
       onCloseTab={handleCloseSidePaneTab}
       onCloseOtherTabs={handleCloseOtherSidePaneTabs}
