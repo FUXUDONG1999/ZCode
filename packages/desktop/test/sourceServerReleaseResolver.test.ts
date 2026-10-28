@@ -116,7 +116,7 @@ describe("Source Server release resolver", () => {
         },
         target,
       ),
-    ).rejects.toThrow("run pnpm bootstrap:with-remote");
+    ).rejects.toThrow("local remote-asset staging was removed in this fork");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

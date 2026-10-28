@@ -28,13 +28,10 @@ const forkIsolatedTests = [
   // 发布脚本会启动真实 Node/工具子进程，批量 threads 下曾打穿 30s；沿用发布类串行隔离。
   "packages/desktop/test/notarizeMacosScript.test.ts",
   "packages/desktop/test/publishReleaseScript.test.ts",
-  // 选源集成测试连续启动 Git、Bash 和 Node；并发启动排队会打穿 30s，沿用发布类串行隔离。
-  "packages/web/test/remoteFrontendBuildSource.test.ts",
   // Sharp 闭包装配后要启动真实 Node 加载原生库；并行热启动曾触发其 15s 子进程限时。
   "packages/desktop/test/dev-cua-plugin-runtime.test.ts",
   // 全量并发时真实心跳与嵌套构建会被调度延迟打穿；单独运行均通过，沿用串行组保留原时限。
   "packages/desktop/test/webRemoteControlTransport.test.ts",
-  "packages/web/test/webRemoteControlTransport.test.ts",
   "packages/provider-node/test/builtin-provider-build.test.ts",
   "packages/provider-node/test/builtin-provider-test-config-sync.test.ts",
   "packages/server/test/remoteDeploy.test.ts",
@@ -47,9 +44,6 @@ const forkIsolatedTests = [
   "packages/services/test/mcpSyncService.test.ts",
   "packages/services/test/providerRuntimeResolver.test.ts",
   "packages/services/test/runtimeToolResolver.test.ts",
-  // 该集成测试会真实启动 tsx、Supervisor 与多代 Core；放在普通 threads 中时，
-  // 并行 worker 的进程启动压力会让 15 秒 ready barrier 偶发超时。
-  "packages/zcode-server-cli/test/runtimeUpdateIntegration.test.ts",
   // Bugfix: pdfjs-dist legacy build 在 threads worker 内偶发原生崩溃（0xC0000005，
   // 测试自身通过、worker 收尾时崩，会把整场全量跑拦腰截断）。隔离到 fork 池后崩溃
   // 波及面收敛到本文件，其余测试结果可完整收集；崩溃根因见
@@ -66,7 +60,6 @@ export default defineConfig({
     alias: {
       "@": resolve(__dirname, "packages/ui/src"),
       "@desktop": resolve(__dirname, "packages/desktop/src"),
-      "@web": resolve(__dirname, "packages/web/src"),
       // 间接 import desktopNetworkTelemetry 等的单测无需真实 ARMS；需 vi.fn 的用例在文件内 vi.mock 覆盖
       // Bugfix: 具体的 /browser 子路径必须排在包根别名前，否则会被根别名拼成不存在的 stub.ts/browser。
       "@arms/rum-electron/browser": resolve(

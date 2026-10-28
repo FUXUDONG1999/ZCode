@@ -18,7 +18,7 @@ Do not begin with a large Cartesian product. Build a compact semantic impact map
 
 - `impact-only`: Produce an Impact Brief. Do not change product code or existing product specs.
 - `planning`: Produce the Impact Brief, clarify product semantics, and update specs or planning documents before code.
-- `implementation-handoff`: Complete planning and prepare accepted cases for implementation or `e2e-case-lifecycle`.
+- `implementation-handoff`: Complete planning and prepare accepted cases for implementation.
 
 Infer the least expansive mode from the user's request. A request to scan, explain, diagnose, or report impact is `impact-only`. A request to change or build uses `planning` unless the user explicitly limits the work.
 
@@ -138,8 +138,6 @@ Run this section only in `planning` or `implementation-handoff` mode.
 ## Write Docs Before Code
 
 In planning modes, update or create the feature spec, catalog, matrix, decision worksheet, or backlog before implementation. For conversation-related E2E work, update the conversation case catalog and coverage matrix and obtain pruning decisions before writing tests.
-
-Hand accepted E2E cases to `e2e-case-lifecycle` when they require manual-review specs, provider replay fixtures, Docker isolation, timing control, or CI promotion.
 
 ## Output Contract
 

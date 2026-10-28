@@ -16,7 +16,6 @@
 | Lint             | `pnpm lint` / `pnpm lint:fix`                        |
 | 格式检查         | `pnpm fmt:check`                                     |
 | 桌面开发         | `pnpm dev:desktop`                                   |
-| Web 开发         | `pnpm dev:web`                                       |
 | 未使用依赖与导出 | `pnpm knip`                                          |
 | 导出引用查询     | `pnpm dep:refs --list-exports <file>`                |
 
@@ -24,7 +23,7 @@
 测试入口以目标包当前的 `package.json` 和实际测试文件为准，不假定存在统一的单测或 E2E 命令。
 
 - `packages/desktop`：Electron main、host、renderer。
-- `packages/web`、`packages/server`：Web 客户端与服务端。
+- `packages/server`：远程工作区与 HTTP/WS 服务层（desktop 依赖）。
 - `packages/ui`：共享 React 组件、hooks 与 Zustand store。
 - `packages/services`：业务服务；`packages/rpc`：RPC 框架。
 - `packages/shared`：共享协议与类型；`packages/client`：Agent 客户端 SDK。

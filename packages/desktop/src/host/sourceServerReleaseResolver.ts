@@ -216,7 +216,7 @@ async function resolveReleaseAsset(
   ) {
     if (!remoteAssets.mockCdnDir) {
       throw new Error(
-        "Development Source Server release is unavailable; run pnpm bootstrap:with-remote",
+        "Development Source Server release is unavailable; local remote-asset staging was removed in this fork",
       );
     }
     const releaseDir = join(remoteAssets.mockCdnDir, "releases", ZCODE_VERSION);
@@ -225,7 +225,7 @@ async function resolveReleaseAsset(
       // Bug 原因：开发态回退 CDN 会把 bootstrap 失败伪装成连接成功，并继续运行同版本旧代码。
       // 内容寻址开发策略只能消费本轮本地 descriptor/archive，缺失时必须明确失败。
       throw new Error(
-        "Development Source Server release descriptor is unavailable; run pnpm bootstrap:with-remote",
+        "Development Source Server release descriptor is unavailable; local remote-asset staging was removed in this fork",
       );
     }
     return {

@@ -11,11 +11,6 @@
       "sourceType": "github",
       "computedHash": "84f3a2a57fa71ae5061786280987575d673792d6dda9a63941efb2795b83543a"
     },
-    "dogfood": {
-      "source": "vercel-labs/agent-browser",
-      "sourceType": "github",
-      "computedHash": "055e73cddeec68e7eb75eab0c3f8490415384f72e98ac05405821427ed0e74b1"
-    },
     "electron": {
       "source": "vercel-labs/agent-browser",
       "sourceType": "github",

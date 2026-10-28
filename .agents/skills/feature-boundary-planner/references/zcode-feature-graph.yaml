@@ -364,7 +364,6 @@ nodes:
         symbol: "createHelpAppConfigReader"
       - file: "packages/desktop/src/main/desktopHelpConfig.ts"
         symbol: "createDesktopHelpConfigReader"
-      - file: "packages/web/src/communityUrl.ts"
         symbol: "resolveWebHelpConfig"
   - id: "capability.subagent-computer-use-boundary"
     kind: "capability"
@@ -880,7 +879,6 @@ nodes:
       - "开发数据库隔离"
     docs:
       - "docs/desktop/configurable-data-directory.md"
-      - "docs/testing/desktop-e2e-container.md"
     codeSeeds:
       - symbol: "resolveZCodeStorageProfile"
         file: "packages/shared/src/storageProfile.ts"
@@ -921,7 +919,6 @@ nodes:
     docs:
       - "docs/product-capability-map-engineering-infrastructure.md"
       - "docs/testing/conversation-session-e2e-development-workflow.md"
-      - "docs/testing/desktop-e2e-container.md"
     codeSeeds:
       - symbol: "config"
         file: "packages/desktop/wdio.conf.ts"
@@ -4610,16 +4607,8 @@ nodes:
     codeSeeds:
       - symbol: "createSourceServerTransportAdapter"
         file: "packages/server/src/source-server/transportAdapter.ts"
-      - symbol: "runServerCli"
-        file: "packages/zcode-server-cli/src/cli.ts"
-      - symbol: "registerService"
-        file: "packages/zcode-server-cli/src/platform/serviceManager.ts"
       - symbol: "detectRemoteAssetTools"
         file: "packages/server/src/remote/remoteAssetPreflight.ts"
-      - symbol: "writeStableLauncher"
-        file: "packages/zcode-server-cli/src/runtime/stableLauncher.ts"
-      - symbol: "stageRelease"
-        file: "packages/zcode-server-cli/src/packaging/stage.ts"
 
   - id: "surface.multi-server-controller-ui"
     kind: "ui-surface"
@@ -4629,7 +4618,6 @@ nodes:
     codeSeeds:
       - symbol: "Root"
         file: "packages/ui/src/Root.tsx"
-      - file: "packages/web/src/main.tsx"
       - file: "packages/desktop/src/renderer/src/main.tsx"
 
   - id: "capability.remote-conversation-workspace"
@@ -4807,10 +4795,6 @@ nodes:
     docs:
       - "docs/architecture/r2-server-cli-and-daemon.md"
     codeSeeds:
-      - symbol: "ReleaseManager"
-        file: "packages/zcode-server-cli/src/runtime/releaseManager.ts"
-      - symbol: "resolveCoreServerId"
-        file: "packages/zcode-server-cli/src/server-core/serverIdentity.ts"
 
   - id: "service.multi-server-controller"
     kind: "service"
@@ -4833,7 +4817,6 @@ nodes:
     codeSeeds:
       - symbol: "createSourceServerWorkspaceService"
         file: "packages/services/src/source-server-workspace/sourceServerWorkspaceService.ts"
-      - file: "packages/zcode-server-cli/src/server-core/http.ts"
 
   - id: "persistence.zcode-server-identity"
     kind: "persistence"
@@ -5398,8 +5381,6 @@ nodes:
         file: "packages/ui/src/v4/composer/newTaskDraft.ts"
       - symbol: "useDraftConfigControl"
         file: "packages/ui/src/v4/composer/useDraftConfigControl.ts"
-      - symbol: "ConversationShareLandingPage"
-        file: "packages/web/src/share/ConversationShareLandingPage.tsx"
       - symbol: "useRootPlatformEffects"
         file: "packages/ui/src/root/useRootPlatformEffects.ts"
       - symbol: "ConversationShareImportNotice"

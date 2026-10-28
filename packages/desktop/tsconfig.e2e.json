@@ -21,12 +21,22 @@
       ]
     }
   },
-  "include": ["wdio.conf.ts", "test/e2e", "src/host/botRemoteWorkspaceResolver.ts", "src/host/sourceServerDirectory.ts", "src/host/windowRemoteConnectionRegistry.ts"],
+  "include": [
+    "wdio.conf.ts",
+    "test/e2e",
+    "src/host/botRemoteWorkspaceResolver.ts",
+    "src/host/sourceServerDirectory.ts",
+    "src/host/windowRemoteConnectionRegistry.ts"
+  ],
   "references": [
-    { "path": "../shared" },
-    { "path": "../ui" },
-    { "path": "../e2e-report" },
-    { "path": "../zcode-server-cli" }
-
+    {
+      "path": "../shared"
+    },
+    {
+      "path": "../ui"
+    },
+    {
+      "path": "../e2e-report"
+    }
   ]
 }
