@@ -1,8 +1,7 @@
 import { createRequire } from "node:module";
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname, extname, isAbsolute, resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { defineConfig, loadEnv, type Plugin } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolveZCodeEndpointOrigin } from "@zcode/shared/zcodeEndpoint";
@@ -22,27 +21,6 @@ const buildTimeConfigDefines = createBuildTimeConfigDefines(
 const buildMetadata = getBuildMetadata();
 const desktopRequire = createRequire(import.meta.url);
 
-interface IstanbulInstrumenter {
-  instrumentSync(sourceCode: string, filename: string): string;
-  lastFileCoverage(): unknown;
-  lastSourceMap(): object | null;
-}
-
-interface IstanbulLibInstrument {
-  createInstrumenter(options: {
-    autoWrap: boolean;
-    compact: boolean;
-    coverageGlobalScope: string;
-    coverageGlobalScopeFunc: boolean;
-    esModules: boolean;
-    parserPlugins: string[];
-    preserveComments: boolean;
-    produceSourceMap: boolean;
-  }): IstanbulInstrumenter;
-}
-
-const { createInstrumenter } = desktopRequire("istanbul-lib-instrument") as IstanbulLibInstrument;
-
 function resolveInstalledPackageRoot(packageName: string): string {
   return dirname(desktopRequire.resolve(`${packageName}/package.json`));
 }
@@ -56,104 +34,14 @@ export const desktopRendererDependencyAliases = {
   "lucide-react": resolveInstalledPackageRoot("lucide-react"),
 } as const;
 
+// 个人定制：e2e UI 覆盖率插桩（istanbul）已随测试体系移除；如需恢复见 git 历史与 scripts/generate 流程。
 function resolveZCodeEnv(value: string | undefined): "test" | "production" {
   return value?.trim().toLowerCase() === "production" ? "production" : "test";
-}
-
-function createE2EUIRendererCoveragePlugin(repoRoot: string): Plugin {
-  const sourceRoots = [
-    resolve(repoRoot, "packages/ui/src"),
-    resolve(repoRoot, "packages/desktop/src/renderer"),
-  ].map(normalizePathForVite);
-  const instrumenter = createInstrumenter({
-    autoWrap: true,
-    compact: false,
-    coverageGlobalScope: "globalThis",
-    coverageGlobalScopeFunc: false,
-    esModules: true,
-    parserPlugins: ["typescript", "jsx"],
-    preserveComments: true,
-    produceSourceMap: true,
-  });
-  const baselineCoverage: Record<string, unknown> = {};
-  const baselinePath = resolve(
-    repoRoot,
-    "packages/desktop/out/renderer/e2e-coverage-baseline.json",
-  );
-
-  return {
-    name: "zcode:e2e-ui-source-coverage",
-    enforce: "pre",
-    transform(sourceCode, id, options) {
-      if (options?.ssr || id.startsWith("\0")) {
-        return null;
-      }
-      const filename = stripViteRequestQuery(id);
-      const absoluteFilename = isAbsolute(filename) ? filename : resolve(repoRoot, filename);
-      const normalizedFilename = normalizePathForVite(absoluteFilename);
-      if (!shouldInstrumentE2EUISource(normalizedFilename, sourceRoots)) {
-        return null;
-      }
-
-      // post-transform 插桩依赖 Vite/React/esbuild 的合并 sourcemap，
-      // 会把生成后的 JS 覆盖点反投影到 import、interface 等 TS 源码行上。
-      // 这里先对原始 TS/TSX AST 插桩，再交给 Vite 编译，保证 coverage map 只包含真实运行时代码。
-      const code = instrumenter.instrumentSync(sourceCode, normalizedFilename);
-      baselineCoverage[normalizedFilename] = JSON.parse(
-        JSON.stringify(instrumenter.lastFileCoverage()),
-      );
-      return {
-        code,
-        map: instrumenter.lastSourceMap(),
-      };
-    },
-    closeBundle() {
-      // 只读取页面 __coverage__ 会让从未加载的 lazy chunk 消失，分母被缩小。
-      // coverage build 将完整 renderer graph 的零命中 map 留给 suite reporter 合并。
-      mkdirSync(dirname(baselinePath), { recursive: true });
-      writeFileSync(baselinePath, `${JSON.stringify(baselineCoverage, null, 2)}\n`, "utf-8");
-    },
-  };
-}
-
-function shouldInstrumentE2EUISource(filename: string, sourceRoots: string[]) {
-  return (
-    isCoverageSourceFile(filename) &&
-    !filename.includes("/node_modules/") &&
-    !isDeclarationFile(filename) &&
-    !isTestSourceFile(filename) &&
-    sourceRoots.some((sourceRoot) => isInsidePath(filename, sourceRoot))
-  );
-}
-
-function isCoverageSourceFile(filename: string) {
-  return [".cts", ".cjs", ".js", ".jsx", ".mjs", ".mts", ".ts", ".tsx"].includes(extname(filename));
-}
-
-function isDeclarationFile(filename: string) {
-  return /\.d\.[cm]?ts$/u.test(filename);
-}
-
-function isTestSourceFile(filename: string) {
-  return /\.(?:spec|test)\.[cm]?[jt]sx?$/u.test(filename);
-}
-
-function isInsidePath(filename: string, directory: string) {
-  return filename === directory || filename.startsWith(`${directory}/`);
-}
-
-function normalizePathForVite(path: string) {
-  return path.replaceAll("\\", "/");
-}
-
-function stripViteRequestQuery(id: string) {
-  return id.split("?")[0] ?? id;
 }
 
 export default defineConfig(({ mode }) => {
   // `.env*` 只提供链接常量；当前产品环境由启动脚本或 CI 注入 ZCODE_ENV。
   const env = loadEnv(mode, "../..", "");
-  const repoRoot = resolve(__dirname, "../..");
   const zcodeEnv = resolveZCodeEnv(env.ZCODE_ENV);
   // 安装包身份与后端环境分轴；renderer 用它决定是否展示更新入口。
   const zcodeProductFlavor = resolveDesktopProductFlavor({
@@ -161,8 +49,6 @@ export default defineConfig(({ mode }) => {
     ...env,
     ZCODE_ENV: zcodeEnv,
   });
-  const e2eCoverageEnabled =
-    env.ZCODE_E2E_COVERAGE === "1" || process.env.ZCODE_E2E_COVERAGE === "1";
   const e2eStoreBridgeEnabled =
     env.VITE_ZCODE_E2E_STORE_BRIDGE === "1" || process.env.VITE_ZCODE_E2E_STORE_BRIDGE === "1";
   const zcodeEndpointOrigin = resolveZCodeEndpointOrigin({
@@ -174,12 +60,7 @@ export default defineConfig(({ mode }) => {
   });
   const codingPlanWebviewOrigin =
     env.VITE_CODING_PLAN_WEBVIEW_ORIGIN ?? process.env.VITE_CODING_PLAN_WEBVIEW_ORIGIN ?? "";
-  const plugins = [
-    ...(e2eCoverageEnabled ? [createE2EUIRendererCoveragePlugin(repoRoot)] : []),
-    pdfJsCMapsPlugin(),
-    react(),
-    tailwindcss(),
-  ];
+  const plugins = [pdfJsCMapsPlugin(), react(), tailwindcss()];
 
   return {
     root: "src/renderer",

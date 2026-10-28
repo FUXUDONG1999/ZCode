@@ -34,6 +34,14 @@ export async function readVerifiedNotices(root = repositoryRoot, { requireComple
 }
 
 export async function stageThirdPartyNotices(directory, root = repositoryRoot) {
+  // 个人定制：仓库不对外分发，THIRD-PARTY-NOTICES.md 已删除；文件不存在时跳过声明打包，
+  // 不阻断构建。若将来需要恢复分发合规，先运行 scripts/generate-third-party-notices.mjs 再移除本判断。
+  try {
+    await readFile(resolve(root, noticesFileName));
+  } catch (error) {
+    if (error.code === "ENOENT") return;
+    throw error;
+  }
   const bytes = await readThirdPartyNotices(root);
   await mkdir(directory, { recursive: true });
   await writeFile(resolve(directory, noticesFileName), bytes);

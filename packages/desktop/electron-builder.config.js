@@ -731,7 +731,10 @@ export default {
       }
     : {}),
   extraResources: [
-    { from: resolve(workspaceRoot, noticesFileName), to: noticesFileName },
+    // 个人定制：THIRD-PARTY-NOTICES.md 已随分发合规一起移除，存在才随包携带，缺失不阻断打包。
+    ...(existsSync(resolve(workspaceRoot, noticesFileName))
+      ? [{ from: resolve(workspaceRoot, noticesFileName), to: noticesFileName }]
+      : []),
     ...(targetPlatform.os === "darwin"
       ? [
           ...(shouldPackageComputerUseHelper
