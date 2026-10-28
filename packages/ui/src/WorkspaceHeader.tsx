@@ -81,11 +81,8 @@ export function WorkspaceHeader({
   simplifyForNarrowRemote = false,
   isSidebarVisible,
   isTerminalOpen,
-  isSidePaneOpen,
   onRefreshGit,
   onToggleTerminal,
-  onToggleSidePane,
-  toggleSidePaneShortcutLabel,
   onReloadSession,
   reloadSessionDisabled,
   reloadSessionPending,
@@ -129,12 +126,8 @@ export function WorkspaceHeader({
   simplifyForNarrowRemote?: boolean;
   isSidebarVisible: boolean;
   isTerminalOpen: boolean;
-  isSidePaneOpen: boolean;
   onRefreshGit: () => void;
   onToggleTerminal: () => void;
-  onToggleBrowser: () => void;
-  onToggleSidePane: () => void;
-  toggleSidePaneShortcutLabel?: string;
   onReloadSession: (options?: {
     resumeTaskId?: string | null;
     provider?: ZCodeProvider | null;
@@ -236,10 +229,7 @@ export function WorkspaceHeader({
           isWebRemoteControl={isWebRemoteControl}
           isDesktop={isDesktop}
           isTerminalOpen={isTerminalOpen}
-          isSidePaneOpen={isSidePaneOpen}
           onToggleTerminal={onToggleTerminal}
-          onToggleSidePane={onToggleSidePane}
-          toggleSidePaneShortcutLabel={toggleSidePaneShortcutLabel}
           simplifyForNarrowRemote={simplifyForNarrowRemote}
           // 个人定制：右上角不再显示帮助按钮，帮助入口保留在设置页。
           hideHelpMenu

@@ -260,10 +260,7 @@ export function TaskGroupedView({
       action(() => mutate(task, { kind: "archive", archived: true }), "taskList.archiveFailed"),
     onArchiveTask: (task: ProjectTask) =>
       action(() => mutate(task, { kind: "archive", archived: true }), "taskList.archiveFailed"),
-    onOpenFileTree: presentation.onOpenTaskFiles
-      ? (task: ProjectTask) =>
-          action(() => presentation.onOpenTaskFiles!(task, getTaskRemoteSessionId(task)))
-      : undefined,
+    // 个人定制：任务行「查看文件」入口（onOpenFileTree）已随左侧标签式侧面板移除。
     onMoveTaskToGroup: (task: ProjectTask, id: string | null) => moveTask(task, id),
     onMoveTaskToTop: (task: ProjectTask) => moveTask(task),
     onStartRenameTask: (task: ProjectTask) => {

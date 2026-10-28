@@ -336,7 +336,6 @@ export interface WorkspaceShellLayoutProps extends Omit<AppProps, "baseFeedbackS
   handleBrowserPageMetadataChange: (tabId: string, metadata: BrowserSidePaneMetadata) => void;
   handleToggleSidebar: () => void;
   handleToggleTerminal: () => void;
-  handleToggleBrowser: () => void;
   handleOpenBrowserTab: () => void;
   handleOpenBrowserPermissionSettings: (origin: string) => void;
   handleOpenWhiteboard: () => void;

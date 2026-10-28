@@ -124,7 +124,7 @@ for (const width of [390, 1200])
           await project.getByTestId("virtual-project-row").hover();
           const targets = [
             project.getByTestId("virtual-project-menu"),
-            project.getByTestId("virtual-project-files"),
+            // 个人定制：查看文件按钮已移除，悬停目标数组不再包含 virtual-project-files。
             project.getByTestId("virtual-project-create-task").locator(".."),
             page.getByTestId("virtual-project-add"),
             page.getByTestId("virtual-project-new-task"),

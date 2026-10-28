@@ -1,5 +1,4 @@
 import { WorkspaceEditorButtonGroup } from "@/WorkspaceEditorButtonGroup.js";
-import { WorkspaceSidePaneToggleButton } from "@/WorkspaceSidePaneToggleButton.js";
 import { WorkspaceTerminalToggleButton } from "@/WorkspaceTerminalToggleButton.js";
 import { cn } from "@/components/lib/utils.js";
 import type { WorkspaceHeaderActionSectionProps } from "@/WorkspaceHeaderSections/shared.js";
@@ -20,10 +19,7 @@ export function WorkspaceHeaderActionSection({
   isWebRemoteControl = false,
   isDesktop,
   isTerminalOpen,
-  isSidePaneOpen,
   onToggleTerminal,
-  onToggleSidePane,
-  toggleSidePaneShortcutLabel,
   onSelectedEditorChange,
   simplifyForNarrowRemote = false,
   hideHelpMenu = false,
@@ -71,15 +67,7 @@ export function WorkspaceHeaderActionSection({
           />
         </>
       ) : null}
-      {/* 远程控制移动端只保留图标，避免 diff 数字把按钮撑宽导致标题拥挤。 */}
-      {!isSidePaneOpen ? (
-        <WorkspaceSidePaneToggleButton
-          isSidePaneOpen={isSidePaneOpen}
-          onToggleSidePane={onToggleSidePane}
-          shortcutLabel={toggleSidePaneShortcutLabel}
-          useWindowsCaptionSpacing={useWindowsCaptionSpacing}
-        />
-      ) : null}
+      {/* 个人定制：左侧标签式侧面板已移除（永久收起），头部不再渲染面板切换按钮。 */}
       {/* 个人定制：侧面板在左、会话列在右，头部始终是窗口最右侧；
           窗口按钮不再让位给侧面板标签栏，保证 — □ ✕ 固定在窗口右上角。 */}
       {showWindowControls ? <DesktopWindowControls /> : null}

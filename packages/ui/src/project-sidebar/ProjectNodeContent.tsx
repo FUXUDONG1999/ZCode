@@ -7,7 +7,6 @@ import {
   Ellipsis,
   FolderMinus,
   Folders,
-  ListTree,
   Pin,
   PinOff,
   Pencil,
@@ -64,7 +63,6 @@ export type ProjectNodeProps = {
   hasUnread?: boolean;
   additionalActions?: ProjectRowAction[];
   onCreate(): void;
-  onViewFiles?(rootPath: string): void;
   onEdit(): void;
   onDelete(): void;
   onPin(): void;
@@ -90,7 +88,6 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
   tasks,
   hasUnread = false,
   onCreate,
-  onViewFiles,
   onEdit,
   onDelete,
   onPin,
@@ -133,7 +130,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
       : project.primaryRootStatus === "unavailable"
         ? msg("primaryRootUnavailable")
         : undefined;
-  const showFiles = intl.formatMessage({ id: "workspaceSidebar.showFileTree" });
+  // 个人定制：移除「查看文件」入口——它打开的是已移除的左侧标签式侧面板（file-manager 标签）。
   const more = intl.formatMessage({ id: "common.more" });
   // 原因：右键是快捷入口的补充；与更多菜单共用操作定义，避免再次删掉 hover 功能。
   const management: ProjectRowAction[] = [
@@ -176,13 +173,6 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
         ]
       : []),
   ];
-  const files: ProjectRowAction[] = project.roots.map((root, index) => ({
-    id: `files-${index}`,
-    label: project.roots.length > 1 ? `${showFiles} · ${root.rootPath}` : showFiles,
-    icon: ListTree,
-    run: () => onViewFiles?.(root.rootPath),
-    disabled: Boolean(primaryRootDisabledReason) || !onViewFiles,
-  }));
   const contextActions = [
     ...(availability.online
       ? [
@@ -193,7 +183,6 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
             run: onCreate,
             disabled: Boolean(primaryRootDisabledReason),
           },
-          ...files,
         ]
       : []),
     ...management,
@@ -352,41 +341,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                 </DropdownMenu>
                 {availability.online ? (
                   <>
-                    {/* 主目录失效时多 root 也复用禁用按钮，避免菜单仍能打开附加目录。 */}
-                    {files.length > 1 && !primaryRootDisabledReason ? (
-                      <DropdownMenu modal={false}>
-                        <ControlHintTooltip title={showFiles}>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              data-testid="virtual-project-files"
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={showFiles}
-                              className="text-foreground-subtle hover:text-foreground"
-                            >
-                              <ListTree className="size-3.5" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                        </ControlHintTooltip>
-                        <DropdownMenuContent align="end">
-                          <ProjectMenuItems actions={files} />
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <TaskRowActionButton
-                        testId="virtual-project-files"
-                        label={showFiles}
-                        showTooltip
-                        disabledReason={
-                          primaryRootDisabledReason ??
-                          (!files.length || !onViewFiles ? msg("noFolders") : undefined)
-                        }
-                        className="text-foreground-subtle hover:text-foreground"
-                        onClick={() => files[0]?.run()}
-                      >
-                        <ListTree className="size-3.5" />
-                      </TaskRowActionButton>
-                    )}
+                    {/* 个人定制：「查看文件」按钮已随左侧标签式侧面板一起移除，这里只保留新建任务。 */}
                     <TaskRowActionButton
                       testId="virtual-project-create-task"
                       label={msg("createTask")}

@@ -6,7 +6,6 @@ import {
   Clock,
   CloudUpload,
   LoaderIcon,
-  ListTree,
   Moon,
   Pin,
   Smartphone,
@@ -46,8 +45,7 @@ import { isWorkspaceReadOnly } from "@/store/tabStore.js";
 import { TaskTitleOverflowText } from "@/components/TaskTitleOverflowText.js";
 import { createTaskWorkbenchDragPreview } from "@/lib/taskWorkbenchDragPreview.js";
 import { resolveTaskSourceLabel } from "@/lib/taskSourceAttribution.js";
-import { logger } from "@/logger.js";
-import { runUserAction, runUserActionAsync } from "@/lib/userActionTelemetry.js";
+import { runUserAction } from "@/lib/userActionTelemetry.js";
 import { TaskRowActionButton } from "@/workspace-grouped-tasks/task-row-action-button.js";
 import { TaskWorkflowRunLines } from "@/components/workflow-run-line/TaskWorkflowRunLines.js";
 
@@ -74,7 +72,6 @@ interface TaskListItemProps {
   onArchiveTask: (taskId: string) => void;
   onMarkTaskAsUnread: (taskId: string) => void;
   onOpenTaskContextMenu?: (taskId: string) => void;
-  onOpenFileTree?: () => void | Promise<void>;
   variant?: "default" | "timeline";
   showPinAction?: boolean;
   intl: TaskListItemIntl;
@@ -145,8 +142,7 @@ function areTaskListItemPropsEqual(left: TaskListItemProps, right: TaskListItemP
     left.onStartRenameTask === right.onStartRenameTask &&
     left.onArchiveTask === right.onArchiveTask &&
     left.onMarkTaskAsUnread === right.onMarkTaskAsUnread &&
-    left.onOpenTaskContextMenu === right.onOpenTaskContextMenu &&
-    left.onOpenFileTree === right.onOpenFileTree
+    left.onOpenTaskContextMenu === right.onOpenTaskContextMenu
   );
 }
 
@@ -166,7 +162,6 @@ export const MemoTaskItem = memo(function TaskListItem({
   isArchiveConfirming,
   onTogglePinTask,
   onOpenTaskContextMenu,
-  onOpenFileTree,
   variant = "default",
   showPinAction = true,
   intl,
@@ -479,33 +474,9 @@ export const MemoTaskItem = memo(function TaskListItem({
       )}
     </div>
   ) : null;
-  // 原因：置顶任务常跨项目，查看文件必须保留独立入口；复用共享 action，避免点击选择任务。
-  const fileTreeActionNode =
-    onOpenFileTree &&
-    !workspaceActionsDisabled &&
-    !hasPendingInteraction &&
-    (shouldMountWorkspaceTaskActions || isMobileActive) ? (
-      <TaskRowActionButton
-        label={intl.formatMessage({ id: "git.action.showTree" })}
-        showTooltip
-        testId={`task-files-${task.taskId}`}
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          void runUserActionAsync({
-            input: { featureId: "workbench.file", action: "open_tree", trigger: "button" },
-            operation: async () => onOpenFileTree?.(),
-            completed: { resultSource: "local_commit" },
-            failureStage: "file_tree_open",
-          }).catch((cause) => {
-            logger.error("[task-list] 查看文件失败", cause);
-            toast(String(cause));
-          });
-        }}
-      >
-        <ListTree className="size-3.5" />
-      </TaskRowActionButton>
-    ) : null;
+  // 个人定制：置顶任务行的「查看文件」按钮（打开已移除的左侧标签式侧面板）不再渲染，
+  // onOpenFileTree 链路整体下线；此处仅保留归档操作分组。
+  const fileTreeActionNode = null;
   const taskActionGroupNode =
     fileTreeActionNode || archiveActionNode ? (
       <span data-task-row-actions="true" className="flex shrink-0 items-center gap-0.5">

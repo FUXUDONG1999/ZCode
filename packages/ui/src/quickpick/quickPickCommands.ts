@@ -59,10 +59,6 @@ interface QuickPickCommandHandlers {
   logout?: () => void | Promise<void>;
   toggleSidebar: () => void;
   toggleTerminal: () => void;
-  togglePreview: () => void;
-  openTerminalTab: () => void;
-  openBrowserTab: () => void;
-  openReviewTab: () => void;
 }
 
 interface CreateQuickPickCommandsOptions {
@@ -70,9 +66,7 @@ interface CreateQuickPickCommandsOptions {
   canOpenCommunity: boolean;
   isSidebarVisible: boolean;
   isLoggedIn: boolean;
-  supportsEmbeddedBrowser?: boolean;
   supportsTerminal?: boolean;
-  supportsReview?: boolean;
   themeTarget: "dark" | "light";
   shortcuts: {
     newTask: string;
@@ -88,9 +82,7 @@ export function createQuickPickCommands({
   canOpenCommunity,
   isSidebarVisible,
   isLoggedIn,
-  supportsEmbeddedBrowser = true,
   supportsTerminal = true,
-  supportsReview = true,
   themeTarget,
   shortcuts,
   handlers,
@@ -141,57 +133,8 @@ export function createQuickPickCommands({
       keywords: ["terminal", "shell", "console", "终端"],
       run: handlers.toggleTerminal,
     },
-    ...(supportsEmbeddedBrowser
-      ? [
-          {
-            id: "toggle-preview",
-            sectionId: "panels",
-            titleId: "quickPick.command.togglePreview",
-            icon: "browser",
-            keywords: [
-              "preview",
-              "browser",
-              "web",
-              "show",
-              "hide",
-              "预览",
-              "浏览器",
-              "网页",
-              "显示",
-              "隐藏",
-            ],
-            run: handlers.togglePreview,
-          } satisfies QuickPickCommand,
-        ]
-      : []),
-    {
-      id: "add-terminal-tab",
-      sectionId: "panels",
-      titleId: "quickPick.command.addTerminalTab",
-      icon: "terminal",
-      keywords: ["add", "terminal", "tab", "new terminal", "添加终端", "终端标签"],
-      run: handlers.openTerminalTab,
-    },
-    ...(supportsEmbeddedBrowser
-      ? [
-          {
-            id: "add-browser-tab",
-            sectionId: "panels",
-            titleId: "quickPick.command.addBrowserTab",
-            icon: "browser",
-            keywords: ["add", "browser", "tab", "preview", "添加浏览器", "浏览器标签"],
-            run: handlers.openBrowserTab,
-          } satisfies QuickPickCommand,
-        ]
-      : []),
-    {
-      id: "add-review-tab",
-      sectionId: "panels",
-      titleId: "quickPick.command.addReviewTab",
-      icon: "diff",
-      keywords: ["add", "review", "diff", "changes", "添加审查", "审查标签", "变更"],
-      run: handlers.openReviewTab,
-    },
+    // 个人定制：toggle-preview / add-terminal-tab / add-browser-tab / add-review-tab
+    // 都会打开左侧标签式侧面板，随面板一起移除；底部终端保留 toggle-terminal。
     {
       id: "settings",
       sectionId: "configure",
@@ -290,9 +233,6 @@ export function createQuickPickCommands({
   }
 
   return commands.filter(
-    (command) =>
-      (supportsTerminal ||
-        (command.id !== "toggle-terminal" && command.id !== "add-terminal-tab")) &&
-      (supportsReview || command.id !== "add-review-tab"),
+    (command) => supportsTerminal || command.id !== "toggle-terminal",
   );
 }

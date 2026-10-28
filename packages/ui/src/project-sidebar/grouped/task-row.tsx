@@ -5,7 +5,7 @@ import type { KeyboardEvent, MouseEvent } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import type { UniqueIdentifier } from "@dnd-kit/core";
 import { isCronTask, isOffPeakTask } from "@zcode/shared";
-import { ArrowUpToLine, Clock, Cloud, Folder, ListTree, LoaderIcon, Moon, X } from "lucide-react";
+import { ArrowUpToLine, Clock, Cloud, Folder, LoaderIcon, Moon, X } from "lucide-react";
 import { cn } from "@/components/lib/utils.js";
 import { Badge } from "@/components/ui/badge.js";
 import { toast } from "@/components/ui/toast.js";
@@ -47,7 +47,6 @@ function GroupedTaskRowComponent({
   workspaceLabel,
   onSelectTask,
   onCloseTask,
-  onOpenFileTree,
   onMoveTaskToGroup,
   onMoveTaskToTop,
   onStartRenameTask,
@@ -67,7 +66,6 @@ function GroupedTaskRowComponent({
   workspaceLabel: string;
   onSelectTask: (workspacePath: string, taskId: string, workspaceIdentity?: string) => void;
   onCloseTask: (task: ZCodeTaskMeta) => void;
-  onOpenFileTree?: (task: ZCodeTaskMeta) => void;
   onMoveTaskToGroup: (task: ZCodeTaskMeta, groupId: string | null) => void;
   onMoveTaskToTop: (task: ZCodeTaskMeta) => void;
   onStartRenameTask: (task: ZCodeTaskMeta) => void;
@@ -97,10 +95,6 @@ function GroupedTaskRowComponent({
   // 交互胶囊是当前最高优先级的右侧状态；无论来自 sessions-index 摘要还是
   // activity attention，都不应再并排显示相对时间并挤压任务标题。
   const hasPendingInteraction = Boolean(task.pendingInteraction) || taskAttention !== null;
-  // Bugfix：远端 session 未就绪时打开文件树必然会被 resolver 拒绝，因此不要暴露
-  // 无效 action；本地 task 不需要 remoteSessionId，仍保持入口可用。
-  const canOpenFileTree =
-    Boolean(onOpenFileTree) && (!task.workspaceIdentity?.trim() || Boolean(remoteSessionId));
   const taskAttentionLabel = taskAttention
     ? intl.formatMessage({
         id: taskAttention.kind === "userInput" ? "taskList.userInputTag" : "taskList.permissionTag",
@@ -266,14 +260,6 @@ function GroupedTaskRowComponent({
     }
     onCloseTask(task);
   };
-  const handleOpenFileTree = (event: MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    if (workspaceActionsDisabled) {
-      return;
-    }
-    onOpenFileTree?.(task);
-  };
   const handleMoveTaskToTop = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     event.stopPropagation();
@@ -422,16 +408,7 @@ function GroupedTaskRowComponent({
           ) : null}
           {shouldMountHoverActions ? (
             <span className="flex shrink-0 items-center gap-0.5">
-              {canOpenFileTree ? (
-                <TaskRowActionButton
-                  label={intl.formatMessage({ id: "git.action.showTree" })}
-                  onClick={handleOpenFileTree}
-                  showTooltip
-                  disabledReason={workspaceActionsDisabledReason}
-                >
-                  <ListTree className="size-3.5" />
-                </TaskRowActionButton>
-              ) : null}
+              {/* 个人定制：任务行「查看文件」按钮已随左侧标签式侧面板移除。 */}
               <TaskRowActionButton
                 label={intl.formatMessage({ id: "taskGroup.moveToTop" })}
                 onClick={handleMoveTaskToTop}

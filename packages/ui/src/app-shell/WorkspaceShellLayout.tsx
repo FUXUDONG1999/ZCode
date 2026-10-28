@@ -23,6 +23,7 @@ import {
   type SidePaneFullViewFloating,
   type SidePaneFullViewHostMode,
 } from "@/side-pane-full-view/index.js";
+import type { SidePaneFullViewController } from "@/side-pane-full-view/contract.js";
 import {
   SavedWorkflowHubProvider,
   type SavedWorkflowHubTarget,
@@ -339,8 +340,6 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
   canTaskNavForward,
   isTerminalOpen,
   isSidebarVisible,
-  isSidePaneOpen,
-  sidePaneFullView,
   isBrowserOpen,
   supportsEmbeddedBrowser,
   summaryPanelVariantOverride,
@@ -391,7 +390,6 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
   handleBrowserPageMetadataChange,
   handleToggleSidebar,
   handleToggleTerminal,
-  handleToggleBrowser,
   handleOpenBrowserTab,
   handleOpenBrowserPermissionSettings,
   handleOpenWhiteboard,
@@ -432,6 +430,10 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
   taskFindDialogProps,
 }: WorkspaceShellLayoutProps) {
   const { intl } = useZCodeIntl();
+  // 个人定制：移除左侧标签式侧面板（新标签页 hub、文件/浏览器/审查等外部标签页）。
+  // 面板保持挂载仅为承载 browser-use 标签与截图合成层（见 useAnimatedResizablePanel 注释）；
+  // 对用户永久收起：忽略上游 isSidePaneOpen，恒按“已关闭”处理，任何入口都不再展开。
+  const isSidePaneOpen = false as const;
   const isOfficeMode = useIsOfficeMode();
   const baseServices = useBaseWorkspaceServices();
   const tabStoreApi = useTabStoreApi();
@@ -754,7 +756,9 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
     );
   }, [openWorkspaceKeys]);
   // 完整视图（docs/ui/side-pane-full-view.md）只读派生：不改侧栏、面板宽度等原有状态，退出后自然恢复。
-  const fullViewController = isWebRemoteControlShell ? undefined : sidePaneFullView;
+  // 个人定制：面板永久收起后不再提供完整视图（面板铺满整行的入口随之失效），控制器恒为空；
+  // 用类型断言保持联合类型，避免 TS 把常量收窄成 never 破坏下游只读派生。
+  const fullViewController = undefined as SidePaneFullViewController | undefined;
   const activeFullView =
     workspaceMainView === "chat" ? (fullViewController?.fullView ?? null) : null;
   const isFullView = activeFullView !== null;
@@ -804,7 +808,9 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
     // 截图 surface 由 browser-use tab 自己的 fixed 承载层提供尺寸，不能再把整个右侧
     // ResizablePanel 撑开；否则自动化页会闪出空白的 tab 栏，且面板过渡期间 guest surface
     // 仍可能被 Chromium 判定为不可合成。
-    open: workspaceMainView === "chat" && isSidePaneOpen,
+    // 个人定制：面板永久收起（open 恒 false）。标签内容仍按 AnimatedSidePanePanel 的
+    // hasRenderedSidePane 条件挂载，browser-use 截图合成层不受影响。
+    open: false,
     expandedSize: SIDE_PANE_DEFAULT_EXPANDED_SIZE,
     rememberExpandedSize: true,
     resizeOnInitialVisibleMount: false,
@@ -2275,12 +2281,8 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
                 simplifyForNarrowRemote
                 isSidebarVisible={isSidebarVisible}
                 isTerminalOpen={isTerminalOpen}
-                isSidePaneOpen={isSidePaneOpen}
                 onRefreshGit={handleRefreshGit}
                 onToggleTerminal={handleToggleTerminal}
-                onToggleBrowser={handleToggleBrowser}
-                onToggleSidePane={handleToggleSidePane}
-                toggleSidePaneShortcutLabel={toggleSidePaneShortcutLabel}
                 onReloadSession={handleReloadSession}
                 reloadSessionDisabled={workspaceSessionActionDisabled}
                 reloadSessionPending={reloadSessionPending}
@@ -2689,12 +2691,8 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
                             simplifyForNarrowRemote={simplifyHeaderForNarrowRemote}
                             isSidebarVisible={isSidebarVisible}
                             isTerminalOpen={isTerminalOpen}
-                            isSidePaneOpen={isSidePaneOpen}
                             onRefreshGit={handleRefreshGit}
                             onToggleTerminal={handleToggleTerminal}
-                            onToggleBrowser={handleToggleBrowser}
-                            onToggleSidePane={handleToggleSidePane}
-                            toggleSidePaneShortcutLabel={toggleSidePaneShortcutLabel}
                             onReloadSession={handleReloadSession}
                             reloadSessionDisabled={workspaceSessionActionDisabled}
                             reloadSessionPending={reloadSessionPending}
