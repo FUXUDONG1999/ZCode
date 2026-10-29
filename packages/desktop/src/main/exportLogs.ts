@@ -26,7 +26,7 @@ import {
     getFeedbackLogArchiveDir as getDefaultFeedbackLogArchiveDir,
 } from "@zcode/services/node";
 import { createAboutSnapshot, formatAboutDetail, readBuildMetadata } from "./about.js";
-import { logger } from "./logger.js";
+import { flushPendingLogWrites, logger } from "./logger.js";
 
 function getZCodeDataDir() {
     return getAppConfigDir();
@@ -1145,6 +1145,8 @@ export async function createFeedbackLogArchiveFromExportLogs(
     sourceDir: string,
     options: CreateFeedbackLogArchiveFromExportLogsOptions = {},
 ): Promise<{ path: string; size: number }> {
+    // 反馈诊断包同样从磁盘读 logs 目录，先刷掉缓冲中的日志行再收集。
+    await flushPendingLogWrites();
     return createFeedbackDiagnosticArchive({
         sources: [
             { directory: join(sourceDir, "logs"), archivePrefix: "logs" },
@@ -1191,6 +1193,8 @@ export async function exportLogs(
         const getOutputRootDir = dependencies.getExportLogDir ?? getDefaultExportLogDir;
 
         const sourceDir = getSourceDir();
+        // 日志行现在按缓冲异步落盘（见 logger.ts），打包前先刷掉残留行，避免归档缺最后几条。
+        await flushPendingLogWrites();
         const timestamp = formatTimestamp(now());
         const exportBaseName = `zcode-logs-${timestamp}`;
         const outputRootDir = getOutputRootDir();

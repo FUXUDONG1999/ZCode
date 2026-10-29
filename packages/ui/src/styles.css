@@ -929,7 +929,6 @@ html[data-document-hidden] *::after {
         color: transparent;
         -webkit-text-fill-color: transparent;
         animation: gradient-flow 4s linear infinite;
-        will-change: background-position;
         transform: translateZ(0);
         backface-visibility: hidden;
     }
@@ -964,7 +963,6 @@ html[data-document-hidden] *::after {
         -webkit-text-fill-color: transparent;
         animation: cua-group-gradient-flow 1s linear infinite;
         animation-delay: 0.5s;
-        will-change: background-position;
         transform: translateZ(0);
         backface-visibility: hidden;
     }
@@ -1006,19 +1004,22 @@ html[data-document-hidden] *::after {
 }
 
 @keyframes tool-call-progress-indeterminate {
+    /* 修复原因：原先动画 left 属性，扫光每一帧都触发 layout；
+       改为相对自身宽度的 translateX 后动画只在合成器执行，不再占用主线程帧预算。
+       轨道宽 64px、滑块占 1/3（w-1/3）：-100% 让滑块右缘贴轨道左缘，
+       300% 让滑块左缘贴轨道右缘，扫过范围与原 left -33%→100% 完全一致。 */
     0% {
-        left: -33%;
+        transform: translateX(-100%);
     }
 
     100% {
-        left: 100%;
+        transform: translateX(300%);
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .tool-call-progress-indeterminate {
         animation: none;
-        left: 0;
         width: 100%;
     }
 }
@@ -1058,31 +1059,48 @@ html[data-document-hidden] *::after {
     }
 }
 
+/* 性能修复：扫光从 background-position 动画（每帧 repaint 整个占位层）改为
+   伪元素 translateX 平移（只在合成器执行）。伪元素宽 240%（与原 background-size
+   一致），平移 ±140% 容器宽 = ±58.3333% 自身宽，扫过范围与原
+   background-position 100%→-100% 视觉一致。 */
 @keyframes markdown-image-loading-shimmer {
     from {
-        background-position: 100% 0;
+        transform: translateX(-58.3333%);
     }
 
     to {
-        background-position: -100% 0;
+        transform: translateX(58.3333%);
     }
 }
 
 .markdown-image-loading-shimmer {
     background-color: var(--color-card);
+    /* overflow 裁掉 240% 宽的扫光层；isolation 建立层叠上下文，让 ::before
+       以 z-index:-1 垫在 span 背景色之上、图标等真实内容之下（原本渐变是
+       元素自身背景，天然在内容下层，改伪元素后需要显式维持这一层序）。 */
+    isolation: isolate;
+    overflow: hidden;
+}
+
+.markdown-image-loading-shimmer::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset-block: 0;
+    left: 0;
+    width: 240%;
     background-image: linear-gradient(
         135deg,
         var(--color-card) 0%,
         var(--color-background) 50%,
         var(--color-card) 100%
     );
-    background-size: 240% 100%;
     animation: markdown-image-loading-shimmer 1.8s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .markdown-image-loading-shimmer {
-        animation: none;
+    .markdown-image-loading-shimmer::before {
+        display: none;
     }
 }
 
@@ -1096,10 +1114,13 @@ html[data-document-hidden] *::after {
     }
 }
 
+/* 性能修复：去掉原先常驻的 will-change: opacity——该动画只播 900ms 且 fill both，
+   will-change 会让每个流式块在动画结束后仍保留独立合成层；长会话里层数量随消息
+   数线性增长（性能 trace 中 Layerize 累计 715ms）。Chromium 对运行中的 opacity
+   动画会自动做合成层提升，去掉提示不影响动画效果。 */
 [data-zcode-stream-animate="true"] {
     animation: zcode-stream-text-in 900ms cubic-bezier(0.16, 1, 0.3, 1)
         var(--zcode-stream-animation-delay, 0ms) both;
-    will-change: opacity;
 }
 
 [data-zcode-stream-marker-animate="true"]::marker {
@@ -1110,7 +1131,6 @@ html[data-document-hidden] *::after {
 [data-zcode-tool-stream-animate="true"],
 [data-zcode-chat-loading-animate="true"] {
     animation: zcode-stream-text-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
-    will-change: opacity;
 }
 
 /* Bugfix: Radix Collapsible 在测量 closed 高度时会写入 inline animation-name:none。
