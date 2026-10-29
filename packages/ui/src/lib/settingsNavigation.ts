@@ -41,12 +41,12 @@ const SETTINGS_MODEL_PROVIDER_ID_INTENT_KEY = "zcode-settings-model-provider-id-
 const SETTINGS_SECTION_INTENT_EVENT = "zcode:settings-section-intent",
   SETTINGS_LAST_SECTION_STORAGE_KEY = "zcode-settings-last-section";
 const HIDDEN_SETTINGS_SECTIONS = new Set<SettingsSectionId>([
-  // 个人定制：隐藏「浏览器控制 / 远程设备 / 电脑控制 / 归档管理 / 插件（含市场）」设置分区，
+    // 个人定制：隐藏「浏览器控制 / 远程设备 / 电脑控制 / 插件（含市场）」设置分区，
   // 只移除入口；页面实现与数据逻辑全部保留，恢复时从本列表删除对应 id 即可。
+    // 归档管理（archives）已按需求恢复入口。
   "browser",
   "remoteDevices",
   "computerUse",
-  "archives",
   "plugin",
   // 产品语义：定时任务是 workspace 主视图，不能再作为设置页分区出现。
   // 注意：hooks 已是正式设置页分区，不在此列。
