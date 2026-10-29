@@ -207,6 +207,16 @@ export const sessionUsageStateSchema = z.object({
     cacheReadTokens: z.number(),
     cacheWriteTokens: z.number(),
   }),
+    // 最近一个带净生成时长事实的终态轮；速度由 UI 从两字段推导（outputTokens ÷
+    // generationDurationMs），协议只承载事实。state.updated 是键级整体替换，所有
+    // usage 补丁必须回写该字段，否则前值会被抹掉。optional 兼容旧快照；null = 无可展示轮。
+    lastTurn: z
+        .object({
+            outputTokens: z.number().int().nonnegative(),
+            generationDurationMs: z.number().nonnegative(),
+        })
+        .nullable()
+        .optional(),
 });
 export type SessionUsageState = z.infer<typeof sessionUsageStateSchema>;
 
