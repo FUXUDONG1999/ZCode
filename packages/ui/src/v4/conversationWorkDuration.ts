@@ -38,3 +38,39 @@ export function formatConversationWorkDuration(
 
     return parts.slice(0, 2).join(" ");
 }
+
+/** 每轮 token 生成速度（tok/s）的统一写法：≥ 10 取整，< 10 保留 1 位小数；单位与 locale 无关。 */
+export function formatConversationTokensPerSecond(
+    tokensPerSecond: number | undefined,
+): string | null {
+    if (
+        tokensPerSecond === undefined ||
+        !Number.isFinite(tokensPerSecond) ||
+        tokensPerSecond <= 0
+    ) {
+        return null;
+    }
+    const rounded =
+        tokensPerSecond >= 10 ? Math.round(tokensPerSecond) : Math.round(tokensPerSecond * 10) / 10;
+    return `${rounded} tok/s`;
+}
+
+/**
+ * 从协议事实推导每轮生成速度（tok/s）。口径：outputTokens ÷ generationDurationMs
+ * （净生成时长，CLI 已扣除首 token 等待），与调试面板 calculateOutputTps 一致；
+ * 任一事实缺失或非正时返回 undefined，调用方不展示。
+ */
+export function deriveConversationTokensPerSecond(
+    facts: { outputTokens?: number; generationDurationMs?: number } | null | undefined,
+): number | undefined {
+    const { outputTokens, generationDurationMs } = facts ?? {};
+    if (
+        outputTokens === undefined ||
+        outputTokens <= 0 ||
+        generationDurationMs === undefined ||
+        generationDurationMs <= 0
+    ) {
+        return undefined;
+    }
+    return (outputTokens * 1000) / generationDurationMs;
+}

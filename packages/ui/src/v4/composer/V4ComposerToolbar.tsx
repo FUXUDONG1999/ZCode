@@ -16,7 +16,7 @@
  * 三件套不能全部门控在 config!==null 上——草稿态会整体不渲染。
  */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlarmClockIcon } from "lucide-react";
+import { AlarmClockIcon, GaugeIcon } from "lucide-react";
 import { cn } from "@/components/lib/utils.js";
 import {
     BUILTIN_MODEL_PROVIDER_IDS,
@@ -53,6 +53,10 @@ import {
     type ChatStartPlanBalanceConfig,
 } from "@/chat-input-toolbar/StartPlanContextBalance.js";
 import { ThoughtLevelCycleControl } from "@/chat-input-toolbar/ThoughtLevelCycleControl.js";
+import {
+    deriveConversationTokensPerSecond,
+    formatConversationTokensPerSecond,
+} from "@/v4/conversationWorkDuration.js";
 import {
     getNextThoughtLevelValue,
     getThoughtLevelLabel,
@@ -1164,6 +1168,13 @@ function V4ComposerModelControlsImpl({
             ...(contextWindow.breakdown ? { breakdown: contextWindow.breakdown } : {}),
         };
     }, [usage?.contextWindow]);
+    // 最近完成轮的生成速度：协议只传 outputTokens / generationDurationMs 事实，速度在展示侧推导；
+    // 无事实（新会话、旧 CLI 快照）时整个徽标不渲染。
+    const tokensPerSecondLabel = useMemo(() => {
+        return formatConversationTokensPerSecond(
+            deriveConversationTokensPerSecond(usage?.lastTurn),
+        );
+    }, [usage?.lastTurn]);
     // 工具条热键已转正为命令表命令：tooltip 快捷键文案读生效表，
     // 改绑后按钮提示即时跟随（不能用硬编码文案）。
     const modelShortcutLabel = useShortcutCommandLabel("openModelMenu");
@@ -1302,6 +1313,16 @@ function V4ComposerModelControlsImpl({
                     onSendCompressionCommand={onSendCompressionCommand}
                     compressionDisabled={disabled || recoveryPending}
                 />
+            ) : null}
+            {tokensPerSecondLabel ? (
+                <span
+                    className="inline-flex shrink-0 items-center gap-1 text-ui-sm tabular-nums text-foreground-subtle"
+                    data-token-speed={tokensPerSecondLabel}
+                    title={intl.formatMessage({ id: "chat.toolbar.tokensPerSecond.tooltip" })}
+                >
+                    <GaugeIcon aria-hidden className="size-3.5" />
+                    {tokensPerSecondLabel}
+                </span>
             ) : null}
             {/* 加速轮的模型由本次卡决定，选型菜单此时不可用，所以指示器优先于选型加载态。 */}
             {highspeedPresented && highspeedModel ? (

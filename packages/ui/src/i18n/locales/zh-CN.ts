@@ -5591,6 +5591,7 @@ const zhCN: Record<string, string> = {
     "chat.toolbar.thoughtLevel.value.xhigh": "极高",
     "chat.toolbar.thoughtLevel.value.max": "最高",
     "chat.toolbar.thoughtLevel.value.ultra": "极致",
+    "chat.toolbar.tokensPerSecond.tooltip": "最近完成一轮的生成速度（输出 tokens ÷ 净生成时长）",
     "chat.longRunning.expand": "展开长时间运行面板",
     "chat.longRunning.collapse": "收起长时间运行面板",
     "chat.longRunning.elapsedSeconds": "已运行 {seconds} 秒",

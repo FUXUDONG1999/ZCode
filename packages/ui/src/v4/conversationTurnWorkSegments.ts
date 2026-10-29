@@ -17,10 +17,13 @@ import {
 } from "@/plugin-ui/domain/pluginUiRowPolicy.js";
 import { buildConversationFlowItems } from "@/v4/conversationTurnFlowItems.js";
 import type { AssistantWorkRow, ConversationTurnFlowItem } from "@/v4/conversationTurnFlowItems.js";
+import { deriveConversationTokensPerSecond } from "@/v4/conversationWorkDuration.js";
 
 export interface ConversationTurnWorkStatus {
     state: "running" | "completed" | "interrupted";
     durationMs?: number;
+    /** outputTokens ÷ generationDurationMs（净生成时长，已扣首 token 等待）；字段缺失时不展示。 */
+    outputTokensPerSecond?: number;
 }
 
 export interface ConversationTurnWorkSegment {
@@ -47,9 +50,12 @@ export function resolveConversationTurnWorkStatus(
         workRows.length > 0 ||
         (header?.executionKind === "agent" ? durationMs !== undefined : (durationMs ?? 0) > 0);
     if (!hasWork) return undefined;
+    // 速度只在轮终态有权威事实（generationDurationMs 由 CLI 终态写入）；运行中不展示。
+    const outputTokensPerSecond = deriveConversationTokensPerSecond(header);
     return {
         state: isRunning ? "running" : isInterrupted ? "interrupted" : "completed",
         ...(durationMs !== undefined ? { durationMs } : {}),
+        ...(outputTokensPerSecond !== undefined ? { outputTokensPerSecond } : {}),
     };
 }
 

@@ -488,6 +488,9 @@ export class ProductProjection {
     // Highspeed 分享需要的真实耗时由 CLI 事件聚合，避免 renderer 离场后丢失拆分数据。
     private highspeedModelDurationByTurnId = new Map<string, number>();
     private highspeedToolIntervalsByTurnId = new Map<string, Map<string, HighspeedToolInterval>>();
+    // 每轮净生成时长 Σ(durationMs − timeToFirstContentMs)，仅 main_turn、全 provider。
+    // 速度 = outputTokens ÷ generationDurationMs 的权威分母，轮终态写入 turnHeader 与 usage.lastTurn。
+    private generationDurationByTurnId = new Map<string, number>();
     // 投递语义侧表：TurnSteerQueued 时按事件 payload（或 followupMode 兜底）记录，
     // drain 时决定切轮 vs 内联；账本落地后以账本为准。
     private deliveryByPendingInputId = new Map<string, "guide" | "queue">();
@@ -718,6 +721,8 @@ export class ProductProjection {
                           }
                         : null,
                     cumulative,
+                    // usage 是键级整体替换；种子只补 token 水位，必须原样保留 lastTurn。
+                    lastTurn: current.lastTurn ?? null,
                 },
             };
             return;
@@ -740,6 +745,8 @@ export class ProductProjection {
                         ? null
                         : { ...seededContextWindow, maxTokens: seededContextWindow.maxTokens },
                 cumulative,
+                // usage 是键级整体替换；种子只补 token 水位，必须原样保留 lastTurn。
+                lastTurn: current.lastTurn ?? null,
             },
         };
     }
@@ -1188,6 +1195,7 @@ export class ProductProjection {
         );
         clone.currentProductTurnStartedAtMs = this.currentProductTurnStartedAtMs;
         clone.highspeedModelDurationByTurnId = new Map(this.highspeedModelDurationByTurnId);
+        clone.generationDurationByTurnId = new Map(this.generationDurationByTurnId);
         clone.highspeedToolIntervalsByTurnId = new Map(
             [...this.highspeedToolIntervalsByTurnId].map(([turnId, intervals]) => [
                 turnId,
@@ -1241,6 +1249,7 @@ export class ProductProjection {
             candidate.productTurnSplitOrdinalByRuntimeTurnId;
         this.currentProductTurnStartedAtMs = candidate.currentProductTurnStartedAtMs;
         this.highspeedModelDurationByTurnId = candidate.highspeedModelDurationByTurnId;
+        this.generationDurationByTurnId = candidate.generationDurationByTurnId;
         this.highspeedToolIntervalsByTurnId = candidate.highspeedToolIntervalsByTurnId;
         this.deliveryByPendingInputId = candidate.deliveryByPendingInputId;
         this.currentTurnId = candidate.currentTurnId;
@@ -2562,6 +2571,21 @@ export class ProductProjection {
                 turnId,
                 (this.highspeedModelDurationByTurnId.get(turnId) ?? 0) +
                     Math.max(0, payload.durationMs),
+            );
+        }
+        // 速度口径与调试面板 calculateOutputTps 一致：净生成时长 = durationMs − 首 token
+        // 等待。所有 provider 的 main_turn 完成请求都累计；失败请求不产生 output usage，不计入。
+        if (
+            (payload.querySource === undefined || payload.querySource === "main_turn") &&
+            payload.type === "model_request_completed" &&
+            payload.durationMs !== undefined &&
+            payload.timeToFirstContentMs !== undefined
+        ) {
+            const turnId = this.turnIdOf(event);
+            this.generationDurationByTurnId.set(
+                turnId,
+                (this.generationDurationByTurnId.get(turnId) ?? 0) +
+                    Math.max(0, payload.durationMs - payload.timeToFirstContentMs),
             );
         }
         switch (payload.type) {
@@ -5115,6 +5139,9 @@ export class ProductProjection {
                         cacheWriteTokens:
                             cumulative.cacheWriteTokens + (usage.cacheWriteTokens ?? 0),
                     },
+                    // usage 是键级整体替换；轮中 ModelComplete 只更新水位与累计值，
+                    // lastTurn 保持上一终态轮的事实，直到本轮终态收口（upsertTurnHeader）。
+                    lastTurn: this.snapshot.usage.lastTurn ?? null,
                 },
             },
         });
@@ -5697,7 +5724,8 @@ export class ProductProjection {
         const row = this.turnHeaderForEvent(event);
         if (!row) return [];
         const endedAt = this.ms(event);
-        return [
+        const generationDurationMs = this.takeGenerationDurationMs(this.turnIdOf(event));
+        const deltas: ConversationDelta[] = [
             {
                 op: "row.upserted",
                 row: {
@@ -5707,6 +5735,7 @@ export class ProductProjection {
                     ...(activeMs !== undefined ? { activeMs } : {}),
                     ...highspeedTiming,
                     ...(historyRoundCount !== undefined ? { historyRoundCount } : {}),
+                    ...(generationDurationMs !== undefined ? { generationDurationMs } : {}),
                     ...(row.workSegments
                         ? {
                               workSegments: this.completeWorkSegments(row.workSegments, endedAt),
@@ -5715,6 +5744,29 @@ export class ProductProjection {
                 },
             },
         ];
+        // 最近完成轮的速度事实随终态收口进 usage（键级整体替换，必须整份回写）。
+        // outputTokens 由轮中 ModelComplete 累计；任一事实缺失则保留上一轮值不打扰。
+        const outputTokens = row.outputTokens ?? 0;
+        if (generationDurationMs !== undefined && generationDurationMs > 0 && outputTokens > 0) {
+            deltas.push({
+                op: "state.updated",
+                patch: {
+                    usage: {
+                        ...this.snapshot.usage,
+                        lastTurn: { outputTokens, generationDurationMs },
+                    },
+                },
+            });
+        }
+        return deltas;
+    }
+
+    /** 读取并清空该轮的净生成时长累计；轮终态只消费一次。 */
+    private takeGenerationDurationMs(turnId: string): number | undefined {
+        const durationMs = this.generationDurationByTurnId.get(turnId);
+        if (durationMs === undefined) return undefined;
+        this.generationDurationByTurnId.delete(turnId);
+        return durationMs;
     }
 
     private recordHighspeedToolStarted(

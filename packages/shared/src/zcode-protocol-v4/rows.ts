@@ -88,6 +88,10 @@ export const turnHeaderRowSchema = z.object({
     activeMs: z.number().optional(),
     // 当前 product turn 内主链路 ModelComplete 的 output usage 累计；optional 兼容旧快照。
     outputTokens: z.number().int().nonnegative().optional(),
+    // 当前 product turn 内主链路各次模型请求 (durationMs − timeToFirstContentMs) 的累计，
+    // 即扣除首 token 等待的净生成时长；UI 用 outputTokens ÷ generationDurationMs 得出 tok/s。
+    // optional 兼容旧快照；CLI 仅在轮终态一次性写入。
+    generationDurationMs: z.number().nonnegative().optional(),
     // CLI 从运行时事件聚合的真实耗时；optional 兼容旧快照及普通 turn。
     modelDurationMs: z.number().nonnegative().optional(),
     toolDurationMs: z.number().nonnegative().optional(),
