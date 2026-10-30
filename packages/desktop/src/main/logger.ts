@@ -215,17 +215,14 @@ function write(level: LogLevel, source: string, ...args: unknown[]) {
   const message = args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ");
   const line = `[${ts}] [${level}] [pid:${pid}] [${source}] ${message}\n`;
   const logDir = getLogDir();
-<<<<<<< HEAD
-=======
-    ensureLogDirectory(logDir);
->>>>>>> f0757d8a (perf: 主进程日志异步批量落盘，动画改合成器友好属性)
+  // 异步链路由 appendLogLine→ensureLogDirectory 负责建目录；此处不再同步 mkdir 阻塞事件循环。
+  ensureLogDirectory(logDir);
   const filePath = join(logDir, `${formatDate(now)}.log`);
   // TTFT 会经过 renderer IPC 和 host relay；只分流专用标记，避免观测同步写盘拖慢被测链路。
   if (message.includes("[ttft] ")) {
     localTtftLogs.enqueue({ path: filePath, line });
     return;
   }
-  mkdirSync(logDir, { recursive: true });
 
   // 同时保留 console 输出，方便开发调试；console 也加时间戳和 PID，与文件格式对齐
   safeConsoleWrite(level, `[${ts}] [pid:${pid}] [${source}]`, ...args);
