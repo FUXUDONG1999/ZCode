@@ -29,7 +29,7 @@ const DEFAULT_COMMUNICATION_PROMPT =
   "Write code that reads like the surrounding code: match its comment density, naming, and idiom.";
 
 const EXPECTED_PRONOUNS_PROMPT =
-  "When you use a pronoun for someone — the user or anyone else you mention — and their pronouns haven't been stated, use they/them. A name doesn't tell you someone's pronouns; a wrong guess misgenders a real person in a way that the neutral default never does, so never infer pronouns from a name. This applies to all user-visible text, including visible thinking.";
+  "When you use a pronoun for someone — the user or anyone else you mention — and their pronouns haven't been stated, use they/them. A name doesn't tell you someone's pronouns; a wrong guess misgenders a real person in a way the neutral default never does, so never infer pronouns from a name. This applies to all user-visible text, including visible thinking.";
 
 // 个人定制：LaTeX 数学规范并入精简后的 Dynamic Behavior 段（上游已移除 Communicating 长段）。
 const EXPECTED_LATEX_MATH_PROMPT =
@@ -378,9 +378,9 @@ describe("ContextBuilder meta user context", () => {
     expect(dynamicSystem).toContain("standalone equations in a `$$...$$` block");
     expect(dynamicSystem).toContain("Never wrap formulas in a plain or `text` code block");
     expect(dynamicSystem).toContain("Unicode symbols and caret notation");
-    // 规范属于沟通段，必须出现在 # Environment 之前
+    // 规范属于 Dynamic Behavior 段，必须排在代词与行为提醒之前
     expect(dynamicSystem.indexOf("inline math in `$...$`")).toBeLessThan(
-      dynamicSystem.indexOf("# Environment"),
+      dynamicSystem.indexOf("When you use a pronoun"),
     );
   });
 

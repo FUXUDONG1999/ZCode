@@ -224,7 +224,11 @@ it("keyword query matching only resident tools returns direct-call hints", async
     { id: "nothing", name: "ToolSearch", input: { query: "nonexistent-tool-name" } },
     { toolSearch },
   );
-  expect(noMatch.modelContent).toBe("No matching deferred tools found");
+  // 个人定制适配：上游已把未命中文案增强为带排查建议的长文案；定制仅在其上叠加
+  // 常驻工具直调回填分支，纯未命中路径跟随上游文案。
+  expect(noMatch.modelContent).toBe(
+    "No matching deferred tools found. Loaded tools are not searchable here and need no loading. Check your loaded tool list and query; try corrected spelling, alternative names, or broader keywords before concluding a tool is missing.",
+  );
   expect(JSON.stringify(noMatch)).not.toContain("resident_matches");
 });
 
