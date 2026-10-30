@@ -1,4 +1,50 @@
 {
   "version": 1,
-  "violations": []
+  "violations": [
+    {
+      "rule": "unmanaged-new-file",
+      "file": "packages/ui/src/FileManagerPane.tsx",
+      "module": "ui",
+      "detail": "ui",
+      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "043841b626ef06bf",
+      "global": false
+    },
+    {
+      "rule": "unmanaged-new-file",
+      "file": "packages/desktop/src/main/windowsCuaOperationIndicatorContent.ts",
+      "module": "desktop",
+      "detail": "desktop",
+      "message": "新文件落在未受管模块 desktop；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "1d2ab0b0a2431f68",
+      "global": false
+    },
+    {
+      "rule": "unmanaged-new-file",
+      "file": "packages/ui/src/lib/workflowArtifactOpen.ts",
+      "module": "ui",
+      "detail": "ui",
+      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "2a1f2f4c5705402f",
+      "global": false
+    },
+    {
+      "rule": "unmanaged-new-file",
+      "file": "packages/ui/src/previewPaneHtmlContent.tsx",
+      "module": "ui",
+      "detail": "ui",
+      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "61ee6b6612c64ffb",
+      "global": false
+    },
+    {
+      "rule": "unmanaged-new-file",
+      "file": "packages/ui/src/v4/officeSuggestedPrompts.ts",
+      "module": "ui",
+      "detail": "ui",
+      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "b0f6e625d1dadde0",
+      "global": false
+    }
+  ]
 }
