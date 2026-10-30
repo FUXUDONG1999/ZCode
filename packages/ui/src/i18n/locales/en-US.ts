@@ -99,8 +99,8 @@ const enUS: Record<string, string> = {
     "Projects on this computer can be restored later from Removed projects on this page.",
   "projectManagement.confirm.restoreRemote":
     "To bring back a remote project later, add it again from its device.",
-  "projectManagement.confirm.data.option": "Also delete their ZCode data",
-  "projectManagement.confirm.data.optionOne": "Also delete its ZCode data",
+  "projectManagement.confirm.data.option": "Also delete their MyAgent data",
+  "projectManagement.confirm.data.optionOne": "Also delete its MyAgent data",
   "projectManagement.confirm.data.note":
     "Sessions, session files, checkpoints and memory of the {count} projects on this computer.",
   "projectManagement.confirm.data.noteOne":
@@ -328,7 +328,7 @@ const enUS: Record<string, string> = {
   "remote.action.downgrade-server": "Switch remote to {version}",
   "remote.downgradeConfirmTitle": "Switch the remote to {version}?",
   "remote.downgradeConfirmDescription":
-    "The remote ZCode service will switch from {current} to {version}, the same version as this desktop app. Devices that still use the newer desktop app must update the remote again when they connect. The older version may not fully show content that the newer version wrote.",
+    "The remote MyAgent service will switch from {current} to {version}, the same version as this desktop app. Devices that still use the newer desktop app must update the remote again when they connect. The older version may not fully show content that the newer version wrote.",
   "remote.downgradeConfirm": "Switch",
   "remote.downgradedHint":
     "An older desktop app switched this remote from {from} to the current version. The remote updates only after you confirm.",
@@ -2825,7 +2825,7 @@ const enUS: Record<string, string> = {
     "Uses this computer's version. Projects and tasks are kept.",
   "settings.source.reinstallRemoteServiceTitle": "Reinstall the remote service?",
   "settings.source.reinstallRemoteServiceDescription":
-    "ZCode Server {version} will be reinstalled on {source}. Damaged program files are replaced. Projects, tasks, settings, and sign-in information are kept.",
+    "MyAgent Server {version} will be reinstalled on {source}. Damaged program files are replaced. Projects, tasks, settings, and sign-in information are kept.",
   "settings.source.reinstallRemoteServiceConfirm": "Reinstall",
   "settings.source.stopRemoteService": "Stop remote service",
   "settings.source.stopRemoteServiceTitle": "Stop the remote service?",
@@ -2834,9 +2834,9 @@ const enUS: Record<string, string> = {
   "settings.source.remoteServiceRunningTasksUnavailable": "The device didn't provide a task list.",
   "settings.source.remoteServiceNoRunningTasks": "No tasks are running on this device right now.",
   "settings.source.remoteServiceOtherClientsNotice":
-    "If ZCode on another computer is connected to this device, it may start the remote service again.",
+    "If MyAgent on another computer is connected to this device, it may start the remote service again.",
   "settings.source.stopRemoteServiceStartupReconnectNotice":
-    "“Reconnect automatically at startup” is on, so the remote service will start again the next time you open ZCode.",
+    "“Reconnect automatically at startup” is on, so the remote service will start again the next time you open MyAgent.",
   "settings.source.remoteServiceUpdateRequired": "Available after updating the remote service",
   "settings.source.removeOpenProjects": "These open projects will be disconnected:\n{projects}",
   "settings.source.noOpenProjects": "This device has no open projects.",
@@ -3226,7 +3226,7 @@ const enUS: Record<string, string> = {
   "chat.previewCards.video": "Video",
   "chat.previewCards.audio": "Audio",
   "chat.previewCards.openExternal": "Open in browser",
-  "chat.message.link.openInZCode": "Open in ZCode",
+  "chat.message.link.openInZCode": "Open in MyAgent",
   "chat.previewCards.previewInSidePane": "Preview",
   "chat.previewCards.openDefaultApp": "Open with default app",
   "chat.previewCards.openWith": "Open with",
