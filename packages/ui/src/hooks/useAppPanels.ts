@@ -1,7 +1,6 @@
 import { useOptionalTabStore } from "@/store/TabStoreProvider.js";
 import {
   openFileManagerSidePane,
-  navigateFileManagerSidePane,
   type FileManagerTarget,
 } from "@/lib/workspaceSidePane.js";
 /* eslint-disable max-lines */
@@ -435,13 +434,9 @@ export function useAppPanels(options: {
     handleOpenFileManager(pendingFileManagerTarget);
   }, [pendingFileManagerTarget, activeWorkspaceKey, consumeFileManager, handleOpenFileManager]);
 
-  const handleNavigateFileManager = useCallback(
-    (tabId: string, source: CodeViewerSource) => {
-      commitSidePaneState((current) => navigateFileManagerSidePane(current, tabId, source));
-    },
-    [commitSidePaneState],
-  );
-
+  // 个人定制（v2 适配）：侧面板文件预览改为仅内容（FileManagerPane），目录树导航链路
+  // （onNavigateFileManager → navigateFileManagerSidePane）在面板侧不再使用；
+  // workspaceSidePane 的导出与上游 WorkspaceFileTree.tsx 保持原样。
   const handleOpenCodeViewer = useCallback(
     (source: CodeViewerSource) => {
       revealSidePaneForCurrentOwner();
