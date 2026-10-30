@@ -1,4 +1,4 @@
-# 个人定制分支的持续构建：推送到 personal/myagent 或手动触发时，
+# 个人定制分支的持续构建：推送到 personal/myagent-v2 或手动触发时，
 # 在 GitHub 托管 runner 上打包 MyAgent 安装包并发布到 GitHub Release（CDN 分发、
 # 永久链接，替代 30 天过期且下载较慢的 Actions artifact）。
 # 版本与 mise.toml 保持一致（node 24.14.0 / pnpm 10.33.2）。
@@ -6,7 +6,7 @@ name: build-desktop
 
 on:
     push:
-        branches: [personal/myagent]
+        branches: [personal/myagent-v2]
         paths-ignore:
             - "docs/**"
             - "**/*.md"
