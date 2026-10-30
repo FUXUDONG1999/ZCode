@@ -76,10 +76,6 @@ export async function listMcpServerStatuses(
             transport: config.type,
             toolCount: 0,
             updatedAt,
-            error: getConfiguredServerError(name, config, untrustedServerNames),
-            ...(configuredStatus === "untrusted"
-                ? { failureKind: "status_unavailable" as const }
-                : {}),
         };
     }
 
@@ -207,13 +203,4 @@ function getConfiguredServerStatus(
 ): McpServerStatus["status"] {
     if (config.enabled === false) return "disabled";
     return untrustedServerNames.has(name) ? "untrusted" : "disconnected";
-}
-
-function getConfiguredServerError(
-    name: string,
-    config: McpServerConfig,
-    untrustedServerNames: ReadonlySet<string>,
-): string | undefined {
-    if (config.enabled === false || !untrustedServerNames.has(name)) return undefined;
-    return "Project MCP server requires explicit connection before use.";
 }

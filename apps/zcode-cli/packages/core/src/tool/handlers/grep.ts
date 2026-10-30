@@ -27,7 +27,6 @@ const GREP_TOOL_DESCRIPTION = `Content search built on ripgrep. Prefer this over
 - Full regex syntax (e.g. "log.*Error", "function\\s+\\w+"). Ripgrep, not grep — escape literal braces (\`interface\\{\\}\`).
 - Filter with \`glob\` (e.g. "**/*.tsx") or \`type\` (e.g. "js", "py", "rust").
 - \`output_mode\`: "content" (matching lines), "files_with_matches" (paths only, default), or "count".
-- Locate first, then zoom in: start with "files_with_matches" to find candidate files, then rerun with "content" (narrowed by \`glob\`/\`type\`) on the few hits — don't pull matching lines for the whole repo up front.
 - \`multiline: true\` for patterns that span lines.`;
 
 export const grepHandler: ToolHandler = async (input, context) => {

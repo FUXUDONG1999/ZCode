@@ -123,9 +123,7 @@ export function parseWorkflowSubagentModel(
     } catch (cause) {
         throw new Error(
             `workflow subagent_model reached the handler un-canonicalised: ${canonical}`,
-            {
-                cause,
-            },
+            { cause },
         );
     }
 }

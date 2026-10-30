@@ -86,19 +86,18 @@ export function createWorkflowFacade(deps: CreateWorkflowFacadeDeps): WorkflowFa
             await deps.prepareUserExecutionBoundary({ traceContext: request.traceContext });
             const workflowKind = request.workflowKind ?? builtInExpertWorkflowDefinition.kind;
             const childSessionId = createSessionId(`workflow_${request.activityId}`);
-            const childTraceContext = createChildTraceContext(
-                request.traceContext ?? deps.traceContext,
-                {
-                    attributes: {
-                        parentSessionId: deps.sessionId,
-                        workflowActivityId: request.activityId,
-                        workflowKind,
-                        workflowPhase: request.phase,
-                        workflowRunId: request.runId,
-                    },
-                    sessionId: childSessionId,
+            const parentTraceContext = request.traceContext ?? deps.traceContext;
+            const childTraceContext = createChildTraceContext(parentTraceContext, {
+                attributes: {
+                    parentSessionId: deps.sessionId,
+                    workflowActivityId: request.activityId,
+                    workflowKind,
+                    workflowPhase: request.phase,
+                    workflowRunId: request.runId,
                 },
-            );
+                sessionId: childSessionId,
+                rootSessionId: parentTraceContext.rootSessionId ?? deps.sessionId,
+            });
             const parentSelection = deps.runtime.getSessionModelSelection();
             await request.onChildSessionStarted?.({
                 model: parentSelection
