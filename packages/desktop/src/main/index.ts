@@ -68,8 +68,6 @@ import {
   getZCodeDataRootDir,
   normalizeRuntimeProcessEnv,
   setDataBaseDir,
-  migrateApplicationStorage,
-  resolveDefaultZCodeAgentCommand,
   startupStorage,
 } from "@zcode/services/node";
 import {

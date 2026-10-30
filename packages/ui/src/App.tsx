@@ -234,7 +234,6 @@ export function App({
     handleOpenWhiteboard,
     handleOpenDeveloperTools,
     handleOpenFileManager,
-    handleNavigateFileManager,
     handleOpenPluginMarket,
     handleOpenTerminalTab,
     handleOpenSubagentSession,
@@ -1269,7 +1268,6 @@ export function App({
           handleOpenWhiteboard={handleOpenWhiteboard}
           handleOpenDeveloperTools={handleOpenDeveloperTools}
           handleOpenFileManager={handleOpenFileManager}
-          handleNavigateFileManager={handleNavigateFileManager}
           handleOpenPluginMarket={handleOpenPluginMarket}
           handleOpenTerminalTab={handleOpenTerminalTabIfWritable}
           handleToggleGit={handleToggleGitIfWritable}

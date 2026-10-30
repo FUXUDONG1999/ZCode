@@ -282,7 +282,6 @@ export function TaskGroupedView({
         rowActionsRef.current.onSelectTask(...args),
       onCloseTask: (task: ProjectTask) => rowActionsRef.current.onCloseTask(task),
       onArchiveTask: (task: ProjectTask) => rowActionsRef.current.onArchiveTask(task),
-      onOpenFileTree: (task: ProjectTask) => rowActionsRef.current.onOpenFileTree?.(task),
       onMoveTaskToGroup: (task: ProjectTask, id: string | null) =>
         rowActionsRef.current.onMoveTaskToGroup(task, id),
       onMoveTaskToTop: (task: ProjectTask) => rowActionsRef.current.onMoveTaskToTop(task),
@@ -293,7 +292,6 @@ export function TaskGroupedView({
   );
   const rowCallbacks = {
     ...stableRowActions,
-    onOpenFileTree: presentation.onOpenTaskFiles ? stableRowActions.onOpenFileTree : undefined,
     groups,
     tooltipsDisabled: drag.dragging,
   };

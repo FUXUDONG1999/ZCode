@@ -1664,7 +1664,6 @@ export function useAppPanels(options: {
     browserNavigationRequest,
     setBrowserNavigationRequest,
     handleOpenFileManager,
-    handleNavigateFileManager,
     // 回调
     handleOpenCodeViewer,
     handleOpenCodeViewers,

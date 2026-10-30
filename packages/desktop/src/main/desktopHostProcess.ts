@@ -13,7 +13,6 @@ import {
   type HostSessionCreateTelemetryResponse,
   type HostPluginTelemetryResponse,
   type ProviderProvisioningLaneStatus,
-  type RemoteTarget,
   type TaskRealtimeHostDeliveryKind,
   type WorkspacePurpose,
   formatZCodeHostProcessName,

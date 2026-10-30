@@ -408,7 +408,6 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
   handleOpenWhiteboard,
   handleOpenDeveloperTools,
   handleOpenFileManager,
-  handleNavigateFileManager,
   handleOpenPluginMarket,
   handleOpenTerminalTab,
   handleToggleGit,
