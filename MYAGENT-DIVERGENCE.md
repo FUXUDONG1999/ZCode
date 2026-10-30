@@ -57,6 +57,14 @@
 - 个人定制改变行为时同步更新对应断言（先例：context-builder、tool-contracts、
   desktopProductIdentity、settings-ui-polish、help-menu-about 等）。
 
+## 5.5 协作文档 — 持有本地（小 diff）
+
+| 路径 | 内容 | 同步策略 |
+| --- | --- | --- |
+| `AGENTS.md` | 「核心原则」首条：个人定制 fork 说明，开发/同步前必读两份定制档案 | 上游更新 AGENTS.md 时正常三方合并，仅保护首条定制规则 |
+| `MYAGENT-FEATURES.md`、`MYAGENT-DIVERGENCE.md` | 定制档案（本文件） | 纯个人文件，上游无此文件；每次定制变更或同步后更新 |
+
+
 ## 6. 刻意不移植的历史改造（同步时勿「顺手恢复」）
 
 - 全仓库 2→4 空格重排版、全量 lint 豁免重写（ae85161f/dc114e69/e291ed97/ff7ca386）。
