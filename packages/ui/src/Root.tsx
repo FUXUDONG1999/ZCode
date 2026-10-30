@@ -1,3 +1,4 @@
+import { useInterfaceModeTelemetry } from "@/lib/appTelemetry.js";
 import { ProjectDirectoryProvider } from "@/project-sidebar/ProjectDirectoryProvider.js";
 import { RemoteProjectPicker } from "@/project-sidebar/RemoteProjectPicker.js";
 import {
@@ -15,7 +16,7 @@ import {
     RequestSecurityWorkspaceBridge,
     setRequestSecurityReporter,
 } from "@/request-security-edition/index.js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { LucideProvider, RefreshCw } from "lucide-react";
 import {
     APP_RUNTIME_PREFERENCES_CHANGED_BROADCAST_CHANNEL,
@@ -36,7 +37,11 @@ import {
     useDynamicWorkflowUserModeSync,
 } from "@/hooks/useDynamicWorkflowAvailability.js";
 import { DirectoryBrowser } from "@/DirectoryBrowser.js";
-import { attachRemoteProjectWorkspace, resolveEntryProject } from "@/project-sidebar/index.js";
+import {
+    attachRemoteProjectWorkspace,
+    resolveEntryProject,
+    useWebRemoteControlRendererActions,
+} from "@/project-sidebar/index.js";
 import { useTabPersistence, type WorkspacePersistenceGate } from "@/hooks/useTabPersistence.js";
 import { useTokenRefresh } from "@/hooks/useTokenRefresh.js";
 import { useWorkspaceServices } from "@/hooks/useWorkspaceServices.js";
@@ -62,7 +67,7 @@ import { StoreProvider, useZCodeStore } from "@/store/StoreProvider.js";
 import { setMcpStorePlatform } from "@/store/mcpStore.js";
 import { useZCodeSessionStore } from "@/store/zcodeSessionStore.js";
 import { TabStoreProvider, useTabStore, useTabStoreApi } from "@/store/TabStoreProvider.js";
-import { isSettingsTab, isWorkspaceTab } from "@/store/tabStore.js";
+import { isSettingsTab, isWorkspaceTab, type WorkspaceTabState } from "@/store/tabStore.js";
 import { logger } from "@/logger.js";
 import { RootShell } from "@/root/RootShell.js";
 import { RootWorkspaceContent } from "@/root/RootWorkspaceContent.js";
@@ -116,7 +121,6 @@ import {
     disposeConversationTelemetrySupervisors,
     reconcileConversationTelemetryWorkspaceScopes,
 } from "@/v4/telemetry/ConversationTelemetryAttachment.js";
-import { installConversationTelemetryParityE2EBridge } from "@/v4/telemetry/conversationTelemetryParityE2E.js";
 import { useSourceServerUpdateNotifications } from "@/root/sourceServerUpdateNotifications.js";
 import type {
     DeviceAdditionResult,
@@ -154,6 +158,7 @@ export function Root(props: RootProps) {
                 <ServiceProvider
                     services={props.services}
                     composerClientNamespace={props.composerClientNamespace}
+                    terminalOwnerId={props.terminalOwnerId}
                 >
                     <PlatformProvider platform={props.platform}>
                         <StoreProvider
@@ -220,6 +225,7 @@ function RootInner({
     webRemoteControlTerminalTransportState,
     initialWorkspaceLoadingFallback,
 }: RootProps) {
+    useInterfaceModeTelemetry(platform, isDesktop === true);
     useEffect(() => {
         setRequestSecurityReporter(platform);
         setMcpStorePlatform(platform);
@@ -236,15 +242,6 @@ function RootInner({
             setSendFunnelArmsReporter(null);
         };
     }, [isDesktop, platform]);
-
-    useEffect(
-        () =>
-            installConversationTelemetryParityE2EBridge({
-                platform,
-                isDesktop: isDesktop === true,
-            }),
-        [isDesktop, platform],
-    );
 
     useEffect(
         () => () => {
@@ -540,6 +537,12 @@ function RootInner({
     );
     const webRemoteControlFeatureEnabled = useWebRemoteControlFeatureEnabled();
     // Bugfix: WebRemoteControlDialog 只是可开关的展示入口，不能由它的本地 state 决定全局远控状态。
+    // Root 直接轮询 main 进程状态，让远控会话 running/active 成为唯一真值来源。
+    const webRemoteControlStatus = useWebRemoteControlStatus({
+        enabled: Boolean(webRemoteControlFeatureEnabled && isDesktop),
+    });
+    const webRemoteControlSessionActive =
+        webRemoteControlStatus.status === "running" || webRemoteControlStatus.status === "active";
     const refreshProviderState = useRootProviderStateRefresh(services);
     useRootProviderSettingsSnapshot(services);
     useEffect(() => {
@@ -707,6 +710,7 @@ function RootInner({
         activeWorkspacePath,
         activeWorkspaceIdentity,
         supportsSettings,
+        isDesktop,
         allowOpenWorkspace,
         preferDirectoryBrowser: shouldPreferDirectoryBrowser,
         openDirectoryBrowser: handleOpenDirectoryBrowser,
@@ -870,6 +874,7 @@ function RootInner({
             }
         });
     }, [handleReconnectRemoteWorkspace, platform]);
+    useWebRemoteControlRendererActions(platform);
 
     useEffect(() => {
         // Bugfix: fileDisplay 默认不传 basePath 时需要落到“当前激活 workspace”。
@@ -1030,9 +1035,7 @@ function RootInner({
         startDraftInWorkspace,
         startNewTaskFromActiveWorkspace,
         openWorkspace: handleOpenWorkspace,
-        openWorkspacePath: (path) => {
-            void handleSelectProject(path);
-        },
+        openWorkspacePath: handleSelectProject,
         setWorkspaceActionError,
         allowOpenWorkspace,
         isDesktop,
@@ -1498,6 +1501,22 @@ function RootInner({
         previousRemoteConnectionInProgressRef.current = remoteConnectionInProgress;
     }, [remoteConnectionInProgress, resetRemoteConnectionLogs]);
 
+    // 修复原因：没有打开的项目时 Root 只渲染独立设置页，迁移向导没有挂载，数据同步页「迁移」点了没有反应。
+    // 两个分支共用同一个迁移向导节点；没有项目时 workspacePath 为空，用户级的项照常导入（见 useSettingsSync）。
+    const onboardingDialog = (
+        <ScopedErrorBoundary
+            scope="onboarding-dialog"
+            resetKeys={[workspaceShellIdentity?.trim() || workspaceShellPath]}
+            variant="silent"
+        >
+            <OnboardingDialog
+                workspacePath={workspaceShellPath || undefined}
+                workspaceIdentity={workspaceShellIdentity}
+                isDesktop={isDesktop}
+            />
+        </ScopedErrorBoundary>
+    );
+
     const settingsLayerProps = {
         isDesktop,
         isMacDesktop,
@@ -1555,6 +1574,7 @@ function RootInner({
                 >
                     <SettingsPage {...settingsLayerProps} />
                 </ScopedErrorBoundary>
+                {onboardingDialog}
             </RootShell>
         );
     }
@@ -1680,17 +1700,7 @@ function RootInner({
                         </RemoteProjectPresentationProvider>
                     </RemoteWorkspaceControllerProvider>
                 )}
-                <ScopedErrorBoundary
-                    scope="onboarding-dialog"
-                    resetKeys={[workspaceShellIdentity?.trim() || workspaceShellPath]}
-                    variant="silent"
-                >
-                    <OnboardingDialog
-                        workspacePath={workspaceShellPath || undefined}
-                        workspaceIdentity={workspaceShellIdentity}
-                        isDesktop={isDesktop}
-                    />
-                </ScopedErrorBoundary>
+                {onboardingDialog}
             </OccupationOnboarding>
         </RootShell>
     );

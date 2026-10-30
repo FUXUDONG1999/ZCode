@@ -122,6 +122,7 @@ export function ToolSearchToolCallBlock(context: ToolCallBlockRenderContext) {
             {...context}
             searchPrimaryText={searchPrimaryText}
             kindLabelOverride=""
+            titleOverride="ToolSearch"
             hideSnapshotNotice
         />
     );
@@ -130,6 +131,7 @@ export function ToolSearchToolCallBlock(context: ToolCallBlockRenderContext) {
 function SearchToolCallLayout(
     context: ToolCallBlockRenderContext & {
         searchPrimaryText: string;
+        titleOverride?: string;
         hideSnapshotNotice?: boolean;
     },
 ) {
@@ -165,7 +167,7 @@ function SearchToolCallLayout(
                 statusTooltip={toolCall.status === "failed" ? errorText : undefined}
                 showFailureStatus={toolCall.status === "failed"}
                 isRunning={isRunning}
-                title={toolCall.title}
+                title={context.titleOverride ?? toolCall.title}
                 content={null}
             />
             {!context.hideSnapshotNotice && (

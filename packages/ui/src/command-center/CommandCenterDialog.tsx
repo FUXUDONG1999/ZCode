@@ -468,10 +468,6 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
         open && hasSearchQuery && (activeScope === "all" || activeScope === "conversations");
     const searchFiles =
         open && hasSearchQuery && (activeScope === "all" || activeScope === "files");
-    const searchWorkspaceTabs = useMemo(
-        () => (searchConversations ? effectiveWorkspaceTabs : []),
-        [effectiveWorkspaceTabs, searchConversations],
-    );
     const currentWorkspaceTabs = useMemo(
         () =>
             effectiveWorkspaceTabs.filter(
@@ -484,8 +480,10 @@ export const CommandCenterDialog = memo(function CommandCenterDialogComponent({
         [currentWorkspaceTabs, hasSearchQuery, open],
     );
     const taskList = useGlobalTaskList({
-        kind: "active",
-        workspaceTabs: searchWorkspaceTabs,
+        kind: "all",
+        scope: "host",
+        enabled: searchConversations,
+        workspaceTabs: EMPTY_COMMAND_CENTER_WORKSPACE_TABS,
         sortBy: "updated",
         searchQuery,
         expanded: false,

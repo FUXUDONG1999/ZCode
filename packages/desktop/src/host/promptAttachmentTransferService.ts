@@ -67,12 +67,14 @@ export function createRemotePromptAttachmentTransferService(
     const cleanup = async (operationId: string) => {
         const record = records.get(operationId);
         if (record) {
-            emitters.get(operationId)?.fire({
-                operationId,
-                phase: "canceled",
-                uploadedBytes: 0,
-                totalBytes: record.bytes,
-            });
+            emitters
+                .get(operationId)
+                ?.fire({
+                    operationId,
+                    phase: "canceled",
+                    uploadedBytes: 0,
+                    totalBytes: record.bytes,
+                });
             await cleanupRecord(operationId, record);
         }
     };

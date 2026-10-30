@@ -5,7 +5,7 @@ import type { KeyboardEvent, MouseEvent } from "react";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import type { UniqueIdentifier } from "@dnd-kit/core";
 import { isCronTask, isOffPeakTask } from "@zcode/shared";
-import { ArrowUpToLine, Clock, Cloud, Folder, LoaderIcon, Moon, X } from "lucide-react";
+import { ArrowUpToLine, Clock, Cloud, Folder, ListTree, LoaderIcon, Moon, X } from "lucide-react";
 import { cn } from "@/components/lib/utils.js";
 import { Badge } from "@/components/ui/badge.js";
 import { toast } from "@/components/ui/toast.js";
@@ -42,13 +42,12 @@ function GroupedTaskRowComponent({
     currentGroupId,
     groups,
     remoteSessionId,
-    activeWorkspacePath,
-    activeWorkspaceIdentity,
-    activeTaskId,
-    mobileActiveTaskKey,
+    isActive,
+    isMobileActive,
     workspaceLabel,
     onSelectTask,
     onCloseTask,
+    onOpenFileTree,
     onMoveTaskToGroup,
     onMoveTaskToTop,
     onStartRenameTask,
@@ -63,13 +62,12 @@ function GroupedTaskRowComponent({
     currentGroupId?: string;
     groups: TaskGroupMenuItem[];
     remoteSessionId?: string;
-    activeWorkspacePath: string;
-    activeWorkspaceIdentity?: string;
-    activeTaskId: string | null;
-    mobileActiveTaskKey?: string | null;
+    isActive: boolean;
+    isMobileActive: boolean;
     workspaceLabel: string;
     onSelectTask: (workspacePath: string, taskId: string, workspaceIdentity?: string) => void;
     onCloseTask: (task: ZCodeTaskMeta) => void;
+    onOpenFileTree?: (task: ZCodeTaskMeta) => void;
     onMoveTaskToGroup: (task: ZCodeTaskMeta, groupId: string | null) => void;
     onMoveTaskToTop: (task: ZCodeTaskMeta) => void;
     onStartRenameTask: (task: ZCodeTaskMeta) => void;
@@ -99,6 +97,10 @@ function GroupedTaskRowComponent({
     // 交互胶囊是当前最高优先级的右侧状态；无论来自 sessions-index 摘要还是
     // activity attention，都不应再并排显示相对时间并挤压任务标题。
     const hasPendingInteraction = Boolean(task.pendingInteraction) || taskAttention !== null;
+    // Bugfix：远端 session 未就绪时打开文件树必然会被 resolver 拒绝，因此不要暴露
+    // 无效 action；本地 task 不需要 remoteSessionId，仍保持入口可用。
+    const canOpenFileTree =
+        Boolean(onOpenFileTree) && (!task.workspaceIdentity?.trim() || Boolean(remoteSessionId));
     const taskAttentionLabel = taskAttention
         ? intl.formatMessage({
               id:
@@ -126,10 +128,6 @@ function GroupedTaskRowComponent({
     // 月亮身份改为持久 meta 标记判断；off-peak store 反查在任务被删除后会丢失
     // 会话溯源，且让每一行多背一个全局 store 订阅。
     const isTaskOffPeak = isOffPeakTask(task);
-    const isActive =
-        buildTaskWorkspaceKey(activeWorkspacePath, activeWorkspaceIdentity) === workspaceKey &&
-        activeTaskId === task.taskId;
-    const isMobileActive = mobileActiveTaskKey === `${workspaceKey}:${task.taskId}`;
     const statusDotClassName =
         leadingIndicator === "error"
             ? "bg-destructive"
@@ -279,6 +277,14 @@ function GroupedTaskRowComponent({
             return;
         }
         onCloseTask(task);
+    };
+    const handleOpenFileTree = (event: MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (workspaceActionsDisabled) {
+            return;
+        }
+        onOpenFileTree?.(task);
     };
     const handleMoveTaskToTop = (event: MouseEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -436,7 +442,16 @@ function GroupedTaskRowComponent({
                     ) : null}
                     {shouldMountHoverActions ? (
                         <span className="flex shrink-0 items-center gap-0.5">
-                            {/* 个人定制：任务行「查看文件」按钮已随左侧标签式侧面板移除。 */}
+                            {canOpenFileTree ? (
+                                <TaskRowActionButton
+                                    label={intl.formatMessage({ id: "git.action.showTree" })}
+                                    onClick={handleOpenFileTree}
+                                    showTooltip
+                                    disabledReason={workspaceActionsDisabledReason}
+                                >
+                                    <ListTree className="size-3.5" />
+                                </TaskRowActionButton>
+                            ) : null}
                             <TaskRowActionButton
                                 label={intl.formatMessage({ id: "taskGroup.moveToTop" })}
                                 onClick={handleMoveTaskToTop}

@@ -107,7 +107,7 @@ async function mapWithConcurrency<Input, Output>(
     run: (item: Input, index: number) => Promise<Output>,
 ): Promise<Output[]> {
     if (items.length === 0) return [];
-    const results = Array.from({ length: items.length }) as Output[];
+    const results = new Array<Output>(items.length);
     let nextIndex = 0;
     const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
         for (;;) {
@@ -310,15 +310,6 @@ function rowTurnOrdinal(row: ConversationRow, ordinals: Map<string, number>): nu
     return row.productTurnId ? ordinals.get(row.productTurnId) : undefined;
 }
 
-function hasUnsafeShareString(value: unknown): boolean {
-    if (typeof value === "string") return /^(?:data|file):/iu.test(value);
-    if (Array.isArray(value)) return value.some(hasUnsafeShareString);
-    if (!value || typeof value !== "object") return false;
-    return Object.entries(value as Record<string, unknown>).some(([key, entry]) =>
-        key === "ref" ? false : hasUnsafeShareString(entry),
-    );
-}
-
 function hasUnsupportedArtifactReference(value: unknown): boolean {
     if (typeof value === "string") return /^zcode-artifact:\/\//iu.test(value);
     if (Array.isArray(value)) return value.some(hasUnsupportedArtifactReference);
@@ -460,7 +451,6 @@ function collectShareStructureIssues(
                 add(row, "unsupported_timeline");
             }
         }
-        if (hasUnsafeShareString(row)) add(row, "unsafe_url");
         if (hasUnsupportedArtifactReference(row)) add(row, "artifact_protocol_not_ready");
     }
     return issues;
@@ -2170,9 +2160,7 @@ export class ConversationShareService implements IConversationShareService {
                 (issue) => issue.code === "artifact_protocol_not_ready",
             )
                 ? "artifact_protocol_not_ready"
-                : structureIssues.some((issue) => issue.code === "unsafe_url")
-                  ? "unsafe_structure"
-                  : "invalid_conversation";
+                : "invalid_conversation";
             throw new ConversationShareServiceError(
                 structureKind,
                 "Selected conversation contains unsupported structure",

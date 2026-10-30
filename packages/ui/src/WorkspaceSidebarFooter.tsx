@@ -1,6 +1,8 @@
 import { SidebarNativeTooltip, ControlHintTooltip } from "@/ControlHintTooltip.js";
-import type { UserInfo } from "@zcode/shared";
-import { memo, useState, type ReactNode } from "react";
+/* oxlint-disable eslint(max-lines) -- footer 聚合账户、主题、模式和快捷键菜单。 */
+import type { Locale, UserInfo } from "@zcode/shared";
+import { memo, useCallback, useEffect, useState, type ReactNode } from "react";
+import { DesktopCommandIds } from "@zcode/shared";
 import {
     TID_LOGIN_MENU_ITEM,
     TID_LOGIN_TRIGGER,
@@ -11,21 +13,51 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.js";
 import { cn } from "@/components/lib/utils.js";
 import { Button } from "@/components/ui/button.js";
 import { toast } from "@/components/ui/toast.js";
+import { Badge } from "@/components/ui/badge.js";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
     DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.js";
-import { Copy, Loader2, LogInIcon, LogOut, Settings, User } from "lucide-react";
+import {
+    Copy,
+    PencilRuler,
+    Globe,
+    Gift,
+    Loader2,
+    LogInIcon,
+    LogOut,
+    Maximize,
+    Palette,
+    Settings,
+    User,
+    ZoomIn,
+    ZoomOut,
+} from "lucide-react";
+import { usePlatform } from "@/hooks/usePlatform.js";
+import { useOpenRewards } from "@/rewards/RewardsProvider.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
+import { useShortcutCommandLabel } from "@/shortcuts/useShortcutBindings.js";
 import { useZCodeStore } from "@/store/StoreProvider.js";
+import { normalizeInterfaceMode } from "@/lib/interfaceMode.js";
+import type { Theme } from "@/useTheme.js";
+import { WorkspaceWebRemoteControlTrigger } from "@/WorkspaceWebRemoteControlTrigger.js";
 import {
     WorkspaceSidebarFooterPlanBadge,
     WorkspaceSidebarFooterUsageSummaryContent,
     useWorkspaceSidebarFooterUsageSummaryState,
 } from "@/WorkspaceSidebarFooterUsageSummary.js";
+
+const DESKTOP_ZOOM_MIN_LEVEL = -3;
+const DESKTOP_ZOOM_MAX_LEVEL = 5;
 
 function getSidebarProfileName(user?: UserInfo | null): string {
     const displayName = user?.displayName?.trim();
@@ -38,7 +70,7 @@ function getSidebarProfileName(user?: UserInfo | null): string {
         return username;
     }
 
-    return "MyAgent";
+    return "ZCode";
 }
 
 function getSidebarProfileBadge(
@@ -58,6 +90,10 @@ function getAvatarFallbackText(user: UserInfo | null | undefined): string {
 }
 
 export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterComponent({
+    theme,
+    localeMenuValue,
+    onLocaleChange,
+    onThemeChange,
     onSettingsButtonClick,
     onUsageClick,
     onUpgradeClick,
@@ -67,9 +103,16 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
     user,
     workspacePath,
     workspaceIdentity,
+    workspaceRemoteSessionId,
+    activeTaskId,
+    isDesktop = false,
     banner,
     className,
 }: {
+    theme: Theme;
+    localeMenuValue: Locale | "system";
+    onLocaleChange: (value: string) => void;
+    onThemeChange: (value: string) => void;
     onSettingsButtonClick?: () => void;
     onUsageClick?: () => void;
     onUpgradeClick?: Parameters<
@@ -83,10 +126,18 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
     workspaceIdentity?: string;
     workspaceRemoteSessionId?: string;
     activeTaskId?: string | null;
+    isDesktop?: boolean;
     banner?: ReactNode;
     className?: string;
 }) {
     const { intl } = useZCodeIntl();
+    const platform = usePlatform();
+    const openRewards = useOpenRewards();
+    const interfaceMode = useZCodeStore((state) => state.interfaceMode);
+    const setInterfaceMode = useZCodeStore((state) => state.setInterfaceMode);
+    const zoomInShortcutLabel = useShortcutCommandLabel("zoomIn");
+    const zoomOutShortcutLabel = useShortcutCommandLabel("zoomOut");
+    const resetZoomShortcutLabel = useShortcutCommandLabel("resetZoom");
     const isRestoringOAuthSession = useZCodeStore((state) => state.isRestoringOAuthSession);
     const profileBadge = getSidebarProfileBadge(user, intl.formatMessage);
     const avatarFallbackText = getAvatarFallbackText(user);
@@ -143,6 +194,42 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
             : intl.formatMessage({ id: "settings.title" });
     const usageButtonClick = onUsageClick ?? onSettingsButtonClick;
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const [desktopZoomLevel, setDesktopZoomLevel] = useState(0);
+    const runDesktopZoomCommand = useCallback(
+        (command: (typeof DesktopCommandIds)["ZoomIn" | "ZoomOut" | "ResetZoom"]) => {
+            void platform.executeDesktopCommand(command);
+        },
+        [platform],
+    );
+
+    useEffect(() => {
+        if (!isDesktop) {
+            setDesktopZoomLevel(0);
+            return;
+        }
+
+        let isCancelled = false;
+        void platform.getDesktopZoomLevel?.().then((state) => {
+            if (!isCancelled && Number.isFinite(state.zoomLevel)) {
+                setDesktopZoomLevel(state.zoomLevel);
+            }
+        });
+
+        const dispose = platform.onDesktopZoomLevelChanged?.((state) => {
+            if (Number.isFinite(state.zoomLevel)) {
+                setDesktopZoomLevel(state.zoomLevel);
+            }
+        });
+
+        return () => {
+            isCancelled = true;
+            dispose?.();
+        };
+    }, [isDesktop, platform]);
+
+    const canResetDesktopZoom = desktopZoomLevel !== 0;
+    const canZoomIn = desktopZoomLevel < DESKTOP_ZOOM_MAX_LEVEL;
+    const canZoomOut = desktopZoomLevel > DESKTOP_ZOOM_MIN_LEVEL;
 
     return (
         // footer 被 Settings 复用，页面专属边距由调用方传入，避免修改共享默认样式。
@@ -247,15 +334,159 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
                                 <DropdownMenuSeparator />
                             </>
                         ) : null}
-                        {/* 个人定制：账户菜单移除「界面语言 / 界面主题 / 界面模式 / 界面缩放」子菜单；
-                语言、主题与界面模式设置保留在设置页通用分区，桌面系统缩放快捷键不受影响。 */}
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <Globe className="size-4" />
+                                {intl.formatMessage({ id: "settings.locale" })}
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent className="w-48">
+                                <DropdownMenuRadioGroup
+                                    value={localeMenuValue}
+                                    onValueChange={onLocaleChange}
+                                >
+                                    <DropdownMenuRadioItem value="system">
+                                        {intl.formatMessage({
+                                            id: "sidebar.settings.systemDefault",
+                                        })}
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="en-US">
+                                        {intl.formatMessage({
+                                            id: "sidebar.settings.locale.en-US",
+                                        })}
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="zh-CN">
+                                        {intl.formatMessage({
+                                            id: "sidebar.settings.locale.zh-CN",
+                                        })}
+                                    </DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <Palette className="size-4" />
+                                {intl.formatMessage({ id: "settings.themeMode" })}
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent className="w-48">
+                                <DropdownMenuRadioGroup value={theme} onValueChange={onThemeChange}>
+                                    <DropdownMenuRadioItem value="system">
+                                        {intl.formatMessage({
+                                            id: "sidebar.settings.systemDefault",
+                                        })}
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="zai-dark">
+                                        {intl.formatMessage({
+                                            id: "sidebar.settings.theme.zai-dark",
+                                        })}
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="zai-light">
+                                        {intl.formatMessage({
+                                            id: "sidebar.settings.theme.zai-light",
+                                        })}
+                                    </DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        <DropdownMenuSub>
+                            <DropdownMenuSubTrigger>
+                                <PencilRuler className="size-4" />
+                                {intl.formatMessage({ id: "settings.interfaceMode" })}
+                            </DropdownMenuSubTrigger>
+                            <DropdownMenuSubContent className="w-48">
+                                <DropdownMenuRadioGroup
+                                    value={interfaceMode}
+                                    onValueChange={(value) =>
+                                        setInterfaceMode(normalizeInterfaceMode(value))
+                                    }
+                                >
+                                    <DropdownMenuRadioItem value="coding">
+                                        {intl.formatMessage({
+                                            id: "settings.interfaceMode.coding",
+                                        })}
+                                    </DropdownMenuRadioItem>
+                                    <DropdownMenuRadioItem value="office">
+                                        {intl.formatMessage({
+                                            id: "settings.interfaceMode.office",
+                                        })}
+                                    </DropdownMenuRadioItem>
+                                </DropdownMenuRadioGroup>
+                            </DropdownMenuSubContent>
+                        </DropdownMenuSub>
+                        {/* 快捷键设置（a58fdef 一系）：缩放子菜单 label 读生效表，设置页改绑后即时跟随 */}
+                        {/* Bugfix: ecc6952 收口重复缩放子菜单时误留了语言之后的那份，导致菜单顺序变成
+                语言→缩放→主题；账户菜单分组顺序固定为 语言→主题→界面模式→缩放→用量→登录/登出，
+                这里把唯一一份（读生效表）挪回用量摘要之前。
+                staging 的 1d3179cb83 独立做过同一处移动（位置一致、缺本注释与 JSX 缩进），
+                合并时保留本版本，不要再补第二份缩放子菜单。 */}
+                        {isDesktop ? (
+                            <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                    <ZoomIn className="size-4" />
+                                    {intl.formatMessage({ id: "sidebar.settings.interfaceZoom" })}
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent className="w-50">
+                                    <DropdownMenuItem
+                                        disabled={!canZoomIn}
+                                        onSelect={() =>
+                                            runDesktopZoomCommand(DesktopCommandIds.ZoomIn)
+                                        }
+                                    >
+                                        <ZoomIn className="size-4" />
+                                        {intl.formatMessage({ id: "titleBar.menu.view.zoomIn" })}
+                                        <DropdownMenuShortcut>
+                                            {zoomInShortcutLabel}
+                                        </DropdownMenuShortcut>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        disabled={!canZoomOut}
+                                        onSelect={() =>
+                                            runDesktopZoomCommand(DesktopCommandIds.ZoomOut)
+                                        }
+                                    >
+                                        <ZoomOut className="size-4" />
+                                        {intl.formatMessage({ id: "titleBar.menu.view.zoomOut" })}
+                                        <DropdownMenuShortcut>
+                                            {zoomOutShortcutLabel}
+                                        </DropdownMenuShortcut>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        disabled={!canResetDesktopZoom}
+                                        onSelect={() =>
+                                            runDesktopZoomCommand(DesktopCommandIds.ResetZoom)
+                                        }
+                                    >
+                                        <Maximize className="size-4" />
+                                        {intl.formatMessage({
+                                            id: "titleBar.menu.view.actualSize",
+                                        })}
+                                        <DropdownMenuShortcut>
+                                            {resetZoomShortcutLabel}
+                                        </DropdownMenuShortcut>
+                                    </DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                        ) : null}
                         {/* Bugfix: 升级入口状态不再以菜单开关为生命周期边界。 */}
                         <WorkspaceSidebarFooterUsageSummaryContent
                             state={usageSummaryState}
                             onUsageClick={usageButtonClick}
                             onUpgradeClick={onUpgradeClick}
                         />
-                        {/* 个人定制：账户菜单移除「邀请好友」入口；Rewards 能力与营销触达入口保留。 */}
+                        {user ? (
+                            <DropdownMenuItem
+                                onSelect={() => openRewards?.()}
+                                data-testid="rewards-menu-item"
+                            >
+                                <Gift className="size-4" />
+                                {intl.formatMessage({ id: "rewards.menuTitle" })}
+                                <Badge
+                                    data-testid="rewards-reward-badge"
+                                    className="-ml-0.5 h-auto border-0 px-1.5 py-0.5 text-ui-sm leading-none bg-[var(--color-plugin-paid-plan-badge)] text-[var(--color-plugin-paid-plan-badge-foreground)]"
+                                >
+                                    {intl.formatMessage({ id: "rewards.menuBadge" })}
+                                </Badge>
+                            </DropdownMenuItem>
+                        ) : null}
                         {onLogin && !user ? (
                             <>
                                 <DropdownMenuSeparator />
@@ -278,7 +509,15 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
                     </DropdownMenuContent>
                 </DropdownMenu>
                 <div className="flex shrink-0 items-center gap-1.5">
-                    {/* 个人定制：移除「手机远程控制」侧边栏触发按钮；远控连接与 Web 端能力保留。 */}
+                    {isDesktop && workspacePath ? (
+                        <WorkspaceWebRemoteControlTrigger
+                            workspacePath={workspacePath}
+                            workspaceIdentity={workspaceIdentity}
+                            remoteSessionId={workspaceRemoteSessionId}
+                            initialTaskId={activeTaskId ?? undefined}
+                            compact
+                        />
+                    ) : null}
                     <ControlHintTooltip title={settingsButtonLabel}>
                         <Button
                             type="button"

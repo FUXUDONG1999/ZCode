@@ -22,6 +22,7 @@ import { resolveLogoutProviderFamilyDomain } from "@/lib/providerFamilyDomainSet
 import { isRendererReloadNavigation } from "@/lib/rendererNavigation.js";
 import { parseWslUncWorkspacePath } from "@/lib/wslUncWorkspace.js";
 import { logger } from "@/logger.js";
+import { toast } from "@/components/ui/toast.js";
 import { useComposerClientNamespace } from "@/hooks/useServices.js";
 import {
     resolveComposerScope,
@@ -36,7 +37,11 @@ import { useZCodeSessionStore } from "@/store/zcodeSessionStore.js";
 import { notifyTaskNavigationCommitted } from "@/store/zcodeSessionStoreNavigation.js";
 import { type TabStore, type TabStoreState } from "@/store/tabStore.js";
 import type { RootProps } from "@/root/types.js";
-import { hadPersistedPaneLayoutAtModuleLoad, usePaneLayoutStore } from "@/v4/paneLayoutStore.js";
+import {
+    hadPersistedPaneLayoutAtModuleLoad,
+    INITIAL_PANE_LAYOUT,
+    usePaneLayoutStore,
+} from "@/v4/paneLayoutStore.js";
 import { resolveWorkbenchNewTaskTarget } from "@/conversation-workspace-target/workbenchTarget.js";
 import type { WorkbenchNewTaskTarget } from "@/conversation-workspace-target/workbenchTarget.js";
 import { useWorkbenchGroupStore } from "@/v4/workbenchGroupStore.js";
@@ -87,6 +92,7 @@ export function useRootWorkspaceActions({
     activeWorkspacePath,
     activeWorkspaceIdentity,
     supportsSettings,
+    isDesktop = false,
     allowOpenWorkspace,
     preferDirectoryBrowser,
     openDirectoryBrowser,
@@ -109,6 +115,7 @@ export function useRootWorkspaceActions({
     activeWorkspacePath: string | null;
     activeWorkspaceIdentity: string | null;
     supportsSettings: boolean;
+    isDesktop?: boolean;
     allowOpenWorkspace: NonNullable<RootProps["allowOpenWorkspace"]>;
     preferDirectoryBrowser: boolean;
     openDirectoryBrowser?: () => void;
@@ -282,7 +289,7 @@ export function useRootWorkspaceActions({
                         );
                     })());
             try {
-                // 在第一次 await 前捕获活动任务/草稿；对象请求与分组继承共用同一组织意图。
+                // 在第一次 await 前捕获活动任务/草稿；快捷键和侧栏新建共用同一组织意图。
                 const requestOptions =
                     typeof request === "string" ? { provider: request } : { ...request };
                 if (
@@ -303,16 +310,6 @@ export function useRootWorkspaceActions({
                                       (activeWorkspaceIdentity?.trim() || activeWorkspacePath),
                           )?.groupId ?? null)
                         : (draftGroupId ?? null);
-                }
-                // 2026-10-24 裁决：全局入口（左上角、Cmd/Ctrl+N、菜单、收起态浮层）不携带对象请求，
-                // 显式注入未归类归属，不再继承当前会话或草稿的项目；远程上下文同样落本地未归类草稿。
-                // 带对象请求的入口（插件试用、技能创建、跨项目工作流）依赖当前目录能力，
-                // 省略归属时仍走下方继承解析。分组 placement 继承在上方已完成，不受注入影响。
-                if (
-                    requestOptions.projectId === undefined &&
-                    (typeof request !== "object" || request === null)
-                ) {
-                    requestOptions.projectId = null;
                 }
                 request = requestOptions;
                 let projectId =
@@ -340,8 +337,7 @@ export function useRootWorkspaceActions({
                     }),
                 );
                 if (!hasExplicitProject && newTaskTarget) {
-                    // 原因：对象请求省略归属时按任务完整身份读取归属，不能由 cwd 猜项目；
-                    // 远程 Host 不允许无项目会话，继承不到项目必须显式报错。
+                    // 原因：仅远程继承项目会让本地快捷键落入未归类。按任务完整身份读取归属，不能由 cwd 猜项目。
                     if (newTaskTarget.workspaceIdentity) {
                         hostId =
                             remoteHostIdFromWorkspaceIdentity(newTaskTarget.workspaceIdentity) ??
@@ -368,7 +364,26 @@ export function useRootWorkspaceActions({
                                           newTaskTarget.workspacePath),
                           )?.projectId ?? undefined)
                         : (workspace.draftProjectId ?? undefined);
-                    if (hostId && !projectId) throw new Error("project.remote-project-required");
+                    if (projectId && (!hostId || hostId === "local")) {
+                        // 软删除保留历史 project_id；把它直接继承给新任务会报 not-found 并停在旧页。
+                        // 只继承同 Host 的有效项目，草稿也复验；读取失败仍报错，不冒充项目已删除。
+                        const projects =
+                            tree?.projects ?? (await services.projectService?.readProjects());
+                        if (!projects) throw new Error("project.service-unavailable");
+                        if (
+                            !projects.some(
+                                (project) =>
+                                    project.id === projectId &&
+                                    project.hostId === "local" &&
+                                    !project.deleted,
+                            )
+                        ) {
+                            logger.debug("[Root] 新任务不继承已删除的本地项目", { projectId });
+                            projectId = undefined;
+                        }
+                    }
+                    if (hostId && hostId !== "local" && !projectId)
+                        throw new Error("project.remote-project-required");
                 }
                 if (!isCurrent()) return;
                 if (workbenchGroupClientMode === "web-remote-replayable") {
@@ -435,12 +450,30 @@ export function useRootWorkspaceActions({
             } catch (error) {
                 if (!isCurrent()) return;
                 logger.error("[Root] 准备新任务失败", error);
-                if (typeof request === "object") request.onError?.(error);
-                setWorkspaceActionError(error instanceof Error ? error.message : String(error));
+                if (typeof request === "object" && request.onError) request.onError(error);
+                else {
+                    // 原因：原错误状态无人展示，目录移走后顶部新建和快捷键只会静默失败。
+                    // 在仍有效的动作出口反馈；有 onError 的调用方继续负责展示，避免重复提示。
+                    // 手机 bridge 返回普通错误对象，不能用 instanceof Error 丢掉 message。
+                    const message =
+                        error &&
+                        typeof error === "object" &&
+                        "message" in error &&
+                        typeof error.message === "string"
+                            ? error.message
+                            : String(error);
+                    toast(
+                        message === "project.primaryRootMissing" ||
+                            message === "project.primaryRootUnavailable"
+                            ? intl.formatMessage({ id: message })
+                            : message,
+                    );
+                }
             }
         },
         [
             services.projectService,
+            intl,
             composerClientNamespace,
             activeWorkspacePath,
             activeWorkspaceIdentity,
@@ -544,8 +577,29 @@ export function useRootWorkspaceActions({
     ]);
 
     const handleSelectProject = useCallback(
-        async (path: string) => {
+        async (path: string, activateOtherWindow = true) => {
             logger.info("[Root] handleSelectProject called with path:", path);
+            const sequence = ++navigationSequence.current;
+            const origin = tabStoreApi.getState();
+            const readOriginDraft = () =>
+                origin.activeWorkspacePath
+                    ? useZCodeSessionStore
+                          .getState()
+                          .getWorkspaceState(
+                              origin.activeWorkspacePath,
+                              origin.activeWorkspaceIdentity ?? undefined,
+                          )
+                    : undefined;
+            const originDraft = readOriginDraft();
+            const isCurrent = () => {
+                const current = readOriginDraft();
+                return (
+                    sequence === navigationSequence.current &&
+                    tabStoreApi.getState().activeTabId === origin.activeTabId &&
+                    current?.activeTaskId === originDraft?.activeTaskId &&
+                    current?.draftFocusVersion === originDraft?.draftFocusVersion
+                );
+            };
             try {
                 const wslUncWorkspace = parseWslUncWorkspacePath(path);
                 if (wslUncWorkspace && onOpenRemoteConnection) {
@@ -575,8 +629,25 @@ export function useRootWorkspaceActions({
                     }
                 }
 
+                if (!isCurrent()) return;
+                // 项目模型迁移后，单独 addTab 不再赋予项目归属。桌面目录入口必须先由
+                // Host 原子复用/创建项目，再初始化草稿，不能沿用该目录的旧草稿归属。
+                let projectId: string | undefined;
+                if (isDesktop) {
+                    if (!services.projectService) throw new Error("project.service-unavailable");
+                    projectId = (
+                        await services.projectService.saveProject({
+                            roots: [path],
+                            reuseExistingRoot: true,
+                        })
+                    ).id;
+                }
+                if (!isCurrent()) return;
                 // 桌面端：检查是否已有其他窗口打开了该目录，如果是则激活该窗口对应 tab
-                const result = await platform.activateOrSetWorkspace(path);
+                const result = activateOtherWindow
+                    ? await platform.activateOrSetWorkspace(path)
+                    : { activated: false };
+                if (!isCurrent()) return;
                 if (result.activated) {
                     logger.info("[Root] 目录已在其他窗口打开，已激活该窗口对应 tab，跳过重复打开");
                     return;
@@ -586,10 +657,13 @@ export function useRootWorkspaceActions({
                 addTab(path);
                 // 打开 workspace 是 workspace-only 意图，不是“继续上次会话”。
                 // 即使命中已存在 tab，也必须清掉该 workspace 的 activeTaskId 并回到单 pane 草稿。
-                startDraftInWorkspace(path);
+                startDraftInWorkspace(path, undefined, projectId ? { projectId } : undefined);
                 setWorkspaceActionError(null);
+                logger.info("[Root] 已打开目录", { path, projectId });
             } catch (err) {
+                if (!isCurrent()) return;
                 logger.error("[Root] handleSelectProject error:", err);
+                setWorkspaceActionError(err instanceof Error ? err.message : String(err));
             }
         },
         [
@@ -598,9 +672,10 @@ export function useRootWorkspaceActions({
             onOpenRemoteConnection,
             platform,
             requestConfirmation,
-            services.settingService,
+            services.projectService,
+            isDesktop,
             startDraftInWorkspace,
-            supportsSettings,
+            tabStoreApi,
         ],
     );
 

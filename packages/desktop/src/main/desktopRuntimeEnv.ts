@@ -65,10 +65,10 @@ function isTruthyRuntimeEnvOverride(name: string): boolean {
 export const runtimeApplicationName =
     readRuntimeEnvOverride("ZCODE_DESKTOP_APPLICATION_NAME") ??
     (isLocalDevelopmentRuntime
-        ? "MyAgent Dev"
+        ? "ZCode Dev"
         : isPreviewPackagedRuntime
-          ? "MyAgent Preview"
-          : "MyAgent");
+          ? "ZCode Preview"
+          : "ZCode");
 // Electron 的 app.getPath("home") 不一定跟随测试进程里的 HOME 覆盖。
 // e2e 默认工作区依赖 home 路径，因此提供显式覆盖，避免测试写到开发者真实 ~/ZCodeProject。
 export const runtimeHomePath = readRuntimeEnvOverride("ZCODE_DESKTOP_HOME_DIR");

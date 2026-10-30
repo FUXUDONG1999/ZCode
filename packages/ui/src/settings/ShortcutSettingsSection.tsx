@@ -62,9 +62,8 @@ export function ShortcutSettingsSection({ isDesktop = false }: { isDesktop?: boo
         return SHORTCUT_COMMANDS.filter((entry) => {
             // 这些快捷键保留注册和冲突检测，但不在用户可见列表中展示。
             if (entry.id === "openOnboarding" || entry.id === "toggleInterfaceMode") return false;
-            // 个人定制：左侧标签式侧面板已移除，切换面板/完整视图两个快捷键不再展示改键入口。
-            if (entry.id === "toggleSidePane" || entry.id === "toggleSidePaneFullView")
-                return false;
+            // 完整视图只在桌面端提供，Web 没有处理器，不展示无效的改键入口。
+            if (entry.id === "toggleSidePaneFullView" && !isDesktop) return false;
             const matchesText =
                 !keyword ||
                 entry.id.toLowerCase().includes(keyword) ||

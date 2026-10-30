@@ -77,7 +77,7 @@ export function HighspeedShareNoticeCard({
                         <div
                             className="highspeed-sidebar-share-card__title"
                             role="img"
-                            aria-label="MyAgent"
+                            aria-label="ZCode"
                         >
                             <ZCodeWordmarkLogo className="highspeed-sidebar-share-card__wordmark" />
                         </div>

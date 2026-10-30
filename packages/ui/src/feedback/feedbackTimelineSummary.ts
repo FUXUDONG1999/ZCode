@@ -50,9 +50,7 @@ function formatKnownSystemEventSummary(summary: string, formatMessage?: MessageF
             formatMessage,
             "feedback.timeline.event.agentSubmitted",
             summary,
-            {
-                name,
-            },
+            { name },
         );
     }
 
@@ -83,10 +81,7 @@ function formatKnownSystemEventSummary(summary: string, formatMessage?: MessageF
             formatMessage,
             "feedback.timeline.event.markedStatus",
             summary,
-            {
-                status: formatStatusLabel(status, formatMessage),
-                message,
-            },
+            { status: formatStatusLabel(status, formatMessage), message },
         );
     }
 

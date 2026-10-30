@@ -2,6 +2,8 @@ import { SidebarTooltipProvider } from "@/ControlHintTooltip.js";
 export { readProjectSidebarView } from "@/project-sidebar/view-preference.js";
 import { SortableProjects } from "@/project-sidebar/SortableProjects.js";
 export { ArchiveManagement } from "@/project-sidebar/ArchiveManagement.js";
+export { useWebRemoteControlRendererActions } from "@/project-sidebar/useWebRemoteControlRendererActions.js";
+export { ProjectManagement } from "@/project-sidebar/ProjectManagement.js";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { ScrollFadeViewport } from "@/components/ui/scroll-fade-viewport.js";
 import { TID_SIDEBAR } from "@zcode/shared/test-ids";
@@ -9,6 +11,8 @@ import { remoteHostIdFromWorkspaceIdentity } from "@/project-sidebar/contract.js
 import type {
     ProjectSidebarProps,
     VirtualProject,
+    Locale,
+    Theme,
     RemoteProjectHost,
 } from "@/project-sidebar/contract.js";
 import { useProjectPinIntent } from "@/project-sidebar/useProjectPinIntent.js";
@@ -21,6 +25,7 @@ import { useProjectDirectory } from "@/project-sidebar/ProjectDirectoryProvider.
 export {
     ProjectDirectoryProvider,
     useOptionalProjectDirectory,
+    useOptionalProjectDirectoryActions,
 } from "@/project-sidebar/ProjectDirectoryProvider.js";
 export { ProjectComposerMenu } from "@/project-sidebar/ProjectComposerMenu.js";
 import { useProjectTaskNavigation } from "@/project-sidebar/useProjectTaskNavigation.js";
@@ -51,6 +56,7 @@ import { SidebarBottomActivity } from "@/sidebar-activity/SidebarBottomActivity.
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { useTabStoreApi } from "@/store/TabStoreProvider.js";
 import { useZCodeSessionStore } from "@/store/zcodeSessionStore.js";
+import { useZCodeStore } from "@/store/StoreProvider.js";
 import { useCodingPlanUpgradeDialog } from "@/settings/CodingPlanUpgradeDialogProvider.js";
 export { attachRemoteProjectWorkspace } from "@/project-sidebar/remote-navigation.js";
 export { resolveEntryProject } from "@/project-sidebar/view.js";
@@ -67,6 +73,7 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
         service,
         remoteService,
         availability,
+        hostReadErrors,
         refresh,
         error,
         loading,
@@ -75,11 +82,12 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
         deviceNames,
     } = useProjectDirectory();
     const { tree, pin } = useProjectPinIntent(authoritativeTree);
-    const remoteSync = useProjectRemoteSync(props, directory);
-    const diagnostics = useProjectConnectionDiagnostics(directory, props);
+    const remoteSync = useProjectRemoteSync(directory);
+    const diagnostics = useProjectConnectionDiagnostics(directory, props, hostReadErrors);
     const onSelectTask = useProjectTaskNavigation(props, tree, remoteService);
-    const { intl } = useZCodeIntl();
+    const { intl, localePreference, setLocalePreference } = useZCodeIntl();
     const tabStore = useTabStoreApi();
+    const setTheme = useZCodeStore((state) => state.setTheme);
     const { openCodingPlanUpgrade } = useCodingPlanUpgradeDialog();
     const { view, setView } = preferences;
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -96,9 +104,7 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
         ),
     );
     const [remotePicker, setRemotePicker] = useState<RemoteProjectHost | null>(null);
-    // 个人定制：「查看文件」入口已随左侧标签式侧面板移除；hook 仅保留手机端 fileTreeOpenRequest
-    // 深链消费（面板收起后无可见效果），项目行/任务行不再提供打开文件树的回调。
-    useProjectFileTree(props, directory, remoteService);
+    const { openFiles, openTaskFiles } = useProjectFileTree(props, directory, remoteService);
     const remoteControlEnabled = useWebRemoteControlFeatureEnabled();
     const mobileStatus = useWebRemoteControlStatus({
         enabled: Boolean(props.isDesktop && remoteControlEnabled),
@@ -114,6 +120,7 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
             activeWorkspaceKey: props.workspaceIdentity?.trim() || props.workspacePath,
             mobileActiveTaskKey,
             onPin: pin,
+            onOpenTaskFiles: openTaskFiles,
         }),
         [
             props.isWebRemoteControl,
@@ -121,8 +128,10 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
             props.workspaceIdentity,
             mobileActiveTaskKey,
             pin,
+            openTaskFiles,
         ],
     );
+    const msg = (id: string) => intl.formatMessage({ id: `project.${id}` });
     const start = async (projectId?: string, hostId?: string, taskGroupId?: string | null) => {
         const activeTaskId = useZCodeSessionStore
             .getState()
@@ -188,12 +197,18 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
             onCreateTask={props.onCreateTask}
             onReconnectRemoteWorkspace={props.onReconnectRemoteWorkspace}
             onEdit={setEditor}
+            onViewFiles={openFiles}
             remoteActions={remoteSync.actions}
         />
     );
     const openSettings = useCallback(() => {
         tabStore.getState().openSettingsTab();
     }, [tabStore]);
+    const changeLocale = useCallback(
+        (value: string) => setLocalePreference(value as Locale | "system"),
+        [setLocalePreference],
+    );
+    const changeTheme = useCallback((value: string) => setTheme(value as Theme), [setTheme]);
     const upgrade = useCallback<
         NonNullable<Parameters<typeof WorkspaceSidebarFooter>[0]["onUpgradeClick"]>
     >(
@@ -219,8 +234,7 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
                             data-project-sidebar-panel="navigation"
                             className="absolute inset-0 flex min-h-0 flex-col"
                         >
-                            {/* 2026-10-24 裁决：顶层新建省略归属，由 Root 入口对无对象请求显式注入未归类，
-                  不继承当前会话或草稿的项目；需要项目的任务走项目行新建或草稿项目菜单。 */}
+                            {/* 原因：顶层新建显式传 null 会抹掉当前项目；省略归属，让 Root 与快捷键共用继承路径。 */}
                             <ProjectSidebarNavigation
                                 props={props}
                                 onCreate={() => props.onCreateTask()}
@@ -321,9 +335,16 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
                                                 </>
                                             ) : (
                                                 <ProjectTaskRows
-                                                    key="timeline"
-                                                    kind="timeline"
-                                                    tasks={selectProjectRows(tree, { kind: view })}
+                                                    key={view}
+                                                    kind={view}
+                                                    tasks={selectProjectRows(
+                                                        view === "unread"
+                                                            ? authoritativeTree
+                                                            : tree,
+                                                        {
+                                                            kind: view,
+                                                        },
+                                                    )}
                                                     onSelect={onSelectTask}
                                                     refresh={refresh}
                                                 />
@@ -347,6 +368,10 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
                             </div>
                             <WorkspaceSidebarFooter
                                 className="pr-3"
+                                theme={props.theme}
+                                localeMenuValue={localePreference}
+                                onLocaleChange={changeLocale}
+                                onThemeChange={changeTheme}
                                 onSettingsButtonClick={openSettings}
                                 onUsageClick={openSettings}
                                 onUpgradeClick={upgrade}
@@ -357,6 +382,7 @@ export const ProjectSidebar = memo(function ProjectSidebar(props: ProjectSidebar
                                 // 项目侧栏不再从 tab 反推身份；远控入口必须沿用当前 attachment 的精确 scope。
                                 workspaceIdentity={props.workspaceIdentity}
                                 workspaceRemoteSessionId={props.workspaceRemoteSessionId}
+                                isDesktop={props.isDesktop}
                                 banner={banner}
                             />
                         </div>

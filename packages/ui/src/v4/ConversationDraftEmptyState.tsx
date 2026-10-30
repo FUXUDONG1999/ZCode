@@ -5,7 +5,7 @@
  * 手机远控复用同一组件，但继续保留 20px 紧凑标题；桌面草稿首页才按标题自身宽度适配。
  */
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
-import darkEmptyStateLogoUrl from "@/assets/A.svg";
+import darkEmptyStateLogoUrl from "@/assets/Z.svg";
 import { cn } from "@/components/lib/utils.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { useIsOfficeMode } from "@/hooks/useInterfaceMode.js";
@@ -249,12 +249,10 @@ function ZCodeEmptyStateLogo({ className }: { className?: string }) {
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
             >
-                <g transform="translate(13.3 1) scale(1.4587)">
-                    <path
-                        d="M100 0H156L256 218H0ZM128 49.2L91 136L165 136ZM76.4 170L56 218L200 218L179.6 170Z"
-                        stroke="currentColor"
-                    />
-                </g>
+                <path
+                    d="M398.97 0.5L147.576 319.5H1.03027L37.5996 273.081L120.167 169.603L120.171 169.598L215.342 47.5605L215.343 47.5615L252.424 0.5H398.97ZM264.544 273.271H372.527L336.082 319.498H189.886L202.642 303.307C217.584 284.34 240.398 273.271 264.544 273.271ZM209.164 0.5L202.786 8.58887C183.782 32.6885 154.782 46.752 124.091 46.752H25.9805L62.4268 0.5H209.164Z"
+                    stroke="currentColor"
+                />
             </svg>
             {/* 深色资源包含专用渐变与模糊效果，不能通过 currentColor 复刻；主题类保证两套 Logo 互斥显示。 */}
             <img

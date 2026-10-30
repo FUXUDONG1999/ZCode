@@ -22,6 +22,7 @@ import {
     resolveRemoteAssetFetch,
     type RemoteAssetNetworkPort,
 } from "@zcode/server/remote/remoteAssetNetwork.js";
+import { createUnsupportedRemotePlatformError } from "@zcode/server/remote/remotePlatformSupport.js";
 import type { ServerReleaseAsset, SourceServerProbeResult } from "@zcode/server/source-server";
 import type { WindowRemoteAssetDirs } from "./windowRemoteConnectionRegistry.js";
 
@@ -201,8 +202,12 @@ async function resolveReleaseAsset(
         (probe.platform !== "linux" && probe.platform !== "darwin") ||
         (probe.arch !== "x64" && probe.arch !== "arm64")
     ) {
-        throw new Error(
-            `Unsupported Source Server release target: ${probe.platform}-${probe.arch}`,
+        // Bug 原因：英文拒绝信息没有公开码，又被下载阶段兜底成 remote-download-failed，
+        // riscv64 等设备看到“下载失败”并被建议重试；平台不支持应使用专用码和中文原因。
+        // Bug 原因：原因曾写成“Linux / macOS”，连接错误脱敏把空格后的裸 `/` 当作路径遮到行尾，
+        // 用户只看到“只提供 Linux [redacted-path]”。脱敏无法区分路径与分隔符，列举改用顿号。
+        throw createUnsupportedRemotePlatformError(
+            `当前不支持 ${probe.platform}-${probe.arch} 设备：远程服务只提供 Linux、macOS 的 x64 与 arm64 版本`,
         );
     }
     const target = `${probe.platform}-${probe.arch}`;
@@ -220,7 +225,7 @@ async function resolveReleaseAsset(
     ) {
         if (!remoteAssets.mockCdnDir) {
             throw new Error(
-                "Development Source Server release is unavailable; local remote-asset staging was removed in this fork",
+                "Development Source Server release is unavailable; run pnpm bootstrap:with-remote",
             );
         }
         const releaseDir = join(remoteAssets.mockCdnDir, "releases", ZCODE_VERSION);
@@ -229,7 +234,7 @@ async function resolveReleaseAsset(
             // Bug 原因：开发态回退 CDN 会把 bootstrap 失败伪装成连接成功，并继续运行同版本旧代码。
             // 内容寻址开发策略只能消费本轮本地 descriptor/archive，缺失时必须明确失败。
             throw new Error(
-                "Development Source Server release descriptor is unavailable; local remote-asset staging was removed in this fork",
+                "Development Source Server release descriptor is unavailable; run pnpm bootstrap:with-remote",
             );
         }
         return {

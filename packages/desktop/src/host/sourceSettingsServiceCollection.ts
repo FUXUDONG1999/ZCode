@@ -10,6 +10,7 @@ import {
     ISkillSyncService,
     IMcpSyncService,
     IPluginSyncService,
+    IUserConfigSyncService,
     IPluginsService,
     IPluginManagementService,
     ICommandsService,
@@ -84,6 +85,10 @@ export function createSourceSettingsServiceCollection(
         .register(
             IPluginSyncService,
             read(IPluginSyncService, (accessor) => accessor.pluginSyncService),
+        )
+        .register(
+            IUserConfigSyncService,
+            read(IUserConfigSyncService, (accessor) => accessor.userConfigSyncService),
         )
         .register(
             IPluginsService,

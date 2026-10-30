@@ -21,8 +21,7 @@ export function initializeNewTaskDraft(
     const recent = readComposerRecent(workspacePath, workspaceIdentity, undefined, scope);
     return {
         ...draft,
-        // 个人定制：新任务默认模式固定为完全访问（yolo），不再继承最近一次任务的模式。
-        mode: "yolo",
+        mode: recent?.mode === "plan" ? "build" : (recent?.mode ?? "build"),
         planEnabled: false,
         modelSelection:
             recent?.modelSelection ??

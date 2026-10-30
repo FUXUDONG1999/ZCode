@@ -1,3 +1,4 @@
+import { buildTaskWorkspaceKey } from "@/lib/taskQueryCache.js";
 import type { ProjectTask as ZCodeTaskMeta } from "@/project-sidebar/contract.js";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -52,6 +53,7 @@ export function VirtualizedGroupedTaskList({
     getTaskWorkspaceLabel,
     onSelectTask,
     onCloseTask,
+    onOpenFileTree,
     onMoveTaskToGroup,
     onMoveTaskToTop,
     onStartRenameTask,
@@ -71,6 +73,7 @@ export function VirtualizedGroupedTaskList({
     getTaskWorkspaceLabel: (task: ZCodeTaskMeta) => string;
     onSelectTask: (workspacePath: string, taskId: string, workspaceIdentity?: string) => void;
     onCloseTask: (task: ZCodeTaskMeta) => void;
+    onOpenFileTree?: (task: ZCodeTaskMeta) => void;
     onMoveTaskToGroup: (task: ZCodeTaskMeta, groupId: string | null) => void;
     onMoveTaskToTop: (task: ZCodeTaskMeta) => void;
     onStartRenameTask: (task: ZCodeTaskMeta) => void;
@@ -158,12 +161,18 @@ export function VirtualizedGroupedTaskList({
                 groups={groups}
                 remoteSessionId={getTaskRemoteSessionId(task)}
                 workspaceLabel={getTaskWorkspaceLabel(task)}
-                activeWorkspacePath={activeWorkspacePath}
-                activeWorkspaceIdentity={activeWorkspaceIdentity}
-                activeTaskId={activeTaskId}
-                mobileActiveTaskKey={mobileActiveTaskKey}
+                isActive={
+                    activeTaskId === task.taskId &&
+                    buildTaskWorkspaceKey(activeWorkspacePath, activeWorkspaceIdentity) ===
+                        buildTaskWorkspaceKey(task.workspacePath, task.workspaceIdentity)
+                }
+                isMobileActive={
+                    mobileActiveTaskKey ===
+                    `${buildTaskWorkspaceKey(task.workspacePath, task.workspaceIdentity)}:${task.taskId}`
+                }
                 onSelectTask={onSelectTask}
                 onCloseTask={onCloseTask}
+                onOpenFileTree={onOpenFileTree}
                 onMoveTaskToGroup={onMoveTaskToGroup}
                 onMoveTaskToTop={onMoveTaskToTop}
                 onStartRenameTask={onStartRenameTask}
@@ -188,6 +197,7 @@ export function VirtualizedGroupedTaskList({
             onMarkTaskAsUnread,
             onMoveTaskToGroup,
             onMoveTaskToTop,
+            onOpenFileTree,
             onSelectTask,
             onStartRenameTask,
             activeDragTaskKey,

@@ -36,8 +36,7 @@ export function ZCodeStartupLogoBadge({
         <div
             data-desktop-logo-badge={size === "titlebar" ? "true" : undefined}
             className={cn(
-                // MyAgent 品牌徽章与应用图标同源：靛蓝-紫渐变底 + 白色粗体 A 字标。
-                "relative flex items-center justify-center bg-[linear-gradient(180deg,#6365F1_0%,#8A5CF5_100%)] text-[#ffffff] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:border before:border-[rgba(255,255,255,0.1)] before:content-['']",
+                "relative flex items-center justify-center bg-[linear-gradient(180deg,#000000_0%,#151718_100%)] text-[#ffffff] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:border before:border-[rgba(255,255,255,0.1)] before:content-['']",
                 size === "titlebar"
                     ? "size-5 rounded shadow-sm/20 before:border-white/20"
                     : "size-24 rounded-3xl shadow-xl/20",
@@ -79,10 +78,15 @@ export function ZCodeStartupLogo({
                     values="1;0.4;1"
                 />
             ) : null}
-            {/* MyAgent 字标 A：左斜笔、右斜笔、横杠三段，供启动动画分段闪烁。 */}
-            <path fill="currentColor" d="M100 0L0 218L56 218L128 49.2L128 0Z" />
-            <path fill="currentColor" d="M128 0L156 0L256 218L200 218L128 49.2Z" />
-            <path fill="currentColor" d="M91 136L165 136L179.6 170L76.4 170Z" />
+            <path
+                fill="currentColor"
+                d="M134.4 0.130152L116.48 25.6022C113.665 29.5699 109.054 32.0019 104.064 32.0019H6.3999V0C6.3999 0.130149 134.4 0.130152 134.4 0.130152Z"
+            />
+            <path fill="currentColor" d="M256 0.130127L102.401 217.732H0L153.599 0.130127H256Z" />
+            <path
+                fill="currentColor"
+                d="M121.601 217.732L139.65 192.134C142.465 188.166 147.076 185.734 152.067 185.734H249.604V217.736H121.601V217.732Z"
+            />
         </svg>
     );
 }

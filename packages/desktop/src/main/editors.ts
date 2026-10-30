@@ -16,7 +16,6 @@ import {
 } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { homedir } from "node:os";
 import { join, win32 as pathWin32 } from "node:path";
 import { app, nativeImage } from "electron";
 import type { EditorInfo } from "@zcode/shared";
@@ -66,59 +65,6 @@ interface ParsedIcnsPngCandidate {
     image: Buffer;
 }
 
-interface MacToolboxAppScanOptions {
-    /** 目录名命中前缀后，再排除匹配该正则的 .app（用于区分 Ultimate / Community）。 */
-    excludeNamePattern?: RegExp;
-}
-
-/**
- * 扫描 macOS 上 JetBrains Toolbox 的安装位置，按产品名前缀匹配。
- * Toolbox 2.x（现行版本，官方定为固定路径）直接装到 ~/Applications，
- * 且产品名可能带 edition 后缀（IntelliJ IDEA Ultimate.app / PyCharm Professional.app），
- * 因此前缀匹配而不是写死完整路径；Toolbox 1.x（已停更）在 ~/Applications/JetBrains Toolbox
- * 下留符号链接壳，一并覆盖。静态白名单只查 /Applications，Toolbox 安装的 IDE 全部漏检。
- */
-function findMacToolboxAppCandidates(
-    appNamePrefix: string,
-    options: MacToolboxAppScanOptions = {},
-): string[] {
-    const userApplicationsRoot = join(homedir(), "Applications");
-    const roots = [userApplicationsRoot, join(userApplicationsRoot, "JetBrains Toolbox")];
-    const candidates: string[] = [];
-
-    for (const root of roots) {
-        try {
-            const entries = readdirSync(root, { withFileTypes: true })
-                .filter(
-                    (entry) =>
-                        entry.isDirectory() &&
-                        entry.name.toLowerCase().startsWith(appNamePrefix.toLowerCase()) &&
-                        !(
-                            options.excludeNamePattern &&
-                            options.excludeNamePattern.test(entry.name)
-                        ),
-                )
-                .map((entry) => entry.name)
-                .sort((left, right) => right.localeCompare(left));
-
-            for (const entry of entries) {
-                candidates.push(join(root, entry));
-            }
-        } catch {
-            // ~/Applications 不存在（未用 Toolbox 安装）是正常情况。
-        }
-    }
-
-    return candidates;
-}
-
-/** JetBrains 产品目录名带 Ultimate/Professional 等版本后缀时按产品前缀匹配。 */
-function macJetBrainsAppCandidates(productName: string, excludeNamePattern?: RegExp): string[] {
-    return excludeNamePattern
-        ? findMacToolboxAppCandidates(productName, { excludeNamePattern })
-        : findMacToolboxAppCandidates(productName);
-}
-
 const MAC_EDITOR_DEFS: EditorDef[] = [
     // 代码编辑器
     {
@@ -139,92 +85,64 @@ const MAC_EDITOR_DEFS: EditorDef[] = [
     { id: "cursor", name: "Cursor", appPath: "/Applications/Cursor.app", command: "cursor" },
     { id: "trae", name: "Trae", appPath: "/Applications/Trae.app", command: null },
     { id: "zed", name: "Zed", appPath: "/Applications/Zed.app", command: "zed" },
+    {
+        id: "sublime",
+        name: "Sublime Text",
+        appPath: "/Applications/Sublime Text.app",
+        command: "subl",
+    },
     { id: "codebuddy", name: "CodeBuddy", appPath: "/Applications/CodeBuddy.app", command: null },
     { id: "qoder", name: "Qoder", appPath: "/Applications/Qoder.app", command: null },
-    // JetBrains 系列。Toolbox 安装位置由 macJetBrainsAppCandidates 按产品前缀补齐。
+    // JetBrains 系列
     {
         id: "idea",
         name: "IntelliJ IDEA",
         appPath: "/Applications/IntelliJ IDEA.app",
-        // Community/CE 有独立入口（idea-ce），Ultimate 的 Toolbox 目录名不含这些标记。
-        appPathCandidates: macJetBrainsAppCandidates("IntelliJ IDEA", /community|(^|\s)ce\.app$/i),
         command: "idea",
     },
     {
         id: "idea-ce",
         name: "IntelliJ IDEA CE",
         appPath: "/Applications/IntelliJ IDEA CE.app",
-        appPathCandidates: [
-            "/Applications/IntelliJ IDEA Community Edition.app",
-            ...macJetBrainsAppCandidates("IntelliJ IDEA Community"),
-            ...macJetBrainsAppCandidates("IntelliJ IDEA CE"),
-        ],
         command: "idea",
     },
     {
         id: "webstorm",
         name: "WebStorm",
         appPath: "/Applications/WebStorm.app",
-        appPathCandidates: macJetBrainsAppCandidates("WebStorm"),
         command: "webstorm",
     },
-    {
-        id: "pycharm",
-        name: "PyCharm",
-        appPath: "/Applications/PyCharm.app",
-        appPathCandidates: macJetBrainsAppCandidates("PyCharm"),
-        command: "pycharm",
-    },
-    {
-        id: "goland",
-        name: "GoLand",
-        appPath: "/Applications/GoLand.app",
-        appPathCandidates: macJetBrainsAppCandidates("GoLand"),
-        command: "goland",
-    },
+    { id: "pycharm", name: "PyCharm", appPath: "/Applications/PyCharm.app", command: "pycharm" },
+    { id: "goland", name: "GoLand", appPath: "/Applications/GoLand.app", command: "goland" },
     {
         id: "phpstorm",
         name: "PhpStorm",
         appPath: "/Applications/PhpStorm.app",
-        appPathCandidates: macJetBrainsAppCandidates("PhpStorm"),
         command: "phpstorm",
     },
-    {
-        id: "rider",
-        name: "Rider",
-        appPath: "/Applications/Rider.app",
-        appPathCandidates: macJetBrainsAppCandidates("Rider"),
-        command: "rider",
-    },
-    {
-        id: "clion",
-        name: "CLion",
-        appPath: "/Applications/CLion.app",
-        appPathCandidates: macJetBrainsAppCandidates("CLion"),
-        command: "clion",
-    },
+    { id: "rider", name: "Rider", appPath: "/Applications/Rider.app", command: "rider" },
+    { id: "clion", name: "CLion", appPath: "/Applications/CLion.app", command: "clion" },
     {
         id: "rubymine",
         name: "RubyMine",
         appPath: "/Applications/RubyMine.app",
-        appPathCandidates: macJetBrainsAppCandidates("RubyMine"),
         command: "rubymine",
     },
     {
         id: "datagrip",
         name: "DataGrip",
         appPath: "/Applications/DataGrip.app",
-        appPathCandidates: macJetBrainsAppCandidates("DataGrip"),
         command: "datagrip",
     },
+    // 终端（macOS 新版系统 Terminal 在 /System/Applications 下）
     {
-        id: "rustrover",
-        name: "RustRover",
-        appPath: "/Applications/RustRover.app",
-        appPathCandidates: macJetBrainsAppCandidates("RustRover"),
-        command: "rustrover",
+        id: "terminal",
+        name: "Terminal",
+        appPath: "/System/Applications/Utilities/Terminal.app",
+        command: null,
     },
-    // 终端
+    { id: "iterm2", name: "iTerm", appPath: "/Applications/iTerm.app", command: null },
+    { id: "ghostty", name: "Ghostty", appPath: "/Applications/Ghostty.app", command: null },
     { id: "warp", name: "Warp", appPath: "/Applications/Warp.app", command: null },
     // 文件管理器
     {
@@ -284,22 +202,13 @@ function windowsProgramFilesCandidates(...segments: string[]): string[] {
     return getWindowsProgramFilesRoots().map((root) => pathWin32.join(root, ...segments));
 }
 
-interface WindowsJetBrainsExecutableOptions {
-    /** 目录名命中前缀后，再排除匹配该正则的目录（用于区分 Ultimate / Community）。 */
-    excludeNamePattern?: RegExp;
-}
-
 function findWindowsJetBrainsExecutableCandidates(
     productDirPrefix: string,
     executableName: string,
-    options: WindowsJetBrainsExecutableOptions = {},
 ): string[] {
     const roots = uniquePaths([
         ...getWindowsProgramFilesRoots().map((root) => pathWin32.join(root, "JetBrains")),
         pathWin32.join(getWindowsLocalProgramsRoot(), "JetBrains"),
-        // Toolbox 2.x 默认把每个产品直接装到 Programs 根目录（如 Programs\IntelliJ IDEA Ultimate），
-        // 不在 JetBrains 子目录下；漏掉这个根目录时 Toolbox 安装的全部产品都检测不到。
-        getWindowsLocalProgramsRoot(),
     ]);
     const candidates: string[] = [];
 
@@ -309,11 +218,7 @@ function findWindowsJetBrainsExecutableCandidates(
                 .filter(
                     (entry) =>
                         entry.isDirectory() &&
-                        entry.name.toLowerCase().startsWith(productDirPrefix.toLowerCase()) &&
-                        !(
-                            options.excludeNamePattern &&
-                            options.excludeNamePattern.test(entry.name)
-                        ),
+                        entry.name.toLowerCase().startsWith(productDirPrefix.toLowerCase()),
                 )
                 .map((entry) => entry.name)
                 .sort((left, right) => right.localeCompare(left));
@@ -327,93 +232,6 @@ function findWindowsJetBrainsExecutableCandidates(
     }
 
     return candidates;
-}
-
-/** VS 磁盘目录使用内部版本号（如 VS 2026 = "18"），需映射回营销年份名。 */
-const WINDOWS_VISUAL_STUDIO_INTERNAL_VERSION_YEARS: Record<string, string> = {
-    "15": "2017",
-    "16": "2019",
-    "17": "2022",
-    "18": "2026",
-};
-
-function resolveWindowsVisualStudioYearLabel(dirName: string): string | null {
-    if (/^\d{4}$/.test(dirName)) {
-        return dirName;
-    }
-    return WINDOWS_VISUAL_STUDIO_INTERNAL_VERSION_YEARS[dirName] ?? null;
-}
-
-/**
- * 扫描 Microsoft Visual Studio 的 `<year>\<edition>\Common7\IDE\devenv.exe`，
- * 每个年份版本生成一个候选（同年多 edition 时按 Enterprise > Professional > Community 优先）。
- */
-function findWindowsVisualStudioEditorDefs(): EditorDef[] {
-    const roots = uniquePaths(
-        getWindowsProgramFilesRoots().map((root) =>
-            pathWin32.join(root, "Microsoft Visual Studio"),
-        ),
-    );
-    const editionPreference = ["Enterprise", "Professional", "Community", "Preview"];
-    const editionRank = (edition: string) => {
-        const index = editionPreference.findIndex((candidate) =>
-            edition.toLowerCase().includes(candidate.toLowerCase()),
-        );
-        return index === -1 ? editionPreference.length : index;
-    };
-    const defsByYear = new Map<string, EditorDef>();
-
-    for (const root of roots) {
-        try {
-            const yearEntries = readdirSync(root, { withFileTypes: true })
-                .filter(
-                    (entry) =>
-                        entry.isDirectory() && resolveWindowsVisualStudioYearLabel(entry.name),
-                )
-                .map((entry) => ({
-                    dir: entry.name,
-                    year: resolveWindowsVisualStudioYearLabel(entry.name)!,
-                }))
-                .sort((left, right) => Number(right.year) - Number(left.year));
-
-            for (const { dir, year } of yearEntries) {
-                if (defsByYear.has(`visual-studio-${year}`)) {
-                    continue;
-                }
-
-                const editions = readdirSync(pathWin32.join(root, dir), { withFileTypes: true })
-                    .filter((entry) => entry.isDirectory())
-                    .map((entry) => entry.name)
-                    .sort((left, right) => editionRank(left) - editionRank(right));
-
-                for (const edition of editions) {
-                    const devenvPath = pathWin32.join(
-                        root,
-                        dir,
-                        edition,
-                        "Common7",
-                        "IDE",
-                        "devenv.exe",
-                    );
-                    if (existsSync(devenvPath)) {
-                        defsByYear.set(`visual-studio-${year}`, {
-                            id: `visual-studio-${year}`,
-                            name: `Visual Studio ${year}`,
-                            appPath: devenvPath,
-                            appPathCandidates: [],
-                            windowsCommandAppNames: [],
-                            command: null,
-                        });
-                        break;
-                    }
-                }
-            }
-        } catch {
-            // Visual Studio is optional; missing roots are expected.
-        }
-    }
-
-    return Array.from(defsByYear.values());
 }
 
 function createWindowsEditorDef(
@@ -517,13 +335,7 @@ const WINDOWS_ADDITIONAL_EDITOR_DEFS: EditorDef[] = [
         ...windowsProgramFilesCandidates("Trae CN", "Trae CN.exe"),
     ]),
     createWindowsEditorDef("idea", "IntelliJ IDEA", [
-        ...findWindowsJetBrainsExecutableCandidates("IntelliJ IDEA", "idea64.exe", {
-            // Community Edition 有独立入口（idea-ce）；Ultimate 目录名不含 Community。
-            excludeNamePattern: /community/i,
-        }),
-    ]),
-    createWindowsEditorDef("idea-ce", "IntelliJ IDEA CE", [
-        ...findWindowsJetBrainsExecutableCandidates("IntelliJ IDEA Community", "idea64.exe"),
+        ...findWindowsJetBrainsExecutableCandidates("IntelliJ IDEA", "idea64.exe"),
     ]),
     createWindowsEditorDef("webstorm", "WebStorm", [
         ...findWindowsJetBrainsExecutableCandidates("WebStorm", "webstorm64.exe"),
@@ -534,26 +346,9 @@ const WINDOWS_ADDITIONAL_EDITOR_DEFS: EditorDef[] = [
     createWindowsEditorDef("goland", "GoLand", [
         ...findWindowsJetBrainsExecutableCandidates("GoLand", "goland64.exe"),
     ]),
-    createWindowsEditorDef("phpstorm", "PhpStorm", [
-        ...findWindowsJetBrainsExecutableCandidates("PhpStorm", "phpstorm64.exe"),
-    ]),
-    createWindowsEditorDef("rider", "Rider", [
-        ...findWindowsJetBrainsExecutableCandidates("Rider", "rider64.exe"),
-    ]),
     createWindowsEditorDef("clion", "CLion", [
         ...findWindowsJetBrainsExecutableCandidates("CLion", "clion64.exe"),
     ]),
-    createWindowsEditorDef("rubymine", "RubyMine", [
-        ...findWindowsJetBrainsExecutableCandidates("RubyMine", "rubymine64.exe"),
-    ]),
-    createWindowsEditorDef("datagrip", "DataGrip", [
-        ...findWindowsJetBrainsExecutableCandidates("DataGrip", "datagrip64.exe"),
-    ]),
-    createWindowsEditorDef("rustrover", "RustRover", [
-        ...findWindowsJetBrainsExecutableCandidates("RustRover", "rustrover64.exe"),
-    ]),
-    // Visual Studio（2022/2026 等）按年份目录动态检测，只登记本机真实存在的 devenv.exe。
-    ...findWindowsVisualStudioEditorDefs(),
 ];
 
 export function getEditorDefsForCurrentPlatform(): EditorDef[] {

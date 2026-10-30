@@ -13,6 +13,7 @@ export type SettingsSectionId =
     | "mcp"
     | "skill"
     | "plugins"
+    | "projects"
     | "archives"
     | "usage"
     | "subagents"

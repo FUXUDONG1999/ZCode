@@ -16,8 +16,7 @@ export function resolveDraftDisplayedConfig(
         thought: selection.options?.reasoningLevel ?? "",
         thoughtLevels: [],
         followupMode: composer.followupMode ?? "queue",
-        // 个人定制：未选择模式时默认完全访问（yolo），与新建任务的默认模式一致。
-        mode: composer.mode ?? "yolo",
+        mode: composer.mode ?? "build",
     };
 }
 

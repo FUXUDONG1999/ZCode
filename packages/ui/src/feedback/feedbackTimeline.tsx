@@ -290,9 +290,7 @@ function formatStepDuration(from: string, to: string, formatMessage?: MessageFor
             formatMessage,
             "feedback.duration.minutes",
             `${minutes} 分钟`,
-            {
-                count: String(minutes),
-            },
+            { count: String(minutes) },
         );
     }
     const hours = Math.round(minutes / 60);

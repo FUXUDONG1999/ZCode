@@ -164,32 +164,28 @@ export class IPCServer<TContext = string>
         channelName: string,
         routerOrFilter: IClientRouter<TContext> | ((client: Client<TContext>) => boolean),
     ): T {
+        const that = this;
         const isFilter = typeof routerOrFilter === "function";
 
         return {
-            // 箭头函数词法捕获 IPCServer 实例，替代旧的 `const that = this` 别名。
-            call: (
-                command: string,
-                arg?: any,
-                cancellationToken?: CancellationToken,
-            ): Promise<any> => {
+            call(command: string, arg?: any, cancellationToken?: CancellationToken): Promise<any> {
                 let connectionPromise: Promise<Client<TContext>>;
 
                 if (isFilter) {
-                    const match = this.connections.find(
+                    const match = that.connections.find(
                         routerOrFilter as (c: Client<TContext>) => boolean,
                     );
                     connectionPromise = match
                         ? Promise.resolve(match)
                         : Event.toPromise(
                               Event.filter(
-                                  this.onDidAddConnection,
+                                  that.onDidAddConnection,
                                   routerOrFilter as (c: Client<TContext>) => boolean,
                               ),
                           );
                 } else {
                     connectionPromise = (routerOrFilter as IClientRouter<TContext>).routeCall(
-                        this,
+                        that,
                         command,
                         arg,
                         cancellationToken,
@@ -202,9 +198,9 @@ export class IPCServer<TContext = string>
 
                 return getDelayedChannel(channelPromise).call(command, arg, cancellationToken);
             },
-            listen: (event: string, arg?: any): Event<any> => {
+            listen(event: string, arg?: any): Event<any> {
                 if (isFilter) {
-                    return this.getMulticastEvent(
+                    return that.getMulticastEvent(
                         channelName,
                         routerOrFilter as (c: Client<TContext>) => boolean,
                         event,
@@ -213,7 +209,7 @@ export class IPCServer<TContext = string>
                 }
 
                 const channelPromise = (routerOrFilter as IClientRouter<TContext>)
-                    .routeEvent(this, event, arg)
+                    .routeEvent(that, event, arg)
                     .then((c) => (c as Connection<TContext>).channelClient.getChannel(channelName));
 
                 return getDelayedChannel(channelPromise).listen(event, arg);
@@ -228,6 +224,7 @@ export class IPCServer<TContext = string>
         eventName: string,
         arg: any,
     ): Event<T> {
+        const that = this;
         let disposables: DisposableStore | undefined;
 
         const emitter = new Emitter<T>({
@@ -241,8 +238,8 @@ export class IPCServer<TContext = string>
                     multiplexer.add(event);
                 };
 
-                this.connections.filter(filter).forEach(onAdd);
-                disposables.add(Event.filter(this.onDidAddConnection, filter)(onAdd));
+                that.connections.filter(filter).forEach(onAdd);
+                disposables.add(Event.filter(that.onDidAddConnection, filter)(onAdd));
                 disposables.add(multiplexer.event((e) => emitter.fire(e)));
                 disposables.add(multiplexer);
             },

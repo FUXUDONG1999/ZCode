@@ -10,6 +10,7 @@ import { useAppPanels } from "@/hooks/useAppPanels.js";
 import { useGitAutoRefresh } from "@/hooks/useGitAutoRefresh.js";
 import { useGitRepository } from "@/hooks/useGitRepository.js";
 import { useAppKeyboard } from "@/hooks/useAppKeyboard.js";
+import { useSidePaneFullView } from "@/side-pane-full-view/index.js";
 import { usePlatform } from "@/hooks/usePlatform.js";
 import { useWorkspaceProviderConfigFile } from "@/hooks/useWorkspaceProviderConfigFile.js";
 import { useWorkspaceActiveTaskState } from "@/hooks/useWorkspaceActiveTaskState.js";
@@ -49,7 +50,7 @@ import {
 } from "@/lib/settingsNavigation.js";
 import { runWorkspaceVisibleCommand } from "@/lib/workspaceVisibleCommand.js";
 import { ZCODE_PRODUCT_DOCS_URL } from "@/lib/productDocs.js";
-import appLogoUrl from "@/assets/app-logo.svg";
+import appLogoUrl from "@/assets/provider-icons/logo-zai.svg";
 import { resolveTheme } from "@/useTheme.js";
 import { WorkspaceShellLayout } from "@/app-shell/WorkspaceShellLayout.js";
 import { useAppChromeState } from "@/app-shell/useAppChromeState.js";
@@ -138,7 +139,7 @@ export function App({
     const goForwardShortcutLabel = useShortcutCommandLabel("navigateForward");
     const toggleTerminalShortcutLabel = useShortcutCommandLabel("toggleTerminal");
     const toggleSidePaneShortcutLabel = useShortcutCommandLabel("toggleSidePane");
-    // 个人定制：完整视图快捷键入口已随侧面板一起移除。
+    const toggleSidePaneFullViewShortcutLabel = useShortcutCommandLabel("toggleSidePaneFullView");
     const openWorkspaceShortcutLabel = useShortcutCommandLabel("openWorkspace");
     const isLinuxDesktop = Boolean(isDesktop && !isMacDesktop && !isWindowsDesktop);
     const supportsEmbeddedBrowser = explicitSupportsEmbeddedBrowser ?? Boolean(isDesktop);
@@ -227,6 +228,7 @@ export function App({
         handleOpenCodeViewer,
         handleOpenCodeViewers,
         handleOpenBrowserUrl,
+        handleToggleBrowser,
         handleOpenBrowserTab,
         handleOpenBrowserPermissionSettings,
         handleToggleGit,
@@ -234,6 +236,7 @@ export function App({
         handleOpenWhiteboard,
         handleOpenDeveloperTools,
         handleOpenFileManager,
+        handleNavigateFileManager,
         handleOpenPluginMarket,
         handleOpenTerminalTab,
         handleOpenSubagentSession,
@@ -559,7 +562,24 @@ export function App({
         // 却得到一个新 Browser 或 Review。现在空内容统一交给 Open tab 空态承接。
         handleToggleSidePaneCollapse();
     }, [handleToggleSidePaneCollapse]);
-    // 个人定制：侧面板永久收起后移除完整视图（Side Pane Full View）控制器与快捷键入口。
+    // Side Pane 完整视图只在桌面端提供（docs/ui/side-pane-full-view.md）。
+    const supportsSidePaneFullView = Boolean(isDesktop) && !webRemoteControlWorkspaceSwitcher;
+    const sidePaneFullView = useSidePaneFullView({
+        workspacePath: workspaceAbsPath,
+        workspaceIdentity,
+        ownerId: sidePaneOwnerId,
+        isSidePaneOpen,
+        enabled: supportsSidePaneFullView,
+    });
+    const handleToggleSidePaneFullView = useCallback(() => {
+        // 面板关闭时快捷键先打开面板再进入完整视图；记录先写入，面板展开后即生效。
+        if (!sidePaneFullView.fullView && !isSidePaneOpen) {
+            handleToggleSidePaneCollapse();
+            sidePaneFullView.enter();
+            return;
+        }
+        sidePaneFullView.toggle();
+    }, [handleToggleSidePaneCollapse, isSidePaneOpen, sidePaneFullView]);
     const runVisibleWorkspaceCommand = useCallback(
         (run: () => void) => {
             runWorkspaceVisibleCommand({
@@ -649,9 +669,13 @@ export function App({
         (state: ConversationFindMatchState) => {
             setConversationFindMatchCount(state.matchCount);
             if (state.activeIndex !== undefined) {
-                setConversationFindState((current) =>
-                    changeTaskFindSelection(current, current.query, state.activeIndex ?? -1),
-                );
+                setConversationFindState((current) => {
+                    const activeIndex = state.activeIndex ?? -1;
+                    // 消息索引随流式帧反复回报相同命中；被动回报没有导航意图，不能让整个 App 跟着更新。
+                    return current.activeIndex === activeIndex
+                        ? current
+                        : changeTaskFindSelection(current, current.query, activeIndex);
+                });
             }
         },
         [],
@@ -1002,8 +1026,12 @@ export function App({
         toggleSidebar: () => runVisibleWorkspaceCommand(handleToggleSidebar),
         switchTheme: handleSwitchTheme,
         toggleTerminal: () => runVisibleWorkspaceCommand(handleToggleTerminalIfWritable),
-        // 个人定制：侧面板已移除，toggleSidePane / toggleSidePaneFullView 不再注册 handler，
-        // 快捷键按下时不拦截、不展开面板。
+        // ⌥⌘B 与 header 最右侧按钮共用同一条 toggle 入口，
+        // 避免快捷键和按钮行为漂移；空面板的展示统一由 Open tab 空态承接。
+        toggleSidePane: () => runVisibleWorkspaceCommand(handleToggleSidePane),
+        toggleSidePaneFullView: supportsSidePaneFullView
+            ? () => runVisibleWorkspaceCommand(handleToggleSidePaneFullView)
+            : null,
         previousConversation: handleSelectPreviousConversation,
         nextConversation: handleSelectNextConversation,
         navigateBack: canPrimaryNavigationBack
@@ -1039,9 +1067,11 @@ export function App({
         () =>
             createQuickPickCommands({
                 supportsTerminal: !isOfficeMode,
+                supportsReview: !isOfficeMode,
                 allowOpenWorkspace,
                 canOpenCommunity: canOpenCommunityFromQuickPick,
                 isSidebarVisible,
+                supportsEmbeddedBrowser,
                 // quick pick 命令只关心登录态布尔值。
                 // 如果依赖完整 user 对象，auth store 返回等价新引用时会重建整组 command/run 闭包。
                 isLoggedIn,
@@ -1074,6 +1104,11 @@ export function App({
                     toggleSidebar: () => runVisibleWorkspaceCommand(handleToggleSidebar),
                     toggleTerminal: () =>
                         runVisibleWorkspaceCommand(handleToggleTerminalIfWritable),
+                    togglePreview: () => runVisibleWorkspaceCommand(handleToggleBrowser),
+                    openTerminalTab: () =>
+                        runVisibleWorkspaceCommand(handleOpenTerminalTabIfWritable),
+                    openBrowserTab: () => runVisibleWorkspaceCommand(handleOpenBrowserTab),
+                    openReviewTab: () => runVisibleWorkspaceCommand(handleOpenGitIfWritable),
                 },
             }),
         [
@@ -1085,6 +1120,10 @@ export function App({
             handleOpenProductDocs,
             handleOpenSettingsSection,
             handleSwitchTheme,
+            handleOpenBrowserTab,
+            handleOpenGitIfWritable,
+            handleOpenTerminalTabIfWritable,
+            handleToggleBrowser,
             handleToggleSidebar,
             handleToggleTerminalIfWritable,
             isLoggedIn,
@@ -1221,6 +1260,7 @@ export function App({
                     goBackShortcutLabel={goBackShortcutLabel}
                     goForwardShortcutLabel={goForwardShortcutLabel}
                     toggleSidePaneShortcutLabel={toggleSidePaneShortcutLabel}
+                    toggleSidePaneFullViewShortcutLabel={toggleSidePaneFullViewShortcutLabel}
                     canGoBack={canGoBack}
                     canGoForward={canGoForward}
                     canTaskNavBack={canTaskNavBack}
@@ -1231,6 +1271,7 @@ export function App({
                     supportsEmbeddedBrowser={supportsEmbeddedBrowser}
                     isGitOpen={isGitOpen}
                     isSidePaneOpen={isSidePaneOpen}
+                    sidePaneFullView={supportsSidePaneFullView ? sidePaneFullView : undefined}
                     summaryPanelVariantOverride={summaryPanelVariantOverride}
                     onSummaryPanelVariantOverrideChange={setSummaryPanelVariantOverride}
                     sidePaneState={sidePaneState}
@@ -1281,11 +1322,13 @@ export function App({
                     handleBrowserPageMetadataChange={handleBrowserPageMetadataChange}
                     handleToggleSidebar={handleToggleSidebar}
                     handleToggleTerminal={handleToggleTerminalIfWritable}
+                    handleToggleBrowser={handleToggleBrowser}
                     handleOpenBrowserTab={handleOpenBrowserTab}
                     handleOpenBrowserPermissionSettings={handleOpenBrowserPermissionSettings}
                     handleOpenWhiteboard={handleOpenWhiteboard}
                     handleOpenDeveloperTools={handleOpenDeveloperTools}
                     handleOpenFileManager={handleOpenFileManager}
+                    handleNavigateFileManager={handleNavigateFileManager}
                     handleOpenPluginMarket={handleOpenPluginMarket}
                     handleOpenTerminalTab={handleOpenTerminalTabIfWritable}
                     handleToggleGit={handleToggleGitIfWritable}

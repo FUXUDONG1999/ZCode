@@ -83,7 +83,9 @@ export function useProjectSidebarPreferences(
                     ...previous,
                     order: [...new Set(value.order)],
                     view:
-                        value.view === "timeline" || value.view === "grouped"
+                        value.view === "timeline" ||
+                        value.view === "grouped" ||
+                        value.view === "unread"
                             ? value.view
                             : "projects",
                     expanded:
