@@ -111,10 +111,7 @@ import type {
   ConversationTurnRenderUnit,
   ConversationTurnWorkSegment,
 } from "@/v4/conversationTurnRenderUnits.js";
-import {
-    formatConversationTokensPerSecond,
-    formatConversationWorkDuration,
-} from "@/v4/conversationWorkDuration.js";
+import { formatConversationWorkDuration } from "@/v4/conversationWorkDuration.js";
 import { ConversationTurnRow, resolveAssistantCopyText } from "@/v4/ConversationTurnRow.js";
 import { ConversationHookDetailsAction } from "@/v4/ConversationHookDetailsAction.js";
 import { toolCallRowToLegacyNode } from "@/v4/toolCallRowAdapter.js";
@@ -668,10 +665,6 @@ function AssistantHistoryStatus({
     intl,
     locale,
   );
-    // 终态轮的生成速度（outputTokens ÷ 净生成时长）；运行中或旧快照无字段时为 null，不展示。
-    const tokensPerSecondLabel = formatConversationTokensPerSecond(
-        segment.workStatus?.outputTokensPerSecond,
-    );
   const savedDurationLabel =
     segment.workStatus?.state === "completed" &&
     highspeedMeta?.savedDurationMs !== undefined &&
@@ -709,14 +702,6 @@ function AssistantHistoryStatus({
           >
             {label}
           </span>
-                    {tokensPerSecondLabel ? (
-                        <span
-                            className="shrink-0 tabular-nums"
-                            data-token-speed={tokensPerSecondLabel}
-                        >
-                            · {tokensPerSecondLabel}
-                        </span>
-                    ) : null}
           {!segment.assistantHistoryDefaultOpen ? (
             <ChevronRightIcon
               aria-hidden
