@@ -37,10 +37,10 @@
 | 23 | 文件链接定位到行 + HTML 侧边预览 | `2a7a809d` | 桌面能力 | markdownFileLink（lineNumber）|
 | 24 | 主进程日志异步批量落盘 | `bfa51bd0`+`5b0b78ad` | 性能 | logger.ts（PENDING_LOG_LINE_LIMIT）|
 | 25 | 恢复设置页「归档管理」入口 | `a1fcb99a` | UI | settingsNavigation（archives 可见）|
-| 26 | Token 用量状态条（固化 zcode-token-usage-statusbar）| `5acd31c8`+同批 | 桌面能力 | tokenUsageStatusbar.test.ts（6 用例）|
+| 26 | 会话轮次 token 生成速度 | `e787410d` | UI 功能 | 消息行/工具条徽标（需运行任务）|
 | 27 | 隐藏「数据同步」设置分区 | `34c723b1` | UI 裁剪 | settingsNavigation（dataSync 隐藏）|
 | 28 | 个人构建工作流（CI）| `34c723b1`+`412b75c4` | 工程 | GitHub Actions build-desktop |
-| 29 | 架构基线登记 15 个定制新文件 | `31f92ef7`+同批 | 工程 | .architecture-baseline.json |
+| 29 | 架构基线登记 5 个定制新文件 | `31f92ef7` | 工程 | .architecture-baseline.json |
 
 ---
 
@@ -214,31 +214,6 @@
   每-文件链式 Promise、退出同步兜底、缓冲上限 2000；`exportLogs.ts` 配套。
   上游若改日志格式/TTFT 分流，注意保留 `ensureLogDirectory` 与退出兜底链路。
 
-### E5. Token 用量状态条（#26，`5acd31c8` revert + 同批 feat）
-
-- **意图**：以 vendored 插件 ByteRax/zcode-token-usage-statusbar（pin `217fa8ec`）替换原 #26
-  简易 token 速度定制（`e787410d` 已 revert）。底部浮层显示速度/上下文占比/本轮/会话/工具
-  调用/今日/子代理，主进程原生加载，无需 install.py 改 app.asar。
-  spec：docs/desktop/token-usage-statusbar.md。
-- **改动点**：
-  - `packages/desktop/resources/token-usage-statusbar/`：上游运行时原样副本
-    （RUNTIME_FILES 18 文件 + LICENSE + NOTICE），禁止 fork 内修改，升级 = 重新 vendor +
-    更新 NOTICE；
-  - `packages/desktop/src/main/tokenUsageStatusbar.ts`：种子同步（`fork-seed.json` 哈希归属
-    判定，fork 上次写入且未改动的文件才覆盖；`config.json` 永不触碰，首启写
-    `{lang:zh, plugin_auto_update:false}`）+ createRequire 加载 inject-main.cjs；
-    熔断 `ZCODE_TOKEN_STATUSBAR_DISABLE=1`；
-  - `index.ts` whenReady 一行调用；electron-builder extraResources 一条目；
-    `.eslintignore`/`.prettierignore` 排除 vendored 目录；engineering-test-files.json 登记。
-- **不注册** MCP `token_usage` 与 `/usage` 命令（决策 2026-11-02，不动 CLI 配置文件）。
-- **降级边界**：renderer_bridge/engine-patch 按官方客户端指纹 fail-closed——fork 产物上
-  分栏归属、逐问速率行、自动压缩阈值补丁不可用（回退 DB 口径）；需系统 python3，
-  缺失仅状态条无数据。
-- **同步策略**：上游 merge 冲突点仅 index.ts whenReady 块与 electron-builder.config.js
-  extraResources 数组（正常三方合并）；vendored 目录与 tokenUsageStatusbar.ts 上游无此文件。
-  注意 `baseline:update --changed` 会整体替换闭包内旧条目（2026-11-02 曾误删 3 条祖父化
-  条目，已手工合并恢复），使用后核对原条目仍在。
-
 ---
 
 ## F. 工程设施（#28/#29）
@@ -250,10 +225,9 @@
 - **staging 镜像**：origin 的 `staging` 分支 = main 镜像，是 affected 测试的基线锚点
   （上游内部 staging 在 fork 不存在）。**每次同步 main 后执行**：
   `git push --no-verify origin main:refs/heads/staging`
-- **架构基线**（`.architecture-baseline.json`）：15 个定制新文件按 `managed:false` 包的
+- **架构基线**（`.architecture-baseline.json`）：5 个定制新文件按 `managed:false` 包的
   同构模式登记（FileManagerPane、previewPaneHtmlContent、windowsCuaOperationIndicatorContent、
-  workflowArtifactOpen、officeSuggestedPrompts、tokenUsageStatusbar.ts 与 token-usage-statusbar
-  vendored 目录 9 个 JS/CJS 文件）。上游若正式受管这些目录，可迁移到
+  workflowArtifactOpen、officeSuggestedPrompts）。上游若正式受管这些目录，可迁移到
   `architecture:adopt`。
 - **pre-push 门禁链**：worktree 干净 → e2e targets → lint → stale-phrases → db schema →
   architecture → affected tests。**勿用 --no-verify 推代码分支**（仅 staging 镜像例外）。

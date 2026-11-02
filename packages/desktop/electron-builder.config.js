@@ -825,13 +825,6 @@ export default {
       filter: ["**/*", "!**/*.map"],
     },
     {
-      // 个人定制：token 用量状态条 vendored 运行时（上游原样副本，见 NOTICE）。
-      // 主进程启动时以此为种子同步到 ~/.zcode/zcode-token-usage-statusbar/ 并加载，
-      // spec：docs/desktop/token-usage-statusbar.md。
-      from: "resources/token-usage-statusbar",
-      to: "token-usage-statusbar",
-    },
-    {
       // agent shell 之前完全依赖宿主系统 PATH，GUI 启动时经常拿不到用户自己装的 rg。
       // 这里把 ripgrep 作为桌面端内置 runtime tool 打进 resources/tools，
       // 后续 host/server 把该目录追加到 PATH；用户版本优先，缺失时再由随包 rg 兜底。

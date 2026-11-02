@@ -3,92 +3,11 @@
   "violations": [
     {
       "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/engine-patch.cjs",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "e40275a7b20f2e31",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/inject-main.cjs",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "f353a784f0a09a19",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/model-puller.cjs",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "e1778822153aa460",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/overlay.js",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "c4a20669ec8770cc",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/plugin-release.cjs",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "bd7deb036db02859",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/plugin-storage.cjs",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "a494cbc7ee384d93",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/plugin-updater.cjs",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "e63013a3a5af70d8",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/quota-client.cjs",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "6e7c08a2a9276d57",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/resources/token-usage-statusbar/turn-stats.js",
-      "module": null,
-      "detail": "unregistered",
-      "message": "新文件不属于任何已登记模块；请用 pnpm architecture:adopt <id> --root <dir> 登记后再提交",
-      "fingerprint": "9150b3a00b24742c",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/desktop/src/main/tokenUsageStatusbar.ts",
-      "module": "desktop",
-      "detail": "desktop",
-      "message": "新文件落在未受管模块 desktop；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
-      "fingerprint": "e5d0952cf77222b6",
+      "file": "packages/ui/src/FileManagerPane.tsx",
+      "module": "ui",
+      "detail": "ui",
+      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "043841b626ef06bf",
       "global": false
     },
     {
@@ -98,15 +17,6 @@
       "detail": "desktop",
       "message": "新文件落在未受管模块 desktop；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
       "fingerprint": "1d2ab0b0a2431f68",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/ui/src/FileManagerPane.tsx",
-      "module": "ui",
-      "detail": "ui",
-      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
-      "fingerprint": "043841b626ef06bf",
       "global": false
     },
     {

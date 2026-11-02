@@ -108,7 +108,6 @@ import {
   syncPostUpdateReleaseNotesToWindow,
   syncReadyUpdateToWindow,
 } from "./autoUpdater.js";
-import { installTokenUsageStatusbar } from "./tokenUsageStatusbar.js";
 import { BroadcastHub } from "./broadcastHub.js";
 import { TaskRealtimeBus } from "./taskRealtimeBus.js";
 import { createAppLaunchGate } from "./appLaunchGate.js";
@@ -2225,10 +2224,6 @@ app.whenReady().then(async () => {
       logger.error("[cron-scheduler] failed to spawn scheduler process:", error);
     }
   });
-
-  // 个人定制：token 用量状态条（vendored 插件原生加载，spec：docs/desktop/token-usage-statusbar.md）。
-  // 内部已兜底全部失败，这里不 await，不阻断启动。
-  void installTokenUsageStatusbar({ logger });
 
   if (process.platform === "win32") {
     // 打包态必须与 NSIS 快捷方式使用同一 AUMID，否则 Shell 把它们当成不同应用。
