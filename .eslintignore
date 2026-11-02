@@ -1,0 +1,2 @@
+# 个人定制：token 用量状态条 vendored 上游运行时（逐字节保留原样，见目录内 NOTICE），不参与 lint。
+packages/desktop/resources/token-usage-statusbar/

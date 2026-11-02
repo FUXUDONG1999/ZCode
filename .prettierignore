@@ -7,3 +7,6 @@ apps/zcode-cli/
 # oxfmt 解析会报错；只排除这两个文件，其余 graphs fixture 仍参与格式检查。
 apps/zcode-cli/packages/dynamic-workflow/tests/graphs/control-flow-for-await.ts
 apps/zcode-cli/packages/dynamic-workflow/tests/graphs/async-promise-for-await-of.ts
+
+# 个人定制：token 用量状态条 vendored 上游运行时（逐字节保留原样，见目录内 NOTICE），不参与格式化。
+packages/desktop/resources/token-usage-statusbar/

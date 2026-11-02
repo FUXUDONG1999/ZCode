@@ -30,6 +30,7 @@
 | `desktopWindowChrome.ts`、`WindowsTopLeftLogo.tsx` | 窗口控制按钮右上角固定、品牌角标 | 持有本地 |
 | `packages/desktop/src/main/logger.ts` | 主进程日志异步批量落盘（perf） | 上游改日志格式时注意 `ensureLogDirectory`/退出兜底链路 |
 | `editors.ts`、`openInEditor.ts` | JetBrains 全家桶检测、Toolbox 识别、`--line` 定位 | 上游演进跟随上游，保留新增编辑器条目 |
+| `packages/desktop/src/main/tokenUsageStatusbar.ts`、`resources/token-usage-statusbar/`、`index.ts` whenReady 一行、`electron-builder.config.js` extraResources 一条目、`.eslintignore`/`.prettierignore`、`scripts/engineering-test-files.json` | Token 用量状态条固化：vendored 上游原样副本 + 种子同步原生加载（spec：docs/desktop/token-usage-statusbar.md） | vendored 目录与加载模块为纯新增文件；上游重构 whenReady/打包配置时保持该调用与条目即可，vendored 内容永远跟随上游不手改 |
 
 **注意**：上游 `packages/ui/src/WorkspaceFileTree.tsx` 与 `workspace-file-tree/` 家族在 v2 中
 保留原样（侧面板不再使用它们，但上游可能仍在主工作区布局使用；后续若 knip 报未使用属预期）。
