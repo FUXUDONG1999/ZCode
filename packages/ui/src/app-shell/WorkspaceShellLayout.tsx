@@ -144,13 +144,15 @@ const EMPTY_REMOTE_WORKSPACE_RECOVERY_BY_WORKSPACE_KEY: NonNullable<
 const CONVERSATION_AUTO_COLLAPSE_SIDEBAR_WIDTH_PX = 360;
 const CONVERSATION_AUTO_COLLAPSE_RESIZE_IDLE_MS = 300;
 // 个人定制：左侧标签式侧面板（新标签页 hub、文件树/浏览器/审查等外部标签页）已移除，
-// 仅子智能体会话、子智能体目录、模型调用轨迹与聊天内文件预览仍以侧面板承载，
+// 仅子智能体会话、子智能体目录、模型调用轨迹、聊天内文件预览与计划详情仍以侧面板承载，
 // 详见 WorkspaceShellLayoutContent 内闸门。
 const PERSONAL_EDITION_EXPANDABLE_SIDE_PANE_TAB_TYPES = new Set<WorkspaceSidePaneTab["type"]>([
   "subagent-session",
   "subagent-directory",
   "model-trajectory",
   "code-viewer",
+  // 修复：计划卡片「查看完整计划」提交 plan-detail tab 后被闸门挡住，面板无法展开。
+  "plan-detail",
 ]);
 // 性能修复：ResizablePanelGroup 收到深相等的新 panelIds 数组，
 // 会跟随 chat streaming render 重算布局上下文；固定数组语义上不会随消息变化。
@@ -443,7 +445,7 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
 }: WorkspaceShellLayoutProps) {
   const { intl } = useZCodeIntl();
   // 个人定制：左侧标签式侧面板（新标签页 hub、文件树/浏览器/审查等外部标签页）已移除，
-  // 但子智能体会话 / 子智能体目录 / 模型调用轨迹 / 聊天内文件预览仍以侧面板承载——
+  // 但子智能体会话 / 子智能体目录 / 模型调用轨迹 / 聊天内文件预览 / 计划详情仍以侧面板承载——
   // 只有当前激活 tab 属于这几类时才放开面板；其余类型（含 browser-use 等后台打开）保持不可见。
   // 上游展开态仍参与判断：手动收起后再点子 agent / 调用轨迹 / 文件入口会重新展开，
   // 点面板关闭按钮则整体收起，与移除前的开合语义一致。

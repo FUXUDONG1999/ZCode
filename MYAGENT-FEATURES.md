@@ -120,6 +120,10 @@
     ——这是 v2 相对 main 仅有的文件删除之一。
 - **#21 侧面板按需放回**（`fd34077b`，原 `e98a13b3`）：子 agent、调用轨迹、任务文件预览
   三类面板按需展开（`AnimatedSidePanePanel` + `WorkspaceShellLayout` 的展开闸门）。
+  2026-11-02 修复：闸门白名单（`PERSONAL_EDITION_EXPANDABLE_SIDE_PANE_TAB_TYPES`）补入
+  `plan-detail`——计划卡片「查看完整计划」此前提交 tab 后被闸门挡住，面板无法展开。
+  其余会话联动类型（bash-output、workflow-*、plugin-ui、划选副屏）仍被闸门隐藏，
+  如需放开按需增补白名单即可。
 - **#22 预览仅内容**（`69564f69`，原 `0381cb28` **v2 适配版**）：
   - 新增 `packages/ui/src/FileManagerPane.tsx`：只渲染 PreviewPane + 空态。
   - 面板接线：`AnimatedSidePanePanel` 的 code-viewer/file-manager Tab 渲染新组件，
