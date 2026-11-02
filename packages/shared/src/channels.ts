@@ -468,6 +468,8 @@ export const PlatformChannels = {
   ResetEmbeddedBrowserSitePermission: "zcode:reset-embedded-browser-site-permission",
   /** Main → Renderer：通知有新版本已下载完毕，可以重启安装 */
   UpdateReady: "zcode:update-ready",
+  /** Main → Renderer：token 用量状态条快照推送（个人定制，按窗口焦点会话） */
+  TokenUsageSnapshot: "zcode:token-usage-snapshot",
   /** Main → Renderer：用户手动点击"检查更新"后的结果反馈（toast 用） */
   UpdateCheckResult: "zcode:update-check-result",
   /** Main → Renderer：自动更新持续状态变化（菜单 UI 用） */
@@ -1263,6 +1265,10 @@ export interface PlatformChannelMap {
   };
   [PlatformChannels.UpdateReady]: {
     request: string;
+    response: void;
+  };
+  [PlatformChannels.TokenUsageSnapshot]: {
+    request: import("./token-usage.js").TokenUsageWindowSnapshot;
     response: void;
   };
   [PlatformChannels.UpdateCheckResult]: {

@@ -2,6 +2,7 @@
 import { getConversationShareErrorDetails } from "@/lib/conversationShareError.js";
 import { useEffect, useRef, useState } from "react";
 import { useZCodeSessionStore } from "@/store/zcodeSessionStore.js";
+import { useTokenUsageStatusStore } from "@/store/tokenUsageStatusStore.js";
 import type { CreateTaskOptions } from "@/app-shell/types.js";
 import type { IPlatformService, ZCodeTaskClientMode } from "@zcode/shared";
 import { readV4ComposerDraft, V4_DRAFT_SCOPE_ROOT } from "@/v4/composer/composerDraftStore.js";
@@ -331,6 +332,12 @@ export function useRootPlatformEffects({
           }
         })
       : () => {};
+    // 个人定制：token 用量状态条快照（无平台实现时保持无数据）
+    const disposeTokenUsageSnapshot = platform.onTokenUsageSnapshot
+      ? platform.onTokenUsageSnapshot((payload) => {
+          useTokenUsageStatusStore.getState().setSnapshot(payload);
+        })
+      : () => {};
     return () => {
       disposeFocusTab();
       disposeNewTab();
@@ -340,6 +347,7 @@ export function useRootPlatformEffects({
       disposeShareImport();
       disposeNotificationClick();
       disposeUpdateCheckResult();
+      disposeTokenUsageSnapshot();
     };
   }, [
     activeWorkspaceIdentity,

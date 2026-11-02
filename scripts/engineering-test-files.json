@@ -137,6 +137,7 @@
   "packages/desktop/test/taskStatusPrinter.test.ts",
   "packages/desktop/test/taskTitleMarqueeFixture.test.ts",
   "packages/desktop/test/telemetryFieldContract.test.ts",
+  "packages/desktop/test/tokenUsageSnapshotQuery.test.ts",
   "packages/desktop/test/tsupChunkIsolation.test.ts",
   "packages/desktop/test/upstreamProviderPreferenceSeed.test.ts",
   "packages/desktop/test/upstreamRecordedModels.test.ts",

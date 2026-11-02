@@ -30,6 +30,7 @@
 | `desktopWindowChrome.ts`、`WindowsTopLeftLogo.tsx` | 窗口控制按钮右上角固定、品牌角标 | 持有本地 |
 | `packages/desktop/src/main/logger.ts` | 主进程日志异步批量落盘（perf） | 上游改日志格式时注意 `ensureLogDirectory`/退出兜底链路 |
 | `editors.ts`、`openInEditor.ts` | JetBrains 全家桶检测、Toolbox 识别、`--line` 定位 | 上游演进跟随上游，保留新增编辑器条目 |
+| token 用量状态条——纯新增：`shared/src/token-usage.ts`、`desktop/src/main/tokenUsageSnapshotQuery.ts`+`tokenUsageStatusPump.ts`、`ui/src/store/tokenUsageStatusStore.ts`、`ui/src/v4/composer/tokenUsageStatusBar.tsx`；additive：`channels.ts`、`platform.ts`、preload、`useRootPlatformEffects`、`ConversationComposer`、i18n；插槽：`ChatPromptEditor.bottomContent` | 原生 token 状态条：主进程 SQLite 只读泵 + composer 卡片状态行（spec：docs/desktop/token-usage-statusbar.md） | 新文件无上游冲突；additive 处正常三方合并；上游重构 composer 布局时 bottomContent 插槽随迁；CLI usage 表 migration 变更需同步查询与回归测试 |
 
 **注意**：上游 `packages/ui/src/WorkspaceFileTree.tsx` 与 `workspace-file-tree/` 家族在 v2 中
 保留原样（侧面板不再使用它们，但上游可能仍在主工作区布局使用；后续若 knip 报未使用属预期）。

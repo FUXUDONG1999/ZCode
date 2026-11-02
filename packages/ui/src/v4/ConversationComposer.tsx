@@ -110,6 +110,7 @@ import { ChatPromptEditor } from "@/prompt-editor/ChatPromptEditor.js";
 import { usePromptEditorDragState } from "@/prompt-editor/usePromptEditorDragState.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { advanceComposerDraftRevision } from "@/v4/composer/composerDraftRevision.js";
+import { TokenUsageStatusBar } from "@/v4/composer/tokenUsageStatusBar.js";
 import type { AppSlashCommand } from "@/slashCommandHelpers.js";
 import { useOptionalServices } from "@/hooks/useServices.js";
 import { logger } from "@/logger.js";
@@ -2477,6 +2478,10 @@ function ConversationComposerImpl({
   // 避免每个 token 批次都重建 Tooltip/Select 子树。
   const composerUsage = snapshot?.usage ?? null;
   const composerPhase = snapshot?.control.phase ?? null;
+  // 个人定制：token 用量状态条（卡片内工具行下方；组件自身按数据与开关决定是否渲染）
+  const tokenUsageStatusBarNode = (
+    <TokenUsageStatusBar sessionId={sessionId} contextWindow={composerUsage?.contextWindow ?? null} />
+  );
   const handleSelectModelTrace = useCallback(
     (
       nextProvider: string,
@@ -2858,6 +2863,7 @@ function ConversationComposerImpl({
           // 仍由 MentionPlugin 保留兼容触发，但不在 + 菜单重复展示。
           showMentionButton
           topContent={topContentNode}
+          bottomContent={tokenUsageStatusBarNode}
           attachmentAction={runtimeBlocked ? undefined : attachmentAction}
           inputTestId={TID_V4_COMPOSER_INPUT}
           inputApiRef={inputApiRef}

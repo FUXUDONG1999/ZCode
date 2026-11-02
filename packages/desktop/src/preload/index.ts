@@ -71,6 +71,7 @@ import type {
   RemoteSessionReconnectedEvent,
   UpdateCheckResultPayload,
   UpdateStatePayload,
+  TokenUsageWindowSnapshot,
   ZCodeStdioTapDevState,
   LoadCliMcpFromUserDirectoryRequest,
   MigrateLegacyCommonMcpRequest,
@@ -871,6 +872,12 @@ contextBridge.exposeInMainWorld("zcode", {
     const handler = (_event: unknown, payload: UpdateCheckResultPayload) => callback(payload);
     ipcRenderer.on(PlatformChannels.UpdateCheckResult, handler);
     return () => ipcRenderer.removeListener(PlatformChannels.UpdateCheckResult, handler);
+  },
+  /** 注册 token 用量状态条快照推送的回调（个人定制），返回 disposer */
+  onTokenUsageSnapshot: (callback: (payload: TokenUsageWindowSnapshot) => void): (() => void) => {
+    const handler = (_event: unknown, payload: TokenUsageWindowSnapshot) => callback(payload);
+    ipcRenderer.on(PlatformChannels.TokenUsageSnapshot, handler);
+    return () => ipcRenderer.removeListener(PlatformChannels.TokenUsageSnapshot, handler);
   },
   getUpdateState: (): Promise<UpdateStatePayload> =>
     ipcRenderer.invoke(PlatformChannels.GetUpdateState),

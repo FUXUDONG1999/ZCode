@@ -41,6 +41,8 @@ import {
   hasAnyAgentSessionRow,
   resolveAgentSessionDbPath,
 } from "./onboarding/localUsageEvidence.js";
+// 个人定制：token 用量状态条主进程泵需要同源解析 CLI 会话库路径
+export { resolveAgentSessionDbPath } from "./onboarding/localUsageEvidence.js";
 import {
   buildLocalMediaPreviewUrl,
   type DynamicWorkflowMode,

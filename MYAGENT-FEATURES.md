@@ -37,10 +37,10 @@
 | 23 | 文件链接定位到行 + HTML 侧边预览 | `2a7a809d` | 桌面能力 | markdownFileLink（lineNumber）|
 | 24 | 主进程日志异步批量落盘 | `bfa51bd0`+`5b0b78ad` | 性能 | logger.ts（PENDING_LOG_LINE_LIMIT）|
 | 25 | 恢复设置页「归档管理」入口 | `a1fcb99a` | UI | settingsNavigation（archives 可见）|
-| 26 | 会话轮次 token 生成速度 | `e787410d` | UI 功能 | 消息行/工具条徽标（需运行任务）|
+| 26 | Token 用量状态条（原生实现）| `5acd31c8`+`23b606fc`+同批 | 桌面能力 | tokenUsageSnapshotQuery.test.ts（7 用例）|
 | 27 | 隐藏「数据同步」设置分区 | `34c723b1` | UI 裁剪 | settingsNavigation（dataSync 隐藏）|
 | 28 | 个人构建工作流（CI）| `34c723b1`+`412b75c4` | 工程 | GitHub Actions build-desktop |
-| 29 | 架构基线登记 5 个定制新文件 | `31f92ef7` | 工程 | .architecture-baseline.json |
+| 29 | 架构基线登记定制新文件 | `31f92ef7`+同批 | 工程 | .architecture-baseline.json（10 条）|
 
 ---
 
@@ -214,6 +214,31 @@
   每-文件链式 Promise、退出同步兜底、缓冲上限 2000；`exportLogs.ts` 配套。
   上游若改日志格式/TTFT 分流，注意保留 `ensureLogDirectory` 与退出兜底链路。
 
+### E5. Token 用量状态条（#26，原生实现）
+
+- **意图**：composer 卡片内状态条（速度/上下文/本轮/会话/工具/今日/子代理 + 悬停明细 +
+  ⚙ 开关）。历史：原 #26 简易速度已 revert（`5acd31c8`）；曾按 vendored 方案固化上游插件
+  zcode-token-usage-statusbar（`9d935d66`），其 executeJavaScript 注入 overlay.js 的 DOM
+  探测在 fork 产物上失效（状态条无法显示），已 revert（`23b606fc`），改按其统计口径原生重写。
+  spec：docs/desktop/token-usage-statusbar.md。
+- **改动点**：
+  - `packages/shared/src/token-usage.ts`：快照契约（zod）+ `PlatformChannels.TokenUsageSnapshot`
+    + `IPlatformService.onTokenUsageSnapshot?`（可选成员，web 不实现）；
+  - `packages/desktop/src/main/tokenUsageSnapshotQuery.ts`：只读查询（node:sqlite，口径移植
+    zusage.py，见注释）；`tokenUsageStatusPump.ts`：fs.watch 泵（300ms 去抖 + 30s 心跳）+
+    复用 `zcode:sync-active-task-session` 维护窗口→焦点会话映射 + 逐窗口推送；
+    `index.ts` whenReady 一行启动；`services/node.ts` 重导出 `resolveAgentSessionDbPath`；
+  - UI：`tokenUsageStatusStore.ts`（zustand）+ `useRootPlatformEffects` 订阅 +
+    `v4/composer/tokenUsageStatusBar.tsx`（chips/明细/⚙，localStorage 开关）+
+    `ChatPromptEditor` 新增 `bottomContent` 插槽（仅堆叠布局）+ i18n `tokenUsage.*` 双语。
+- **口径要点**：total=input+output（不叠 cache/reasoning）；只计 completed；会话均速度只取
+  main_turn 加权；上下文容量优先 V4 协议 `usage.contextWindow`（压缩后回落），DB 口径回退；
+  今日按本地自然日；子代理按 `session.parent_id`+`query_source='subagent'`。
+- **同步策略**：新增文件上游无冲突；`channels.ts`/`platform.ts`/`preload`/`useRootPlatformEffects`
+  为 additive 插入，上游演进正常三方合并；`ChatPromptEditor.bottomContent` 插槽若上游重构
+  composer 布局需随迁；CLI usage 表 schema 变更（migration）会破坏查询——回归测试
+  `tokenUsageSnapshotQuery.test.ts` 用 fixture DB 钉住口径。
+
 ---
 
 ## F. 工程设施（#28/#29）
@@ -225,10 +250,12 @@
 - **staging 镜像**：origin 的 `staging` 分支 = main 镜像，是 affected 测试的基线锚点
   （上游内部 staging 在 fork 不存在）。**每次同步 main 后执行**：
   `git push --no-verify origin main:refs/heads/staging`
-- **架构基线**（`.architecture-baseline.json`）：5 个定制新文件按 `managed:false` 包的
+- **架构基线**（`.architecture-baseline.json`）：10 个定制新文件按 `managed:false` 包的
   同构模式登记（FileManagerPane、previewPaneHtmlContent、windowsCuaOperationIndicatorContent、
-  workflowArtifactOpen、officeSuggestedPrompts）。上游若正式受管这些目录，可迁移到
-  `architecture:adopt`。
+  workflowArtifactOpen、officeSuggestedPrompts + 状态条 5 个：tokenUsageSnapshotQuery、
+  tokenUsageStatusPump、token-usage、tokenUsageStatusStore、tokenUsageStatusBar）。上游若正式
+  受管这些目录，可迁移到 `architecture:adopt`。**坑**：`baseline:update --changed` 会整体替换
+  变更闭包内旧条目（两次实测各误删 3 条），使用后必须核对旧条目仍在。
 - **pre-push 门禁链**：worktree 干净 → e2e targets → lint → stale-phrases → db schema →
   architecture → affected tests。**勿用 --no-verify 推代码分支**（仅 staging 镜像例外）。
 

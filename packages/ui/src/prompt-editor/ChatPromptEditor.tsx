@@ -62,6 +62,7 @@ export function ChatPromptEditor({
   isDraggingOver = false,
   dragAttachmentHint,
   topContent,
+  bottomContent,
   inputLeadingContent,
   leadingActions,
   attachmentAction,
@@ -119,6 +120,8 @@ export function ChatPromptEditor({
   isDraggingOver?: boolean;
   dragAttachmentHint?: string;
   topContent?: ReactNode;
+  /** 工具行下方的状态行（个人定制：token 用量状态条），仅堆叠布局渲染。 */
+  bottomContent?: ReactNode;
   /** 与输入正文同一行的前置内容；Highspeed 使用紧凑 Fast 标签。 */
   inputLeadingContent?: ReactNode;
   leadingActions?: ReactNode;
@@ -499,6 +502,8 @@ export function ChatPromptEditor({
             )}
           </div>
         </div>
+        {/* 个人定制：卡片内工具行下方的状态行（token 用量状态条）；仅堆叠布局渲染。 */}
+        {!isInline && bottomContent ? <div className="min-w-0">{bottomContent}</div> : null}
       </div>
     </form>
   );

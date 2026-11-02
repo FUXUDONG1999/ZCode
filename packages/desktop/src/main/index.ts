@@ -108,6 +108,8 @@ import {
   syncPostUpdateReleaseNotesToWindow,
   syncReadyUpdateToWindow,
 } from "./autoUpdater.js";
+import { startTokenUsageStatusPump } from "./tokenUsageStatusPump.js";
+import { resolveAgentSessionDbPath } from "@zcode/services/node";
 import { BroadcastHub } from "./broadcastHub.js";
 import { TaskRealtimeBus } from "./taskRealtimeBus.js";
 import { createAppLaunchGate } from "./appLaunchGate.js";
@@ -2224,6 +2226,9 @@ app.whenReady().then(async () => {
       logger.error("[cron-scheduler] failed to spawn scheduler process:", error);
     }
   });
+
+  // 个人定制：token 用量状态条数据泵（只读查 CLI 会话库，事件驱动推送，spec：docs/desktop/token-usage-statusbar.md）。
+  startTokenUsageStatusPump({ logger, resolveDatabasePath: resolveAgentSessionDbPath });
 
   if (process.platform === "win32") {
     // 打包态必须与 NSIS 快捷方式使用同一 AUMID，否则 Shell 把它们当成不同应用。

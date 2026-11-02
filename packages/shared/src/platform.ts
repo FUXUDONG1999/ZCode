@@ -54,6 +54,7 @@ export type {
   UpdateCheckResultPayload,
   UpdateStatePayload,
 } from "./update.js";
+import type { TokenUsageWindowSnapshot } from "./token-usage.js";
 
 export interface TaskNotificationPayload {
   taskId: string;
@@ -1193,6 +1194,9 @@ export interface IPlatformService {
 
   /** 注册"手动检查更新"结果的回调（用于 toast 反馈），返回 disposer */
   onUpdateCheckResult(callback: (payload: UpdateCheckResultPayload) => void): () => void;
+
+  /** 注册 token 用量状态条快照推送的回调（个人定制，主进程事件驱动推送），返回 disposer */
+  onTokenUsageSnapshot?(callback: (payload: TokenUsageWindowSnapshot) => void): () => void;
 
   /** 注册自动更新持续状态变化的回调，返回 disposer */
   onUpdateStateChanged?(callback: (payload: UpdateStatePayload) => void): () => void;
