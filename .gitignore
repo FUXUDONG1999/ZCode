@@ -75,3 +75,6 @@ packages/desktop/resources/macos-window-bounds/
 __pycache__/
 *.pyc
 .zcode-runtime
+
+# ZCode 桌面会话的计划缓存（本地会话产物，不随仓库分发）
+.zcode/plans/
