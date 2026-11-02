@@ -94,10 +94,12 @@ function contextTone(contextWindow: { used: number; max: number }): string {
 }
 
 function DetailRow({ label, value }: { label: ReactNode; value: ReactNode }) {
+  // 修复：子代理标题是整段 prompt，长标签不截断会把数值挤到贴边换行并撑破浮层。
+  // 标签 min-w-0 truncate 单行省略，数值 shrink-0 不参与压缩。
   return (
-    <div className="flex items-center justify-between gap-6">
-      <span className="text-foreground-subtlest">{label}</span>
-      <span className="tabular-nums text-foreground-subtle">{value}</span>
+    <div className="flex min-w-0 items-center justify-between gap-4">
+      <span className="min-w-0 truncate text-foreground-subtlest">{label}</span>
+      <span className="shrink-0 whitespace-nowrap tabular-nums text-foreground-subtle">{value}</span>
     </div>
   );
 }
@@ -134,12 +136,14 @@ function UsageChip({
   toneClass,
   detail,
   testId,
+  contentClassName,
 }: {
   label: string;
   value: ReactNode;
   toneClass?: string;
   detail: ReactNode;
   testId: string;
+  contentClassName?: string;
 }) {
   return (
     <HoverCard openDelay={250} closeDelay={100}>
@@ -156,7 +160,10 @@ function UsageChip({
       <HoverCardContent
         side="top"
         sideOffset={6}
-        className="w-64 rounded-lg border border-border bg-tooltip p-3 text-tooltip-foreground shadow-md"
+        className={cn(
+          "w-64 rounded-lg border border-border bg-tooltip p-3 text-tooltip-foreground shadow-md",
+          contentClassName,
+        )}
       >
         <div className="flex flex-col gap-1 text-ui-xs">{detail}</div>
       </HoverCardContent>
@@ -381,6 +388,7 @@ export function TokenUsageStatusBar({
         <UsageChip
           testId="token-usage-subagents"
           label={intl.formatMessage({ id: "tokenUsage.subagents" })}
+          contentClassName="w-80"
           value={
             <>
               {session.subagents.activeCount > 0 ? (
@@ -395,9 +403,9 @@ export function TokenUsageStatusBar({
                 <DetailRow
                   key={entry.sessionId}
                   label={
-                    <span className="flex items-center gap-1">
-                      {entry.active ? <span className="size-1 rounded-full bg-info" /> : null}
-                      {entry.title || entry.agent}
+                    <span className="flex min-w-0 items-center gap-1" title={entry.title || entry.agent}>
+                      {entry.active ? <span className="size-1 shrink-0 rounded-full bg-info" /> : null}
+                      <span className="truncate">{entry.title || entry.agent}</span>
                     </span>
                   }
                   value={formatCompact(entry.totalTokens, locale)}
