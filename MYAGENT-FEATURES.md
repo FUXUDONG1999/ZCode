@@ -41,7 +41,7 @@
 | 27 | 隐藏「数据同步」设置分区 | `34c723b1` | UI 裁剪 | settingsNavigation（dataSync 隐藏）|
 | 28 | 个人构建工作流（CI）| `34c723b1`+`412b75c4` | 工程 | GitHub Actions build-desktop |
 | 29 | 架构基线登记定制新文件 | `31f92ef7`+同批 | 工程 | .architecture-baseline.json（10 条）|
-| 30 | 打开方式定制（Sublime 回归/移除清单/Finder 定位）| 待提交 | 桌面能力 | 手动：文件右键菜单（见 E6）|
+| 30 | 打开方式定制（Sublime 回归/移除清单/Finder 定位）| `64662c94`+登记锚点 | 桌面能力 | 手动：文件右键菜单（见 E6）|
 
 ---
 
