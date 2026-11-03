@@ -20,6 +20,7 @@ import {
   ChevronRightIcon,
   CopyIcon,
   ExternalLinkIcon,
+  FolderOpenIcon,
   PanelRightIcon,
 } from "lucide-react";
 import remarkCjkFriendlyGfmStrikethrough from "remark-cjk-friendly-gfm-strikethrough";
@@ -93,14 +94,17 @@ import { stripBalancedAssistantPathQuotes } from "@/lib/assistantPathQuotes.js";
 import { getPathLeaf } from "@/lib/path.js";
 import { getWorkspaceFileRelativePath } from "@/workspace-file-tree/model.js";
 import { resolveWorkspaceEditorSelection } from "@/lib/workspaceEditorSelection.js";
-import { sortInstalledEditorsForFileTree } from "@/workspace-file-tree/helpers.js";
+import {
+  getFileManagerLabel,
+  sortInstalledEditorsForFileTree,
+} from "@/workspace-file-tree/helpers.js";
 import type { CodePreviewSettings } from "@/lib/codePreviewSettings.js";
 import { DEFAULT_CODE_PREVIEW_SETTINGS } from "@/lib/codePreviewSettings.js";
 import { useZCodeStore } from "@/store/StoreProvider.js";
 import { ControlHintTooltip } from "@/ControlHintTooltip.js";
 import { useOptionalPlatform, usePlatform } from "@/hooks/usePlatform.js";
 import { FileApplicationChoices, FileSaveAsMenuItem } from "@/file-menu/index.js";
-import { useFileApplications } from "@/file-menu/index.js";
+import { useFileApplications, type OpenWithApplicationChoice } from "@/file-menu/index.js";
 import { useWorkspaceServices } from "@/hooks/useWorkspaceServices.js";
 import { useFileContextActions } from "@/hooks/useFileContextActions.js";
 import { useWorkspaceOpenInEditorTarget } from "@/hooks/useWorkspaceOpenInEditorTarget.js";
@@ -401,9 +405,9 @@ export interface MessageFileLinkTarget {
   label: string;
   /** 仅用于显式尾随斜杠的目录展示提示；打开第三方应用前必须重新 stat。 */
   pathKind?: NonNullable<OpenInEditorOptions["pathKind"]>;
-    /** 链接里 `path:line(:column)` 后缀解析出的定位信息；供预览面板滚动和第三方编辑器 goto 使用。 */
-    lineNumber?: number | null;
-    columnNumber?: number | null;
+  /** 链接里 `path:line(:column)` 后缀解析出的定位信息；供预览面板滚动和第三方编辑器 goto 使用。 */
+  lineNumber?: number | null;
+  columnNumber?: number | null;
   relativePath?: string;
   workspacePath?: string;
   workspaceIdentity?: string;
@@ -956,16 +960,16 @@ export function buildMessageFileLinkTarget(input: {
   const pathKind = isExplicitDirectoryMarkdownLink(input.path, input.href)
     ? ("directory" as const)
     : undefined;
-    // `src/app.ts:123` 里的行号在 resolveMarkdownFileLink 阶段只用于拆路径，
-    // 此前在这里被丢弃，导致点击链接只能打开文件、无法定位到行。这里从原始 href
-    // 重新解析一次行/列，随 target 传给预览面板与第三方编辑器。
-    const { lineNumber, columnNumber } = parseMarkdownFileLinkTarget(input.href);
+  // `src/app.ts:123` 里的行号在 resolveMarkdownFileLink 阶段只用于拆路径，
+  // 此前在这里被丢弃，导致点击链接只能打开文件、无法定位到行。这里从原始 href
+  // 重新解析一次行/列，随 target 传给预览面板与第三方编辑器。
+  const { lineNumber, columnNumber } = parseMarkdownFileLinkTarget(input.href);
   return {
     path: input.path,
     label: input.label,
     pathKind,
-        lineNumber,
-        columnNumber,
+    lineNumber,
+    columnNumber,
     relativePath: input.workspacePath
       ? getWorkspaceFileRelativePath(input.workspacePath, input.path)
       : input.label,
@@ -999,13 +1003,13 @@ export async function openMessageFileLinkInEditor({
     pathKind: fileStat.type,
     remoteTarget,
     workspaceIdentity: fileLink.workspaceIdentity,
-        // 链接行号只在编辑器 CLI 支持定位参数时生效（VS Code --goto / JetBrains --line），其余忽略。
-        ...(Number.isInteger(fileLink.lineNumber) && (fileLink.lineNumber as number) > 0
-            ? { line: fileLink.lineNumber as number }
-            : {}),
-        ...(Number.isInteger(fileLink.columnNumber) && (fileLink.columnNumber as number) > 0
-            ? { column: fileLink.columnNumber as number }
-            : {}),
+    // 链接行号只在编辑器 CLI 支持定位参数时生效（VS Code --goto / JetBrains --line），其余忽略。
+    ...(Number.isInteger(fileLink.lineNumber) && (fileLink.lineNumber as number) > 0
+      ? { line: fileLink.lineNumber as number }
+      : {}),
+    ...(Number.isInteger(fileLink.columnNumber) && (fileLink.columnNumber as number) > 0
+      ? { column: fileLink.columnNumber as number }
+      : {}),
   });
 }
 
@@ -1173,7 +1177,6 @@ function ScopedMessageFileLink({ className, fileIconSrc, fileLink, onOpen }: Mes
     fileLink.workspaceIdentity,
   );
   const [pathKind, setPathKind] = useState<"file" | "directory" | null>(null);
-  const fileActions = useFileContextActions();
   const openInEditorContext = useWorkspaceOpenInEditorTarget({
     workspacePath: fileLink.workspacePath,
     workspaceIdentity: fileLink.workspaceIdentity,
@@ -1184,13 +1187,20 @@ function ScopedMessageFileLink({ className, fileIconSrc, fileLink, onOpen }: Mes
     fileLink.workspaceRemoteSessionId ||
     openInEditorContext.isRemoteWorkspace,
   );
+  const fileActions = useFileContextActions({
+    canOpenLocalFileManager: Boolean(platform.canOpenLocalFiles),
+    isRemoteWorkspace: isRemote,
+    remoteTarget: openInEditorContext.remoteTarget,
+    workspaceIdentity: fileLink.workspaceIdentity,
+  });
   const fileApplications = useFileApplications(
     { path: fileLink.path, pathKind: "file", workspaceIdentity: fileLink.workspaceIdentity },
     isRemote,
+    { includeInstalledEditors: !isRemote },
   );
   const [editors, setEditors] = useState<EditorInfo[]>([]);
   const [loadingEditors, setLoadingEditors] = useState(false);
-  const sortedEditors: Array<EditorInfo & { isDefault?: boolean }> = useMemo(
+  const sortedEditors: Array<OpenWithApplicationChoice> = useMemo(
     () =>
       pathKind === "file" && !isRemote
         ? fileApplications.apps.map((app) => ({ ...app, iconDataUrl: app.iconDataUrl ?? "" }))
@@ -1255,7 +1265,7 @@ function ScopedMessageFileLink({ className, fileIconSrc, fileLink, onOpen }: Mes
     !isRemote &&
     Boolean(platform.canOpenLocalFiles && platform.openExternalFile);
 
-  const handleOpenInEditor = (editor: EditorInfo) => {
+  const handleOpenInEditor = (editor: OpenWithApplicationChoice) => {
     if (pathKind === "file" && !isRemote) {
       void fileApplications.open({ ...editor, isDefault: false });
       return;
@@ -1336,6 +1346,17 @@ function ScopedMessageFileLink({ className, fileIconSrc, fileLink, onOpen }: Mes
           />
         )}
         <ContextMenuSeparator />
+        {pathKind === "file" && (
+          <ContextMenuItem
+            disabled={!fileActions.canRevealInFileManager({ path: fileLink.path, kind: "file" })}
+            onSelect={() =>
+              void fileActions.revealFileInFileManager({ path: fileLink.path, kind: "file" })
+            }
+          >
+            <FolderOpenIcon aria-hidden="true" className="size-4" />
+            {getFileManagerLabel(intl)}
+          </ContextMenuItem>
+        )}
         <ContextMenuItem
           onSelect={() => void fileActions.copyAbsolutePath({ path: fileLink.path })}
         >
@@ -1570,9 +1591,9 @@ export const MessageResponse = memo(
                     type: "file",
                     title: getPathLeaf(fileLink.path),
                     path: fileLink.path,
-                                        ...(fileLink.lineNumber && fileLink.lineNumber > 0
-                                            ? { revealLine: fileLink.lineNumber }
-                                            : {}),
+                    ...(fileLink.lineNumber && fileLink.lineNumber > 0
+                      ? { revealLine: fileLink.lineNumber }
+                      : {}),
                     workspacePath,
                     workspaceIdentity,
                     workspaceRemoteSessionId,

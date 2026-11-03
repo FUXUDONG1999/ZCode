@@ -41,6 +41,7 @@
 | 27 | 隐藏「数据同步」设置分区 | `34c723b1` | UI 裁剪 | settingsNavigation（dataSync 隐藏）|
 | 28 | 个人构建工作流（CI）| `34c723b1`+`412b75c4` | 工程 | GitHub Actions build-desktop |
 | 29 | 架构基线登记定制新文件 | `31f92ef7`+同批 | 工程 | .architecture-baseline.json（10 条）|
+| 30 | 打开方式定制（Sublime 回归/移除清单/Finder 定位）| 待提交 | 桌面能力 | 手动：文件右键菜单（见 E6）|
 
 ---
 
@@ -144,8 +145,8 @@
     `workspaceFileSearch`、**`dataSync`**（#27，数据同步=同步本机配置到远端设备，2026-10-30 决定隐藏）
   - 可见：**`archives`**（#25 归档管理，2026-10-29 恢复）
   - 恢复/隐藏任一分区 = 从该 Set 增删一行，页面与数据层不动。
-- **macOS 打开方式菜单**（#19）：`editors.ts` 中 Sublime Text 与 Terminal/iTerm/Ghostty
-  条目删除；Windows 侧不动。
+- **macOS 打开方式菜单**（#19，**部分被 #30 逆转**）：`editors.ts` 中 Terminal/iTerm/Ghostty
+  条目保持删除；Sublime Text 已按 #30 加回并升级为文件打开方式的固定入口。
 
 ### B5. 窗口按钮（#10，`97ee7e0f`）
 
@@ -238,6 +239,46 @@
   为 additive 插入，上游演进正常三方合并；`ChatPromptEditor.bottomContent` 插槽若上游重构
   composer 布局需随迁；CLI usage 表 schema 变更（migration）会破坏查询——回归测试
   `tokenUsageSnapshotQuery.test.ts` 用 fixture DB 钉住口径。
+
+### E6. 打开方式定制：Sublime 回归 + 移除清单 + Finder 定位（#30）
+
+- **意图**：会话生成文件/消息文件链接的右键与 Open 下拉——① Sublime Text（macOS）与
+  VS 2026（Windows，检测链路 #17 已覆盖 `"18"→2026`）作为**固定入口**出现在打开方式，
+  不依赖系统文件关联；② 系统关联里的 QuickTime Player/文本编辑/Numbers/Xcode/备忘录/
+  终端 Terminal.app/Chromium 测试与社区变体（Chrome for Testing、Chromium）不再出现，
+  **正式版 Google Chrome 与第三方终端（Ghostty 等）保留**；③ **固定收藏顺序
+  Sublime Text → Google Chrome 置顶**（收藏优先于系统默认置顶；合并面直显列表不再
+  重复标记默认应用，主按钮/中性入口不变）；文件管理器编辑器（finder/explorer）不进
+  打开方式列表——与「在 Finder/资源管理器中打开」定位项重复（`showItemInFolder`：
+  打开所在目录并选中文件；WSL 走 UNC；Linux 回退打开所在目录）。
+- **改动点**：
+  - main：`editors.ts`（Sublime 条目回归）；`fileApplications.ts`（删 Numbers/QuickTime
+    定义）；**新文件** `fileApplicationVisibility.ts`（移除清单 darwin-bundle id/路径/
+    desktop entry 三平台匹配 + 编辑器影子去重：系统条目 key 与白名单编辑器已解析路径
+    相同则剔除，避免 VS Code 双条目）；`file-open-apps/index.ts`（导出
+    `normalizeApplicationKey`、Options 增 `isExcluded` 谓词，查询与打开共用过滤）；
+    `desktopMainIpcPlatform.ts`（装配注入）。
+  - UI：`useFileApplications.ts`（`includeInstalledEditors` 选项：合并 `getInstalledEditors()`
+    白名单为 `origin:"editor"` 条目、只加载一次、`open()` 按 origin 分发——editor 走
+    `openInEditor`，系统走 `openFileWithApplication`；`composeOpenWithApplications` 输出
+    固定收藏顺序——收藏 id `finder → sublime` + 系统按显示名精确匹配 `Google Chrome`，
+    其余编辑器与系统关联随后，系统侧保持默认优先相对序，并剥离 `isDefault` 标记）；
+    `useFileContextActions.ts`（新增 `revealFileInFileManager` 定位语义，与既有
+    `revealInFileManager` 打开目录语义并存）；`workspace-file-tree/helpers.ts`（新增
+    `getFileManagerEditorId`）；`message.tsx` 与 `OpenSplitButton.tsx`（启用编辑器合并 +
+    定位菜单项，文案复用 `appHeader.openInFinder/openInFileExplorer/openInFileManager`）。
+  - 测试：APC probe 同步接管 `GetInstalledEditors`（受控场景固定为空）；真实平台断言经
+    `composeExpectedOpenWithEntries` 镜像收藏排序与剥离规则。
+  - spec：`docs/file-preview-open-apps.md`（打开方式构成、排除规则、收藏排序、定位项）+
+    `file-open-apps/CONTRACT.md`（isExcluded 注入）。
+- **同步策略**：`fileApplicationVisibility.ts` 为新增文件无上游冲突；`file-open-apps` 的
+  `isExcluded` 是 additive 选项；上游若重构 `useFileApplications`/`FileApplicationChoices`
+  数据流，注意 `origin` 分发与收藏排序（PINNED 常量）不回退；上游新增编辑器白名单条目
+  自动获得固定入口，无需改本特性代码。
+- **验证锚点**：手动——mac dev 运行右键 `.sh`/`.xlsx` 文件：直显前二为 Sublime Text、
+  Google Chrome；无 Finder/终端/Xcode/文本编辑/Numbers/备忘录/Chrome for Testing；
+  VS Code 只有一条；「在 Finder 中打开」定位选中文件；Windows 侧 VS 2026 检测依赖 #17
+  既有链路（本机无 Win 环境未实测）。
 
 ---
 

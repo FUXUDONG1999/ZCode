@@ -25,6 +25,7 @@ import {
   type WindowControlsOverlayReadyPayload,
 } from "@zcode/shared";
 import { getAppIconDataUrl, getInstalledEditors } from "./editors.js";
+import { createFileApplicationExclusionFilter } from "./fileApplicationVisibility.js";
 import { createFileApplicationService } from "@desktop/main/file-open-apps/index.js";
 import type { FileApplicationTarget } from "@zcode/shared";
 import { getApplicationIcon } from "./applicationIcons.js";
@@ -439,6 +440,8 @@ export function registerPlatformIpcHandlers(options: {
   );
   const fileApplications = createFileApplicationService({
     getIcon: (id, path) => getAppIconDataUrl(id, path),
+    // 个人定制（MYAGENT-FEATURES #30）：移除清单 + 编辑器影子去重，见 fileApplicationVisibility.ts。
+    isExcluded: createFileApplicationExclusionFilter(),
     logger: options.logger,
   });
   ipcMain.handle(PlatformChannels.GetFileApplications, (_event, target: FileApplicationTarget) =>

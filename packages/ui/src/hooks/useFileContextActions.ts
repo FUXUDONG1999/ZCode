@@ -4,6 +4,7 @@ import { toast } from "@/components/ui/toast.js";
 import { usePlatform } from "@/hooks/usePlatform.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { getContainingDirectoryPath } from "@/lib/path.js";
+import { getFileManagerEditorId } from "@/workspace-file-tree/helpers.js";
 import { logger } from "@/logger.js";
 
 interface FileContextActionOptions {
@@ -108,11 +109,45 @@ export function useFileContextActions(options: FileContextActionOptions = {}) {
     [canRevealInFileManager, openFailedMessage, platform, remoteTarget, workspaceIdentity],
   );
 
+  // 与 revealInFileManager 的「打开所在目录」不同：这里定位并选中文件本身
+  // （macOS Finder / Windows Explorer 的 showItemInFolder 语义），供聊天文件链接与文件卡片使用。
+  const revealFileInFileManager = useCallback(
+    async (target: FileContextActionTarget) => {
+      if (!canRevealInFileManager(target) || target.kind === "directory") {
+        return;
+      }
+
+      const editorId = getFileManagerEditorId();
+      const result =
+        remoteTarget?.kind === "wsl"
+          ? await platform.openInEditor("explorer", target.path, {
+              pathKind: "file",
+              remoteTarget,
+              workspaceIdentity,
+            })
+          : editorId
+            ? await platform.openInEditor(editorId, target.path, { pathKind: "file" })
+            : await platform.openInFileManager(
+                getContainingDirectoryPath(target.path) ?? target.path,
+              );
+      if (result.success) {
+        return;
+      }
+      logger.warn("[FileContextActions] 在文件管理器中定位文件失败", {
+        path: target.path,
+        error: result.error ?? "unknown-error",
+      });
+      toast(openFailedMessage);
+    },
+    [canRevealInFileManager, openFailedMessage, platform, remoteTarget, workspaceIdentity],
+  );
+
   return {
     canRevealInFileManager,
     copyAbsolutePath,
     copyPath,
     copyRelativePath,
     revealInFileManager,
+    revealFileInFileManager,
   };
 }

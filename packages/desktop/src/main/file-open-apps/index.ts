@@ -12,13 +12,15 @@ import { createNativeApplicationAdapter } from "./native.js";
 interface Options {
   adapter?: FileApplicationNativeAdapter;
   getIcon?: (id: string, path: string) => Promise<string | null>;
+  /** 宿主注入的排除谓词：true 表示该原生应用不进入打开方式列表（查询与打开共用）。 */
+  isExcluded?: (application: NativeFileApplication) => boolean;
   logger?: { warn: (...args: unknown[]) => void };
 }
 
 const applicationId = (app: NativeFileApplication) =>
   `file-app:${createHash("sha256").update(normalizeApplicationKey(app.key)).digest("hex")}`;
 
-function normalizeApplicationKey(key: string): string {
+export function normalizeApplicationKey(key: string): string {
   return /^[A-Za-z]:[\\/]|^\\\\/.test(key) ? win32.normalize(key).toLowerCase() : normalize(key);
 }
 
@@ -103,7 +105,11 @@ export function createFileApplicationService(options: Options = {}): FileOpenApp
     target: FileApplicationTarget,
     includeIcons = true,
   ): Promise<NativeFileApplication[]> {
-    return deduplicateApplications(await adapter.query(target.path, { includeIcons }));
+    const excluded = options.isExcluded;
+    const applications = await adapter.query(target.path, { includeIcons });
+    return deduplicateApplications(
+      excluded ? applications.filter((app) => !excluded(app)) : applications,
+    );
   }
   return {
     async getFileApplications(target) {

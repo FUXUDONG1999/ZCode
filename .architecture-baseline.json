@@ -3,11 +3,11 @@
   "violations": [
     {
       "rule": "unmanaged-new-file",
-      "file": "packages/desktop/src/main/tokenUsageSnapshotQuery.ts",
-      "module": "desktop",
-      "detail": "desktop",
-      "message": "新文件落在未受管模块 desktop；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
-      "fingerprint": "a361db9771dc735c",
+      "file": "packages/ui/src/v4/composer/tokenUsageStatusBar.tsx",
+      "module": "ui",
+      "detail": "ui",
+      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "03f7e7d707ce85bf",
       "global": false
     },
     {
@@ -30,38 +30,11 @@
     },
     {
       "rule": "unmanaged-new-file",
-      "file": "packages/shared/src/token-usage.ts",
-      "module": "shared",
-      "detail": "shared",
-      "message": "新文件落在未受管模块 shared；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
-      "fingerprint": "b2bd83b2a8e964d3",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/ui/src/FileManagerPane.tsx",
-      "module": "ui",
-      "detail": "ui",
-      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
-      "fingerprint": "043841b626ef06bf",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
       "file": "packages/ui/src/lib/workflowArtifactOpen.ts",
       "module": "ui",
       "detail": "ui",
       "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
       "fingerprint": "2a1f2f4c5705402f",
-      "global": false
-    },
-    {
-      "rule": "unmanaged-new-file",
-      "file": "packages/ui/src/previewPaneHtmlContent.tsx",
-      "module": "ui",
-      "detail": "ui",
-      "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
-      "fingerprint": "61ee6b6612c64ffb",
       "global": false
     },
     {
@@ -75,11 +48,20 @@
     },
     {
       "rule": "unmanaged-new-file",
-      "file": "packages/ui/src/v4/composer/tokenUsageStatusBar.tsx",
+      "file": "packages/ui/src/previewPaneHtmlContent.tsx",
       "module": "ui",
       "detail": "ui",
       "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
-      "fingerprint": "03f7e7d707ce85bf",
+      "fingerprint": "61ee6b6612c64ffb",
+      "global": false
+    },
+    {
+      "rule": "unmanaged-new-file",
+      "file": "packages/desktop/src/main/tokenUsageSnapshotQuery.ts",
+      "module": "desktop",
+      "detail": "desktop",
+      "message": "新文件落在未受管模块 desktop；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "a361db9771dc735c",
       "global": false
     },
     {
@@ -89,6 +71,24 @@
       "detail": "ui",
       "message": "新文件落在未受管模块 ui；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
       "fingerprint": "b0f6e625d1dadde0",
+      "global": false
+    },
+    {
+      "rule": "unmanaged-new-file",
+      "file": "packages/shared/src/token-usage.ts",
+      "module": "shared",
+      "detail": "shared",
+      "message": "新文件落在未受管模块 shared；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "b2bd83b2a8e964d3",
+      "global": false
+    },
+    {
+      "rule": "unmanaged-new-file",
+      "file": "packages/desktop/src/main/fileApplicationVisibility.ts",
+      "module": "desktop",
+      "detail": "desktop",
+      "message": "新文件落在未受管模块 desktop；请放入 managed 模块，或用 pnpm architecture:adopt <id> --root <dir> 为它所在目录登记模块",
+      "fingerprint": "dee5cd6b585c974f",
       "global": false
     }
   ]

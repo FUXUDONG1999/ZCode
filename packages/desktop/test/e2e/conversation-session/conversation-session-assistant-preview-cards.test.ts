@@ -183,7 +183,7 @@ describe("Assistant Preview Cards E2E", () => {
         await row.click({ button: "right" });
         const menu = await browser.$('[data-slot="context-menu-content"][data-state="open"]');
         await menu.waitForDisplayed();
-        await assertApplicationMenu(menu, applications);
+        await assertApplicationMenu(menu, composeExpectedOpenWithEntries([], applications));
         const labels = await menu.$$('[role="menuitem"]').map((item) => item.getText());
         expect(labels[0]).toMatch(/^(Preview|预览)$/);
         expect(labels.some((label) => /Open containing folder|打开所在目录/.test(label))).toBe(
@@ -439,9 +439,7 @@ async function clickPreviewCard(title: string) {
 // 卡片主体整卡可点：点击标题区域（铺满卡片的透明按钮）与主按钮执行同一预览动作。
 async function clickPreviewCardBody(title: string) {
   const result = await browser.execute((expectedTitle) => {
-    const row = document.querySelector<HTMLElement>(
-      `[data-preview-card-title="${expectedTitle}"]`,
-    );
+    const row = document.querySelector<HTMLElement>(`[data-preview-card-title="${expectedTitle}"]`);
     const overlay = Array.from(row?.querySelectorAll<HTMLButtonElement>("button") ?? []).find(
       (button) => (button.getAttribute("aria-label") ?? "").endsWith(expectedTitle),
     );
@@ -505,6 +503,44 @@ async function assertApplicationMenu(
   }
 }
 
+// 镜像 useFileApplications 的个人定制排序（MYAGENT-FEATURES #30）：固定收藏
+// Sublime Text → Google Chrome 置顶（优先于默认应用），剥离列表内默认标记，
+// 并排除与「在 Finder/资源管理器中打开」定位项重复的文件管理器条目。
+const PINNED_EDITOR_IDS = ["sublime"];
+const PINNED_APPLICATION_NAMES = ["Google Chrome"];
+const EXCLUDED_EDITOR_IDS = ["finder", "explorer"];
+
+function composeExpectedOpenWithEntries(
+  editors: Array<{ id: string; name: string }>,
+  systemApps: FileApplicationInfo[],
+): FileApplicationInfo[] {
+  const systemSorted = [...(systemApps ?? [])].sort(
+    (left, right) => Number(right.isDefault) - Number(left.isDefault),
+  );
+  const editorEntries = editors
+    .filter((editor) => !EXCLUDED_EDITOR_IDS.includes(editor.id))
+    .map((editor) => ({
+      id: editor.id,
+      name: editor.name,
+      isDefault: false,
+    }));
+  const pinnedEditors = PINNED_EDITOR_IDS.map((id) =>
+    editorEntries.find((entry) => entry.id === id),
+  )
+    .filter((entry): entry is FileApplicationInfo => entry !== undefined)
+    .sort(
+      (left, right) => PINNED_EDITOR_IDS.indexOf(left.id) - PINNED_EDITOR_IDS.indexOf(right.id),
+    );
+  const otherEditors = editorEntries.filter((entry) => !PINNED_EDITOR_IDS.includes(entry.id));
+  const pinnedSystem = PINNED_APPLICATION_NAMES.flatMap((name) =>
+    systemSorted.filter((application) => application.name === name),
+  ).map((application) => ({ id: application.id, name: application.name, isDefault: false }));
+  const otherSystem = systemSorted
+    .filter((application) => !PINNED_APPLICATION_NAMES.includes(application.name))
+    .map((application) => ({ id: application.id, name: application.name, isDefault: false }));
+  return [...pinnedEditors, ...pinnedSystem, ...otherEditors, ...otherSystem];
+}
+
 async function assertFileOpenApps(filename: string, fixture?: FileApplicationInfo[]) {
   // Office 夹具位于 office/，不能按 CASE_ROOT 根目录查找；必须查询卡片对应的同一个真实文件。
   const filePath = await realpath(
@@ -514,21 +550,33 @@ async function assertFileOpenApps(filename: string, fixture?: FileApplicationInf
       filename,
     ),
   );
-  const expected =
-    fixture ??
-    (await browser.execute(async (filePath) => {
+  // 打开方式 = 编辑器白名单条目（origin=editor，恒非默认）+ 系统关联；受控场景 probe 把编辑器固定为空。
+  const [systemExpected, editors] = await Promise.all([
+    fixture
+      ? Promise.resolve(fixture)
+      : browser.execute(async (filePath) => {
+          const platform = (
+            window as unknown as Window & {
+              zcode: {
+                getFileApplications(target: {
+                  path: string;
+                  pathKind: "file";
+                }): Promise<FileApplicationInfo[]>;
+              };
+            }
+          ).zcode;
+          return platform.getFileApplications({ path: filePath, pathKind: "file" });
+        }, filePath),
+    browser.execute(async () => {
       const platform = (
         window as unknown as Window & {
-          zcode: {
-            getFileApplications(target: {
-              path: string;
-              pathKind: "file";
-            }): Promise<FileApplicationInfo[]>;
-          };
+          zcode: { getInstalledEditors(): Promise<Array<{ id: string; name: string }>> };
         }
       ).zcode;
-      return platform.getFileApplications({ path: filePath, pathKind: "file" });
-    }, filePath));
+      return platform.getInstalledEditors();
+    }),
+  ]);
+  const expected = composeExpectedOpenWithEntries(editors, systemExpected ?? []);
   const row = await browser.$(`[data-preview-card-title="${filename}"]`);
   await row.$('button[aria-label="Choose app"], button[aria-label="选择打开方式"]').click();
   const menu = await browser.$('[data-slot="dropdown-menu-content"][data-state="open"]');

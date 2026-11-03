@@ -1,5 +1,11 @@
 import type { EditorInfo } from "@zcode/shared";
-import { ChevronDownIcon, CopyIcon, ExternalLinkIcon, PanelRightIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  FolderOpenIcon,
+  PanelRightIcon,
+} from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -31,6 +37,7 @@ import {
   FileApplicationChoices,
   FileSaveAsMenuItem,
   useFileApplications,
+  type OpenWithApplicationChoice,
 } from "@/file-menu/index.js";
 import { usePlatform } from "@/hooks/usePlatform.js";
 import { useFileContextActions } from "@/hooks/useFileContextActions.js";
@@ -39,6 +46,7 @@ import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { persistLastSelectedEditorId } from "@/lib/editorPreference.js";
 import type { CodeViewerSource } from "@/lib/codeViewer.js";
 import { getWorkspaceFileRelativePath } from "@/workspace-file-tree/model.js";
+import { getFileManagerLabel } from "@/workspace-file-tree/helpers.js";
 import { resolveWorkspaceEditorSelection } from "@/lib/workspaceEditorSelection.js";
 import { logger } from "@/logger.js";
 
@@ -117,6 +125,7 @@ export function OpenSplitButton({
       ? { path: target.path, pathKind: "file", workspaceIdentity: previewSource?.workspaceIdentity }
       : null,
     isRemoteSource,
+    { includeInstalledEditors: !isRemoteSource },
   );
   const defaultApplication = fileApplications.defaultApplication;
   const defaultApplicationTitle = intl.formatMessage(
@@ -133,7 +142,7 @@ export function OpenSplitButton({
   const [editors, setEditors] = useState<EditorInfo[]>([]);
   const [editorsLoaded, setEditorsLoaded] = useState(false);
   const [loadingEditors, setLoadingEditors] = useState(false);
-  const sortedEditors: Array<EditorInfo & { isDefault?: boolean }> = useMemo(
+  const sortedEditors: Array<OpenWithApplicationChoice> = useMemo(
     () =>
       !isRemoteSource
         ? fileApplications.apps.map((app) => ({ ...app, iconDataUrl: app.iconDataUrl ?? "" }))
@@ -257,7 +266,7 @@ export function OpenSplitButton({
     });
   };
 
-  const handleOpenInEditor = (editor: EditorInfo) => {
+  const handleOpenInEditor = (editor: OpenWithApplicationChoice) => {
     if (target.type !== "file") {
       return;
     }
@@ -267,21 +276,21 @@ export function OpenSplitButton({
       return;
     }
     persistLastSelectedEditorId(editor.id);
-        const previewSource = target.previewSource;
-        // 链接行号只在编辑器 CLI 支持定位参数时生效（VS Code --goto / JetBrains --line）。
-        const revealLine =
-            previewSource?.type === "file" &&
-            Number.isInteger(previewSource.revealLine) &&
-            (previewSource.revealLine as number) > 0
-                ? (previewSource.revealLine as number)
-                : undefined;
+    const previewSource = target.previewSource;
+    // 链接行号只在编辑器 CLI 支持定位参数时生效（VS Code --goto / JetBrains --line）。
+    const revealLine =
+      previewSource?.type === "file" &&
+      Number.isInteger(previewSource.revealLine) &&
+      (previewSource.revealLine as number) > 0
+        ? (previewSource.revealLine as number)
+        : undefined;
     // 返回失败和 IPC 拒绝都必须有可见反馈，不能只写日志后静默结束。
     void platform
       .openInEditor(editor.id, target.path, {
         pathKind: "file",
         remoteTarget: openInEditorRemoteTarget,
-                workspaceIdentity: previewSource?.workspaceIdentity,
-                ...(revealLine !== undefined ? { line: revealLine } : {}),
+        workspaceIdentity: previewSource?.workspaceIdentity,
+        ...(revealLine !== undefined ? { line: revealLine } : {}),
       })
       .then((result) => {
         if (!result.success) throw new Error(result.error ?? "unknown-error");
@@ -364,6 +373,17 @@ export function OpenSplitButton({
           />
         )}
         <Separator />
+        {target.type === "file" && filePath && (
+          <Item
+            disabled={!fileActions.canRevealInFileManager({ path: filePath, kind: "file" })}
+            onSelect={() =>
+              void fileActions.revealFileInFileManager({ path: filePath, kind: "file" })
+            }
+          >
+            <FolderOpenIcon aria-hidden="true" className="size-4" />
+            {getFileManagerLabel(intl)}
+          </Item>
+        )}
         {target.type === "website" && (
           <Item onSelect={() => void fileActions.copyAbsolutePath({ path: target.url })}>
             <CopyIcon className="size-4" />
@@ -458,6 +478,16 @@ export function OpenSplitButton({
             handleOpenDefault={
               canOpenNative && platform.openExternalFile ? handleOpenDefault : undefined
             }
+            canRevealInFileManager={
+              target.type === "file" &&
+              filePath !== undefined &&
+              fileActions.canRevealInFileManager({ path: filePath, kind: "file" })
+            }
+            handleRevealInFileManager={
+              target.type === "file" && filePath
+                ? () => void fileActions.revealFileInFileManager({ path: filePath, kind: "file" })
+                : undefined
+            }
           />
           {viewMenuItems ? (
             <>
@@ -497,6 +527,8 @@ function OpenSplitButtonDropdownActions({
   handleOpenExternal,
   handleOpenInEditor,
   handleOpenDefault,
+  canRevealInFileManager,
+  handleRevealInFileManager,
   canOpenWith,
 }: {
   target:
@@ -511,11 +543,13 @@ function OpenSplitButtonDropdownActions({
           workspaceRemoteSessionId?: string;
         };
       };
-  sortedEditors: readonly (EditorInfo & { isDefault?: boolean })[];
+  sortedEditors: readonly OpenWithApplicationChoice[];
   loadingEditors: boolean;
   handleOpenExternal: () => void;
-  handleOpenInEditor: (editor: EditorInfo) => void;
+  handleOpenInEditor: (editor: OpenWithApplicationChoice) => void;
   handleOpenDefault?: () => void;
+  canRevealInFileManager: boolean;
+  handleRevealInFileManager?: () => void;
   canOpenWith: boolean;
 }) {
   const { intl } = useZCodeIntl();
@@ -543,6 +577,15 @@ function OpenSplitButtonDropdownActions({
           )}
           {(handleOpenDefault || canOpenWith) && <DropdownMenuSeparator />}
           <FileSaveAsMenuItem path={target.path} {...target.previewSource} />
+          {handleRevealInFileManager && (
+            <DropdownMenuItem
+              disabled={!canRevealInFileManager}
+              onSelect={handleRevealInFileManager}
+            >
+              <FolderOpenIcon aria-hidden="true" className="size-4" />
+              {getFileManagerLabel(intl)}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onSelect={() => void fileActions.copyAbsolutePath({ path: target.path })}
           >

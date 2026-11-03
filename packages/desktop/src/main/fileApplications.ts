@@ -107,7 +107,6 @@ export function getFileApplicationDefs(
       mac("powerpoint", "Microsoft PowerPoint", "Microsoft PowerPoint", ["pptx"]),
       mac("keynote", "Keynote", "Keynote", ["pptx"]),
       mac("excel", "Microsoft Excel", "Microsoft Excel", ["xlsx"]),
-      mac("numbers", "Numbers", "Numbers", ["xlsx"]),
       mac("wps", "WPS Office", "wpsoffice", ["pdf", ...OFFICE]),
       {
         ...mac("libreoffice-writer", "LibreOffice Writer", "LibreOffice", ["docx"]),
@@ -122,7 +121,6 @@ export function getFileApplicationDefs(
         launchArgs: ["--calc"],
       },
       mac("music", "Music", "/System/Applications/Music.app", ["mp3"]),
-      mac("quicktime", "QuickTime Player", "/System/Applications/QuickTime Player.app", MEDIA),
       mac("iina", "IINA", "IINA", MEDIA),
       mac("vlc", "VLC", "VLC", MEDIA),
     ];

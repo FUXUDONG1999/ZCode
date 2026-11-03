@@ -44,6 +44,19 @@ export function getFileManagerLabel(intl: { formatMessage: (desc: { id: string }
   return intl.formatMessage({ id: "appHeader.openInFileManager" });
 }
 
+/** 定位文件所用的编辑器 id；null 表示该平台只能打开所在目录（如 Linux 桌面）。 */
+export function getFileManagerEditorId(): "finder" | "explorer" | null {
+  if (isMacLike()) {
+    return "finder";
+  }
+
+  if (isWindowsLike()) {
+    return "explorer";
+  }
+
+  return null;
+}
+
 export function isWorkspaceFileTreeHtmlFile(
   row: Pick<WorkspaceFileTreeRow, "path" | "type">,
 ): boolean {
