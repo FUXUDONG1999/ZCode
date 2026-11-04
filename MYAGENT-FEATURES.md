@@ -7,6 +7,8 @@
 > **基线**：v2 基于 main `a60ba6a7`（2026-10-30 上游同步）+ 下列提交；功能基线为旧分支
 > `4c14c7bd`（2026-10-29，今天之前的最后状态）。旧分支 10-30 的两个吸收提交
 > （`00655193`/`e840f1f5`，遗留 22 个类型错误）已废弃、不含于 v2。
+> 2026-11-04 已合并 main `a9fe401e`（v3.17.2，merge `7331f5ab`）：定位项撞车按「以远端为主」
+> 取上游实现（见 E6），其余定制全部幸存。
 
 ## 功能总表
 
@@ -211,6 +213,11 @@
     调用点传参。
   - **已废弃部分**：原 PreviewPane 内的 `handleOpenInEditor`（上游已把「用编辑器打开」
     移出该组件），hunk 不再适用——行号传参已由上游新调用点承担。
+  - **与上游 v3.17.2 的关系（2026-11-04 对比结论）**：上游新增「内置浏览器本地 HTML 预览」
+    （`browser-local-preview/`，`file://` → `zcode-html://` 签名协议，仅作用于内嵌浏览器
+    session）；#23 的侧边 HTML 预览是沙箱 iframe `srcDoc` 渲染（fileService 读文本，远程
+    workspace 也可用），两条链路互补无冲突，全部保留。用户决策：HTML 预览**以远端机制为主**——
+    未来若上游侧边预览与本特性冲突，按「跟随上游」裁决。
 - **#24 异步日志**（`bfa51bd0`+`5b0b78ad`）：行进内存队列、setImmediate 合并、
   每-文件链式 Promise、退出同步兜底、缓冲上限 2000；`exportLogs.ts` 配套。
   上游若改日志格式/TTFT 分流，注意保留 `ensureLogDirectory` 与退出兜底链路。
@@ -279,6 +286,13 @@
   Google Chrome；无 Finder/终端/Xcode/文本编辑/Numbers/备忘录/Chrome for Testing；
   VS Code 只有一条；「在 Finder 中打开」定位选中文件；Windows 侧 VS 2026 检测依赖 #17
   既有链路（本机无 Win 环境未实测）。
+- **v3.17.2 定位项撞车合并（2026-11-04）**：上游同版本独立实现了同语义定位项
+  （`getSystemFileLocatorEditorId` + `reveal` prop，覆盖文件链接、目录链接与产物卡片，
+  APC14/15 断言）。按「以远端为主」**整体取上游实现**：本地 `revealFileInFileManager`
+  （`getFileManagerEditorId` 版）及其 `canRevealInFileManager`/`handleRevealInFileManager`
+  props 已移除，`getFileManagerEditorId` 死代码已删（上游 helper 等价替代）。
+  ①固定入口、②移除清单、③固定收藏顺序（`useFileApplications.ts` 的 PINNED 逻辑）不受影响；
+  probe/APC e2e 互补合并（本地 `GetInstalledEditors` 固定 + 上游定位 IPC stub）。
 
 ---
 
