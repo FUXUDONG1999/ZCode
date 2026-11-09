@@ -7,6 +7,8 @@
 > **基线**：v2 基于 main `a60ba6a7`（2026-10-30 上游同步）+ 下列提交；功能基线为旧分支
 > `4c14c7bd`（2026-10-29，今天之前的最后状态）。旧分支 10-30 的两个吸收提交
 > （`00655193`/`e840f1f5`，遗留 22 个类型错误）已废弃、不含于 v2。
+> 2026-11-09 已真 merge main `a9fe401e`（v3.17.2）：#30 的定位项与上游同功能实现收敛
+> （见 E6 同步记录），其余定制全部保持。
 
 ## 功能总表
 
@@ -275,6 +277,15 @@
   `isExcluded` 是 additive 选项；上游若重构 `useFileApplications`/`FileApplicationChoices`
   数据流，注意 `origin` 分发与收藏排序（PINNED 常量）不回退；上游新增编辑器白名单条目
   自动获得固定入口，无需改本特性代码。
+- **2026-11-09 同步（main `a9fe401e` / v3.17.2）**：上游独立落地了同一定位项——
+  `workspace-file-tree/helpers.ts` 新增 `getSystemFileLocatorEditorId`、
+  `useFileContextActions.revealFileInFileManager`（失败回退打开目录）、
+  `OpenSplitButton` 的 `reveal` prop 与 message.tsx 的 `canReveal` 菜单项（含目录链接支持）。
+  按收敛原则**删除本地重复实现**：`getFileManagerEditorId` helper、message.tsx 与
+  OpenSplitButton 的本地菜单项/props。保留不受影响的定制核心：收藏排序（PINNED）、
+  `origin` 分发、`fileApplicationVisibility` 移除清单、Sublime/编辑器固定入口。
+  E2E probe 取并集（`GetInstalledEditors` 钉空 + 上游 `OpenInFileManager`/`OpenInEditor`
+  记录）；`composeExpectedOpenWithEntries` 镜像与 APC14/15 定位断言共存。
 - **验证锚点**：手动——mac dev 运行右键 `.sh`/`.xlsx` 文件：直显前二为 Sublime Text、
   Google Chrome；无 Finder/终端/Xcode/文本编辑/Numbers/备忘录/Chrome for Testing；
   VS Code 只有一条；「在 Finder 中打开」定位选中文件；Windows 侧 VS 2026 检测依赖 #17

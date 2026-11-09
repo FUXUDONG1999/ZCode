@@ -45,8 +45,8 @@ import { useWorkspaceOpenInEditorTarget } from "@/hooks/useWorkspaceOpenInEditor
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { persistLastSelectedEditorId } from "@/lib/editorPreference.js";
 import type { CodeViewerSource } from "@/lib/codeViewer.js";
-import { getWorkspaceFileRelativePath } from "@/workspace-file-tree/model.js";
 import { getFileManagerLabel } from "@/workspace-file-tree/helpers.js";
+import { getWorkspaceFileRelativePath } from "@/workspace-file-tree/model.js";
 import { resolveWorkspaceEditorSelection } from "@/lib/workspaceEditorSelection.js";
 import { logger } from "@/logger.js";
 
@@ -56,6 +56,8 @@ export type OpenSplitButtonTarget =
       type: "website";
       url: string;
       localPath?: string;
+      /** 卡片背后的本机文件（localhost 预览也可能有），只用于在文件管理器中定位，不参与打开。 */
+      sourcePath?: string;
       workspacePath?: string;
     }
   | {
@@ -120,6 +122,17 @@ export function OpenSplitButton({
   const workspacePath =
     target.type === "file" ? previewSource?.workspacePath : target.workspacePath;
   const canOpenNative = Boolean(platform.canOpenLocalFiles && !isRemoteSource);
+  // 只有落在本机（或 WSL）的文件产物能定位到所在目录：文件卡用自身路径，file:// HTML 用 localPath，
+  // localhost 预览只有映射到本轮写出的本机 HTML 时才带 sourcePath；纯网址没有文件可找。
+  const revealPath = target.type === "file" ? target.path : (target.localPath ?? target.sourcePath);
+  const canReveal = Boolean(
+    revealPath && fileActions.canRevealInFileManager({ path: revealPath }),
+  );
+  const fileManagerLabel = getFileManagerLabel(intl);
+  const handleReveal = () => {
+    // macOS / Windows 定位并选中文件；无系统定位能力时 hook 内部回退为打开所在目录。
+    if (revealPath) void fileActions.revealFileInFileManager({ path: revealPath, kind: "file" });
+  };
   const fileApplications = useFileApplications(
     target.type === "file"
       ? { path: target.path, pathKind: "file", workspaceIdentity: previewSource?.workspaceIdentity }
@@ -373,15 +386,10 @@ export function OpenSplitButton({
           />
         )}
         <Separator />
-        {target.type === "file" && filePath && (
-          <Item
-            disabled={!fileActions.canRevealInFileManager({ path: filePath, kind: "file" })}
-            onSelect={() =>
-              void fileActions.revealFileInFileManager({ path: filePath, kind: "file" })
-            }
-          >
-            <FolderOpenIcon aria-hidden="true" className="size-4" />
-            {getFileManagerLabel(intl)}
+        {canReveal && (
+          <Item onSelect={handleReveal}>
+            <FolderOpenIcon className="size-4" />
+            {fileManagerLabel}
           </Item>
         )}
         {target.type === "website" && (
@@ -478,16 +486,7 @@ export function OpenSplitButton({
             handleOpenDefault={
               canOpenNative && platform.openExternalFile ? handleOpenDefault : undefined
             }
-            canRevealInFileManager={
-              target.type === "file" &&
-              filePath !== undefined &&
-              fileActions.canRevealInFileManager({ path: filePath, kind: "file" })
-            }
-            handleRevealInFileManager={
-              target.type === "file" && filePath
-                ? () => void fileActions.revealFileInFileManager({ path: filePath, kind: "file" })
-                : undefined
-            }
+            reveal={canReveal ? { label: fileManagerLabel, onSelect: handleReveal } : undefined}
           />
           {viewMenuItems ? (
             <>
@@ -527,9 +526,8 @@ function OpenSplitButtonDropdownActions({
   handleOpenExternal,
   handleOpenInEditor,
   handleOpenDefault,
-  canRevealInFileManager,
-  handleRevealInFileManager,
   canOpenWith,
+  reveal,
 }: {
   target:
     | { type: "website" }
@@ -548,23 +546,31 @@ function OpenSplitButtonDropdownActions({
   handleOpenExternal: () => void;
   handleOpenInEditor: (editor: OpenWithApplicationChoice) => void;
   handleOpenDefault?: () => void;
-  canRevealInFileManager: boolean;
-  handleRevealInFileManager?: () => void;
   canOpenWith: boolean;
+  reveal?: { label: string; onSelect: () => void };
 }) {
   const { intl } = useZCodeIntl();
   const fileActions = useFileContextActions();
+  const revealItem = reveal ? (
+    <DropdownMenuItem onSelect={reveal.onSelect}>
+      <FolderOpenIcon className="size-4" />
+      {reveal.label}
+    </DropdownMenuItem>
+  ) : null;
   return (
     <>
       {target.type === "website" ? (
-        <DropdownMenuItem onSelect={handleOpenExternal}>
-          <ExternalLinkIcon className="size-4" />
-          <span>
-            {intl.formatMessage({
-              id: "chat.previewCards.openExternal",
-            })}
-          </span>
-        </DropdownMenuItem>
+        <>
+          <DropdownMenuItem onSelect={handleOpenExternal}>
+            <ExternalLinkIcon className="size-4" />
+            <span>
+              {intl.formatMessage({
+                id: "chat.previewCards.openExternal",
+              })}
+            </span>
+          </DropdownMenuItem>
+          {revealItem}
+        </>
       ) : (
         <>
           {(handleOpenDefault || canOpenWith) && (
@@ -576,16 +582,8 @@ function OpenSplitButtonDropdownActions({
             />
           )}
           {(handleOpenDefault || canOpenWith) && <DropdownMenuSeparator />}
+          {revealItem}
           <FileSaveAsMenuItem path={target.path} {...target.previewSource} />
-          {handleRevealInFileManager && (
-            <DropdownMenuItem
-              disabled={!canRevealInFileManager}
-              onSelect={handleRevealInFileManager}
-            >
-              <FolderOpenIcon aria-hidden="true" className="size-4" />
-              {getFileManagerLabel(intl)}
-            </DropdownMenuItem>
-          )}
           <DropdownMenuItem
             onSelect={() => void fileActions.copyAbsolutePath({ path: target.path })}
           >
