@@ -1,5 +1,5 @@
 import { SidebarNativeTooltip, ControlHintTooltip } from "@/ControlHintTooltip.js";
-import { RemoteIdentityHoverCard } from "@/project-sidebar/RemoteIdentityHoverCard.js";
+import { ProjectIdentityHoverCard } from "@/project-sidebar/ProjectIdentityHoverCard.js";
 import { remoteHostLabel } from "@/project-sidebar/RemoteHostSection.js";
 import { memo } from "react";
 import type { useSortable } from "@dnd-kit/sortable";
@@ -46,6 +46,7 @@ import { ProjectTaskRows } from "@/project-sidebar/ProjectTaskRows.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { resolveRemoteConnectionPresentation } from "@/lib/remoteConnectionPresentation.js";
 import { RemoteConnectionStateIcon } from "@/remote-connection/RemoteConnectionStateIcon.js";
+import { ManagedWorktreeCreatingRows } from "@/managed-worktrees/index.js";
 
 // 修复原因：memo 内容的内联默认对象/数组会在每次渲染时新建引用，触发引用稳定性门禁。
 const DEFAULT_AVAILABILITY: ProjectAvailability = { online: true };
@@ -191,10 +192,9 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
     <>
       <ContextMenu modal={false}>
         {/* 标题区域不含行尾按钮，作为锚点时浮层会遮住操作；以整行边界定位，保留更多/新建入口可点击。 */}
-        <RemoteIdentityHoverCard
+        <ProjectIdentityHoverCard
           host={remoteHost}
           title={project.name}
-          projectName={project.name}
           deviceName={deviceLabel}
           paths={project.roots.map((root) => root.rootPath)}
           connectionError={diagnostics?.error}
@@ -357,9 +357,10 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
               </div>
             </div>
           </ContextMenuTrigger>
-        </RemoteIdentityHoverCard>
+        </ProjectIdentityHoverCard>
         {/* 非模态菜单只负责导航，避免退出动画与编辑弹窗交错后残留指针锁。 */}
-        <ContextMenuContent>
+        {/* 完整路径可能比窄屏更宽；按浮层可用宽度收口，再由文件项换行，避免裁掉目标目录。 */}
+        <ContextMenuContent className="max-w-(--radix-context-menu-content-available-width)">
           <ProjectMenuItems actions={contextActions} context />
         </ContextMenuContent>
       </ContextMenu>
@@ -367,6 +368,8 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
       <CollapsibleContent data-testid="virtual-project-tasks">
         {/* 原因：旧任务文字的 34px 缩进外只需 8px 留白，空态与项目名称保持对齐。 */}
         <div className="pl-2 pt-1">
+          {/* 正在新 worktree 中启动的任务排在真实任务前面（docs/git/worktree.md §3.3）。 */}
+          <ManagedWorktreeCreatingRows projectId={project.id} />
           <ProjectTaskRows tasks={tasks} onSelect={onSelect} refresh={refresh} />
         </div>
       </CollapsibleContent>
@@ -389,7 +392,10 @@ function ProjectMenuItems({
       key={action.id}
       disabled={action.disabled}
       data-testid={`virtual-project-${context && (action.id.startsWith("files-") || action.id === "create-task") ? "context-" : ""}${action.id}`}
-      className={action.destructive ? "text-destructive" : undefined}
+      className={cn(
+        action.destructive && "text-destructive",
+        action.id.startsWith("files-") && "break-all",
+      )}
       onSelect={action.run}
     >
       {action.icon ? <action.icon className="size-4 shrink-0" aria-hidden="true" /> : null}

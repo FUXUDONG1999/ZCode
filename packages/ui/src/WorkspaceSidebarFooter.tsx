@@ -8,6 +8,7 @@ import {
   TID_TASK_SETTINGS_BUTTON,
 } from "@zcode/shared/test-ids";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar.js";
+import { Badge } from "@/components/ui/badge.js";
 import { cn } from "@/components/lib/utils.js";
 import { Button } from "@/components/ui/button.js";
 import { toast } from "@/components/ui/toast.js";
@@ -18,8 +19,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu.js";
-import { Copy, Loader2, LogInIcon, LogOut, Settings, User } from "lucide-react";
+import { Copy, Gift, Loader2, LogInIcon, LogOut, Settings, User } from "lucide-react";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
+import { useOpenRewards } from "@/rewards/RewardsProvider.js";
 import { useZCodeStore } from "@/store/StoreProvider.js";
 import {
   WorkspaceSidebarFooterPlanBadge,
@@ -89,6 +91,7 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
 }) {
   const { intl } = useZCodeIntl();
   const isRestoringOAuthSession = useZCodeStore((state) => state.isRestoringOAuthSession);
+  const openRewards = useOpenRewards();
   const profileBadge = getSidebarProfileBadge(user, intl.formatMessage);
   const avatarFallbackText = getAvatarFallbackText(user);
   const avatarKey = user?.avatarUrl ?? user?.id ?? "guest";
@@ -243,6 +246,18 @@ export const WorkspaceSidebarFooter = memo(function WorkspaceSidebarFooterCompon
               onUpgradeClick={onUpgradeClick}
             />
             {/* 个人定制：账户菜单移除「邀请好友」入口；Rewards 能力与营销触达入口保留。 */}
+            {user ? (
+              <DropdownMenuItem onSelect={() => openRewards?.()} data-testid="rewards-menu-item">
+                <Gift className="size-4" />
+                {intl.formatMessage({ id: "rewards.menuTitle" })}
+                <Badge
+                  data-testid="rewards-reward-badge"
+                  className="-ml-0.5 h-auto border-0 px-1.5 py-0.5 text-ui-sm leading-none bg-[var(--color-plugin-paid-plan-badge)] text-[var(--color-plugin-paid-plan-badge-foreground)]"
+                >
+                  {intl.formatMessage({ id: "rewards.menuBadge" })}
+                </Badge>
+              </DropdownMenuItem>
+            ) : null}
             {onLogin && !user ? (
               <>
                 <DropdownMenuSeparator />
