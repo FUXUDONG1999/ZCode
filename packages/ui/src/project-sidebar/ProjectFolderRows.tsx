@@ -1,4 +1,4 @@
-import { Folder } from "lucide-react";
+import { ChevronRight, Folder } from "lucide-react";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import type { GitRepositorySummary } from "@zcode/shared";
 import { GitBranchSwitcher } from "@/GitBranchSwitcher.js";
@@ -6,6 +6,7 @@ import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { useBaseWorkspaceServices } from "@/hooks/useWorkspaceServices.js";
 import { useGitAutoRefresh } from "@/hooks/useGitAutoRefresh.js";
 import { ServiceProvider } from "@/hooks/useServices.js";
+import { cn } from "@/components/lib/utils.js";
 import { getPathLeaf } from "@/lib/path.js";
 import type {
   ProjectRoot,
@@ -13,8 +14,9 @@ import type {
 } from "@/project-sidebar/contract.js";
 
 /**
- * 项目展开区的文件夹行：每个 root 一行，显示目录名，git root 追加分支切换入口。
- * 文件夹是操作层不是任务导航层（虚拟项目 spec A2），任务仍整组归属项目。
+ * 项目展开区的文件夹层：默认收起的小节头（文件夹 N），点开后每个 root 一行，
+ * 显示目录名，git root 追加分支切换入口。文件夹是操作层不是任务导航层
+ * （虚拟项目 spec A2），任务仍整组归属项目；单 root 项目与项目行重复，不渲染。
  */
 export function ProjectFolderRows({
   project,
@@ -23,24 +25,41 @@ export function ProjectFolderRows({
   project: VirtualProject;
   expanded: boolean;
 }) {
+  const [folderLayerOpen, setFolderLayerOpen] = useState(false);
   const baseServices = useBaseWorkspaceServices();
+  const { intl } = useZCodeIntl();
   const sortedRoots = useMemo(
     () => sortProjectRoots(project.roots),
     [project.roots],
   );
-  if (project.hostId !== "local" || sortedRoots.length === 0) return null;
+  if (project.hostId !== "local" || sortedRoots.length < 2) return null;
   // GitBranchSwitcher 内部走 useServices()（跟随激活 tab）；远端 tab 激活时必须钉住
   // 本机 base services，否则本地 root 的 git 调用会被路由到远端 host。
   return (
     <ServiceProvider services={baseServices}>
       <div className="pb-1" data-testid="project-folder-rows">
-        {sortedRoots.map((root) => (
-          <ProjectFolderRow
-            key={root.rootPath}
-            root={root}
-            expanded={expanded}
+        <button
+          type="button"
+          data-testid="project-folder-toggle"
+          aria-expanded={folderLayerOpen}
+          onClick={() => setFolderLayerOpen((open) => !open)}
+          className="ml-4 flex h-6 min-w-0 items-center gap-1 rounded-lg px-2 text-ui-sm text-foreground-subtle hover:bg-surface-hover"
+        >
+          <ChevronRight
+            aria-hidden="true"
+            className={cn(
+              "size-3 shrink-0 transition-transform",
+              folderLayerOpen && "rotate-90",
+            )}
           />
-        ))}
+          <span>{intl.formatMessage({ id: "project.folder.sectionLabel" })}</span>
+          <span className="text-ui-xs">{sortedRoots.length}</span>
+        </button>
+        {folderLayerOpen
+          ? sortedRoots.map((root) => (
+              <ProjectFolderRow key={root.rootPath} root={root} expanded={expanded} />
+            ))
+          : null}
       </div>
     </ServiceProvider>
   );
@@ -120,7 +139,7 @@ function ProjectFolderBranch({
   );
 }
 
-/** 展开（enabled）时按 rootPath 拉取仓库摘要；失败静默为 null，行退化为纯目录名。 */
+/** 展开且文件夹层点开后按 rootPath 拉取仓库摘要；失败静默为 null，行退化为纯目录名。 */
 function useFolderGitSummary(rootPath: string, enabled: boolean) {
   const { gitService } = useBaseWorkspaceServices();
   const [summary, setSummary] = useState<GitRepositorySummary | null>(null);

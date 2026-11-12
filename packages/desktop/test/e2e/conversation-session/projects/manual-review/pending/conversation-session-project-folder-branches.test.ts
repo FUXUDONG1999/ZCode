@@ -118,6 +118,22 @@ describe("项目文件夹行分支", () => {
       async () =>
         (await projectToggle().getAttribute("aria-expanded")) === "true",
     );
+    // 文件夹层默认收起：展开项目后只见小节头，点开后文件夹行才出现。
+    const folderLayerToggle = () =>
+      $(
+        '[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="project-folder-toggle"]',
+      );
+    expect(
+      await $(
+        '[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="project-folder-row"]',
+      ).isExisting(),
+    ).toBe(false);
+    await waitForSidebarAnimations();
+    await folderLayerToggle().click();
+    await browser.waitUntil(
+      async () =>
+        (await folderLayerToggle().getAttribute("aria-expanded")) === "true",
+    );
     // 侧栏树会因实时数据 join 重渲染并替换节点；所有断言与交互都用即时查询，不缓存元素引用。
     await browser.waitUntil(
       async () =>
