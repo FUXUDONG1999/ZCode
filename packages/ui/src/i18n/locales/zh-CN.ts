@@ -385,6 +385,7 @@ const zhCN: Record<string, string> = {
   "project.browse": "选择文件夹",
   "project.primaryRootMissing": "该项目主文件夹已被删除或移动",
   "project.primaryRootUnavailable": "无法访问该项目主文件夹",
+  "project.folder.primaryRoot": "主目录",
   "project.cancel": "取消",
   "project.save": "保存",
   "project.restore": "恢复项目",
