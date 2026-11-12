@@ -163,23 +163,27 @@
 
 ### B5. 侧栏项目文件夹层（#32）
 
-- **意图**：本地项目行展开后，任务列表上方有一个**默认收起**的「文件夹 (N)」小节头，
-  点开后每个 root 一行——目录名 + 该文件夹 git 分支，可就地切分支/新建分支。多文件夹
-  项目（各 root 独立仓库）不用再进工作区头部逐个切；文件夹默认不显示，只有主动点开
-  才出现。任务仍整组归属项目，文件夹是操作层不是导航层（虚拟项目 spec A2 边界不变；
-  spec：`docs/superpowers/specs/2026-11-12-project-folder-branch-layer-design.md`）。
+- **意图**：本地项目行 hover 时「...」菜单左侧出现文件夹层 chevron，点开后每个 root
+  一行——目录名 + 该文件夹 git 分支，可就地切分支/新建分支。多文件夹项目（各 root
+  独立仓库）不用再进工作区头部逐个切；文件夹默认不显示，只有主动点开才出现。
+  2026-11-12 二次增量：原独立「文件夹 (N)」小节头已删除，行内 chevron 为唯一入口，
+  展开态由项目行持有。任务仍整组归属项目，文件夹是操作层不是导航层（虚拟项目 spec
+  A2 边界不变；spec：`docs/superpowers/specs/2026-11-12-project-folder-branch-layer-design.md`）。
 - **改动点**：
   - `packages/ui/src/project-sidebar/ProjectFolderRows.tsx`（**新增，核心**）：
-    `ProjectFolderRows`（本地项目 gate + `roots.length >= 2` 才渲染 + primary 在前排序
-    + 默认收起的小节头（组件内 useState，项目收起即复位）+ `ServiceProvider` 钉住
+    `ProjectFolderRows`（导出 `hasProjectFolderLayer` gate 供入口与行渲染共用 +
+    primary 在前排序 + 受控 `open` prop，无内部状态 + `ServiceProvider` 钉住
     `useBaseWorkspaceServices()`）→ `ProjectFolderRow`（目录名/主目录 tooltip/i18n
     `project.folder.primaryRoot`）→ `ProjectFolderBranch`（`useFolderGitSummary` 按
     rootPath 实时拉 `getRepositorySummary`，不落库；复用 `GitBranchSwitcher`
     `popoverSide="right"`；`useGitAutoRefresh` 展开期间 watcher 自动刷新）。
     ServiceProvider 钉 base 的原因：GitBranchSwitcher 内部 `useServices()` 跟随激活
     tab，远端 tab 激活时本地 root 的 git 调用会被路由到远端 host。
-  - `ProjectNodeContent.tsx`：CollapsibleContent 内、ManagedWorktreeCreatingRows 前
-    挂载。
+  - `ProjectNodeContent.tsx`：持有 `folderLayerOpen`（useEffect 在项目收起时复位，
+    收起态点 chevron 先 `onExpandedChange(true)` 再打开文件夹层）；行尾 hover 动作区
+    首位渲染 chevron（`data-testid="project-folder-toggle"` 沿用，`aria-expanded` 表
+    态，随动作区 hover 显示）；CollapsibleContent 内、ManagedWorktreeCreatingRows 前
+    以 `open={isOpen && folderLayerOpen}` 挂载 `ProjectFolderRows`。
   - i18n：zh-CN/en-US 新增 `project.folder.primaryRoot`、`project.folder.sectionLabel`。
 - **范围裁决**：仅本地项目（`hostId === "local"`）且多 root（单 root 与项目行重复，
   不渲染）；远程项目不做。非 git 文件夹只显目录名。分支数据实时派生，无 schema/CLI
@@ -193,13 +197,15 @@
   pnpm --filter @zcode/desktop test:e2e -- --spec <该文件>`）。测试要点：夹具须放系统
   临时目录（e2e home 在 ZCode 仓库内，非 git 目录会解析到外层仓库分支）；多 root 项目
   展开默认 true，展开前按 `aria-expanded` 判定是否需要点击；展开项目后文件夹层默认
-  收起（断言 `project-folder-row` 不存在），点 `project-folder-toggle` 后才出现。
+  收起（断言 `project-folder-row` 不存在），移入项目行后点行内 `project-folder-toggle`
+  （hover chevron）后才出现。
   2026-11-12 基线对照：virtual-project.test.ts 本机 6 个失败（VP20×3/VP10/VP12/
   VP08-17-18）为 fork 既有裁剪与上游测试的存量分歧，与本功能无关（摘除本功能复跑
   失败集相同）。
   **手测待执行**（2026-11-12 桌面 E2E 已过，以下无运行时证据；使用者仅桌面端，
   手机 /remote 不在验证范围）：远端 tab 激活时展开本地项目切分支走本机；同仓库
-  双 root 切换联动；运行中会话 cwd 上切分支。
+  双 root 切换联动；运行中会话 cwd 上切分支。行内 chevron 入口 2026-11-12 dev
+  版手测通过（hover 出现/点击铺开/再点收起/项目收起后复位）。
 - **同步策略**：上游若改 `ProjectNodeContent` 展开区结构，只需保住挂载点一行与
   `ProjectFolderRows.tsx` 文件；上游若改 `GitBranchSwitcher` props，注意
   `workspacePath/dirtyFileCount/onRefreshGit` 三个入参仍可用。纯新增文件，无上游对应

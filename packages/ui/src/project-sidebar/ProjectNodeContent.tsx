@@ -1,9 +1,10 @@
 import { SidebarNativeTooltip, ControlHintTooltip } from "@/ControlHintTooltip.js";
 import { ProjectIdentityHoverCard } from "@/project-sidebar/ProjectIdentityHoverCard.js";
 import { remoteHostLabel } from "@/project-sidebar/RemoteHostSection.js";
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import type { useSortable } from "@dnd-kit/sortable";
 import {
+  ChevronRight,
   Ellipsis,
   FolderMinus,
   Folders,
@@ -43,7 +44,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu.js";
 import { ProjectTaskRows } from "@/project-sidebar/ProjectTaskRows.js";
-import { ProjectFolderRows } from "@/project-sidebar/ProjectFolderRows.js";
+import { hasProjectFolderLayer, ProjectFolderRows } from "@/project-sidebar/ProjectFolderRows.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { resolveRemoteConnectionPresentation } from "@/lib/remoteConnectionPresentation.js";
 import { RemoteConnectionStateIcon } from "@/remote-connection/RemoteConnectionStateIcon.js";
@@ -99,6 +100,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
   onRemoveEntry,
   onOpenDeviceSettings,
   onManageProjects,
+  onExpandedChange,
   additionalActions = EMPTY_ADDITIONAL_ACTIONS,
   editable,
   isOpen,
@@ -115,6 +117,22 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
   }) {
   const { intl } = useZCodeIntl();
   const msg = (id: string) => intl.formatMessage({ id: `project.${id}` });
+  // 个人定制 #32：文件夹层唯一入口是项目行右侧 hover chevron，展开态提升到项目行，同时驱动 chevron 与行渲染。
+  const [folderLayerOpen, setFolderLayerOpen] = useState(false);
+  // 状态不再随 CollapsibleContent 卸载复位；项目收起时显式复位，避免重新展开后文件夹行顶掉任务列表。
+  useEffect(() => {
+    if (!isOpen) setFolderLayerOpen(false);
+  }, [isOpen]);
+
+  const toggleFolderLayer = () => {
+    // 项目收起时先展开项目再打开文件夹层，chevron 点击始终有可见效果。
+    if (!isOpen) {
+      onExpandedChange(true);
+      setFolderLayerOpen(true);
+      return;
+    }
+    setFolderLayerOpen((open) => !open);
+  };
   // 修复原因：新项目行曾无条件显示本地文件夹；远程图标只读 Host 现有投影，复用统一五态。
   const remotePresentation = remoteHost
     ? resolveRemoteConnectionPresentation({
@@ -321,6 +339,30 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
                 data-testid="virtual-project-actions"
                 className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover/project-row:opacity-100 group-focus-within/project-row:opacity-100 [&:has([data-state=open])]:opacity-100 [@media(hover:none)]:opacity-100"
               >
+                {hasProjectFolderLayer(project) ? (
+                  <ControlHintTooltip title={intl.formatMessage({ id: "project.folder.sectionLabel" })}>
+                    {/* 复用 TaskRowActionButton 的 span 包裹：tooltip trigger 需要可接收指针的真实元素。 */}
+                    <span className="inline-flex shrink-0">
+                      <Button
+                        data-testid="project-folder-toggle"
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={intl.formatMessage({ id: "project.folder.sectionLabel" })}
+                        aria-expanded={isOpen && folderLayerOpen}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          toggleFolderLayer();
+                        }}
+                        className="text-foreground-subtle hover:text-foreground"
+                      >
+                        <ChevronRight
+                          aria-hidden="true"
+                          className={cn("size-3.5 transition-transform", isOpen && folderLayerOpen && "rotate-90")}
+                        />
+                      </Button>
+                    </span>
+                  </ControlHintTooltip>
+                ) : null}
                 <DropdownMenu modal={false}>
                   <ControlHintTooltip title={more}>
                     <DropdownMenuTrigger asChild>
@@ -369,7 +411,7 @@ export const ProjectNodeContent = memo(function ProjectNodeContent({
       <CollapsibleContent data-testid="virtual-project-tasks">
         {/* 原因：旧任务文字的 34px 缩进外只需 8px 留白，空态与项目名称保持对齐。 */}
         <div className="pl-2 pt-1">
-          <ProjectFolderRows project={project} expanded={isOpen} />
+          <ProjectFolderRows project={project} expanded={isOpen} open={isOpen && folderLayerOpen} />
           {/* 正在新 worktree 中启动的任务排在真实任务前面（docs/git/worktree.md §3.3）。 */}
           <ManagedWorktreeCreatingRows projectId={project.id} />
           <ProjectTaskRows tasks={tasks} onSelect={onSelect} refresh={refresh} />

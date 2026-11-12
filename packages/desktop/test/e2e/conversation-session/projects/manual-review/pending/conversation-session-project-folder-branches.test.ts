@@ -104,7 +104,6 @@ describe("项目文件夹行分支", () => {
     await $('[data-testid="project-folder-trust-confirm"]').click();
     await $('[data-slot="dialog-overlay"]').waitForExist({ reverse: true });
 
-    const projectRow = await $(`[data-project-name="E2E_FOLDER_BRANCHES"]`);
     await waitForSidebarAnimations();
     // 多 root 本地项目默认展开；只有确认收起态才点击，避免把已展开的项目收起。
     const projectToggle = () =>
@@ -118,10 +117,10 @@ describe("项目文件夹行分支", () => {
       async () =>
         (await projectToggle().getAttribute("aria-expanded")) === "true",
     );
-    // 文件夹层默认收起：展开项目后只见小节头，点开后文件夹行才出现。
+    // 文件夹层默认收起：入口在项目行 hover chevron（... 左侧），点开后文件夹行才出现。
     const folderLayerToggle = () =>
       $(
-        '[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="project-folder-toggle"]',
+        '[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="virtual-project-row"] [data-testid="project-folder-toggle"]',
       );
     expect(
       await $(
@@ -129,6 +128,10 @@ describe("项目文件夹行分支", () => {
       ).isExisting(),
     ).toBe(false);
     await waitForSidebarAnimations();
+    // chevron 随项目行 hover 显示，先移入行再点击。
+    await $(
+      '[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="virtual-project-row"]',
+    ).moveTo();
     await folderLayerToggle().click();
     await browser.waitUntil(
       async () =>
