@@ -5,6 +5,7 @@ import type { GitRepositorySummary } from "@zcode/shared";
 import { GitBranchSwitcher } from "@/GitBranchSwitcher.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { useBaseWorkspaceServices } from "@/hooks/useWorkspaceServices.js";
+import { useGitAutoRefresh } from "@/hooks/useGitAutoRefresh.js";
 import { ServiceProvider } from "@/hooks/useServices.js";
 import { getPathLeaf } from "@/lib/path.js";
 import { ProjectTaskListContext } from "@/project-sidebar/ProjectTaskListContext.js";
@@ -63,22 +64,56 @@ const ProjectFolderRow = memo(function ProjectFolderRow({
       <Folder aria-hidden="true" className="size-3.5 shrink-0" />
       <span className="min-w-0 truncate">{folderName}</span>
       {summary?.isRepository ? (
-        <span data-testid="project-folder-branch" className="ml-auto shrink-0">
-          <GitBranchSwitcher
-            workspacePath={root.rootPath}
-            gitSummary={summary}
-            dirtyFileCount={0}
-            onRefreshGit={refresh}
-            popoverSide="right"
-            compactForRemoteControl={isWebRemoteControl}
-            className="px-0 pt-0"
-            triggerClassName="h-6 gap-1 rounded-full px-2 text-ui-sm text-foreground-subtle max-w-40"
-          />
-        </span>
+        <ProjectFolderBranch
+          rootPath={root.rootPath}
+          summary={summary}
+          expanded={expanded}
+          refresh={refresh}
+          compactForRemoteControl={isWebRemoteControl}
+        />
       ) : null}
     </div>
   );
 });
+
+/** 展开期间监听仓库变更自动刷新分支；仅在确认是 git 仓库后挂载，watcher 随收起/卸载拆除。 */
+function ProjectFolderBranch({
+  rootPath,
+  summary,
+  expanded,
+  refresh,
+  compactForRemoteControl,
+}: {
+  rootPath: string;
+  summary: GitRepositorySummary;
+  expanded: boolean;
+  refresh(): void;
+  compactForRemoteControl: boolean;
+}) {
+  useGitAutoRefresh({
+    workspacePath: rootPath,
+    workspaceIdentity: undefined,
+    remoteSessionId: null,
+    gitSummary: summary,
+    gitSummaryWorkspaceKey: summary.workspacePath,
+    enabled: expanded && summary.isRepository,
+    onRefreshGit: refresh,
+  });
+  return (
+    <span data-testid="project-folder-branch" className="ml-auto shrink-0">
+      <GitBranchSwitcher
+        workspacePath={rootPath}
+        gitSummary={summary}
+        dirtyFileCount={0}
+        onRefreshGit={refresh}
+        popoverSide="right"
+        compactForRemoteControl={compactForRemoteControl}
+        className="px-0 pt-0"
+        triggerClassName="h-6 gap-1 rounded-full px-2 text-ui-sm text-foreground-subtle max-w-40"
+      />
+    </span>
+  );
+}
 
 /** 展开（enabled）时按 rootPath 拉取仓库摘要；失败静默为 null，行退化为纯目录名。 */
 function useFolderGitSummary(rootPath: string, enabled: boolean) {
