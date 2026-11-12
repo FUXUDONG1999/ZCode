@@ -41,6 +41,17 @@ async function chooseProjectRoot(path: string) {
   await selectNativeProjectDirectories([path]);
 }
 
+/** 折叠动画会移动下方行；点击行内触发器前等动画完成，避免点到移动中的目标。 */
+async function waitForSidebarAnimations() {
+  await browser.execute(async () => {
+    await Promise.all(
+      (document.querySelector("aside")?.getAnimations({ subtree: true }) ?? [])
+        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+        .map((animation) => animation.finished.catch(() => {})),
+    );
+  });
+}
+
 describe("项目文件夹行分支", () => {
   before(async () => {
     await prepareV4ConversationE2E({ skipProvider: true });
@@ -92,6 +103,7 @@ describe("项目文件夹行分支", () => {
       join(process.env.ZCODE_E2E_ARTIFACT_DIR!, "project-folder-branches.png"),
     );
 
+    await waitForSidebarAnimations();
     await alphaBranchTrigger.click();
     await $('[data-slot="command-item"]').waitForDisplayed();
     const branches = await $$('[data-slot="command-item"]');
