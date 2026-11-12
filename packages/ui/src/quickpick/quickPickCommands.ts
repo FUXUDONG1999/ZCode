@@ -61,10 +61,11 @@ interface QuickPickCommandHandlers {
   logout?: () => void | Promise<void>;
   toggleSidebar: () => void;
   toggleTerminal: () => void;
-  togglePreview: () => void;
-  openTerminalTab: () => void;
-  openBrowserTab: () => void;
-  openReviewTab: () => void;
+  // 个人定制：预览/终端标签/浏览器标签/评审标签的命令面板入口不上报（面板入口已随定制移除）。
+  togglePreview?: () => void;
+  openTerminalTab?: () => void;
+  openBrowserTab?: () => void;
+  openReviewTab?: () => void;
   /** 只有桌面本机 Host 提供扩展门面时才有（docs/plugins/extension-host.md §12.1）。 */
   reloadExtensions?: () => void;
   /** 打开扩展日志标签（§16.8）：与 reloadExtensions 同一条件。 */

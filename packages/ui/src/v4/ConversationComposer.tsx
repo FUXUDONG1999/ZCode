@@ -102,7 +102,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog.js";
 import { Spinner } from "@/components/ui/spinner.js";
-import { useComposerVoiceInput, VoiceInputButton } from "@/voice-input/index.js";
+import { useComposerVoiceInput } from "@/voice-input/index.js";
 import { ImagePreviewDialog } from "@/components/ai-elements/image-preview-dialog.js";
 import {
   ChatMediaAttachmentPreviewDialog,
@@ -2706,13 +2706,7 @@ function ConversationComposerImpl({
             />
           </span>
         ) : null}
-        {voiceInput.available && remoteAvailable ? (
-          <VoiceInputButton
-            state={voiceInput.state}
-            onToggle={voiceInput.toggle}
-            subscribeLevel={voiceInput.subscribeLevel}
-          />
-        ) : null}
+        {/* 个人定制：不渲染语音输入按钮；voice-input 模块与桌面麦克风授权实现保留。 */}
         {showStopControl ? (
           <ControlHintTooltip title={stopTooltipTitle} shortcut="Esc">
             <Button

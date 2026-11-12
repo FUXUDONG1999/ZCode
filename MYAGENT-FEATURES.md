@@ -11,6 +11,11 @@
 > 取上游实现（见 E6），其余定制全部幸存。
 > 2026-11-09 本地与该远端合并收口（本地工作区过期未拉取导致重复合并）：解法一致，
 > 额外清除了 message.tsx 残留的本地重复定位菜单项（见 E6 撞车条目）。
+> 2026-11-12 已合并 main `b95ebaff`（v3.18.0，merge `812aeee5`）：30 文件冲突按裁决表解，
+> 上游新功能（扩展宿主/设计模式/工作树/登录区域/账户菜单 Rewards 入口）默认保留；
+> 新增裁剪 #31（语音输入仅移除入口，实现保留）。附带修复上次合并遗留的
+> useProjectFileTree 下划线参数与函数体错配（HEAD 上 typecheck 实际已破，门禁链无
+> typecheck 环节未拦截）。
 
 ## 功能总表
 
@@ -46,6 +51,7 @@
 | 28 | 个人构建工作流（CI）| `34c723b1`+`412b75c4` | 工程 | GitHub Actions build-desktop |
 | 29 | 架构基线登记定制新文件 | `31f92ef7`+同批 | 工程 | .architecture-baseline.json（10 条）|
 | 30 | 打开方式定制（Sublime 回归/移除清单/Finder 定位）| `64662c94`+登记锚点 | 桌面能力 | 手动：文件右键菜单（见 E6）|
+| 31 | 语音输入仅移除入口（v3.18.0 新功能裁剪）| v3.18.0 合并批 | UI 裁剪 | grep 无 VoiceInputButton 渲染 |
 
 ---
 
@@ -297,6 +303,19 @@
   probe/APC e2e 互补合并（本地 `GetInstalledEditors` 固定 + 上游定位 IPC stub）。
   2026-11-09 收口补充：message.tsx 静默存活下来的本地重复定位菜单项一并清除，
   消息链接右键菜单只保留上游单项（对齐 APC `revealCount === 1` 断言）。
+
+### E7. 语音输入仅移除入口（#31，v3.18.0 新功能裁剪）
+
+- **意图**：v3.18.0 引入 composer 语音输入（`packages/ui/src/voice-input/` + 桌面
+  `microphone-access` 授权模块 + ASR 链路），个人版不需要，按 B1 先例只移除 UI 入口。
+- **改动点**：`ConversationComposer.tsx` 不渲染 `VoiceInputButton`（import 剪除，
+  `useComposerVoiceInput` hook 接线保留——不触发录音时完全惰性，getUserMedia 仅在
+  toggle 后的采集路径调用）；删除 gating e2e `composer-voice-input.test.ts`（唯一
+  消费 `asr-mock-server` 的用例，helper 保留）；`voice-input/` 模块、桌面麦克风授权、
+  testids、i18n 全部保留。
+- **同步策略**：上游若扩展语音输入（快捷键、设置开关），入口处按同规则不接入；
+  若上游把 hook 改为挂载即请求权限，需同步收紧 hook 接线。
+- **验证锚点**：grep `VoiceInputButton` 仅剩模块定义无渲染点；typecheck/lint 过。
 
 ---
 

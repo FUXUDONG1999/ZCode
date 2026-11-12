@@ -11,12 +11,10 @@ import { resolveProjectFileTarget } from "@/project-sidebar/project-file-navigat
 import { useRemoteWorkspaceSessionStore } from "@/store/remoteWorkspaceSessionStore.js";
 import { useRemoteWorkspaceConnectionGate } from "@/project-sidebar/useRemoteWorkspaceConnectionGate.js";
 
-// 个人定制：项目行/任务行的「查看文件」入口（openFiles / openTaskFiles）已随左侧标签式
-// 侧面板一起移除；本 hook 仅保留手机端 fileTreeOpenRequest 深链消费，避免协议请求悬空。
 export function useProjectFileTree(
   props: ProjectSidebarProps,
-  _directory: unknown,
-  _remoteService?: unknown,
+  directory: RemoteProjectDirectory,
+  remoteService?: IRemoteProjectService,
 ) {
   const {
     workspacePath,

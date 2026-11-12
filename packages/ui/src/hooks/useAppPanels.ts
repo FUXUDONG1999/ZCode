@@ -809,16 +809,8 @@ export function useAppPanels(options: {
     ],
   );
 
-  const handleNavigateFileManager = useCallback(
-    (tabId: string, source: CodeViewerSource) => {
-      // 文件树在 file-manager tab 内点击 .xlsx 时改开查看面板 tab，本 tab 的预览区不动。
-      const fallback = () =>
-        commitSidePaneState((current) => navigateFileManagerSidePane(current, tabId, source));
-      if (routeOfficeViewerFile(source, fallback)) return;
-      fallback();
-    },
-    [commitSidePaneState, routeOfficeViewerFile],
-  );
+  // 个人定制：#22 面板仅内容预览后 handleNavigateFileManager（目录树内导航）不再下发；
+  // 上游的 routeOfficeViewerFile（.xlsx/插件查看器分流）保留，供 handleOpenCodeViewer 使用。
 
   const handleOpenCodeViewer = useCallback(
     (source: CodeViewerSource) => {

@@ -296,7 +296,7 @@ const zhCN: Record<string, string> = {
   "git.managedWorktree.error.bucket-exhausted": "无法分配 worktree 目录",
   "git.managedWorktree.error.worktree-dirty": "worktree 有未提交的改动",
   "git.managedWorktree.error.worktree-in-use": "有任务正在使用这个 worktree",
-  "git.managedWorktree.error.not-managed": "这个目录不是 ZCode 管理的 worktree",
+  "git.managedWorktree.error.not-managed": "这个目录不是 MyAgent 管理的 worktree",
   "git.managedWorktree.error.local-only": "只有本地项目支持 worktree",
   "git.managedWorktree.error.git-failed": "Git 操作失败",
   "git.managedWorktree.error.task-immovable": "worktree 任务不能移动到其他项目",
@@ -332,7 +332,7 @@ const zhCN: Record<string, string> = {
     "暂时无法确认任务是否已启动，未做任何删除，请稍后再试",
   "git.managedWorktree.error.removing": "这个 worktree 正在删除，请稍后再试",
   "git.managedWorktree.dialog.title": "Worktrees",
-  "git.managedWorktree.dialog.description": "{project} 中由 ZCode 管理的 worktree",
+  "git.managedWorktree.dialog.description": "{project} 中由 MyAgent 管理的 worktree",
   "git.managedWorktree.dialog.loadFailed": "无法读取 worktree 列表",
   "git.managedWorktree.dialog.empty": "还没有 worktree",
   "git.managedWorktree.dialog.detached": "detached · {sha}",
@@ -5376,11 +5376,11 @@ const zhCN: Record<string, string> = {
   "settings.plugins.store.showLess": "收起",
   "settings.plugins.store.install": "安装",
   // 带扩展的插件（docs/plugins/plugin-publishing.md §4.3–4.4）。档位名与完全访问原文复用 extensions.grants.*。
-  "settings.plugins.store.extension.requiresUpdate": "需要更新 ZCode",
+  "settings.plugins.store.extension.requiresUpdate": "需要更新 MyAgent",
   "settings.plugins.store.extension.incompatibleHint":
     "这个插件需要更新版本的 ZCode。更新 ZCode 后再安装。",
   "settings.plugins.store.extension.title": "含常驻代码",
-  "settings.plugins.store.extension.description": "启用后，插件的扩展代码在 ZCode 里常驻运行。",
+  "settings.plugins.store.extension.description": "启用后，插件的扩展代码在 MyAgent 里常驻运行。",
   "settings.plugins.store.extension.grantsTitle": "申请的权限",
   "settings.plugins.store.extension.noGrants": "不申请权限",
   "settings.plugins.store.extension.consentNote":
