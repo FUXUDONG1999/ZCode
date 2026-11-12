@@ -23,7 +23,10 @@ function runGit(repositoryPath: string, ...args: string[]) {
   execSync(command, { stdio: "pipe" });
 }
 
-async function prepareGitRepository(repositoryPath: string, branchName: string) {
+async function prepareGitRepository(
+  repositoryPath: string,
+  branchName: string,
+) {
   await mkdir(repositoryPath, { recursive: true });
   runGit(repositoryPath, "init", "-b", branchName);
   await writeFile(join(repositoryPath, "readme.md"), `# ${branchName}\n`);
@@ -46,7 +49,10 @@ async function waitForSidebarAnimations() {
   await browser.execute(async () => {
     await Promise.all(
       (document.querySelector("aside")?.getAnimations({ subtree: true }) ?? [])
-        .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity)
+        .filter(
+          (animation) =>
+            animation.effect?.getComputedTiming().iterations !== Infinity,
+        )
         .map((animation) => animation.finished.catch(() => {})),
     );
   });
@@ -60,8 +66,11 @@ describe("项目文件夹行分支", () => {
   before(async () => {
     await prepareV4ConversationE2E({ skipProvider: true });
     await browser.execute(() => {
-      const actions = (window as Window & { __testActions?: { setLocale(locale: "zh-CN"): void } })
-        .__testActions;
+      const actions = (
+        window as Window & {
+          __testActions?: { setLocale(locale: "zh-CN"): void };
+        }
+      ).__testActions;
       if (!actions) throw new Error("missing E2E locale bridge");
       actions.setLocale("zh-CN");
     });
@@ -84,7 +93,9 @@ describe("项目文件夹行分支", () => {
     await mkdir(plainFolder, { recursive: true });
 
     await openLocalProjectEditor();
-    await $('[data-testid="virtual-project-name"]').setValue("E2E_FOLDER_BRANCHES");
+    await $('[data-testid="virtual-project-name"]').setValue(
+      "E2E_FOLDER_BRANCHES",
+    );
     for (const path of [repositoryAlpha, repositoryBeta, plainFolder]) {
       await chooseProjectRoot(path);
     }
@@ -97,27 +108,41 @@ describe("项目文件夹行分支", () => {
     await waitForSidebarAnimations();
     // 多 root 本地项目默认展开；只有确认收起态才点击，避免把已展开的项目收起。
     const projectToggle = () =>
-      $('[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="virtual-project-toggle"]');
+      $(
+        '[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="virtual-project-toggle"]',
+      );
     if ((await projectToggle().getAttribute("aria-expanded")) !== "true") {
       await projectToggle().click();
     }
-    await browser.waitUntil(async () => (await projectToggle().getAttribute("aria-expanded")) === "true");
+    await browser.waitUntil(
+      async () =>
+        (await projectToggle().getAttribute("aria-expanded")) === "true",
+    );
     // 侧栏树会因实时数据 join 重渲染并替换节点；所有断言与交互都用即时查询，不缓存元素引用。
     await browser.waitUntil(
       async () =>
-        (await $$('[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="project-folder-row"]')
-          .length) === 3,
+        (await $$(
+          '[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="project-folder-row"]',
+        ).length) === 3,
     );
     const folderRow = (folderPath: string) =>
-      $(`[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="project-folder-row"][data-folder-path="${folderPath}"]`);
+      $(
+        `[data-project-name="E2E_FOLDER_BRANCHES"] [data-testid="project-folder-row"][data-folder-path="${folderPath}"]`,
+      );
     const branchTrigger = (folderPath: string) =>
       folderRow(folderPath).$('[data-testid="project-folder-branch"] button');
-    expect(await folderRow(repositoryAlpha).getAttribute("data-primary")).toBe("true");
-    expect(await branchTrigger(repositoryAlpha).getText()).toContain("main");
-    expect(await branchTrigger(repositoryBeta).getText()).toContain("feature-x");
-    expect(await folderRow(plainFolder).$('[data-testid="project-folder-branch"]').isExisting()).toBe(
-      false,
+    expect(await folderRow(repositoryAlpha).getAttribute("data-primary")).toBe(
+      "true",
     );
+    expect(await branchTrigger(repositoryAlpha).getText()).toContain("main");
+    expect(await branchTrigger(repositoryBeta).getText()).toContain(
+      "feature-x",
+    );
+    expect(
+      await folderRow(plainFolder)
+        .$('[data-testid="project-folder-branch"]')
+        .isExisting(),
+    ).toBe(false);
 
     await browser.saveScreenshot(
       join(process.env.ZCODE_E2E_ARTIFACT_DIR!, "project-folder-branches.png"),
@@ -136,7 +161,10 @@ describe("项目文件夹行分支", () => {
     await browser.waitUntil(async () =>
       (await branchTrigger(repositoryAlpha).getText()).includes("develop"),
     );
-    const headContent = await readFile(join(repositoryAlpha, ".git", "HEAD"), "utf8");
+    const headContent = await readFile(
+      join(repositoryAlpha, ".git", "HEAD"),
+      "utf8",
+    );
     expect(headContent).toContain("refs/heads/develop");
   });
 });

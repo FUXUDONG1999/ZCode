@@ -52,6 +52,7 @@
 | 29 | 架构基线登记定制新文件 | `31f92ef7`+同批 | 工程 | .architecture-baseline.json（10 条）|
 | 30 | 打开方式定制（Sublime 回归/移除清单/Finder 定位）| `64662c94`+登记锚点 | 桌面能力 | 手动：文件右键菜单（见 E6）|
 | 31 | 语音输入仅移除入口（v3.18.0 新功能裁剪）| v3.18.0 合并批 | UI 裁剪 | grep 无 VoiceInputButton 渲染 |
+| 32 | 侧栏项目展开文件夹层（分支显示/切换）| `b1417b0a`+`cada0f4e`+`05ace97f` | UI | conversation-session-project-folder-branches e2e（pending）|
 
 ---
 
@@ -160,7 +161,39 @@
 - **macOS 打开方式菜单**（#19，**部分被 #30 逆转**）：`editors.ts` 中 Terminal/iTerm/Ghostty
   条目保持删除；Sublime Text 已按 #30 加回并升级为文件打开方式的固定入口。
 
-### B5. 窗口按钮（#10，`97ee7e0f`）
+### B5. 侧栏项目文件夹层（#32）
+
+- **意图**：本地项目行展开后，任务列表上方显示每个 root 的文件夹行——目录名 + 该
+  文件夹 git 分支，可就地切分支/新建分支。多文件夹项目（各 root 独立仓库）不用再进
+  工作区头部逐个切。任务仍整组归属项目，文件夹是操作层不是导航层（虚拟项目 spec A2
+  边界不变；spec：`docs/superpowers/specs/2026-11-12-project-folder-branch-layer-design.md`）。
+- **改动点**：
+  - `packages/ui/src/project-sidebar/ProjectFolderRows.tsx`（**新增，核心**）：
+    `ProjectFolderRows`（本地项目 gate + primary 在前排序 + `ServiceProvider` 钉住
+    `useBaseWorkspaceServices()`）→ `ProjectFolderRow`（目录名/主目录 tooltip/i18n
+    `project.folder.primaryRoot`）→ `ProjectFolderBranch`（`useFolderGitSummary` 按
+    rootPath 实时拉 `getRepositorySummary`，不落库；复用 `GitBranchSwitcher`
+    `popoverSide="right"`；`useGitAutoRefresh` 展开期间 watcher 自动刷新）。
+    ServiceProvider 钉 base 的原因：GitBranchSwitcher 内部 `useServices()` 跟随激活
+    tab，远端 tab 激活时本地 root 的 git 调用会被路由到远端 host。
+  - `ProjectNodeContent.tsx`：CollapsibleContent 内、ManagedWorktreeCreatingRows 前
+    挂载。
+  - i18n：zh-CN/en-US 新增 `project.folder.primaryRoot`。
+- **范围裁决**：仅本地项目（`hostId === "local"`）；远程项目单 root 不做。非 git 文件夹
+  只显目录名。分支数据实时派生，无 schema/CLI 改动，不变量 I1-I17 不触碰。
+- **验证锚点**：
+  `packages/desktop/test/e2e/conversation-session/projects/manual-review/pending/conversation-session-project-folder-branches.test.ts`
+  （本地回放：`ZCODE_E2E_MANUAL_REVIEW=1 E2E_PROVIDER_HTTP_MODE=replay
+  E2E_PROVIDER_REPLAY_FIXTURE_PATH=packages/desktop/test/e2e/fixtures/upstream/common.json
+  pnpm --filter @zcode/desktop test:e2e -- --spec <该文件>`）。测试要点：夹具须放系统
+  临时目录（e2e home 在 ZCode 仓库内，非 git 目录会解析到外层仓库分支）；多 root 项目
+  展开默认 true，展开前按 `aria-expanded` 判定是否需要点击。
+- **同步策略**：上游若改 `ProjectNodeContent` 展开区结构，只需保住挂载点一行与
+  `ProjectFolderRows.tsx` 文件；上游若改 `GitBranchSwitcher` props，注意
+  `workspacePath/dirtyFileCount/onRefreshGit` 三个入参仍可用。纯新增文件，无上游对应
+  实现，冲突面极小。
+
+### B6. 窗口按钮（#10，`97ee7e0f`）
 
 - 面板常驻左侧后，标签栏仅在完整视图（`fullView`）承担标题栏职责时才渲染
   `DesktopWindowControls`；平时由右侧会话列的 WorkspaceHeader 承担（右上角）。

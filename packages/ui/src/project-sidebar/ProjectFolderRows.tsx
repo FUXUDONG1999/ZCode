@@ -1,6 +1,12 @@
 import { Folder } from "lucide-react";
-import { memo, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { ProjectRoot } from "@zcode/services";
+import {
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import type { GitRepositorySummary } from "@zcode/shared";
 import { GitBranchSwitcher } from "@/GitBranchSwitcher.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
@@ -9,15 +15,27 @@ import { useGitAutoRefresh } from "@/hooks/useGitAutoRefresh.js";
 import { ServiceProvider } from "@/hooks/useServices.js";
 import { getPathLeaf } from "@/lib/path.js";
 import { ProjectTaskListContext } from "@/project-sidebar/ProjectTaskListContext.js";
-import type { VirtualProject } from "@/project-sidebar/contract.js";
+import type {
+  ProjectRoot,
+  VirtualProject,
+} from "@/project-sidebar/contract.js";
 
 /**
  * 项目展开区的文件夹行：每个 root 一行，显示目录名，git root 追加分支切换入口。
  * 文件夹是操作层不是任务导航层（虚拟项目 spec A2），任务仍整组归属项目。
  */
-export function ProjectFolderRows({ project, expanded }: { project: VirtualProject; expanded: boolean }) {
+export function ProjectFolderRows({
+  project,
+  expanded,
+}: {
+  project: VirtualProject;
+  expanded: boolean;
+}) {
   const baseServices = useBaseWorkspaceServices();
-  const sortedRoots = useMemo(() => sortProjectRoots(project.roots), [project.roots]);
+  const sortedRoots = useMemo(
+    () => sortProjectRoots(project.roots),
+    [project.roots],
+  );
   if (project.hostId !== "local" || sortedRoots.length === 0) return null;
   // GitBranchSwitcher 内部走 useServices()（跟随激活 tab）；远端 tab 激活时必须钉住
   // 本机 base services，否则本地 root 的 git 调用会被路由到远端 host。
@@ -25,7 +43,11 @@ export function ProjectFolderRows({ project, expanded }: { project: VirtualProje
     <ServiceProvider services={baseServices}>
       <div className="pb-1" data-testid="project-folder-rows">
         {sortedRoots.map((root) => (
-          <ProjectFolderRow key={root.rootPath} root={root} expanded={expanded} />
+          <ProjectFolderRow
+            key={root.rootPath}
+            root={root}
+            expanded={expanded}
+          />
         ))}
       </div>
     </ServiceProvider>
@@ -135,6 +157,9 @@ function useFolderGitSummary(rootPath: string, enabled: boolean) {
       disposed = true;
     };
   }, [enabled, gitService, rootPath, refreshSequence]);
-  const refresh = useCallback(() => setRefreshSequence((sequence) => sequence + 1), []);
+  const refresh = useCallback(
+    () => setRefreshSequence((sequence) => sequence + 1),
+    [],
+  );
   return { summary, refresh };
 }
