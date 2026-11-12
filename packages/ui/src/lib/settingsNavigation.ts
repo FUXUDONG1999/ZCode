@@ -43,11 +43,15 @@ const SETTINGS_MODEL_PROVIDER_ID_INTENT_KEY = "zcode-settings-model-provider-id-
 const SETTINGS_SECTION_INTENT_EVENT = "zcode:settings-section-intent",
   SETTINGS_LAST_SECTION_STORAGE_KEY = "zcode-settings-last-section";
 const HIDDEN_SETTINGS_SECTIONS = new Set<SettingsSectionId>([
-  // 个人定制：设置分区显隐单一控制点。2026-11-12 起仅保留两项隐藏——
-  // shares（分享管理，用户不需要）与 plugins（旧插件市场遗留 id，自动重定向 plugin）。
-  // browser/remoteDevices/computerUse/plugin/dataSync/automations/workspaceFileSearch
-  // 已按需求全部放开，重新隐藏时把 id 加回本列表即可。
+  // 个人定制：设置分区显隐单一控制点。2026-11-12 体验 v3.18.0 后收敛——
+  // 插件（plugin）与工作区搜索（workspaceFileSearch）保持可见，其余按需求隐藏。
+  "browser",
+  "remoteDevices",
+  "computerUse",
+  "dataSync",
+  "automations",
   "shares",
+  // 旧插件市场遗留 id：自动重定向 plugin，开了无意义。
   "plugins",
 ]);
 
