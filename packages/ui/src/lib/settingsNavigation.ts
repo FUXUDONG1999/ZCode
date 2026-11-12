@@ -44,10 +44,12 @@ const SETTINGS_SECTION_INTENT_EVENT = "zcode:settings-section-intent",
   SETTINGS_LAST_SECTION_STORAGE_KEY = "zcode-settings-last-section";
 const HIDDEN_SETTINGS_SECTIONS = new Set<SettingsSectionId>([
   // 个人定制：设置分区显隐单一控制点。2026-11-12 体验 v3.18.0 后收敛——
-  // 插件（plugin）与工作区搜索（workspaceFileSearch）保持可见，其余按需求隐藏。
+  // 仅工作区搜索（workspaceFileSearch）保持可见，其余按需求隐藏。
   "browser",
   "remoteDevices",
   "computerUse",
+  // 个人定制：插件（含市场）入口移除；插件运行时、官方 MCP 与已装插件不受影响。
+  "plugin",
   "dataSync",
   "automations",
   "shares",

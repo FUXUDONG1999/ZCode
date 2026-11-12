@@ -151,11 +151,11 @@
 - **任务页**（`0da194ca`）：`styles.css`（One Dark Pro 调色板，深色主题整体加深一档，
   注释锚点 styles.css:683）；移除推荐/帮助入口（`WorkspaceHeader`/`SessionPane`）。
 - **设置分区显隐**（`settingsNavigation.ts` 的 `HIDDEN_SETTINGS_SECTIONS`，**单一控制点**）：
-  - 隐藏（2026-11-12 体验后收敛）：`browser`、`remoteDevices`、`computerUse`、`dataSync`、
-    `automations`、**`shares`**（分享管理，用户不需要；分享服务与已生成链接不受影响）、
+  - 隐藏（2026-11-12 体验后收敛）：`browser`、`remoteDevices`、`computerUse`、`plugin`
+    （插件含市场，体验后移除；插件运行时与官方 MCP 不受影响）、`dataSync`、`automations`、
+    **`shares`**（分享管理，用户不需要；分享服务与已生成链接不受影响）、
     `plugins`（遗留 id，自动重定向 `plugin`）
-  - 可见：**`plugin`**（插件/市场，体验 v3.18.0 后保留）、**`workspaceFileSearch`**、
-    **`archives`**（#25 归档管理，2026-10-29 恢复）
+  - 可见：**`workspaceFileSearch`**、**`archives`**（#25 归档管理，2026-10-29 恢复）
   - 恢复/隐藏任一分区 = 从该 Set 增删一行，页面与数据层不动。
 - **macOS 打开方式菜单**（#19，**部分被 #30 逆转**）：`editors.ts` 中 Terminal/iTerm/Ghostty
   条目保持删除；Sublime Text 已按 #30 加回并升级为文件打开方式的固定入口。
