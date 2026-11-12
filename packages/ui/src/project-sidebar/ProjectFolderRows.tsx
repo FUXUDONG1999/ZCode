@@ -1,12 +1,5 @@
 import { Folder } from "lucide-react";
-import {
-  memo,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import type { GitRepositorySummary } from "@zcode/shared";
 import { GitBranchSwitcher } from "@/GitBranchSwitcher.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
@@ -14,7 +7,6 @@ import { useBaseWorkspaceServices } from "@/hooks/useWorkspaceServices.js";
 import { useGitAutoRefresh } from "@/hooks/useGitAutoRefresh.js";
 import { ServiceProvider } from "@/hooks/useServices.js";
 import { getPathLeaf } from "@/lib/path.js";
-import { ProjectTaskListContext } from "@/project-sidebar/ProjectTaskListContext.js";
 import type {
   ProjectRoot,
   VirtualProject,
@@ -69,7 +61,6 @@ const ProjectFolderRow = memo(function ProjectFolderRow({
   expanded: boolean;
 }) {
   const { intl } = useZCodeIntl();
-  const { isWebRemoteControl = false } = useContext(ProjectTaskListContext);
   const { summary, refresh } = useFolderGitSummary(root.rootPath, expanded);
   const folderName = getPathLeaf(root.rootPath) || root.rootPath;
   const primarySuffix = root.isPrimary
@@ -86,13 +77,7 @@ const ProjectFolderRow = memo(function ProjectFolderRow({
       <Folder aria-hidden="true" className="size-3.5 shrink-0" />
       <span className="min-w-0 truncate">{folderName}</span>
       {summary?.isRepository ? (
-        <ProjectFolderBranch
-          rootPath={root.rootPath}
-          summary={summary}
-          expanded={expanded}
-          refresh={refresh}
-          compactForRemoteControl={isWebRemoteControl}
-        />
+        <ProjectFolderBranch rootPath={root.rootPath} summary={summary} expanded={expanded} refresh={refresh} />
       ) : null}
     </div>
   );
@@ -104,13 +89,11 @@ function ProjectFolderBranch({
   summary,
   expanded,
   refresh,
-  compactForRemoteControl,
 }: {
   rootPath: string;
   summary: GitRepositorySummary;
   expanded: boolean;
   refresh(): void;
-  compactForRemoteControl: boolean;
 }) {
   useGitAutoRefresh({
     workspacePath: rootPath,
@@ -122,6 +105,7 @@ function ProjectFolderBranch({
     onRefreshGit: refresh,
   });
   return (
+    // 不传 compactForRemoteControl：该语义为聊天栏窄底设计（只留图标），侧栏行需要分支名可见。
     <span data-testid="project-folder-branch" className="ml-auto shrink-0">
       <GitBranchSwitcher
         workspacePath={rootPath}
@@ -129,7 +113,6 @@ function ProjectFolderBranch({
         dirtyFileCount={0}
         onRefreshGit={refresh}
         popoverSide="right"
-        compactForRemoteControl={compactForRemoteControl}
         className="px-0 pt-0"
         triggerClassName="h-6 gap-1 rounded-full px-2 text-ui-sm text-foreground-subtle max-w-40"
       />

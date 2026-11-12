@@ -188,6 +188,9 @@
   pnpm --filter @zcode/desktop test:e2e -- --spec <该文件>`）。测试要点：夹具须放系统
   临时目录（e2e home 在 ZCode 仓库内，非 git 目录会解析到外层仓库分支）；多 root 项目
   展开默认 true，展开前按 `aria-expanded` 判定是否需要点击。
+  **手测待执行**（2026-11-12 桌面 E2E 已过，以下无运行时证据）：手机 /remote 侧栏
+  分支行触控与 popover 观感（不传 compactForRemoteControl，分支名应可见）；远端 tab
+  激活时展开本地项目切分支走本机；同仓库双 root 切换联动；运行中会话 cwd 上切分支。
 - **同步策略**：上游若改 `ProjectNodeContent` 展开区结构，只需保住挂载点一行与
   `ProjectFolderRows.tsx` 文件；上游若改 `GitBranchSwitcher` props，注意
   `workspacePath/dirtyFileCount/onRefreshGit` 三个入参仍可用。纯新增文件，无上游对应
