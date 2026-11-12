@@ -43,25 +43,12 @@ const SETTINGS_MODEL_PROVIDER_ID_INTENT_KEY = "zcode-settings-model-provider-id-
 const SETTINGS_SECTION_INTENT_EVENT = "zcode:settings-section-intent",
   SETTINGS_LAST_SECTION_STORAGE_KEY = "zcode-settings-last-section";
 const HIDDEN_SETTINGS_SECTIONS = new Set<SettingsSectionId>([
-    // 个人定制：隐藏「浏览器控制 / 远程设备 / 电脑控制 / 插件（含市场）/ 数据同步」设置分区，
-  // 只移除入口；页面实现与数据逻辑全部保留，恢复时从本列表删除对应 id 即可。
-    // 归档管理（archives）已按需求恢复入口。
-  "browser",
-  "remoteDevices",
-  "computerUse",
-  "plugin",
-  // 个人定制：数据同步（同步本机配置到远端设备）入口按需移除；同步服务本身保留。
-  "dataSync",
-  // 个人定制：分享管理（对话分享列表）入口按需移除；分享服务与已生成分享链接不受影响。
+  // 个人定制：设置分区显隐单一控制点。2026-11-12 起仅保留两项隐藏——
+  // shares（分享管理，用户不需要）与 plugins（旧插件市场遗留 id，自动重定向 plugin）。
+  // browser/remoteDevices/computerUse/plugin/dataSync/automations/workspaceFileSearch
+  // 已按需求全部放开，重新隐藏时把 id 加回本列表即可。
   "shares",
-  // 产品语义：定时任务是 workspace 主视图，不能再作为设置页分区出现。
-  // 注意：hooks 已是正式设置页分区，不在此列。
-  "automations",
-  // 旧插件市场已迁出设置页；保留 id 只用于迁移历史偏好和旧调用。
   "plugins",
-  // 工作区搜索（.zcodeignore）设置入口先隐藏：规则文件仍生效并可手动编辑，
-  // 编辑页代码保留，放开时从这里移除即可。
-  "workspaceFileSearch",
 ]);
 
 export interface SettingsSectionIntentEventDetail {
