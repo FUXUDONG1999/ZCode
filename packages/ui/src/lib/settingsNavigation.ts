@@ -52,6 +52,8 @@ const HIDDEN_SETTINGS_SECTIONS = new Set<SettingsSectionId>([
   "plugin",
   // 个人定制：数据同步（同步本机配置到远端设备）入口按需移除；同步服务本身保留。
   "dataSync",
+  // 个人定制：分享管理（对话分享列表）入口按需移除；分享服务与已生成分享链接不受影响。
+  "shares",
   // 产品语义：定时任务是 workspace 主视图，不能再作为设置页分区出现。
   // 注意：hooks 已是正式设置页分区，不在此列。
   "automations",
