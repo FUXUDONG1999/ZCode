@@ -8,17 +8,49 @@ import { pathToFileURL } from "node:url";
 const root = resolve(import.meta.dirname, "..");
 const source = join(root, "scripts/windows-runtime-host");
 
+// GitHub 托管镜像 2026 年起移除 VS2022、只带 VS2026（actions/runner-images #14017）；
+// 生成器不能硬编码，按本机 CMake 支持列表取最新 VS 生成器，找不到回退 2022 保持旧行为。
+const DEFAULT_VISUAL_STUDIO_GENERATOR = "Visual Studio 17 2022";
+const VISUAL_STUDIO_GENERATOR_PATTERN = /^\s*\*?\s*(Visual Studio (\d+) \d{4})\b/gm;
+
+export function pickVisualStudioGenerator(cmakeHelpOutput) {
+  let newest = DEFAULT_VISUAL_STUDIO_GENERATOR;
+  let newestMajor = 0;
+  for (const match of cmakeHelpOutput.matchAll(VISUAL_STUDIO_GENERATOR_PATTERN)) {
+    const major = Number(match[2]);
+    if (major > newestMajor) {
+      newestMajor = major;
+      newest = match[1];
+    }
+  }
+  return newest;
+}
+
+export async function resolveVisualStudioGenerator() {
+  const help = await new Promise((resolveHelp, rejectHelp) => {
+    const child = spawn(process.env.CMAKE || "cmake", ["--help"], { stdio: "pipe" });
+    let output = "";
+    child.stdout.on("data", (chunk) => (output += chunk));
+    child.once("error", rejectHelp);
+    child.once("exit", (code) =>
+      code === 0 ? resolveHelp(output) : rejectHelp(new Error(`cmake --help failed: ${code}`)),
+    );
+  });
+  return pickVisualStudioGenerator(help);
+}
+
 export function resolveRuntimeHostBuild(
   arch,
   hostPlatform = process.platform,
   compiler = process.env.ZCODE_WINDOWS_CXX,
+  generator = DEFAULT_VISUAL_STUDIO_GENERATOR,
 ) {
   if (arch !== "x64" && arch !== "arm64")
     throw new Error(`Unsupported runtime host architecture: ${arch}`);
   return {
     configureArgs:
       hostPlatform === "win32"
-        ? ["-G", "Visual Studio 17 2022", "-A", arch === "arm64" ? "ARM64" : "x64"]
+        ? ["-G", generator, "-A", arch === "arm64" ? "ARM64" : "x64"]
         : [
             "-DCMAKE_SYSTEM_NAME=Windows",
             `-DCMAKE_CXX_COMPILER=${compiler || (arch === "arm64" ? "aarch64-w64-mingw32-clang++" : "x86_64-w64-mingw32-g++")}`,
@@ -72,7 +104,9 @@ export async function isRuntimeHostReady(outputDir, arch) {
 }
 
 export async function buildRuntimeHost({ arch, outputDir }) {
-  const plan = resolveRuntimeHostBuild(arch);
+  // win32 下先探测可用生成器（VS2026 镜像无 VS2022 实例，硬编码生成器会直接失败）。
+  const generator = process.platform === "win32" ? await resolveVisualStudioGenerator() : undefined;
+  const plan = resolveRuntimeHostBuild(arch, process.platform, undefined, generator);
   const work = await mkdtemp(join(tmpdir(), "zcode-runtime-host-"));
   try {
     await run(["-S", source, "-B", work, ...plan.configureArgs, "-DCMAKE_BUILD_TYPE=Release"]);

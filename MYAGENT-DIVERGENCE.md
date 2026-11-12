@@ -54,6 +54,11 @@
 - 新任务默认模式＝完全访问；全局新建任务不继承项目（落未归类草稿）。
 - 查看器插件允许工作区外文件访问。
 - macOS 关闭 vibrancy；打开方式菜单裁剪 Sublime/Terminal 系（保留 JetBrains）。
+- `scripts/build-windows-runtime-host.mjs`：Windows 生成器由硬编码 VS 2022 改为探测
+  `cmake --help` 取最新 VS 生成器（回退 2022）。原因：GitHub 托管镜像 2026 年起移除
+  VS2022 只带 VS2026（actions/runner-images #14017），硬编码生成器在 `windows-latest`
+  直接 CMake 失败。上游若同步修，取上游实现；本地此改动可安全丢弃。测试
+  `scripts/test/windows-runtime-host-build.test.mjs`（`node --test` 直跑）。
 
 ## 5. 测试基线 — 跟随上游
 
