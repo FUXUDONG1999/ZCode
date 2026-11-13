@@ -2753,6 +2753,7 @@ function ConversationComposerImpl({
       voiceInput.state,
       voiceInput.toggle,
       voiceInput.subscribeLevel,
+      voiceInput.permissionGuide,
       composerUsage,
       disabled,
       modelSelectionPending,

@@ -16,6 +16,13 @@
 > 新增裁剪 #31（语音输入仅移除入口，实现保留）。附带修复上次合并遗留的
 > useProjectFileTree 下划线参数与函数体错配（HEAD 上 typecheck 实际已破，门禁链无
 > typecheck 环节未拦截）。
+> 2026-11-13 已合并 upstream/main `fec97590`（v3.18.1+v3.18.2）：4 文件冲突——.gitignore
+> 双取、composer-voice-input e2e 维持删除（#31）、App.tsx/ConversationComposer 持本地
+> （完整视图控制器不接线、语音按钮不渲染）。上游语音权限引导浮层已合入：hook 挂载
+> 仍惰性（useMicrophonePermissionGuide 仅建状态，浮层只在 toggle 失败后出现），无需
+> 收紧接线；新增 voiceInput.permission.* 品牌串已按 §1 换 MyAgent（zh-CN/en-US）。
+> build-windows-runtime-host.mjs 生成器探测与上游 installer-helper 双产物改动自动合
+> 并成功（§4 预期场景）。
 
 ## 功能总表
 

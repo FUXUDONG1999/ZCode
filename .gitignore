@@ -78,3 +78,5 @@ __pycache__/
 
 # ZCode 桌面会话的计划缓存（本地会话产物，不随仓库分发）
 .zcode/plans/
+# CR-01：afterPack 生成的 NSIS helper define，按架构命名，不得入库
+packages/desktop/build/generated/
