@@ -22,7 +22,9 @@
 > 仍惰性（useMicrophonePermissionGuide 仅建状态，浮层只在 toggle 失败后出现），无需
 > 收紧接线；新增 voiceInput.permission.* 品牌串已按 §1 换 MyAgent（zh-CN/en-US）。
 > build-windows-runtime-host.mjs 生成器探测与上游 installer-helper 双产物改动自动合
-> 并成功（§4 预期场景）。
+> 并成功（§4 预期场景）；上游新测试 installer-process-helper.test.mjs 的
+> resolveRuntimeHostBuild 默认 VS2022 生成器在 VS2026-only 机器失败，已改为传探测
+> 结果（§4 追记）。
 
 ## 功能总表
 

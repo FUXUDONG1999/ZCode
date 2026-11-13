@@ -59,6 +59,9 @@
   VS2022 只带 VS2026（actions/runner-images #14017），硬编码生成器在 `windows-latest`
   直接 CMake 失败。上游若同步修，取上游实现；本地此改动可安全丢弃。测试
   `scripts/test/windows-runtime-host-build.test.mjs`（`node --test` 直跑）。
+  v3.18.1 合入的 `scripts/test/installer-process-helper.test.mjs` 同样处理：测试内
+  `resolveRuntimeHostBuild(arch)` 改传 `resolveVisualStudioGenerator()` 探测结果，
+  否则 VS2026-only 机器配置阶段即失败（上游测试按 VS2022 默认值写死）。
 
 ## 5. 测试基线 — 跟随上游
 

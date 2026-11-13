@@ -5,7 +5,11 @@ import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { test } from "node:test";
-import { resolveRuntimeHostBuild, verifyRuntimeHostPe } from "../build-windows-runtime-host.mjs";
+import {
+  resolveRuntimeHostBuild,
+  resolveVisualStudioGenerator,
+  verifyRuntimeHostPe,
+} from "../build-windows-runtime-host.mjs";
 
 const source = resolve(import.meta.dirname, "../windows-runtime-host");
 const logName = "ZCode-process-cleanup.log";
@@ -121,7 +125,8 @@ test(
     t.after(() => rm(work, { recursive: true, force: true, maxRetries: 3 }));
     const build = join(work, "build");
     const arch = process.arch;
-    const plan = resolveRuntimeHostBuild(arch);
+    // VS2026-only 机器上默认 VS2022 生成器配置即失败（同 build-windows-runtime-host.mjs 的探测修复），测试侧同样传探测结果。
+    const plan = resolveRuntimeHostBuild(arch, process.platform, undefined, await resolveVisualStudioGenerator());
     for (const args of [
       ["-S", source, "-B", build, ...plan.configureArgs, "-DCMAKE_BUILD_TYPE=Release"],
       [
