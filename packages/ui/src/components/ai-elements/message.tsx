@@ -49,6 +49,7 @@ import type { BundledTheme } from "shiki";
 import { defaultRehypePlugins, defaultRemarkPlugins, Streamdown } from "streamdown";
 import type { Pluggable, PluggableList } from "unified";
 import { CodeBlock, CodeBlockHeader } from "@/components/ai-elements/code-block.js";
+import { CachedKatexMarkup } from "@/components/ai-elements/cachedKatex.js";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -417,6 +418,47 @@ export interface MessageFileLinkTarget {
 // 能渲染而 `$c(\mathbf{r})$` 会原样显示；聊天消息需要兼容常见 Markdown/LaTeX 输出。
 const messageMathPlugin = createMathPlugin({ singleDollarTextMath: true });
 
+/* KaTeX 从 rehype 管线移到组件层渲染（CachedKatexMarkup，按公式内容 LRU 缓存）。
+ * rehype-katex 在流式期间对 block 内已稳定公式每帧重跑 renderToString + hast 解析，
+ * 公式密集输出时每帧脚本时间随已输出公式数线性增长，是公式场景卡顿的主因。
+ * Streamdown 消费 plugins.math 时无条件展开 rehypePlugin，这里给 no-op 占位。 */
+function mathComponentNoopRehypePlugin() {
+  return () => {};
+}
+
+/** ```math 围栏产出 pre>code.language-math；剥掉 pre 壳并统一成 code.math-display，
+ *  让组件层公式拦截路径唯一（pre 默认渲染器的样式不再包住 KaTeX 输出）。 */
+function mathFenceUnwrapRehypePlugin() {
+  const unwrap = (node: HastElementNode) => {
+    const children = node.children;
+    if (!children) return;
+    for (let index = 0; index < children.length; index += 1) {
+      const child = children[index];
+      if (child === undefined || child.type !== "element") continue;
+      if (child.tagName === "pre" && child.children?.length === 1) {
+        const inner = child.children[0];
+        const innerClassName = inner?.properties?.className;
+        if (
+          inner?.type === "element" &&
+          inner.tagName === "code" &&
+          Array.isArray(innerClassName) &&
+          innerClassName.includes("language-math")
+        ) {
+          inner.properties = {
+            ...inner.properties,
+            className: ["math-display"],
+          };
+          children[index] = inner;
+        }
+      }
+      unwrap(child);
+    }
+  };
+  return (tree: HastElementNode) => {
+    unwrap(tree);
+  };
+}
+
 function disableSingleTilde(plugin: Pluggable): Pluggable {
   if (!Array.isArray(plugin)) {
     return typeof plugin === "function" ? [plugin, { singleTilde: false }] : plugin;
@@ -441,7 +483,15 @@ const messageCjkPlugin: typeof cjk = {
   remarkPlugins: [...cjk.remarkPluginsBefore, ...messageCjkRemarkPluginsAfter],
   remarkPluginsAfter: messageCjkRemarkPluginsAfter,
 };
-const streamdownPlugins = { cjk: messageCjkPlugin, code, math: messageMathPlugin, mermaid };
+const streamdownPlugins = {
+  cjk: messageCjkPlugin,
+  code,
+  math: {
+    ...messageMathPlugin,
+    rehypePlugin: mathComponentNoopRehypePlugin,
+  },
+  mermaid,
+};
 const messageLinkSafety = { enabled: false } as const;
 // `decoration-dashed` 会把原有的细圆点下划线绘制成短线段；这里只改变下划线的
 // 出现时机，继续使用 `dotted` 保留原视觉形态。
@@ -842,6 +892,7 @@ function rewriteLocalFileMarkdownTargetsRehypePlugin() {
 
 const messageRehypePlugins: PluggableList = [
   rewriteLocalFileMarkdownTargetsRehypePlugin,
+  mathFenceUnwrapRehypePlugin,
   ...Object.values(defaultRehypePlugins),
 ];
 
@@ -899,19 +950,34 @@ function getWordSegmenter(): Intl.Segmenter | null {
   return cachedWordSegmenter;
 }
 
-/** 拉丁文按单词，中日文按字。segmenter 按模块缓存：每帧 new 一个的构造成本在流式里不可接受。
+/** 拉丁文按单词，中日文按两字一组。segmenter 按模块缓存：每帧 new 一个的构造成本在流式里不可接受。
     Bugfix：最初中文也直接用 word 粒度，ICU 词典分词把「拍板」「决策」切成一块，
-    两个字一起出现，没有逐字打字的效果；所以含中日文字的片段再按码点拆开。 */
+    两个字一起出现，没有逐字打字的效果；所以含中日文字的片段再按码点拆开。
+    性能修复：逐字 span 在长正文下数量以千计，每次新增都把样式重算范围顶到全量
+    （trace 实测单次 UpdateLayoutTree 90ms+/近万元素）；改为两字一组，span 数减半，
+    组间仍按排期间隔错开淡入，打字节奏保留。 */
 function segmentRevealUnits(text: string): string[] {
   const segmenter = getWordSegmenter();
   const words = segmenter
     ? Array.from(segmenter.segment(text), ({ segment }) => segment)
     : (text.match(REVEAL_FALLBACK_WORD_RE) ?? [text]);
   const units: string[] = [];
+  let cjkPending: string[] = [];
+  const flushCjk = () => {
+    for (let index = 0; index < cjkPending.length; index += 2) {
+      units.push(cjkPending.slice(index, index + 2).join(""));
+    }
+    cjkPending = [];
+  };
   for (const word of words) {
-    if (REVEAL_CJK_RE.test(word)) units.push(...Array.from(word));
-    else units.push(word);
+    if (REVEAL_CJK_RE.test(word)) {
+      cjkPending.push(...Array.from(word));
+    } else {
+      flushCjk();
+      units.push(word);
+    }
   }
+  flushCjk();
   return units;
 }
 
@@ -1081,8 +1147,24 @@ function isMathCodeElement(node: HastElementNode): boolean {
   const className = node.properties?.className;
   return (
     Array.isArray(className) &&
-    className.some((name) => name === "language-math" || name === "math-inline")
+    className.some(
+      (name) => name === "language-math" || name === "math-inline" || name === "math-display",
+    )
   );
+}
+
+/** code 渲染器里的公式拦截判定：返回公式原文与展示模式，非公式 code 返回 null。 */
+function resolveMathCodeRender(node: unknown): { latex: string; displayMode: boolean } | null {
+  if (!node || typeof node !== "object") return null;
+  const element = node as HastElementNode;
+  const className = element.properties?.className;
+  if (!Array.isArray(className)) return null;
+  const hasClass = (name: string) => className.includes(name);
+  const displayMode = hasClass("math-display");
+  if (!displayMode && !hasClass("math-inline") && !hasClass("language-math")) return null;
+  const latex = collectHastText(element);
+  if (latex.length === 0) return null;
+  return { latex, displayMode };
 }
 
 type RevealSchedule = { now: number; start: number; interval: number };
@@ -1211,7 +1293,8 @@ function createStreamingRevealPlugin(state: StreamingRevealState) {
           /* Bugfix：最初 code 和 pre 一起被跳过，行内 code 没有淡入，一挂载就是全亮；
              左边的字还在淡入，看起来行内 code 先出来。代码块是 pre > code，已由 pre 跳过，
              走到这里的 code 都是行内 code，整个元素作为一个单元排进节奏。
-             行内公式此时还是 code.math-inline，随后会被 rehype-katex 整个替换，只计偏移、不排期。 */
+             公式 code（math-inline/math-display）由组件层 CachedKatexMarkup 渲染，
+             KaTeX 子树不参与逐字排期，只计偏移、不排期。 */
           if (!childSkip && tagName === "code") {
             const text = collectHastText(child);
             if (text.length === 0) continue;
@@ -2194,6 +2277,13 @@ export const MessageResponse = memo(
           node: _node,
           ...codeProps
         }: MarkdownCodeProps) => {
+          const mathRender = resolveMathCodeRender(_node);
+          if (mathRender) {
+            return (
+              <CachedKatexMarkup displayMode={mathRender.displayMode} latex={mathRender.latex} />
+            );
+          }
+
           const isBlockCode = "data-block" in codeProps;
 
           if (!isBlockCode) {

@@ -53,6 +53,36 @@ row delta → 权威 projection → timeline / 当前文本
 翻转瞬间的整条消息重解析是这项语义的已知代价；如果要消除它，只能把高亮开关
 从 components 闭包移到 context，不能简单从依赖里删掉。
 
+## 公式渲染的缓存边界
+
+KaTeX 不在 rehype 管线里渲染。`plugins.math` 的 rehypePlugin 是 no-op 占位（Streamdown 无条件展开该字段），
+remark-math 产出的 `code.math-inline` / `code.math-display` 由 `messageComponents.code` 拦截，
+交给 `CachedKatexMarkup`（`cachedKatex.tsx`）：`katex.renderToString` 结果按 `(latex, displayMode)`
+做模块级 LRU 缓存，React 层 `dangerouslySetInnerHTML`。
+
+背景：流式期间未闭合公式所在的 block 每帧重新解析，rehype-katex 会对 block 内已稳定公式
+每帧重跑 renderToString + HTML→hast 解析，公式密集输出时每帧脚本时间随已输出公式数线性增长
+（2026-11 Windows 实测：同内容 token 级到达比整块到达脚本时间高 3.4 倍，是公式场景卡顿主因）。
+
+约束：
+
+- 公式 DOM 只由 `CachedKatexMarkup` 一处产出；```math 围栏先经 `mathFenceUnwrapRehypePlugin`
+  剥掉 pre 壳统一成 `code.math-display`，保证组件拦截路径唯一。
+- 缓存 key 必须含 displayMode；错误公式（KaTeX 降级输出）同样进缓存，
+  流式期间坏公式原本在 throwOnError 策略下每帧跑两遍 renderToString。
+- 缓存的是 HTML 字符串，不是 hast 子树：组件 remount 时 React 直接 setInnerHTML，
+  字符串相同则跳过，公式 DOM 零重建（MutationObserver 实测 added/removed 为 0）。
+- reveal 插件对公式 code 只计偏移、不排期，`isMathCodeElement` 必须认
+  `math-inline` / `math-display` / `language-math` 三个 class。
+
+## 逐词浮现的单元粒度
+
+CJK 文本按**两字一组**切 reveal 单元，拉丁文按词（`segmentRevealUnits`）。
+单元粒度决定 DOM 里 reveal span 的数量级：逐字 span 在长正文下以千计，
+每次新增都会把样式重算范围顶到全量（实测单次 UpdateLayoutTree 90ms+/近万元素）。
+进度判定（公共前缀、尾部分叉、增量护栏）都基于原始文本拼接，与单元粒度解耦；
+调整粒度不允许引入对已渲染文本的改写或第二份正文。
+
 回归覆盖长历史下 thinking 和正文持续追加、最终文本一致、导航预览及分享开关。
 性能证据必须记录加载行数、数据形状、构建、平台与消息节奏；React Scan 用于更新原因，
 关闭 Scan 的同场景 profile 用于耗时比较。组件夹具不能代替完整应用链路证据。

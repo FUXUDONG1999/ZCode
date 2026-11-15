@@ -64,6 +64,9 @@ export function ChatLoadingOrbs() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frameId = 0;
     let startedAt = performance.now();
+    // 60fps 下每帧对 105 个 circle 写 4 次几何属性（共 420 次/帧），SVG 几何属性
+    // 无法合成器加速，流式期间与渲染帧叠加持续占满主线程；20px 图标 30fps 肉眼无感。
+    let lastTickAt = 0;
     const setDot = (dot: SVGCircleElement, x: number, y: number, r: number, opacity: number) => {
       dot.setAttribute("cx", x.toFixed(2));
       dot.setAttribute("cy", y.toFixed(2));
@@ -71,6 +74,11 @@ export function ChatLoadingOrbs() {
       dot.setAttribute("opacity", opacity.toFixed(2));
     };
     const frame = (now: number) => {
+      if (now - lastTickAt < 33) {
+        frameId = window.requestAnimationFrame(frame);
+        return;
+      }
+      lastTickAt = now;
       const elapsed = (now - startedAt) % 8240;
       // 只延长纯球体阶段，保留原有变形速度与 Z 停留时间。
       const morph =
