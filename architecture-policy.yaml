@@ -2282,6 +2282,10 @@ exceptions:
     rule: unmanaged-new-file
     paths: [packages/ui/src/lib/pluginIconSource.ts]
     reason: 已准入的存量图标解析文件仅增加 Visualize 官方身份与本地 PNG 的映射（docs/builtin-plugin-icons.md）；不改变解析函数、受信任图片规则、状态归属或模块边界，不为其他 UI 文件开放例外。
+  - id: ui-cached-katex-new-file
+    rule: unmanaged-new-file
+    paths: [packages/ui/src/components/ai-elements/cachedKatex.tsx]
+    reason: 流式公式渲染缓存组件（docs/chat/assistant-streaming-text-rendering.md「公式渲染的缓存边界」），与 message.tsx 同目录同装配链，仅导出缓存渲染函数与纯展示组件，不引入状态 owner 或新依赖边界；接管整个 ui 目录不在本次性能修复范围。
   - id: ui-loader-circle-existing-edit
     rule: unmanaged-new-file
     paths:
