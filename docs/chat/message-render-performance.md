@@ -140,3 +140,11 @@ CR-01 验证：修复前 16 个无 Range 反例全部失败（手动滚动 900�
 完整 Electron 最终通过 PERF04、v4-scroll、v4-turn-navigator 三个规格；另通过宽屏加载后缩至 480px 的 PERF04，覆盖宽度重测、多命中切换、单命中离窗回环和定位完成后不夺回滚动。该宽度场景修复前出现计数 1/11 而 Range=null，以及居中后被缓冲行测高推离视口的失败。430px 浏览器布局通过，Electron 最小窗口为 480px；未声明真实手机传输或 Windows/Linux 整机验证。浏览器 RRI01–05、RRI07–08 合计 14 个场景通过；typecheck（含 E2E）、lint、architecture、fixture 合约通过，lint 保留 172 个既有警告。受影响工程测试选择为 0 项，未执行工程测试。新增候选仍 pending。
 
 本轮原始 trace、CPU profile、失败基线、最终验收记录与 manifest 保存在 `packages/desktop/.e2e-artifacts/render-boundaries/search-runtime-20261027/`，不进入源码提交。沿用前述浏览器入口及 PERF04；设置 `ZCODE_E2E_SEARCH_VIEWPORT_WIDTH=480` 可复核宽度变化，设置 `ZCODE_E2E_SEARCH_LONG_TASK_BUDGET_MS=80` 可独立复核本机首次搜索预算。
+
+## 虚拟行 content-visibility 尝试（2026-11-15，已回撤）
+
+Windows 长会话滚动手感最低降到个位数帧率。独立 trace 归因：滚动事件在主线程同步完成「挂载巨型轮次（单轮完整 Markdown，数千节点）→ TanStack Virtual 测高与全列表 offset 重排 → 样式重算/布局」，单次 300–600ms。曾尝试给 virtual history 行容器声明 `content-visibility: auto` + `contain-intrinsic-size: auto <px>`（初值取 TimelineRowHeightCache 实测缓存 → measurementsCache 当前尺寸 → 默认估计）。
+
+**结论：与 measureElement 不兼容，已回撤。** 死环机制：屏外行被跳过渲染后，measureElement 的 ResizeObserver 测到的是 contain-intrinsic-size 占位高度而非真实高度，占位值写回 measurementsCache；视口边缘行的「占位高度 ↔ 真实高度」随可见性往复切换，测高滚动补偿（shouldAdjustScrollPositionOnItemSizeChange）随每次尺寸变化调整 scrollTop，行被推出/拉回迟滞区，形成「RO → setState → 布局 → RO」同步级联，打开长会话即触发 Maximum update depth exceeded。首访行的 intrinsic 初值（72px 估计）与真实高度（数千 px）差距过大是震荡源，缓存喂值只能缓解已访问行。
+
+后续方向（未实施）：挂载成本需在 React 层解决——滚动进行中挂载的轮次先渲染骨架/纯文本、滚动停止后延迟渲染完整内容；或把长轮次按段落拆分为更细的虚拟项。两者都不得引入「高度取决于可见性」的反馈路径。

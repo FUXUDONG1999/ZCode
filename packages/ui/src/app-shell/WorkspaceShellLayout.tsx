@@ -613,25 +613,14 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
     const timers = new Map<HTMLElement, number>();
     let hovered: HTMLElement | null = null;
     let dragging = false;
-    const animations = new Map<HTMLElement, Animation>();
+    /* 修复：这里曾用 WAAPI 对 inherits:true 的 --zcode-scrollbar-thumb 做 200ms 动画，
+     * 滚动条出现/消失期间每帧改变祖先变量，Chromium 会把会话框架下全部后代标记样式重算
+     * （实测滚动手感最低 3fps，单次重算 300ms+/1.4 万元素）。着色已改为
+     * [data-scrollbar-active]::-webkit-scrollbar-thumb 直接匹配，翻转只重算伪元素自身；
+     * 变量动画随之移除，出现/消失为瞬切（滚动条 1s 后才隐藏，渐隐价值低）。 */
     const setVisible = (element: HTMLElement, visible: boolean) => {
       if (element.hasAttribute("data-scrollbar-active") === visible) return;
-      const current = getComputedStyle(element).getPropertyValue("--zcode-scrollbar-thumb");
-      animations.get(element)?.cancel();
       element.toggleAttribute("data-scrollbar-active", visible);
-      const target = visible
-        ? getComputedStyle(element).getPropertyValue("--color-border")
-        : "transparent";
-      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        const animation = element.animate(
-          [{ "--zcode-scrollbar-thumb": current }, { "--zcode-scrollbar-thumb": target }],
-          { duration: 200, easing: "ease" },
-        );
-        animations.set(element, animation);
-        animation.onfinish = () => {
-          animations.delete(element);
-        };
-      }
     };
     const hideLater = (element: HTMLElement) => {
       window.clearTimeout(timers.get(element));
@@ -794,8 +783,6 @@ const WorkspaceShellLayoutContent = memo(function WorkspaceShellLayoutComponent(
       shell
         .querySelectorAll("[data-scrollbar-container]")
         .forEach((element) => element.removeAttribute("data-scrollbar-container"));
-      animations.forEach((animation) => animation.cancel());
-      animations.clear();
       shell
         .querySelectorAll("[data-scrollbar-active]")
         .forEach((element) => element.removeAttribute("data-scrollbar-active"));

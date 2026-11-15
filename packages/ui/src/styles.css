@@ -2393,29 +2393,35 @@ body {
   }
 }
 
-/* thumb 伪元素需继承容器颜色；每个真实子元素重置透明，隔离嵌套滚动区。 */
-@property --zcode-scrollbar-thumb {
-  syntax: "<color>";
-  inherits: true;
-  initial-value: transparent;
-}
+/* thumb 按"容器自身"的 active 属性直接匹配着色。
+ * 修复：原实现经 inherits:true 的 --zcode-scrollbar-thumb 继承变量传递 active 色，
+ * 滚动启停翻转 data-scrollbar-active 时祖先变量变化会把会话框架下全部后代标记重算
+ * （实测滚动时单次 UpdateLayoutTree 300ms+/1.4 万元素，滚动手感 3fps）。
+ * 改为伪元素选择器后翻转只重算滚动条伪元素自身，不再波及后代。
+ * 嵌套滚动区仍默认透明；用 :where 压低重置规则的特异性，让 active 版可覆盖。 */
 :is([data-project-sidebar-panel], [data-workspace-conversation-frame], [data-workspace-side-frame]),
 :is([data-project-sidebar-panel], [data-workspace-conversation-frame], [data-workspace-side-frame])
   * {
-  --zcode-scrollbar-thumb: transparent;
   scrollbar-color: auto;
 }
-:is(
-  [data-project-sidebar-panel],
-  [data-workspace-conversation-frame],
-  [data-workspace-side-frame]
-)::-webkit-scrollbar-thumb,
-:is([data-project-sidebar-panel], [data-workspace-conversation-frame], [data-workspace-side-frame])
-  *::-webkit-scrollbar-thumb {
-  background-color: var(--zcode-scrollbar-thumb);
+:where(
+    :is(
+      [data-project-sidebar-panel],
+      [data-workspace-conversation-frame],
+      [data-workspace-side-frame]
+    )
+  )::-webkit-scrollbar-thumb,
+:where(
+    :is(
+      [data-project-sidebar-panel],
+      [data-workspace-conversation-frame],
+      [data-workspace-side-frame]
+    )
+  ) *::-webkit-scrollbar-thumb {
+  background-color: transparent;
 }
-[data-scrollbar-active] {
-  --zcode-scrollbar-thumb: var(--color-border);
+[data-scrollbar-active]::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
 }
 
 /* 只在滑块本身悬停/拖动时增强反馈，不改变轨道与内容尺寸。 */
@@ -2443,13 +2449,6 @@ body {
 }
 [data-scrollbar-dragging]::-webkit-scrollbar-thumb {
   background-color: color-mix(in oklab, var(--color-foreground) 45%, transparent);
-}
-
-[data-scrollbar-active][data-scrollbar-hover] {
-  --zcode-scrollbar-thumb: color-mix(in oklab, var(--color-foreground) 30%, transparent);
-}
-[data-scrollbar-active][data-scrollbar-dragging] {
-  --zcode-scrollbar-thumb: color-mix(in oklab, var(--color-foreground) 45%, transparent);
 }
 /* 文字填充与图标分别控制，避免箭头和身份头像随摘要文字变色；扫光保留自身透明填充。 */
 @media (hover: hover) {
