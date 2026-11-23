@@ -25,6 +25,10 @@
 > 并成功（§4 预期场景）；上游新测试 installer-process-helper.test.mjs 的
 > resolveRuntimeHostBuild 默认 VS2022 生成器在 VS2026-only 机器失败，已改为传探测
 > 结果（§4 追记）。
+> 2026-11-23 已合并 main `a4b44451`（v4.0.0，在 `6330e8e5` 之上）：18 文件冲突
+> （17 内容 + 1 改/删）按裁决表解。撞车一处——#23 行号定位被上游 `lineRanges` 机制
+> 取代（见 E）；#31 顺带不接入上游新增的语音快捷键（见 E7）。上游新默认行为里与本
+> 分支裁剪有交互的几项见 §I。
 
 ## 功能总表
 
@@ -52,7 +56,7 @@
 | 20 | 移除左侧标签式侧面板与「查看文件」 | `5bfe0ec5` | UI 重构 | — |
 | 21 | 侧面板按需放回（子agent/调用轨迹/文件预览）| `fd34077b` | UI 重构 | — |
 | 22 | 任务文件预览仅内容（v2 适配版）| `69564f69` | UI 重构 | FileManagerPane.tsx |
-| 23 | 文件链接定位到行 + HTML 侧边预览 | `2a7a809d` | 桌面能力 | markdownFileLink（lineNumber）|
+| 23 | HTML 侧边预览 + 外部编辑器行列定位（行号跳转已随上游 v4.0.0）| `2a7a809d` | 桌面能力 | e2e conversation-session-message-file-link-line-jump（pending，上游用例）|
 | 24 | 主进程日志异步批量落盘 | `bfa51bd0`+`5b0b78ad` | 性能 | logger.ts（PENDING_LOG_LINE_LIMIT）|
 | 25 | 恢复设置页「归档管理」入口 | `a1fcb99a` | UI | settingsNavigation（archives 可见）|
 | 26 | Token 用量状态条（原生实现）| `5acd31c8`+`23b606fc`+同批 | 桌面能力 | tokenUsageSnapshotQuery.test.ts（7 用例）|
@@ -60,8 +64,10 @@
 | 28 | 个人构建工作流（CI）| `34c723b1`+`412b75c4` | 工程 | GitHub Actions build-desktop |
 | 29 | 架构基线登记定制新文件 | `31f92ef7`+同批 | 工程 | .architecture-baseline.json（10 条）|
 | 30 | 打开方式定制（Sublime 回归/移除清单/Finder 定位）| `64662c94`+登记锚点 | 桌面能力 | 手动：文件右键菜单（见 E6）|
-| 31 | 语音输入仅移除入口（v3.18.0 新功能裁剪）| v3.18.0 合并批 | UI 裁剪 | grep 无 VoiceInputButton 渲染 |
+| 31 | 语音输入仅移除入口 + 不接入快捷键（v3.18.0/v4.0.0 新功能裁剪）| v3.18.0 合并批 | UI 裁剪 | grep 无 VoiceInputButton 渲染、无 useVoiceInputShortcut 调用 |
 | 32 | 侧栏项目展开文件夹层（分支显示/切换）| `b1417b0a`+`cada0f4e`+`05ace97f` | UI | conversation-session-project-folder-branches e2e（pending）|
+| 33 | 流式公式组件层缓存 + CJK 浮现两字一组 + 加载 orbs 30fps | `1e350ec8` | 性能 | typecheck/lint；spec：docs/chat/assistant-streaming-text-rendering.md |
+| 34 | 滚动条着色改伪元素直接匹配 | `5b5e0558` | 性能 | typecheck/lint；spec：docs/chat/message-render-performance.md |
 
 ---
 
@@ -92,8 +98,10 @@
 
 ### A3. 品牌残留清单与增量流程（§1.4）
 
-- 当前残留：仅 i18n key 名含 ZCode（`toggleZCodeStdioTap`、`openInZCode`）——key 是代码
-  标识，**不改**。值中残留 = 0（与旧分支基线一致）。
+- 当前残留：i18n key 名含 ZCode（`toggleZCodeStdioTap`、`openInZCode`）——key 是代码
+  标识，**不改**；值中只保留「已登录的 ZCode App」一处（指官方手机 App，不应替换）。
+  其余值中残留 = 0（2026-11-23 实测清零：v3.18.0 合并遗留 7 行 + v4.0.0 新增 16 行；
+  此前「= 0」的记录在 v3.18.0 合并后已失实，麦克风权限等 7 行一直没替换）。
 - **每次同步 main 后执行**：
   ```bash
   grep -n "ZCode" packages/ui/src/i18n/locales/zh-CN.ts packages/ui/src/i18n/locales/en-US.ts
@@ -101,7 +109,10 @@
   git grep -n "ZCode" packages/web/src packages/desktop/src/main -- '*.ts' '*.tsx' | grep -v test
   ```
 - 已知改过的非 i18n 品牌点：`desktopLinuxDeepLinkRegistration`（桌面文件名）、
-  `webAuthLocale`、`ConversationShareLandingPage`、`officeSuggestedPrompts`。
+  `webAuthLocale`、`ConversationShareLandingPage`、`officeSuggestedPrompts`；v4.0.0 新增
+  `desktopCommandHandlers.ts`（崩溃恢复对话框，5 语种）、`executableOpenGuard.ts`（可执行
+  文件打开确认标题）、`autoUpdater.ts`（Linux 更新授权提示）、`web/src/main.tsx`（回调页
+  标题）、e2e `conversation-session-preinstalled-tools-worker-start-failure`（重启提示断言）。
 
 ---
 
@@ -153,6 +164,13 @@
     store 的 fileManagerNavigation 偏好、3 个 e2e 用例**全部保留**（上游活跃开发，不删）。
 - **同步策略**：上游若重构侧面板体系，#21/#22 的接点集中在
   `AnimatedSidePanePanel.tsx` 一个文件；`FileManagerPane.tsx` 是自建文件无冲突。
+- **v4.0.0 同步先例（2026-11-23）**：上游给 `PreviewPane` 加了「一次点击只定位一次」回执
+  （`appliedFocusRequestId` / `onFocusRequestApplied`，记在 code-viewer tab 上）。
+  `FileManagerPane` 把 previewProps 原样透传，所以只在 `AnimatedSidePanePanel.tsx` 的自建
+  面板调用处按 `tab.type === "code-viewer"` 展开这两个 prop；上游在它自己的面板调用处
+  （`onNavigate=` 之后）插的展开不适用于本分支，未取。同版上游删除
+  `side-pane-full-view/enterRequest.ts` 与 `ConversationBackgroundWorkTrigger.tsx`，
+  `App.tsx` 的 `summaryPanelVariantOverride*` 随上游删除，本分支无残留引用。
 
 ### B4. 菜单与配色（#4/#11/#12/#19/#25/#27）
 
@@ -211,6 +229,8 @@
   2026-11-12 基线对照：virtual-project.test.ts 本机 6 个失败（VP20×3/VP10/VP12/
   VP08-17-18）为 fork 既有裁剪与上游测试的存量分歧，与本功能无关（摘除本功能复跑
   失败集相同）。
+  2026-11-23 v4.0.0 合并后：原用例开局被营销弹窗盖住而失败（见 DIVERGENCE §5）；在
+  临时副本里加「有弹窗先关」后通过，功能不受合并影响，正式用例待决策后再改。
   **手测待执行**（2026-11-12 桌面 E2E 已过，以下无运行时证据；使用者仅桌面端，
   手机 /remote 不在验证范围）：远端 tab 激活时展开本地项目切分支走本机；同仓库
   双 root 切换联动；运行中会话 cwd 上切分支。行内 chevron 入口 2026-11-12 dev
@@ -247,12 +267,16 @@
 > 共性：源码与 `tool-contracts.test.ts`/`context-builder.test.ts` 断言**成对修改**；
 > 设计文档 `docs/design/v2/{loop,tool}/*.md` 同步记录。上游改 prompt 结构时，
 > **保留上游机制、套用定制措辞**。
+> v4.0.0 起上游删掉了 `tool-contracts.test.ts` 里两个大而脆的用例（#7/#8 断言原在其中），
+> 本分支断言改挂精简用例 `keeps the personal wording for Bash batching and conditional
+> Read`（只断言 bullet 子串存在）。
 
 - **#7 同轮打包**（`585d0761`）：`identity.ts` Harness 块第 4 条 bullet 升级为
   「If you intend to call multiple tools… make all of the independent calls in the same
   response — batch independent commands and file reads in one turn…」；`bash-prompt.ts`
   同步。先例：上游引入 `deliveryNotice` 变量时保留了该机制、只改并行条目措辞。
-  Harness bullets 数量=5 有断言（context-builder）。
+  Harness bullets 数量=5 有断言（context-builder）。v4.0.0 起 `bash-prompt.ts` 的同轮打包
+  bullet 排在上游新增的 `run_in_background` 说明（前台 `sleep` 拦截）之后。
 - **#8 分层指引**（`fdd028df`）：Read 条件式（任务围绕该文件→全读；否则 offset/limit）；
   Grep「先 files_with_matches 定位、再 content 精读」；Agent 委派阈值（>3 次查询的宽泛
   调研→subagent_type=Explore）。先例：上游改 Read 描述行时取定制版（语义超集）。
@@ -260,7 +284,10 @@
 - **#15 ToolSearch 直调提示**（`639a16b7`）：deferred 未命中但常驻工具命中时，回填
   「These tools are already loaded (resident) — call them directly…」。实现横跨
   contracts（schema `resident_matches`）/handler（searchResidentTools）/format 三层；
-  纯未命中跟随上游长文案（断言已对齐）。
+  纯未命中跟随上游长文案（断言已对齐）。v4.0.0 起上游加了 MCP 连接等待与未命中诊断
+  （`readLatest`/`waitForPending`/`pending_mcp_servers`/`failed_mcp_servers`）：等待只发生在
+  上游的 `matches.length === 0 || missing.length > 0` 分支内，常驻回填在其后；未命中文案
+  优先级 = deferred 命中 → 常驻直调提示 → MCP 诊断 → 通用长文案。
 - **#16 LaTeX**（`c12d336b`，**结构适配**）：上游删除了「# Communicating with the user」
   长段后，定制规则改为**独立常量 `LATEX_MATH_PROMPT`** 并入精简后的 Dynamic Behavior
   （`[COMMUNICATION, LATEX, PRONOUNS, ACTION].join`）。断言锚点：
@@ -275,12 +302,21 @@
   macOS Toolbox 2.x（`~/Applications` 前缀匹配）与 RustRover。全部在
   `packages/desktop/src/main/editors.ts`（上游无此内容，纯定制；曾于旧分支 10-30
   吸收时被覆盖丢失，v2 已恢复）。上游演进 editors.ts 时正常三方合并。
-- **#23 行号定位 + HTML 预览**（`2a7a809d`，**部分适配**）：
-  - 完整保留：`markdownFileLink.ts`（`path:line` 解析→`lineNumber`）、`codeViewer.ts`
-    （`revealLine`）、`previewPaneContent.tsx`（滚动定位）、`previewPaneHtmlContent.tsx`
-    （新文件：HTML 侧边渲染）、`platform.ts` 的 `OpenInEditorOptions.line`、
-    `openInEditor.ts`（VS Code --goto / JetBrains --line）、message.tsx/OpenSplitButton
-    调用点传参。
+- **#23 HTML 侧边预览 + 外部编辑器行列定位**（`2a7a809d`，**行号跳转已被上游取代**）：
+  - **v4.0.0 撞车裁决（2026-11-23）**：上游原生实现消息文件链接定位——`lineRanges` 多段
+    区间（`a.ts:30-35`、`#L30-L35`、`:30,40-42`）、列号只解析不定位、code-viewer tab 记
+    `appliedFocusRequestId` 保证一次点击只定位一次——是本定制 `lineNumber`/`revealLine`
+    的超集。按「以远端为主」整体取上游：`markdownFileLink.ts`、`codeViewer.ts` 取上游
+    版本，本地的 `revealLine` 路径（codeViewer/previewPaneContent/message/
+    WorkspaceShellLayout/OpenSplitButton）全部移除。
+  - 仍属本定制：`previewPaneHtmlContent.tsx`（新文件：HTML 侧边渲染，接在
+    `previewPaneContent.tsx`）、`platform.ts` 的 `OpenInEditorOptions.line/column`、
+    `openInEditor.ts`（VS Code `--goto path:line:column` / JetBrains `--line`）、
+    `message.tsx` 的 `columnNumber` 解析与外部编辑器传参（定位行取
+    `lineRanges[0].startLine`）、`OpenSplitButton.tsx` 同口径。
+  - **后续同步**：链接解析与预览定位跟随上游，不再维护本地实现；本定制只剩「外部编辑器
+    带行列打开」和「HTML 侧边预览」两个接点，上游改 `MessageFileLinkTarget` 时保住
+    `columnNumber`。
   - **已废弃部分**：原 PreviewPane 内的 `handleOpenInEditor`（上游已把「用编辑器打开」
     移出该组件），hunk 不再适用——行号传参已由上游新调用点承担。
   - **与上游 v3.17.2 的关系（2026-11-04 对比结论）**：上游新增「内置浏览器本地 HTML 预览」
@@ -288,6 +324,14 @@
     session）；#23 的侧边 HTML 预览是沙箱 iframe `srcDoc` 渲染（fileService 读文本，远程
     workspace 也可用），两条链路互补无冲突，全部保留。用户决策：HTML 预览**以远端机制为主**——
     未来若上游侧边预览与本特性冲突，按「跟随上游」裁决。
+  - **验证锚点（2026-11-23 本地回放实测）**：上游用例
+    `packages/desktop/test/e2e/conversation-session/presentation/manual-review/pending/conversation-session-message-file-link-line-jump.test.ts`。
+    MFL02（区间与多段）在本分支直接通过；MFL01 卡在「折叠后点头部开关再展开」——本分支
+    没有头部开关（见 DIVERGENCE §2）。去掉该步的临时适配副本（折叠后再点同一链接展开）
+    两用例全过：单行定位高亮、再点重新定位、同文件复用 tab、`:行:列`、无行号与超出行数
+    停在开头，都走自建预览面板的定位回执链路。「重新挂载不回跳」在本分支没有对应的用户
+    操作路径，只有静态接线证据。回放命令同 B5，`E2E_PROVIDER_REPLAY_FIXTURE_PATH` 用
+    `common.json` 加 `conversation-session/conversation-session-message-file-link-line-jump.json`。
 - **#24 异步日志**（`bfa51bd0`+`5b0b78ad`）：行进内存队列、setImmediate 合并、
   每-文件链式 Promise、退出同步兜底、缓冲上限 2000；`exportLogs.ts` 配套。
   上游若改日志格式/TTFT 分流，注意保留 `ensureLogDirectory` 与退出兜底链路。
@@ -378,6 +422,31 @@
 - **同步策略**：上游若扩展语音输入（快捷键、设置开关），入口处按同规则不接入；
   若上游把 hook 改为挂载即请求权限，需同步收紧 hook 接线。
 - **验证锚点**：grep `VoiceInputButton` 仅剩模块定义无渲染点；typecheck/lint 过。
+- **v4.0.0 增量（2026-11-23）**：上游新增语音快捷键（`toggleVoiceInput`，默认
+  `Cmd/Ctrl+Shift+D`，由 composer 里的 `useVoiceInputShortcut` 注册，**不依赖按钮是否
+  渲染**）和麦克风权限引导。本分支不调用 `useVoiceInputShortcut`（否则没有按钮也能触发
+  录音）；`ShortcutSettingsSection` 把 `toggleVoiceInput` 一并隐藏（上游只在 Web 端隐藏；
+  命令注册与冲突检测保留，同 `toggleSidePane` 先例）；上游改写后的
+  `composer-voice-input.test.ts` 维持删除，其 manifest
+  `fixtures/cases/ui-shell/composer-voice-input.json` 留在原地（没有门禁遍历 ui-shell
+  manifest）。
+
+### E8. 流式渲染性能（#33/#34）
+
+- **#33 公式渲染缓存**（`1e350ec8`）：KaTeX 从 rehype 管线移到组件层——`message.tsx` 的
+  `plugins.math.rehypePlugin` 换成 no-op，`code.math-inline/math-display` 由
+  `messageComponents.code` 交给新文件 `cachedKatex.tsx`（`CachedKatexMarkup`，按
+  `(latex, displayMode)` 做 LRU 缓存）；```math 围栏经 `mathFenceUnwrapRehypePlugin` 剥掉
+  pre 壳。同一提交把逐词浮现的 CJK 单元改成两字一组（`segmentRevealUnits`），
+  `chat-loading.tsx` 的 orbs rAF 降到 30fps。
+- **#34 滚动条着色**（`5b5e0558`）：`styles.css` 的 thumb 着色改为
+  `[data-scrollbar-active]::-webkit-scrollbar-thumb` 直接匹配，删除 `@property` 注册与
+  `--zcode-scrollbar-thumb` 变量传递；`WorkspaceShellLayout.setVisible` 去掉 WAAPI 变量动画。
+- **同步策略**：`cachedKatex.tsx` 是自建文件，`architecture-policy.yaml` 登记了单文件例外
+  （`6330e8e5`）。上游改 `message.tsx` 的公式管线、`streamdownPlugins`、
+  `messageComponents.code` 或滚动条样式时要保住这两处。v4.0.0 同步先例（2026-11-23）：
+  `message.tsx`、`WorkspaceShellLayout.tsx` 冲突先按 #23 等规则解，再把这两个提交的 diff
+  叠回去（`git apply --3way`）。
 
 ---
 
@@ -398,10 +467,26 @@
   变更闭包内旧条目（两次实测各误删 3 条），使用后必须核对旧条目仍在。
 - **pre-push 门禁链**：worktree 干净 → e2e targets → lint → stale-phrases → db schema →
   architecture → affected tests。**勿用 --no-verify 推代码分支**（仅 staging 镜像例外）。
+- **覆盖盲区（2026-11-23 踩到）**：根 `pnpm typecheck` 不含 `apps/zcode-cli`。合并改到
+  CLI 内核时另跑 `pnpm --filter @zcode/core... build`，再到 `apps/zcode-cli/packages/core`
+  跑 `pnpm exec vitest run tests`——工作区依赖经 `dist` 解析，必须先 build；本次一个多余的
+  `}` 只在 vitest 解析阶段暴露。
+- `pnpm test:engineering:affected --scope push` 与 `verify:pre-push` 都要求工作区干净：
+  合并先提交再跑，失败则修补后 amend。
+- 大合并后受影响选择器会把工程测试选成整套，然后**跳过不跑**（日志：「Vitest 官方选择了
+  整个工程套件…已跳过工程测试，不因此阻止 Push」），门禁照样退出 0。看到这行就手动跑
+  `pnpm test:engineering`（v4.0.0 合并实测 180 个规格过 / 3 跳过）。
+- typecheck 报 TS6305/TS7006（`packages/desktop/out/app-control-navigation/*.d.ts` 缺失）
+  是本地增量产物过期，与代码无关：
+  `./node_modules/.bin/tsc -b packages/desktop/tsconfig.app-navigation.json --force`。
 
 ---
 
 ## G. 增量同步 SOP（每次 main 有新 sync 时）
+
+**先对齐 fork 远端**：`git fetch --all`，本地 `personal/myagent-v2` 落后
+`fork/personal/myagent-v2` 时先快进，合并必须做在远端最新提交上。先例：2026-11-09、
+2026-11-23 两次在过期的本地分支上合并，只能推倒重来。
 
 ```bash
 git fetch upstream
@@ -420,14 +505,40 @@ git checkout personal/myagent-v2 && git merge main
 | 上游把功能移到新文件 | 定制随迁到新位置（先例：编辑器行号 → message/OpenSplitButton）|
 | 图标/二进制 | `git checkout --ours` |
 | 上游新增 UI 入口/新功能 | 默认保留；仅维持本档案记录的既有移除 |
+| 上游原生实现了本分支的定制（功能撞车） | 上游是超集就整体取上游，定制只留上游没有的部分（先例：#30 定位项、#23 行号跳转） |
+| 上游新功能挂在本分支已裁剪的入口上 | 入口不接入，设置里对应的改键项一并隐藏（先例：#31 语音快捷键） |
 | 语义冲突拿不准 | 查本档案对应条目的「同步策略」；仍不明 → 以「上游新功能跟随上游、定制意图不变」为准 |
 
-同步后必做：品牌残留检查（§A3）→ `pnpm typecheck && pnpm lint` →
-`pnpm test:engineering:affected --scope push` → push（门禁自动跑）→ 打 tag
+同步后必做：品牌残留检查（§A3，全文件 grep 值，不能只看冲突块）→ `pnpm typecheck &&
+pnpm lint` → CLI 内核有改动时 build + core 测试（见 F）→ 提交合并 →
+`pnpm test:engineering:affected --scope push`（被选成整套而跳过时改跑
+`pnpm test:engineering`）→ push（门禁自动跑）→ 打 tag
 （如 `myagent-v2-<版本>`）。GitHub Actions 自动出安装包。
+
+本地回放 e2e 的坑：报 chromedriver「browser folder exists but the executable is missing」
+时，是 `$TMPDIR/chromedriver/<平台>-<版本>` 留了空壳目录，`rmdir` 掉该目录后重跑即可。
 
 ## H. 刻意不移植的历史改动（同步时勿"顺手恢复"）
 
 全仓库 2→4 空格重排版、删全部测试与基础设施、删包/Docker/文档、拆架构治理与 pre-push
 门禁、安装包瘦身排除名单、手工"摘入上游"式合并。完整清单与理由见
 [MYAGENT-DIVERGENCE.md](./MYAGENT-DIVERGENCE.md) §6。
+
+## I. 上游 v4.0.0 默认行为 × 本分支裁剪（未处理，待决策）
+
+2026-11-23 同步时发现，都没有改代码，等使用者裁决。
+
+- **预装工具默认开启**：首次启动后台从 `cdn-zcode.z.ai` 串行下载 Python / qpdf / Pandoc /
+  Poppler / LibreOffice（mac arm64 下载约 576 MB、占盘约 1.66 GB），写
+  `~/.zcode/preinstalled-tools/`，Agent 子进程 PATH 最前面是它的 `bin`。管理入口在
+  「帮助 → 预装工具」；本分支顶栏帮助按钮已隐藏，只能从设置页的帮助菜单进。
+- **凭据自动重置**：系统凭据库拿不到密钥时（钥匙串被拒或锁定、Credential Manager 满、
+  无 Secret Service），Main 备份后清空全部凭据，无界面提示，需重新登录。本分支与官方版
+  共用 appId 与 `~/.zcode`；MyAgent 构建未签名，若因此读不到官方版创建的钥匙串条目，
+  可能触发这次清空（推断，未复现）。
+- **项目目录插件需手动信任**：`plugins.dirs` 声明的插件要在「设置 › 插件 › 项目」逐个
+  信任后才对新会话生效。本分支隐藏了 `plugin` 分区，没有信任入口；用到项目级插件目录的
+  项目升级后不会加载。
+- **营销弹窗**：官方后台向新 profile 下发 `cloud-content-dialog`（「全新登场…开始体验」）。
+  与 #11/#12 移除的推荐入口是同一类触点，是否裁剪待定。
+- **Windows CI**：见 DIVERGENCE §4，上游新增的入口 shim 构建脚本硬编码 VS 2022 生成器。

@@ -79,7 +79,7 @@ import {
 } from "@/components/ai-elements/markdown-image.js";
 import { STREAMDOWN_CONTROLS } from "@/components/ai-elements/streamdown-controls.js";
 import { resolveMessageLinkOpenTarget } from "@/embeddedBrowserHelpers.js";
-import type { CodeViewerSource } from "@/lib/codeViewer.js";
+import { buildFileLinkLineFocus, type CodeViewerSource } from "@/lib/codeViewer.js";
 import { persistLastSelectedEditorId } from "@/lib/editorPreference.js";
 import {
   FileDisplayIcon,
@@ -90,8 +90,10 @@ import {
   normalizeWorkspaceRelativeFilePath,
   parseMarkdownFileLinkTarget,
   resolveMarkdownFileLink,
+  type MarkdownFileLinkLineRange,
 } from "@/lib/markdownFileLink.js";
 import { stripBalancedAssistantPathQuotes } from "@/lib/assistantPathQuotes.js";
+import { normalizeMarkdownCjkBareUrls } from "@/lib/markdownCjkBareUrl.js";
 import { getPathLeaf } from "@/lib/path.js";
 import { getWorkspaceFileRelativePath } from "@/workspace-file-tree/model.js";
 import { resolveWorkspaceEditorSelection } from "@/lib/workspaceEditorSelection.js";
@@ -405,13 +407,17 @@ export interface MessageFileLinkTarget {
   label: string;
   /** 仅用于显式尾随斜杠的目录展示提示；打开第三方应用前必须重新 stat。 */
   pathKind?: NonNullable<OpenInEditorOptions["pathKind"]>;
-  /** 链接里 `path:line(:column)` 后缀解析出的定位信息；供预览面板滚动和第三方编辑器 goto 使用。 */
-  lineNumber?: number | null;
+  /** 链接里 `path:line:column` 后缀的列号；供第三方编辑器 goto 使用，行号取 lineRanges 首段起始行。 */
   columnNumber?: number | null;
   relativePath?: string;
   workspacePath?: string;
   workspaceIdentity?: string;
   workspaceRemoteSessionId?: string;
+  /**
+   * 链接里的行号段（`a.ts:42`、`a.ts#L30-L35`、`a.ts:30-35,40-42`）；打开预览时定位并高亮。
+   * 原样保留解析结果，校验与截断在打开预览时做（docs/ui/preview-pane.md「带行号的文件链接」）。
+   */
+  lineRanges?: readonly MarkdownFileLinkLineRange[];
 }
 
 // @streamdown/math 默认不解析 `$...$` 行内公式，导致客户消息里块级 `$$...$$`
@@ -831,15 +837,24 @@ function formatMarkdownFileLinkTargetHref(href: string): string {
           /^[a-zA-Z][a-zA-Z\d+.-]*:/.test(parsedTarget.path)
         ? parsedTarget.path
         : `./${parsedTarget.path}`;
-  if (parsedTarget.lineNumber === null) {
+  if (parsedTarget.lineRanges.length === 0) {
     return path;
   }
 
-  if (parsedTarget.columnNumber === null) {
-    return `${path}:${parsedTarget.lineNumber}`;
+  if (parsedTarget.columnNumber !== null) {
+    return `${path}:${parsedTarget.lineNumber}:${parsedTarget.columnNumber}`;
   }
 
-  return `${path}:${parsedTarget.lineNumber}:${parsedTarget.columnNumber}`;
+  // 区间与多段统一改写成冒号写法（`#L30-L35` → `:30-35`）；只写起始行会在这里丢掉结束行和其余段。
+  return `${path}:${formatMarkdownFileLinkLineRanges(parsedTarget.lineRanges)}`;
+}
+
+function formatMarkdownFileLinkLineRanges(lineRanges: readonly MarkdownFileLinkLineRange[]) {
+  return lineRanges
+    .map(({ startLine, endLine }) =>
+      startLine === endLine ? `${startLine}` : `${startLine}-${endLine}`,
+    )
+    .join(",");
 }
 
 function shouldRewriteMarkdownFileLinkHref(href: string): boolean {
@@ -1537,6 +1552,7 @@ export function buildMessageFileLinkTarget(input: {
   href: string;
   label: string;
   path: string;
+  lineRanges?: readonly MarkdownFileLinkLineRange[];
   workspacePath?: string;
   workspaceIdentity?: string;
   workspaceRemoteSessionId?: string;
@@ -1546,15 +1562,12 @@ export function buildMessageFileLinkTarget(input: {
   const pathKind = isExplicitDirectoryMarkdownLink(input.path, input.href)
     ? ("directory" as const)
     : undefined;
-  // `src/app.ts:123` 里的行号在 resolveMarkdownFileLink 阶段只用于拆路径，
-  // 此前在这里被丢弃，导致点击链接只能打开文件、无法定位到行。这里从原始 href
-  // 重新解析一次行/列，随 target 传给预览面板与第三方编辑器。
-  const { lineNumber, columnNumber } = parseMarkdownFileLinkTarget(input.href);
+  // 个人定制：列号只对第三方编辑器 goto 有用；行号由上游的 lineRanges 承载，这里不再重复解析。
+  const { columnNumber } = parseMarkdownFileLinkTarget(input.href);
   return {
     path: input.path,
     label: input.label,
     pathKind,
-    lineNumber,
     columnNumber,
     relativePath: input.workspacePath
       ? getWorkspaceFileRelativePath(input.workspacePath, input.path)
@@ -1562,6 +1575,9 @@ export function buildMessageFileLinkTarget(input: {
     workspacePath: input.workspacePath,
     workspaceIdentity: input.workspaceIdentity,
     workspaceRemoteSessionId: input.workspaceRemoteSessionId,
+    // Bugfix：resolveMarkdownFileLink 已解析出行号，但这里曾只保留 path，
+    // 打开预览时行号丢失、总停在第 1 行。保留全部行号段交给打开预览的入口去定位。
+    lineRanges: input.lineRanges?.length ? input.lineRanges : undefined,
   };
 }
 
@@ -1585,14 +1601,13 @@ export async function openMessageFileLinkInEditor({
   // Markdown 渲染层无法从名称可靠判断文件/目录。这里在动作发生时通过
   // 当前 workspace scope 的 file service 取真实类型，stat 失败时不会调用本机应用。
   const fileStat = await statFile({ path: fileLink.path });
+  const firstStartLine = fileLink.lineRanges?.[0]?.startLine;
   return openInEditor(editorId, fileLink.path, {
     pathKind: fileStat.type,
     remoteTarget,
     workspaceIdentity: fileLink.workspaceIdentity,
     // 链接行号只在编辑器 CLI 支持定位参数时生效（VS Code --goto / JetBrains --line），其余忽略。
-    ...(Number.isInteger(fileLink.lineNumber) && (fileLink.lineNumber as number) > 0
-      ? { line: fileLink.lineNumber as number }
-      : {}),
+    ...(firstStartLine !== undefined && firstStartLine > 0 ? { line: firstStartLine } : {}),
     ...(Number.isInteger(fileLink.columnNumber) && (fileLink.columnNumber as number) > 0
       ? { column: fileLink.columnNumber as number }
       : {}),
@@ -2057,7 +2072,9 @@ export const MessageResponse = memo(
       () =>
         rewriteMarkdownArtifactImageSources(
           normalizeMessageSingleDollarMath(
-            normalizeConsecutiveMarkdownImageBlocks(projectedCitationMarkdown),
+            normalizeMarkdownCjkBareUrls(
+              normalizeConsecutiveMarkdownImageBlocks(projectedCitationMarkdown),
+            ),
           ),
         ),
       [projectedCitationMarkdown],
@@ -2180,6 +2197,7 @@ export const MessageResponse = memo(
             const fileLinkTarget = buildMessageFileLinkTarget({
               href: resolvedHref,
               path: fileLink.path,
+              lineRanges: fileLink.lineRanges,
               label: labelText,
               workspacePath,
               workspaceIdentity,
@@ -2203,9 +2221,7 @@ export const MessageResponse = memo(
                     type: "file",
                     title: getPathLeaf(fileLink.path),
                     path: fileLink.path,
-                    ...(fileLink.lineNumber && fileLink.lineNumber > 0
-                      ? { revealLine: fileLink.lineNumber }
-                      : {}),
+                    ...buildFileLinkLineFocus(fileLink.lineRanges),
                     workspacePath,
                     workspaceIdentity,
                     workspaceRemoteSessionId,

@@ -66,6 +66,7 @@ import {
   BROWSER_USE_OPERATION_INDICATOR_DURATION_MS,
   openCodeViewerSidePane,
   openCodeViewerSidePanes,
+  markCodeViewerFocusRequestApplied,
   activateGitSidePane,
   getActiveSidePaneTab,
   getVisibleSidePaneTabs,
@@ -811,6 +812,16 @@ export function useAppPanels(options: {
 
   // 个人定制：#22 面板仅内容预览后 handleNavigateFileManager（目录树内导航）不再下发；
   // 上游的 routeOfficeViewerFile（.xlsx/插件查看器分流）保留，供 handleOpenCodeViewer 使用。
+
+  // 文件链接定位执行后由预览回报，记到对应 tab 上；重新挂载、内容刷新不再重复定位（docs/ui/preview-pane.md）。
+  const handleCodeViewerFocusRequestApplied = useCallback(
+    (tabId: string, requestId: string) => {
+      const current = latestSidePaneMemoryRef.current.sidePaneState;
+      if (markCodeViewerFocusRequestApplied(current, tabId, requestId) === current) return;
+      commitSidePaneState((state) => markCodeViewerFocusRequestApplied(state, tabId, requestId));
+    },
+    [commitSidePaneState],
+  );
 
   const handleOpenCodeViewer = useCallback(
     (source: CodeViewerSource) => {
@@ -2112,6 +2123,7 @@ export function useAppPanels(options: {
     browserNavigationRequest,
     setBrowserNavigationRequest,
     handleOpenFileManager,
+    handleCodeViewerFocusRequestApplied,
     // 回调
     handleOpenCodeViewer,
     handleOpenCodeViewers,

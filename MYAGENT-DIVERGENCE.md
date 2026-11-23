@@ -16,7 +16,8 @@
 | --- | --- | --- |
 | `packages/desktop/scripts/desktop-product-identity.mjs`、`desktopRuntimeEnv.ts`、`about.ts` 等桌面身份文件 | 产品名 xudong→MyAgent（构建身份、关于页、协议头） | 上游新增品牌文案时改完跑 `desktopProductIdentity.test.ts`；新增文件里的品牌串在每次同步后 grep `ZCode` 增量替换 |
 | `public/logo/icons/*`、`packages/desktop/build/icon*`、`packages/ui/src/assets/` | 靛蓝紫渐变 A 字标图标 | 二进制冲突时直接取本地版本（`git checkout --ours`） |
-| `packages/ui/src/i18n/locales/{zh-CN,en-US}.ts`、web 展示文案 | 用户可见文案中的品牌串 | 冲突块逐条取本地品牌串、保留上游新增键（先例见 9af88442 重放） |
+| `packages/ui/src/i18n/locales/{zh-CN,en-US}.ts`、web 展示文案 | 用户可见文案中的品牌串 | 冲突块逐条取本地品牌串、保留上游新增键（先例见 9af88442 重放）；i18n 值中「已登录的 ZCode App」指官方手机 App，保留 |
+| `packages/desktop/src/main/{desktopCommandHandlers,executableOpenGuard,autoUpdater}.ts`、`packages/web/src/main.tsx` | 主进程原生对话框（崩溃恢复、可执行文件打开确认、Linux 更新授权）与登录回调页标题里的品牌串 | 上游新增对话框文案时逐条替换为 MyAgent（先例：v4.0.0 同步） |
 | `apps/zcode-cli/packages/bootstrap/.../product-projection.ts`、协议行 | 协议/产品投影中的名称 | 小 diff，持有本地 |
 
 ## 2. 桌面 UI 定制 — 持有本地（小 diff）
@@ -25,8 +26,9 @@
 | --- | --- | --- |
 | `packages/ui/src/project-sidebar/ProjectSidebarNavigation.tsx` | 侧边栏只留新建任务+远控设备头，无自动化/插件入口 | 上游在此新增入口时：新功能默认保留，仅维持已有入口的移除 |
 | `packages/ui/src/project-sidebar/ProjectNodeContent.tsx`、`ProjectTaskRows.tsx` | 移除「查看文件」入口（showFiles/onOpenFileTree 不下发） | 上游 `chronological` 等新机制跟随上游 |
-| `packages/ui/src/FileManagerPane.tsx`（新增） | 侧面板文件预览仅内容、无目录树 | 上游重构 WorkspaceFileTree 时本文件不受影响 |
-| `packages/ui/src/app-shell/AnimatedSidePanePanel.tsx`、`WorkspaceShellLayout.tsx`、`hooks/useAppPanels.ts` | 面板按需放回（子 agent/调用轨迹/文件预览/计划详情）；不再传递 onNavigateFileManager | 上游新增面板类型时正常合入；新增会话联动面板类型需评估是否加入展开闸门白名单 |
+| `packages/ui/src/FileManagerPane.tsx`（新增） | 侧面板文件预览仅内容、无目录树 | 上游重构 WorkspaceFileTree 时本文件不受影响；PreviewPane 的 prop 原样透传，上游给 PreviewPane 加 prop 不用改它 |
+| `packages/ui/src/app-shell/AnimatedSidePanePanel.tsx`、`WorkspaceShellLayout.tsx`、`hooks/useAppPanels.ts` | 面板按需放回（子 agent/调用轨迹/文件预览/计划详情）；不再传递 onNavigateFileManager；code-viewer tab 透传定位回执（`appliedFocusRequestId`/`onFocusRequestApplied`） | 上游新增面板类型时正常合入；新增会话联动面板类型需评估是否加入展开闸门白名单；上游在它自己的面板调用处插的 prop 展开不适用于本分支，要在自建 FileManagerPane 调用处补 |
+| `WorkspaceHeaderSections/WorkspaceHeaderActionSection.tsx` | 侧面板开关只保留面板内的折叠按钮，头部那个开关已移除——折叠后没有可点的展开开关，点文件链接才会再展开 | 上游 e2e 里「折叠侧面板再展开」的步骤在本分支跑不了，属存量分歧，不为它改上游用例 |
 | `packages/ui/src/SettingsPage.tsx`、账户菜单、任务页 | 移除推荐/帮助/邀请入口，One Dark Pro 配色 | 上游「职业引导」为新增功能已跟随上游保留（决策点：如不想要可移除 onOpenOnboardingDialog 一处） |
 | `desktopWindowChrome.ts`、`WindowsTopLeftLogo.tsx` | 窗口控制按钮右上角固定、品牌角标 | 持有本地 |
 | `ui/src/App.tsx`（Side Pane Full View）+ `app-shell/types.ts` | 侧面板完整视图控制器与快捷键标签移除（prop 可选，保持不传）；上游必填的 `handleSidePaneDraftPromotion` 保留接线 | 上游演进完整视图时 prop 维持可选/不传；若上游把控制器改为必填需重新评估 |
@@ -35,7 +37,7 @@
 | `editors.ts`、`openInEditor.ts` | JetBrains 全家桶检测、Toolbox 识别、`--line` 定位、Sublime Text 条目（#30 回归） | 上游演进跟随上游，保留新增编辑器条目 |
 | 打开方式定制（#30）——新增：`desktop/src/main/fileApplicationVisibility.ts`；additive：`file-open-apps/index.ts`（isExcluded）、`main/fileApplications.ts`（删 Numbers/QuickTime）、`desktopMainIpcPlatform.ts`、`ui/src/file-menu/useFileApplications.ts`（origin 分发 + 固定收藏排序） | 文件打开方式 = 系统关联（过移除清单+编辑器影子去重）+ 编辑器白名单固定入口（Sublime/Chrome 置顶）。定位项（Finder/资源管理器打开并选中）已被上游 v3.17.2 同语义实现取代（`getSystemFileLocatorEditorId` + `reveal` prop），**跟随上游**，本地旧实现（`getFileManagerEditorId`/`handleRevealInFileManager`）已移除 | 新文件无上游冲突；additive 处正常三方合并；上游重构 useFileApplications/FileApplicationChoices 时保住 origin 分发与 PINNED 排序约定（档案 E6）。message.tsx 残留的本地重复定位菜单项已于 2026-11-09 清除（对齐上游 revealCount=1 断言，勿恢复） |
 | token 用量状态条——纯新增：`shared/src/token-usage.ts`、`desktop/src/main/tokenUsageSnapshotQuery.ts`+`tokenUsageStatusPump.ts`、`ui/src/store/tokenUsageStatusStore.ts`、`ui/src/v4/composer/tokenUsageStatusBar.tsx`；additive：`channels.ts`、`platform.ts`、preload、`useRootPlatformEffects`、`ConversationComposer`、i18n；插槽：`ChatPromptEditor.bottomContent` | 原生 token 状态条：主进程 SQLite 只读泵 + composer 卡片状态行（spec：docs/desktop/token-usage-statusbar.md） | 新文件无上游冲突；additive 处正常三方合并；上游重构 composer 布局时 bottomContent 插槽随迁；CLI usage 表 migration 变更需同步查询与回归测试 |
-| 语音输入入口移除（#31，v3.18.0）——`ConversationComposer.tsx` 不渲染 `VoiceInputButton`；删除 `e2e/ui-shell/composer/composer-voice-input.test.ts` | composer 语音输入不暴露入口；`voice-input/` 模块、桌面 `microphone-access`、ASR helper 保留 | 上游演进语音输入时跟随实现、维持入口不渲染；hook 若改为挂载即请求权限需同步收紧接线 |
+| 语音输入入口移除（#31，v3.18.0）——`ConversationComposer.tsx` 不渲染 `VoiceInputButton`；删除 `e2e/ui-shell/composer/composer-voice-input.test.ts` | composer 语音输入不暴露入口；`voice-input/` 模块、桌面 `microphone-access`、ASR helper 保留 | 上游演进语音输入时跟随实现、维持入口不渲染；hook 若改为挂载即请求权限需同步收紧接线。v4.0.0 起上游有语音快捷键（`useVoiceInputShortcut`，不依赖按钮）：composer 不调用该 hook，`ShortcutSettingsSection` 隐藏 `toggleVoiceInput` |
 
 **注意**：上游 `packages/ui/src/WorkspaceFileTree.tsx` 与 `workspace-file-tree/` 家族在 v2 中
 保留原样（侧面板不再使用它们，但上游可能仍在主工作区布局使用；后续若 knip 报未使用属预期）。
@@ -46,7 +48,7 @@
 | --- | --- | --- |
 | `core/src/context/sections/identity.ts` | Harness 块「必须同轮打包」强指令 | 上游改 Harness 结构（如 deliveryNotice）时保留机制、套用强指令措辞；`context-builder.test.ts` 的 Harness 断言同步更新 |
 | `core/src/context/dynamic-sections.ts` | LATEX_MATH_PROMPT 独立条目（上游已删 Communicating 长段） | 上游若再调整 Dynamic Behavior 组成，LaTeX 条目跟随迁移 |
-| `core/src/tool/handlers/{read,grep,agent,bash-prompt,tool-search}.ts` | 条件式读取、检索分层、委派阈值、常驻工具直调提示 | 与 `tests/tool-contracts.test.ts` 断言成对修改 |
+| `core/src/tool/handlers/{read,grep,agent,bash-prompt,tool-search}.ts` | 条件式读取、检索分层、委派阈值、常驻工具直调提示 | 与 `tests/tool-contracts.test.ts` 断言成对修改（v4.0.0 起上游精简了该文件，#7/#8 断言在 `keeps the personal wording…` 用例）；ToolSearch 未命中文案优先级 = deferred 命中 → 常驻直调提示 → MCP 诊断 → 通用长文案 |
 | `packages/office-runtime/` | 查看器插件放开工作区外路径 | CONTRACT.md 与实现成对 |
 
 ## 4. 默认行为偏好 — 持有本地
@@ -62,6 +64,13 @@
   v3.18.1 合入的 `scripts/test/installer-process-helper.test.mjs` 同样处理：测试内
   `resolveRuntimeHostBuild(arch)` 改传 `resolveVisualStudioGenerator()` 探测结果，
   否则 VS2026-only 机器配置阶段即失败（上游测试按 VS2022 默认值写死）。
+- **上游 v4.0.0 新增的第二处硬编码**：
+  `packages/desktop/scripts/build-windows-preinstalled-entry-shim.mjs` 同样写死
+  `Visual Studio 17 2022`，`prepare:runtime-assets` 在 win32 无条件执行它，afterPack 缺
+  产物直接抛错。按 a54b055f 记录的原因，`windows-latest` 上预计在
+  `prepare:preinstalled-entry-shim` 失败。修法：把 `pickVisualStudioGenerator` /
+  `resolveVisualStudioGenerator` 传进去；该脚本自己按 `CMAKE` 环境变量或 vswhere 解析
+  cmake 路径，探测必须用同一个命令，不能让解析函数再去 PATH 上找 `cmake`。
 
 ## 5. 测试基线 — 跟随上游
 
@@ -70,6 +79,15 @@
   webLoginPage.test.ts、rewardsMenuIcon.test.ts 等）随上游删除；CLI core 测试全保留。
 - 个人定制改变行为时同步更新对应断言（先例：context-builder、tool-contracts、
   desktopProductIdentity、settings-ui-polish、help-menu-about 等）。
+- 上游 manual-review 用例依赖本分支已移除的 UI 时（先例：文件链接行号用例的「折叠侧面板
+  再展开」需要头部开关），不改进上游用例，按存量分歧处理；本分支自己的用例跑不了时，
+  用临时适配副本验证，结论记进档案（先例见 B5、E 的 #23）。
+- 存量环境问题（2026-11-23 实测）：官方后台会向新 profile 下发营销弹窗
+  `cloud-content-dialog`（「全新登场…」，`marketing-touch`，上游 e2e 注释记为 2026-11 的
+  版本介绍投放），出现时机不定，出现后盖住整个窗口。上游 helper 只在职业引导循环里关它。
+  本分支 #32 用例 `conversation-session-project-folder-branches` 因此开局失败（点「新建
+  项目」被盖住），与合并无关。临时副本里在点击前加「有弹窗先关」后通过；正式用例未改，
+  待决策。
 
 ## 5.5 协作文档 — 持有本地（小 diff）
 
