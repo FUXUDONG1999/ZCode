@@ -68,7 +68,7 @@
 | 32 | 侧栏项目展开文件夹层（分支显示/切换）— 2026-11-23 下线 | `b1417b0a`+`cada0f4e`+`05ace97f`，已移除 | UI | 见 B5 |
 | 33 | 流式公式组件层缓存 + CJK 浮现两字一组 + 加载 orbs 30fps | `1e350ec8` | 性能 | typecheck/lint；spec：docs/chat/assistant-streaming-text-rendering.md |
 | 34 | 滚动条着色改伪元素直接匹配 | `5b5e0558` | 性能 | typecheck/lint；spec：docs/chat/message-render-performance.md |
-| 35 | 状态行 Git 胶囊常驻（贴左）+ Git 图谱按作者/路径筛选 | 未提交 | UI | e2e conversation-session-git-review-entry、conversation-session-status-panel-inline-layout；见 B7 |
+| 35 | 状态行 Git 胶囊常驻（贴左）+ Git 图谱按作者/路径筛选 | `e607519f` | UI | e2e conversation-session-git-review-entry、conversation-session-status-panel-inline-layout；见 B7 |
 
 ---
 
@@ -213,7 +213,7 @@
   `DesktopWindowControls`；平时由右侧会话列的 WorkspaceHeader 承担（右上角）。
 - 锚点：`AnimatedSidePanePanel.tsx` 的 `showWindowControls && fullView` 条件。
 
-### B7. 状态行 Git 胶囊与图谱筛选（#35，未提交）
+### B7. 状态行 Git 胶囊与图谱筛选（#35，`e607519f`）
 
 - **意图**：对话过程中始终看得到当前分支和提交情况；分支、变更文件、切换、图谱一个
   浮层到位；图谱能只看某人的提交或某个目录的历史。
