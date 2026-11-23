@@ -287,14 +287,15 @@
     session）；#23 的侧边 HTML 预览是沙箱 iframe `srcDoc` 渲染（fileService 读文本，远程
     workspace 也可用），两条链路互补无冲突，全部保留。用户决策：HTML 预览**以远端机制为主**——
     未来若上游侧边预览与本特性冲突，按「跟随上游」裁决。
-  - **验证锚点（2026-11-23 本地回放实测）**：上游用例
-    `packages/desktop/test/e2e/conversation-session/presentation/manual-review/pending/conversation-session-message-file-link-line-jump.test.ts`。
-    MFL02（区间与多段）在本分支直接通过；MFL01 卡在「折叠后点头部开关再展开」——本分支
-    没有头部开关（见 DIVERGENCE §2）。去掉该步的临时适配副本（折叠后再点同一链接展开）
-    两用例全过：单行定位高亮、再点重新定位、同文件复用 tab、`:行:列`、无行号与超出行数
-    停在开头，都走自建预览面板的定位回执链路。「重新挂载不回跳」在本分支没有对应的用户
-    操作路径，只有静态接线证据。回放命令同 B5，`E2E_PROVIDER_REPLAY_FIXTURE_PATH` 用
-    `common.json` 加 `conversation-session/conversation-session-message-file-link-line-jump.json`。
+  - **验证锚点（2026-11-23 本地回放实测，#32 下线后复跑通过）**：上游用例
+    `packages/desktop/test/e2e/conversation-session/presentation/manual-review/pending/conversation-session-message-file-link-line-jump.test.ts`，
+    本分支做过两处适配（文件内有「个人定制」注释）。一是 MFL01 的「折叠后点头部开关再展开，
+    确认没被拉回」换成「折叠后点同一链接重新展开并定位」：本分支没有头部开关（见
+    DIVERGENCE §2），「重新挂载不回跳」在本分支没有对应的用户操作路径，e2e 不覆盖，只有
+    静态接线证据。二是点链接前先关后台下发的营销弹窗（DIVERGENCE §5）。覆盖：单行三种
+    写法居中高亮、再点重新定位、同文件复用一个 tab、区间与多段高亮、无行号与超出行数停在
+    开头，都走自建预览面板的定位回执链路。本地回放命令：
+    `ZCODE_E2E_MANUAL_REVIEW=1 E2E_PROVIDER_HTTP_MODE=replay E2E_PROVIDER_REPLAY_FIXTURE_PATH=packages/desktop/test/e2e/fixtures/upstream/common.json,packages/desktop/test/e2e/fixtures/upstream/conversation-session/conversation-session-message-file-link-line-jump.json pnpm --filter @zcode/desktop test:e2e -- --spec <该文件>`。
 - **#24 异步日志**（`bfa51bd0`+`5b0b78ad`）：行进内存队列、setImmediate 合并、
   每-文件链式 Promise、退出同步兜底、缓冲上限 2000；`exportLogs.ts` 配套。
   上游若改日志格式/TTFT 分流，注意保留 `ensureLogDirectory` 与退出兜底链路。
@@ -487,9 +488,9 @@ pnpm lint` → CLI 内核有改动时 build + core 测试（见 F）→ 提交�
 门禁、安装包瘦身排除名单、手工"摘入上游"式合并。完整清单与理由见
 [MYAGENT-DIVERGENCE.md](./MYAGENT-DIVERGENCE.md) §6。
 
-## I. 上游 v4.0.0 默认行为 × 本分支裁剪（未处理，待决策）
+## I. 上游 v4.0.0 默认行为 × 本分支裁剪
 
-2026-11-23 同步时发现，都没有改代码，等使用者裁决。
+2026-11-23 同步时发现。标「已处理」的三项当天改完；前两项没动代码，等使用者裁决。
 
 - **预装工具默认开启**：首次启动后台从 `cdn-zcode.z.ai` 串行下载 Python / qpdf / Pandoc /
   Poppler / LibreOffice（mac arm64 下载约 576 MB、占盘约 1.66 GB），写
@@ -503,7 +504,8 @@ pnpm lint` → CLI 内核有改动时 build + core 测试（见 F）→ 提交�
   逐个信任后才对新会话生效。原先本分支隐藏了 `plugin` 分区、没有信任入口；2026-11-23 起
   分区恢复可见（B4），侧栏插件市场按钮仍不恢复。
 - **营销弹窗**：官方后台向新 profile 下发 `cloud-content-dialog`（「全新登场…开始体验」）。
-  与 #11/#12 移除的推荐入口是同一类触点，是否裁剪待定。
+  与 #11/#12 移除的推荐入口是同一类触点，产品侧是否裁剪待定。e2e 侧已绕过：受影响的用例
+  在被盖住的点击前先关它（DIVERGENCE §5）。
 - **Windows CI**（已处理）：见 DIVERGENCE §4，上游新增的入口 shim 构建脚本硬编码 VS 2022
   生成器，已改探测；探测逻辑抽到了叶子模块 `scripts/windows-visual-studio-generator.mjs`
   （shim 脚本被 `wdio.conf.ts` 经 jiti 求值，不能导入带顶层 await 的入口脚本）。回归：

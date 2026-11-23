@@ -28,7 +28,7 @@
 | `packages/ui/src/project-sidebar/ProjectNodeContent.tsx`、`ProjectTaskRows.tsx` | 移除「查看文件」入口（showFiles/onOpenFileTree 不下发） | 上游 `chronological` 等新机制跟随上游 |
 | `packages/ui/src/FileManagerPane.tsx`（新增） | 侧面板文件预览仅内容、无目录树 | 上游重构 WorkspaceFileTree 时本文件不受影响；PreviewPane 的 prop 原样透传，上游给 PreviewPane 加 prop 不用改它 |
 | `packages/ui/src/app-shell/AnimatedSidePanePanel.tsx`、`WorkspaceShellLayout.tsx`、`hooks/useAppPanels.ts` | 面板按需放回（子 agent/调用轨迹/文件预览/计划详情）；不再传递 onNavigateFileManager；code-viewer tab 透传定位回执（`appliedFocusRequestId`/`onFocusRequestApplied`） | 上游新增面板类型时正常合入；新增会话联动面板类型需评估是否加入展开闸门白名单；上游在它自己的面板调用处插的 prop 展开不适用于本分支，要在自建 FileManagerPane 调用处补 |
-| `WorkspaceHeaderSections/WorkspaceHeaderActionSection.tsx` | 侧面板开关只保留面板内的折叠按钮，头部那个开关已移除——折叠后没有可点的展开开关，点文件链接才会再展开 | 上游 e2e 里「折叠侧面板再展开」的步骤在本分支跑不了，属存量分歧，不为它改上游用例 |
+| `WorkspaceHeaderSections/WorkspaceHeaderActionSection.tsx` | 侧面板开关只保留面板内的折叠按钮，头部那个开关已移除——折叠后没有可点的展开开关，点文件链接才会再展开 | 上游 e2e 里「折叠侧面板再展开」的步骤在本分支跑不了。文件链接行号用例（MFL01）2026-11-23 已按本分支适配：去掉「头部开关再展开 + 确认没被拉回」，改为折叠后点同一链接重新展开并定位；上游改这段时保留适配 |
 | `packages/ui/src/SettingsPage.tsx`、账户菜单、任务页 | 移除推荐/帮助/邀请入口，One Dark Pro 配色 | 上游「职业引导」为新增功能已跟随上游保留（决策点：如不想要可移除 onOpenOnboardingDialog 一处） |
 | `desktopWindowChrome.ts`、`WindowsTopLeftLogo.tsx` | 窗口控制按钮右上角固定、品牌角标 | 持有本地 |
 | `ui/src/App.tsx`（Side Pane Full View）+ `app-shell/types.ts` | 侧面板完整视图控制器与快捷键标签移除（prop 可选，保持不传）；上游必填的 `handleSidePaneDraftPromotion` 保留接线 | 上游演进完整视图时 prop 维持可选/不传；若上游把控制器改为必填需重新评估 |
@@ -91,15 +91,16 @@
   webLoginPage.test.ts、rewardsMenuIcon.test.ts 等）随上游删除；CLI core 测试全保留。
 - 个人定制改变行为时同步更新对应断言（先例：context-builder、tool-contracts、
   desktopProductIdentity、settings-ui-polish、help-menu-about 等）。
-- 上游 manual-review 用例依赖本分支已移除的 UI 时（先例：文件链接行号用例的「折叠侧面板
-  再展开」需要头部开关），不改进上游用例，按存量分歧处理；本分支自己的用例跑不了时，
-  用临时适配副本验证，结论记进档案（先例见 B5、E 的 #23）。
+- 上游 manual-review 用例依赖本分支已移除的 UI 时：改动面只有一两步、且在本分支有等价
+  操作的，就地适配并留「个人定制」注释（先例：文件链接行号用例 MFL01，见 §2 头部开关
+  一行与 E 的 #23）；没有等价操作的不改，按存量分歧处理，结论记进档案。
 - 存量环境问题（2026-11-23 实测）：官方后台会向新 profile 下发营销弹窗
   `cloud-content-dialog`（「全新登场…」，`marketing-touch`，上游 e2e 注释记为 2026-11 的
-  版本介绍投放），出现时机不定，出现后盖住整个窗口。上游 helper 只在职业引导循环里关它。
-  本分支 #32 用例 `conversation-session-project-folder-branches` 因此开局失败（点「新建
-  项目」被盖住），与合并无关。临时副本里在点击前加「有弹窗先关」后通过；正式用例未改，
-  待决策。
+  版本介绍投放），出现时机不定，出现后盖住整个窗口。上游 helper
+  `closeCloudContentDialogIfPresent`（`#e2e/helpers/occupation-onboarding`）原本只在职业
+  引导循环里用，本分支把它导出，受影响的用例在被盖住的点击前调用（先例：文件链接行号
+  用例的 `clickBodyFileLink`）。它「不出现不等待」，弹窗来得比调用晚仍可能盖住后续点击，
+  遇到就在那一处再加一次。
 
 ## 5.5 协作文档 — 持有本地（小 diff）
 

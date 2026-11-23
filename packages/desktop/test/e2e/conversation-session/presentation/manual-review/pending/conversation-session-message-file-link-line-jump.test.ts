@@ -2,6 +2,7 @@ import { mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { TID_PREVIEW_PANE, TID_SIDE_PANE_TOGGLE } from "@zcode/shared/test-ids";
 import { clearAppData, DEFAULT_WORKSPACE } from "#e2e/helpers/desktop-app";
+import { closeCloudContentDialogIfPresent } from "#e2e/helpers/occupation-onboarding";
 import {
   prepareV4ConversationE2E,
   sendV4Prompt,
@@ -78,7 +79,7 @@ describe("消息正文带行号的文件链接定位", () => {
     await clearAppData();
   });
 
-  it("MFL01: 三种行号写法居中高亮、同文件再次点击重新定位、重新挂载不回跳、无行号与超出行数停在开头", async () => {
+  it("MFL01: 三种行号写法居中高亮、同文件再次点击重新定位并展开已折叠面板、无行号与超出行数停在开头", async () => {
     await prepareSampleFile();
     await prepareV4ConversationE2E();
     await sendV4Prompt(`${MARKER}: reply with file links to ${CASE_RELATIVE_ROOT}/sample.ts.`);
@@ -93,15 +94,14 @@ describe("消息正文带行号的文件链接定位", () => {
     await clickBodyFileLink(LINKS.colonLine);
     await waitForFocusedLine(42);
 
-    // 一次点击只定位一次：用户手动滚到文件末尾后，折叠再展开侧边面板让 CodeViewer 重新挂载，
-    // 预览不能被拉回第 42 行；第 42 行的高亮保留。
+    // 用户手动滚到文件末尾后，折叠侧边面板。
+    // 个人定制：本分支没有头部的侧面板开关，折叠后只能点文件链接再展开，而那是一次新的定位请求；
+    // 上游原步骤「展开后确认没被拉回第 42 行」在这里触发不了，「重新挂载不回跳」本分支未覆盖。
     await scrollPreviewToBottom();
     await toggleSidePane();
     await waitForPreviewHidden();
-    await toggleSidePane();
-    await waitForNotRefocused(42);
 
-    // 再点同一个 `:42` 链接：新的点击重新定位到第 42 行。
+    // 折叠状态下再点同一个 `:42` 链接：面板重新展开，新的点击重新定位到第 42 行。
     await clickBodyFileLink(LINKS.colonLine);
     await waitForFocusedLine(42);
 
@@ -189,6 +189,8 @@ async function prepareSampleFile() {
 }
 
 async function clickBodyFileLink(label: string) {
+  // 后台下发的营销弹窗会盖住正文（2026-11-23 实测），点击前先关。
+  await closeCloudContentDialogIfPresent();
   // 前一个用例的会话可能仍隐藏挂在 DOM 里，有同名链接；只点当前可见的那个。
   let link: WebdriverIO.Element | undefined;
   await browser.waitUntil(
@@ -362,34 +364,6 @@ async function waitForPreviewHidden() {
       }, PREVIEW_PANE),
     { timeout: 10_000, interval: 200, timeoutMsg: "折叠侧边面板后预览仍可见" },
   );
-}
-
-async function waitForNotRefocused(line: number) {
-  let state: PreviewLineState | null = null;
-  let stableSamples = 0;
-  // 连续多次采样：目标行都不在可视区中部，且高亮仍在，才算没有被旧的定位请求拉回。
-  await browser
-    .waitUntil(
-      async () => {
-        state = await readPreviewLineState(line);
-        const refocused =
-          state.centerOffset !== null &&
-          Math.abs(state.centerOffset) <= Math.max(state.lineHeight * 2, 24);
-        const ok =
-          state.ready &&
-          !refocused &&
-          state.selectedLines.length === 1 &&
-          state.selectedLines[0] === line;
-        stableSamples = ok ? stableSamples + 1 : 0;
-        return stableSamples >= 10;
-      },
-      { timeout: 20_000, interval: 150 },
-    )
-    .catch(() => {
-      throw new Error(`重新挂载后预览被拉回第 ${line} 行或高亮丢失: ${JSON.stringify(state)}`);
-    });
-  expect(state!.codeViewerTabCount).toBe(1);
-  expect(state!.errorText).toBe("");
 }
 
 async function waitForStaysAtTop(label: string) {

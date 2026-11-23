@@ -30,7 +30,8 @@ export async function skipOccupationOnboardingIfPresent(
 
 // 测试后端的真实营销投放（如 2026-11 的版本介绍弹窗）会盖住引导页，「跳过」一直不可点，
 // 整条用例开局就失败。弹窗是真实流程的一部分：出现就按用户操作点关闭，不出现不等待。
-async function closeCloudContentDialogIfPresent() {
+// 个人定制：导出给被同一弹窗盖住的其他用例复用（文件链接行号）。
+export async function closeCloudContentDialogIfPresent() {
   const dialog = $('[data-testid="cloud-content-dialog"]');
   if (!(await dialog.isDisplayed())) return;
   await dialog.$('[data-slot="dialog-close"]').click();
