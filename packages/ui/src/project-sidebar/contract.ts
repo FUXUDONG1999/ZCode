@@ -49,7 +49,6 @@ export type {
   ProjectTree,
   ProjectTask,
   ProjectTaskRef,
-  ProjectRoot,
   VirtualProject,
   SaveProjectInput,
   IProjectService,

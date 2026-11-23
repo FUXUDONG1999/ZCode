@@ -552,8 +552,6 @@ const enUS: Record<string, string> = {
   "project.browse": "Choose folder",
   "project.primaryRootMissing": "This project's main folder has been deleted or moved",
   "project.primaryRootUnavailable": "This project's main folder cannot be accessed",
-  "project.folder.primaryRoot": "Main folder",
-  "project.folder.sectionLabel": "Folders",
   "project.cancel": "Cancel",
   "project.save": "Save",
   "project.restoreDescription": "A deleted project {name} uses the same folders. Restore it?",

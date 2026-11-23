@@ -65,7 +65,7 @@
 | 29 | 架构基线登记定制新文件 | `31f92ef7`+同批 | 工程 | .architecture-baseline.json（10 条）|
 | 30 | 打开方式定制（Sublime 回归/移除清单/Finder 定位）| `64662c94`+登记锚点 | 桌面能力 | 手动：文件右键菜单（见 E6）|
 | 31 | 语音输入仅移除入口 + 不接入快捷键（v3.18.0/v4.0.0 新功能裁剪）| v3.18.0 合并批 | UI 裁剪 | grep 无 VoiceInputButton 渲染、无 useVoiceInputShortcut 调用 |
-| 32 | 侧栏项目展开文件夹层（分支显示/切换）| `b1417b0a`+`cada0f4e`+`05ace97f` | UI | conversation-session-project-folder-branches e2e（pending）|
+| 32 | 侧栏项目展开文件夹层（分支显示/切换）— 2026-11-23 下线 | `b1417b0a`+`cada0f4e`+`05ace97f`，已移除 | UI | 见 B5 |
 | 33 | 流式公式组件层缓存 + CJK 浮现两字一组 + 加载 orbs 30fps | `1e350ec8` | 性能 | typecheck/lint；spec：docs/chat/assistant-streaming-text-rendering.md |
 | 34 | 滚动条着色改伪元素直接匹配 | `5b5e0558` | 性能 | typecheck/lint；spec：docs/chat/message-render-performance.md |
 
@@ -190,57 +190,18 @@
 - **macOS 打开方式菜单**（#19，**部分被 #30 逆转**）：`editors.ts` 中 Terminal/iTerm/Ghostty
   条目保持删除；Sublime Text 已按 #30 加回并升级为文件打开方式的固定入口。
 
-### B5. 侧栏项目文件夹层（#32）
+### B5. 侧栏项目文件夹层（#32）— 已下线（2026-11-23）
 
-- **意图**：本地项目行 hover 时「...」菜单左侧出现文件夹层 chevron，点开后每个 root
-  一行——目录名 + 该文件夹 git 分支，可就地切分支/新建分支。多文件夹项目（各 root
-  独立仓库）不用再进工作区头部逐个切；文件夹默认不显示，只有主动点开才出现。
-  2026-11-12 二次增量：原独立「文件夹 (N)」小节头已删除，行内 chevron 为唯一入口，
-  展开态由项目行持有。任务仍整组归属项目，文件夹是操作层不是导航层（虚拟项目 spec
-  A2 边界不变；spec：`docs/superpowers/specs/2026-11-12-project-folder-branch-layer-design.md`）。
-- **改动点**：
-  - `packages/ui/src/project-sidebar/ProjectFolderRows.tsx`（**新增，核心**）：
-    `ProjectFolderRows`（导出 `hasProjectFolderLayer` gate 供入口与行渲染共用 +
-    primary 在前排序 + 受控 `open` prop，无内部状态 + `ServiceProvider` 钉住
-    `useBaseWorkspaceServices()`）→ `ProjectFolderRow`（目录名/主目录 tooltip/i18n
-    `project.folder.primaryRoot`）→ `ProjectFolderBranch`（`useFolderGitSummary` 按
-    rootPath 实时拉 `getRepositorySummary`，不落库；复用 `GitBranchSwitcher`
-    `popoverSide="right"`；`useGitAutoRefresh` 展开期间 watcher 自动刷新）。
-    ServiceProvider 钉 base 的原因：GitBranchSwitcher 内部 `useServices()` 跟随激活
-    tab，远端 tab 激活时本地 root 的 git 调用会被路由到远端 host。
-  - `ProjectNodeContent.tsx`：持有 `folderLayerOpen`（useEffect 在项目收起时复位，
-    收起态点 chevron 先 `onExpandedChange(true)` 再打开文件夹层）；行尾 hover 动作区
-    首位渲染 chevron（`data-testid="project-folder-toggle"` 沿用，`aria-expanded` 表
-    态，随动作区 hover 显示）；CollapsibleContent 内、ManagedWorktreeCreatingRows 前
-    以 `open={isOpen && folderLayerOpen}` 挂载 `ProjectFolderRows`。
-  - i18n：zh-CN/en-US 新增 `project.folder.primaryRoot`、`project.folder.sectionLabel`。
-- **范围裁决**：仅本地项目（`hostId === "local"`）且多 root（单 root 与项目行重复，
-  不渲染）；远程项目不做。非 git 文件夹只显目录名。分支数据实时派生，无 schema/CLI
-  改动，不变量 I1-I17 不触碰。不改项目行展开默认值（上游 VP20 等正式 e2e 锁定
-  「多 root 默认展开」；曾评估改 `useProjectSidebarPreferences.isExpanded` 兜底，
-  因需连改 6 个上游用例且伤任务列表可见性而放弃，改为文件夹层自带收起态）。
-- **验证锚点**：
-  `packages/desktop/test/e2e/conversation-session/projects/manual-review/pending/conversation-session-project-folder-branches.test.ts`
-  （本地回放：`ZCODE_E2E_MANUAL_REVIEW=1 E2E_PROVIDER_HTTP_MODE=replay
-  E2E_PROVIDER_REPLAY_FIXTURE_PATH=packages/desktop/test/e2e/fixtures/upstream/common.json
-  pnpm --filter @zcode/desktop test:e2e -- --spec <该文件>`）。测试要点：夹具须放系统
-  临时目录（e2e home 在 ZCode 仓库内，非 git 目录会解析到外层仓库分支）；多 root 项目
-  展开默认 true，展开前按 `aria-expanded` 判定是否需要点击；展开项目后文件夹层默认
-  收起（断言 `project-folder-row` 不存在），移入项目行后点行内 `project-folder-toggle`
-  （hover chevron）后才出现。
-  2026-11-12 基线对照：virtual-project.test.ts 本机 6 个失败（VP20×3/VP10/VP12/
-  VP08-17-18）为 fork 既有裁剪与上游测试的存量分歧，与本功能无关（摘除本功能复跑
-  失败集相同）。
-  2026-11-23 v4.0.0 合并后：原用例开局被营销弹窗盖住而失败（见 DIVERGENCE §5）；在
-  临时副本里加「有弹窗先关」后通过，功能不受合并影响，正式用例待决策后再改。
-  **手测待执行**（2026-11-12 桌面 E2E 已过，以下无运行时证据；使用者仅桌面端，
-  手机 /remote 不在验证范围）：远端 tab 激活时展开本地项目切分支走本机；同仓库
-  双 root 切换联动；运行中会话 cwd 上切分支。行内 chevron 入口 2026-11-12 dev
-  版手测通过（hover 出现/点击铺开/再点收起/项目收起后复位）。
-- **同步策略**：上游若改 `ProjectNodeContent` 展开区结构，只需保住挂载点一行与
-  `ProjectFolderRows.tsx` 文件；上游若改 `GitBranchSwitcher` props，注意
-  `workspacePath/dirtyFileCount/onRefreshGit` 三个入参仍可用。纯新增文件，无上游对应
-  实现，冲突面极小。
+- **结论**：使用者体验后觉得用处不大，2026-11-23 整体移除。侧栏项目行回到 #32 之前的样子
+  （上游实现 + #20 的「查看文件」入口移除）。
+- **曾做的事**（`b1417b0a`+`cada0f4e`+`05ace97f` 与 11-12 的两个增量）：本地多 root 项目的
+  项目行 hover 出现文件夹层 chevron，点开后每个 root 一行，显示该文件夹的 git 分支并可
+  就地切换。
+- **移除范围**：`ProjectFolderRows.tsx`（删除）、`ProjectNodeContent.tsx` 的入口与挂载点、
+  `contract.ts` 的 `ProjectRoot` 类型出口、i18n `project.folder.*` 四键、e2e
+  `conversation-session-project-folder-branches`，以及 `docs/superpowers` 下的设计与计划
+  文档。没有落库状态，升级后不需要迁移。
+- **同步注意**：上游没有对应实现，合并时无需保活任何东西，勿「顺手恢复」。
 
 ### B6. 窗口按钮（#10，`97ee7e0f`）
 
