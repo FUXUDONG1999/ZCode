@@ -49,8 +49,6 @@ const HIDDEN_SETTINGS_SECTIONS = new Set<SettingsSectionId>([
   "browser",
   "remoteDevices",
   "computerUse",
-  // 个人定制：插件（含市场）入口移除；插件运行时、官方 MCP 与已装插件不受影响。
-  "plugin",
   "dataSync",
   "automations",
   "shares",

@@ -25,7 +25,7 @@
 > 并成功（§4 预期场景）；上游新测试 installer-process-helper.test.mjs 的
 > resolveRuntimeHostBuild 默认 VS2022 生成器在 VS2026-only 机器失败，已改为传探测
 > 结果（§4 追记）。
-> 2026-11-23 已合并 main `a4b44451`（v4.0.0，在 `6330e8e5` 之上）：18 文件冲突
+> 2026-11-23 已合并 main `a4b44451`（v4.0.0，在 `6330e8e5` 之上，merge `a43c3f61`）：18 文件冲突
 > （17 内容 + 1 改/删）按裁决表解。撞车一处——#23 行号定位被上游 `lineRanges` 机制
 > 取代（见 E）；#31 顺带不接入上游新增的语音快捷键（见 E7）。上游新默认行为里与本
 > 分支裁剪有交互的几项见 §I。
@@ -179,10 +179,12 @@
 - **任务页**（`0da194ca`）：`styles.css`（One Dark Pro 调色板，深色主题整体加深一档，
   注释锚点 styles.css:683）；移除推荐/帮助入口（`WorkspaceHeader`/`SessionPane`）。
 - **设置分区显隐**（`settingsNavigation.ts` 的 `HIDDEN_SETTINGS_SECTIONS`，**单一控制点**）：
-  - 隐藏（2026-11-12 体验后收敛）：`browser`、`remoteDevices`、`computerUse`、`plugin`
-    （插件含市场，体验后移除；插件运行时与官方 MCP 不受影响）、`dataSync`、`automations`、
-    **`shares`**（分享管理，用户不需要；分享服务与已生成链接不受影响）、
-    `plugins`（遗留 id，自动重定向 `plugin`）
+  - 隐藏（2026-11-12 体验后收敛）：`browser`、`remoteDevices`、`computerUse`、`dataSync`、
+    `automations`、**`shares`**（分享管理，用户不需要；分享服务与已生成链接不受影响）、
+    `plugins`（遗留 id，自动重定向到 `plugin`）
+  - `plugin` 分区 2026-11-23 恢复可见：上游 v4.0.0 起项目目录插件（`plugins.dirs`）要在
+    「设置 › 插件 › 项目」逐个信任才对新会话生效，分区藏着就没有信任入口。分区自带市场
+    入口（User 作用域「浏览市场」）；侧栏的插件市场按钮（B1）仍不恢复
   - 可见：**`workspaceFileSearch`**、**`archives`**（#25 归档管理，2026-10-29 恢复）
   - 恢复/隐藏任一分区 = 从该 Set 增删一行，页面与数据层不动。
 - **macOS 打开方式菜单**（#19，**部分被 #30 逆转**）：`editors.ts` 中 Terminal/iTerm/Ghostty
@@ -536,9 +538,9 @@ pnpm lint` → CLI 内核有改动时 build + core 测试（见 F）→ 提交�
   无 Secret Service），Main 备份后清空全部凭据，无界面提示，需重新登录。本分支与官方版
   共用 appId 与 `~/.zcode`；MyAgent 构建未签名，若因此读不到官方版创建的钥匙串条目，
   可能触发这次清空（推断，未复现）。
-- **项目目录插件需手动信任**：`plugins.dirs` 声明的插件要在「设置 › 插件 › 项目」逐个
-  信任后才对新会话生效。本分支隐藏了 `plugin` 分区，没有信任入口；用到项目级插件目录的
-  项目升级后不会加载。
+- **项目目录插件需手动信任**（已处理）：`plugins.dirs` 声明的插件要在「设置 › 插件 › 项目」
+  逐个信任后才对新会话生效。原先本分支隐藏了 `plugin` 分区、没有信任入口；2026-11-23 起
+  分区恢复可见（B4），侧栏插件市场按钮仍不恢复。
 - **营销弹窗**：官方后台向新 profile 下发 `cloud-content-dialog`（「全新登场…开始体验」）。
   与 #11/#12 移除的推荐入口是同一类触点，是否裁剪待定。
 - **Windows CI**：见 DIVERGENCE §4，上游新增的入口 shim 构建脚本硬编码 VS 2022 生成器。
