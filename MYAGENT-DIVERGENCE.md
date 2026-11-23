@@ -81,6 +81,15 @@
   求值」两例）与规格 `docs/preinstalled-tools/windows-entry-shim.md`（构建、预算两处）。
   上游若自己修了这处，取上游实现并撤掉连带改动。真实 MSVC 编译本机验证不了，靠推送后
   的 CI。
+- `scripts/prebuilt-binary-extract.mjs`（2026-11-23）：win32 zip 解压从 powershell.exe
+  `Expand-Archive` 改为系统 bsdtar（`%SystemRoot%\System32\tar.exe`，Windows 10 1803+ /
+  Server 2019+ 预装）。原因：run #52 实测 runner 镜像更新后 powershell.exe 5.1 经继承的
+  PSModulePath 加载 pwsh7 目录的 Archive 模块，其 `ExtractToDirectory` 三参重载在
+  .NET Framework 下解析不到，解压中断导致 `prepare:native-search` 找不到 ugrep.exe
+  （run #51 同代码是绿的，纯镜像回归，本分支提交未变）。覆盖 ugrep/ripgrep 全部 win32
+  zip 产物；tar.gz 分支与 Linux/macOS 的 unzip 路径不受影响。测试
+  `scripts/test/prebuilt-binary-extract.test.mjs`（`node --test` 直跑）。上游若改此处，
+  取上游实现。
 - 同目录还有第三处写死：`scripts/native-search-tools-windows.mjs`（开源首个提交就有）。CI
   不走编译路径，不影响 CI；只在 Windows 本机从源码编译 native-search 时会踩到，未处理。
 

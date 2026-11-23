@@ -511,3 +511,7 @@ pnpm lint` → CLI 内核有改动时 build + core 测试（见 F）→ 提交�
   （shim 脚本被 `wdio.conf.ts` 经 jiti 求值，不能导入带顶层 await 的入口脚本）。回归：
   `preinstalledEntryShimBuild` 新增两例、`windows-runtime-host-build` 新增两例。真实 MSVC
   编译本机跑不了，推送后以 CI 为准。
+- **Windows CI — native-search 解压**（已处理）：runner 镜像更新后 powershell.exe 5.1 的
+  `Expand-Archive` 经 PSModulePath 加载到 pwsh7 模块，重载解析失败，`prepare:native-search`
+  解压 ugrep 中断（run #52，11-23）。见 DIVERGENCE §4：win32 zip 解压改系统 bsdtar，回归
+  `scripts/test/prebuilt-binary-extract.test.mjs`（`node --test` 直跑）。

@@ -35,17 +35,25 @@ function resolveTarArchiveArg(archivePath, cwd) {
   return toTarPosixPath(archivePath);
 }
 
+export function resolveWindowsSystemTarPath() {
+  const systemRoot = process.env.SystemRoot || "C:\\Windows";
+  return join(systemRoot, "System32", "tar.exe");
+}
+
 export function extractPrebuiltArchive({ archivePath, archiveExt, extractDir, cwd }) {
   mkdirSync(extractDir, { recursive: true });
   if (archiveExt === "zip") {
     if (process.platform === "win32") {
-      runCommand("powershell.exe", [
-        "-NoProfile",
-        "-NonInteractive",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-Command",
-        `Expand-Archive -LiteralPath '${archivePath.replaceAll("'", "''")}' -DestinationPath '${extractDir.replaceAll("'", "''")}' -Force`,
+      // Bugfix: GitHub runner 镜像更新后 powershell.exe 5.1 经继承的 PSModulePath
+      // 加载到 pwsh7 目录的 Archive 模块，其 ExtractToDirectory 三参重载在
+      // .NET Framework 下解析不到，Expand-Archive 解压中断导致找不到 ugrep.exe。
+      // 改用系统自带 bsdtar（Windows 10 1803+/Server 2019+ 预装，原生支持 zip），
+      // Node 直接 spawn 绝对路径，不经 shell 与 PowerShell 模块解析。
+      runCommand(resolveWindowsSystemTarPath(), [
+        "-xf",
+        toTarPosixPath(archivePath),
+        "-C",
+        toTarPosixPath(extractDir),
       ]);
       return;
     }
