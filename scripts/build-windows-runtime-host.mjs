@@ -4,40 +4,13 @@ import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promi
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
+import {
+  DEFAULT_VISUAL_STUDIO_GENERATOR,
+  resolveVisualStudioGenerator,
+} from "./windows-visual-studio-generator.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const source = join(root, "scripts/windows-runtime-host");
-
-// GitHub 托管镜像 2026 年起移除 VS2022、只带 VS2026（actions/runner-images #14017）；
-// 生成器不能硬编码，按本机 CMake 支持列表取最新 VS 生成器，找不到回退 2022 保持旧行为。
-const DEFAULT_VISUAL_STUDIO_GENERATOR = "Visual Studio 17 2022";
-const VISUAL_STUDIO_GENERATOR_PATTERN = /^\s*\*?\s*(Visual Studio (\d+) \d{4})\b/gm;
-
-export function pickVisualStudioGenerator(cmakeHelpOutput) {
-  let newest = DEFAULT_VISUAL_STUDIO_GENERATOR;
-  let newestMajor = 0;
-  for (const match of cmakeHelpOutput.matchAll(VISUAL_STUDIO_GENERATOR_PATTERN)) {
-    const major = Number(match[2]);
-    if (major > newestMajor) {
-      newestMajor = major;
-      newest = match[1];
-    }
-  }
-  return newest;
-}
-
-export async function resolveVisualStudioGenerator() {
-  const help = await new Promise((resolveHelp, rejectHelp) => {
-    const child = spawn(process.env.CMAKE || "cmake", ["--help"], { stdio: "pipe" });
-    let output = "";
-    child.stdout.on("data", (chunk) => (output += chunk));
-    child.once("error", rejectHelp);
-    child.once("exit", (code) =>
-      code === 0 ? resolveHelp(output) : rejectHelp(new Error(`cmake --help failed: ${code}`)),
-    );
-  });
-  return pickVisualStudioGenerator(help);
-}
 
 export function resolveRuntimeHostBuild(
   arch,

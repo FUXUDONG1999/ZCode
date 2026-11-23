@@ -104,7 +104,7 @@ UTF-8 编码的 JSON，由预装进程按安装记录中的入口定义生成：
 | 项目     | 规定                                                                                                                                                                                               |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 源码     | `packages/desktop/native/windows-preinstalled-entry-shim/`：一份 C 源文件和 `CMakeLists.txt`。只依赖 Windows API，静态链接 C 运行库                                                                |
-| 构建     | `pnpm --filter @zcode/desktop prepare:preinstalled-entry-shim`。MSVC/CMake（Visual Studio 17 2022 生成器），与 native-search 编译 `ugrep.exe` 的方式相同。按 `ZCODE_TARGET_ARCH` 产出 x64 或 arm64 |
+| 构建     | `pnpm --filter @zcode/desktop prepare:preinstalled-entry-shim`。MSVC/CMake。生成器不写死，按该 CMake 的 `--help` 支持列表取最新 VS（找不到回退 VS 2022）。按 `ZCODE_TARGET_ARCH` 产出 x64 或 arm64 |
 | 开发产物 | `packages/desktop/bundled-tools/win32-<arch>/preinstalled-entry-shim/zcode-preinstalled-entry-shim.exe`（已被 gitignore）。Windows 本地准备运行资源时自动构建                                      |
 | 打包位置 | `resources/preinstalled-entry-shim/zcode-preinstalled-entry-shim.exe`。每个安装包只带自己架构的 shim                                                                                               |
 | 签名     | 与浏览器导入辅助程序相同：electron-builder 钩子显式签名，并校验签名者与 App 主程序一致                                                                                                             |
@@ -132,10 +132,10 @@ Main 优先使用该运行目录中的副本，然后才回退到开发工作区
 构建修改。直接启动且未指定复用的 WDIO，由其准备阶段持锁 ensure 并生成同样的独立副本；
 显式复用构建的调用方也只校验，缓存未就绪时应先运行父 runner 或 `--ensure` 准备入口。
 
-构建锁等待、vswhere、CMake configure 和 build 共用 5 分钟准备预算。超时终止编译进程树，
-保留旧完整产物，不发布新 manifest，并释放锁。父 runner 和 WDIO 调用另设 6 分钟上限作为
-清理余量。准备或校验失败立即终止，不让各 case 以 `failed/runtime` 或超时报告环境错误。
-已打包 App 仍使用包内资源。
+构建锁等待、vswhere、生成器探测（`cmake --help`）、CMake configure 和 build 共用 5 分钟准备
+预算。超时终止编译进程树，保留旧完整产物，不发布新 manifest，并释放锁。父 runner 和 WDIO 调用
+另设 6 分钟上限作为清理余量。准备或校验失败立即终止，不让各 case 以 `failed/runtime` 或超时报告
+环境错误。已打包 App 仍使用包内资源。
 
 2026-11-17 回归：6 个工程测试文件共 77 项通过。构建测试在隔离目录使用平台检测和 CMake
 夹具，实际执行子进程、文件发布、跨进程锁及超时清理；不等同于原生 MSVC 编译。

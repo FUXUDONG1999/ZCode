@@ -1,5 +1,6 @@
 import { execFile } from "node:child_process";
 import { chmod, copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
@@ -8,6 +9,9 @@ const exec = promisify(execFile);
 const repoRoot = resolve(import.meta.dirname, "../../..");
 const directories: string[] = [];
 const shimName = "zcode-preinstalled-entry-shim.exe";
+const requireFromWdioConfig = createRequire(
+  join(repoRoot, "node_modules/@wdio/config/package.json"),
+);
 
 afterEach(async () => {
   await Promise.all(
@@ -26,6 +30,7 @@ async function fixture() {
     "packages/desktop/scripts/ensure-e2e-desktop-build.mjs",
     "packages/desktop/scripts/e2e-step-process.mjs",
     "scripts/spawn-command.mjs",
+    "scripts/windows-visual-studio-generator.mjs",
   ]) {
     const target = join(root, path);
     await mkdir(resolve(target, ".."), { recursive: true });
@@ -51,8 +56,12 @@ import { createHash } from "node:crypto";
 const args = process.argv.slice(2);
 const value = (name) => args[args.indexOf(name) + 1];
 const building = args.includes("--build");
-await appendFile(process.env.SHIM_BUILD_EVENTS, building ? "build\\n" : "configure\\n");
-if (!building) {
+const helping = args[0] === "--help";
+if (!helping) await appendFile(process.env.SHIM_BUILD_EVENTS, building ? "build\\n" : "configure\\n");
+if (helping) {
+  console.log(["* Visual Studio 17 2022", "* Visual Studio 18 2026"].join("\\n"));
+} else if (!building) {
+  await writeFile(process.env.SHIM_BUILD_GENERATOR, value("-G"));
   await mkdir(value("-B"), { recursive: true });
   await writeFile(join(value("-B"), "fixture.json"), JSON.stringify({
     source: value("-S"), arch: value("-A"),
@@ -83,6 +92,7 @@ if (!building) {
     await writeFile(command, `@"${process.execPath}" "${compiler}" %*\r\n`);
   }
   const events = join(root, "events.log");
+  const generator = join(root, "generator.log");
   const childPid = join(root, "child.pid");
   const output = join(root, "packages/desktop/bundled-tools/win32-x64/preinstalled-entry-shim");
   const run = (args: string[] = [], env: Record<string, string> = {}) =>
@@ -93,16 +103,37 @@ if (!building) {
         CMAKE: command,
         ZCODE_TARGET_ARCH: "x64",
         SHIM_BUILD_EVENTS: events,
+        SHIM_BUILD_GENERATOR: generator,
         SHIM_BUILD_CHILD_PID: childPid,
         ...env,
       },
     });
   const counts = async () =>
     (await readFile(events, "utf8").catch(() => "")).trim().split("\n").filter(Boolean);
-  return { root, source, output, run, counts, childPid };
+  return { root, source, output, run, counts, childPid, generator };
 }
 
 describe("preinstalled entry shim build lifecycle", () => {
+  it("stays loadable by WDIO's config loader, which imports it for the timeout constant", () => {
+    // wdio.conf.ts 经 jiti 求值本脚本，jiti 不支持模块顶层 await：依赖图里带 CLI 入口模块
+    // 就会让整套 e2e 在加载配置时失败。
+    const { createJiti } = requireFromWdioConfig("jiti") as {
+      createJiti: (parentUrl: string) => (moduleId: string) => {
+        PREINSTALLED_ENTRY_SHIM_PROCESS_TIMEOUT_MS: number;
+      };
+    };
+    const loaded = createJiti(import.meta.url)(
+      join(repoRoot, "packages/desktop/scripts/build-windows-preinstalled-entry-shim.mjs"),
+    );
+    expect(loaded.PREINSTALLED_ENTRY_SHIM_PROCESS_TIMEOUT_MS).toBe(360_000);
+  });
+
+  it("configures with the newest Visual Studio generator advertised by the resolved CMake", async () => {
+    const f = await fixture();
+    await f.run(["--ensure"]);
+    expect(await readFile(f.generator, "utf8")).toBe("Visual Studio 18 2026");
+    expect(await f.counts()).toEqual(["configure", "build"]);
+  });
   it("reuses matching source, architecture and binary without invoking CMake", async () => {
     const f = await fixture();
     await f.run(["--ensure"]);

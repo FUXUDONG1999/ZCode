@@ -56,21 +56,33 @@
 - 新任务默认模式＝完全访问；全局新建任务不继承项目（落未归类草稿）。
 - 查看器插件允许工作区外文件访问。
 - macOS 关闭 vibrancy；打开方式菜单裁剪 Sublime/Terminal 系（保留 JetBrains）。
-- `scripts/build-windows-runtime-host.mjs`：Windows 生成器由硬编码 VS 2022 改为探测
+- `scripts/windows-visual-studio-generator.mjs`（本分支新增的叶子模块）与
+  `scripts/build-windows-runtime-host.mjs`：Windows 生成器由硬编码 VS 2022 改为探测
   `cmake --help` 取最新 VS 生成器（回退 2022）。原因：GitHub 托管镜像 2026 年起移除
-  VS2022 只带 VS2026（actions/runner-images #14017），硬编码生成器在 `windows-latest`
-  直接 CMake 失败。上游若同步修，取上游实现；本地此改动可安全丢弃。测试
-  `scripts/test/windows-runtime-host-build.test.mjs`（`node --test` 直跑）。
+  VS2022 只带 VS2026（actions/runner-images #14017；2026-11 实测 `windows-latest` =
+  `windows-2025-vs2026`），硬编码生成器直接 CMake 失败。叶子模块导出
+  `pickVisualStudioGenerator`、`resolveVisualStudioGenerator(command, { timeoutMs })`
+  （command 传后续 configure/build 用的同一个 CMake）与 `DEFAULT_VISUAL_STUDIO_GENERATOR`，
+  runtime host 入口和下面的 shim 脚本都从它导入。探测逻辑 2026-11-23 才从入口脚本抽出：
+  入口脚本带顶层 await 的 CLI 块，而 shim 脚本会被 `wdio.conf.ts` 经 jiti 求值，jiti 不认
+  顶层 await，shim 直接导入入口脚本会让整套 e2e 在加载配置时失败。上游若同步修，取上游
+  实现；本地此改动可安全丢弃。测试 `scripts/test/windows-runtime-host-build.test.mjs`
+  （`node --test` 直跑）。
   v3.18.1 合入的 `scripts/test/installer-process-helper.test.mjs` 同样处理：测试内
-  `resolveRuntimeHostBuild(arch)` 改传 `resolveVisualStudioGenerator()` 探测结果，
-  否则 VS2026-only 机器配置阶段即失败（上游测试按 VS2022 默认值写死）。
-- **上游 v4.0.0 新增的第二处硬编码**：
-  `packages/desktop/scripts/build-windows-preinstalled-entry-shim.mjs` 同样写死
-  `Visual Studio 17 2022`，`prepare:runtime-assets` 在 win32 无条件执行它，afterPack 缺
-  产物直接抛错。按 a54b055f 记录的原因，`windows-latest` 上预计在
-  `prepare:preinstalled-entry-shim` 失败。修法：把 `pickVisualStudioGenerator` /
-  `resolveVisualStudioGenerator` 传进去；该脚本自己按 `CMAKE` 环境变量或 vswhere 解析
-  cmake 路径，探测必须用同一个命令，不能让解析函数再去 PATH 上找 `cmake`。
+  `resolveRuntimeHostBuild(arch)` 改传 `resolveVisualStudioGenerator()` 探测结果（从叶子
+  模块导入），否则 VS2026-only 机器配置阶段即失败（上游测试按 VS2022 默认值写死）。
+- `packages/desktop/scripts/build-windows-preinstalled-entry-shim.mjs`（上游 v4.0.0 新增）原先
+  同样写死 `Visual Studio 17 2022`。`prepare:runtime-assets` 在 win32 无条件真编译它
+  （`prepare:native-search` 在 CI 只解压预编译包，不受影响），所以合并 v4.0.0 后 Windows CI
+  必挂。2026-11-23 已改为 `resolveVisualStudioGenerator(command, { timeoutMs })`：探测与
+  configure/build 用 `resolveCmake` 解析出的同一个命令，计入 5 分钟准备预算。连带改动：
+  上游工程测试 `packages/desktop/test/preinstalledEntryShimBuild.test.ts`（夹具多拷叶子
+  模块、假 CMake 应答 `--help` 并记录 `-G`，新增「取最新 VS 生成器」与「可被 WDIO 加载器
+  求值」两例）与规格 `docs/preinstalled-tools/windows-entry-shim.md`（构建、预算两处）。
+  上游若自己修了这处，取上游实现并撤掉连带改动。真实 MSVC 编译本机验证不了，靠推送后
+  的 CI。
+- 同目录还有第三处写死：`scripts/native-search-tools-windows.mjs`（开源首个提交就有）。CI
+  不走编译路径，不影响 CI；只在 Windows 本机从源码编译 native-search 时会踩到，未处理。
 
 ## 5. 测试基线 — 跟随上游
 

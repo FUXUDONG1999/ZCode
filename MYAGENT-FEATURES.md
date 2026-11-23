@@ -543,4 +543,8 @@ pnpm lint` → CLI 内核有改动时 build + core 测试（见 F）→ 提交�
   分区恢复可见（B4），侧栏插件市场按钮仍不恢复。
 - **营销弹窗**：官方后台向新 profile 下发 `cloud-content-dialog`（「全新登场…开始体验」）。
   与 #11/#12 移除的推荐入口是同一类触点，是否裁剪待定。
-- **Windows CI**：见 DIVERGENCE §4，上游新增的入口 shim 构建脚本硬编码 VS 2022 生成器。
+- **Windows CI**（已处理）：见 DIVERGENCE §4，上游新增的入口 shim 构建脚本硬编码 VS 2022
+  生成器，已改探测；探测逻辑抽到了叶子模块 `scripts/windows-visual-studio-generator.mjs`
+  （shim 脚本被 `wdio.conf.ts` 经 jiti 求值，不能导入带顶层 await 的入口脚本）。回归：
+  `preinstalledEntryShimBuild` 新增两例、`windows-runtime-host-build` 新增两例。真实 MSVC
+  编译本机跑不了，推送后以 CI 为准。
