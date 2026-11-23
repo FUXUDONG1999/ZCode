@@ -116,6 +116,10 @@ export interface GitCommitGraphCommit {
 export interface GitCommitGraphRequest extends GitRepositoryRequest {
   maxCount?: number;
   skip?: number;
+  /** 按作者名或邮箱字面匹配，不区分大小写；缺省不筛选。 */
+  author?: string;
+  /** 仓库根目录的相对路径；缺省不筛选。 */
+  path?: string;
 }
 
 export interface GitCommitGraphResult {

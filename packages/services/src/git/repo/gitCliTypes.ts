@@ -68,6 +68,11 @@ export interface GitCommitGraphSnapshot {
   hasMore: boolean;
 }
 
+export interface GitCommitGraphFilters {
+  author?: string;
+  path?: string;
+}
+
 export interface GitCliRepo {
   invalidate(workspacePath: string): void;
   resolveRepository(workspacePath: string): Promise<GitResolvedRepository>;
@@ -77,6 +82,7 @@ export interface GitCliRepo {
     workspacePath: string,
     maxCount?: number,
     skip?: number,
+    filters?: GitCommitGraphFilters,
   ): Promise<GitCommitGraphSnapshot>;
   getIgnoredPaths(workspacePath: string, paths: string[]): Promise<string[]>;
   listLocalBranches(workspacePath: string): Promise<GitLocalBranchListResult>;

@@ -11,6 +11,21 @@
       "path": ".zcode-e2e/conversation-session-git-review-entry/status-panel-review.txt",
       "source": "created-by-spec",
       "description": "beforeSession case setup 创建未跟踪文件，驱动 status panel Git Changes 入口和 unstaged review 数据。"
+    },
+    {
+      "path": ".zcode-e2e/git-graph-filter/alpha/mine.txt",
+      "source": "created-by-spec",
+      "description": "个人定制：Git 图谱筛选用例提交的夹具文件，作者是仓库身份（本人），位于 alpha 目录。"
+    },
+    {
+      "path": ".zcode-e2e/git-graph-filter/alpha/other.txt",
+      "source": "created-by-spec",
+      "description": "个人定制：Git 图谱筛选用例提交的夹具文件，作者是另一位作者，位于 alpha 目录。"
+    },
+    {
+      "path": ".zcode-e2e/git-graph-filter/beta/mine.txt",
+      "source": "created-by-spec",
+      "description": "个人定制：Git 图谱筛选用例提交的夹具文件，作者是仓库身份（本人），位于 beta 目录。"
     }
   ],
   "requests": [

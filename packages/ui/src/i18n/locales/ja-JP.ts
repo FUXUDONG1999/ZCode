@@ -2270,6 +2270,17 @@ const jaJP: Record<string, string> = {
   "gitGraph.refreshFailed": "Git Graph を更新できませんでした: {error}",
   "gitGraph.loadMore": "さらにコミットを読み込む",
   "gitGraph.loadMore.loading": "さらに読み込み中...",
+  // 个人定制：Git 图谱筛选（MYAGENT-FEATURES B7）。
+  "gitGraph.filter.author": "作成者で絞り込み",
+  "gitGraph.filter.authorPlaceholder": "作成者名またはメールアドレスで絞り込み",
+  "gitGraph.filter.mine": "自分のみ",
+  "gitGraph.filter.mineUnavailable":
+    "このリポジトリには Git のユーザー情報（user.email または user.name）が設定されていないため、自分のコミットを判定できません。",
+  "gitGraph.filter.path": "パスで絞り込み",
+  "gitGraph.filter.pathPlaceholder": "パスで絞り込み（例: src/ui）",
+  "gitGraph.filter.clear": "絞り込みを解除",
+  "gitGraph.empty.filtered.title": "一致するコミットはありません",
+  "gitGraph.empty.filtered.description": "作成者やパスを変えるか、絞り込みを解除してください。",
   "fileManager.resizeNavigation": "ファイルナビゲーションのサイズを変更",
   "fileManager.title": "ファイル",
   "fileManager.showNavigation": "ファイルナビゲーションを表示",

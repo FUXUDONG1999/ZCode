@@ -6,7 +6,13 @@
     "./test/e2e/fixtures/upstream/common.json",
     "./test/e2e/fixtures/upstream/conversation-session/conversation-session-status-panel-inline-layout.json"
   ],
-  "fileFixtures": [],
+  "fileFixtures": [
+    {
+      "path": "status-layout-git-anchor.txt",
+      "source": "created-by-spec",
+      "description": "个人定制：用例开头提交到工作区仓库，让常驻的 Git 胶囊出现，用于状态栏左右分组的断言。"
+    }
+  ],
   "requests": [
     {
       "id": "conversation-session-status-panel-inline-layout-title-sidecar",

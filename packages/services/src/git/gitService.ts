@@ -192,6 +192,7 @@ export function createGitService(options?: {
         params.workspacePath,
         params.maxCount,
         params.skip,
+        { author: params.author, path: params.path },
       );
       return {
         commits: snapshot.commits,

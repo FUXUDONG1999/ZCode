@@ -68,6 +68,7 @@
 | 32 | 侧栏项目展开文件夹层（分支显示/切换）— 2026-11-23 下线 | `b1417b0a`+`cada0f4e`+`05ace97f`，已移除 | UI | 见 B5 |
 | 33 | 流式公式组件层缓存 + CJK 浮现两字一组 + 加载 orbs 30fps | `1e350ec8` | 性能 | typecheck/lint；spec：docs/chat/assistant-streaming-text-rendering.md |
 | 34 | 滚动条着色改伪元素直接匹配 | `5b5e0558` | 性能 | typecheck/lint；spec：docs/chat/message-render-performance.md |
+| 35 | 状态行 Git 胶囊常驻（贴左）+ Git 图谱按作者/路径筛选 | 未提交 | UI | e2e conversation-session-git-review-entry、conversation-session-status-panel-inline-layout；见 B7 |
 
 ---
 
@@ -154,8 +155,11 @@
   三类面板按需展开（`AnimatedSidePanePanel` + `WorkspaceShellLayout` 的展开闸门）。
   2026-11-02 修复：闸门白名单（`PERSONAL_EDITION_EXPANDABLE_SIDE_PANE_TAB_TYPES`）补入
   `plan-detail`——计划卡片「查看完整计划」此前提交 tab 后被闸门挡住，面板无法展开。
-  其余会话联动类型（bash-output、workflow-*、plugin-ui、划选副屏）仍被闸门隐藏，
-  如需放开按需增补白名单即可。
+  其余会话联动类型（workflow-*、plugin-ui、划选副屏）仍被闸门隐藏，
+  如需放开按需增补白名单即可。2026-11-23 增补 `bash-output`：点开后台命令任务后提交了
+  tab，但面板被闸门挡住不展开，看不到命令输出。回归用例是上游 e2e
+  `conversation-session-background-bash-output`：本地回放 7/7 通过；临时去掉这一行再跑，
+  7/7 失败（详情面板不显示）。
 - **#22 预览仅内容**（`69564f69`，原 `0381cb28` **v2 适配版**）：
   - 新增 `packages/ui/src/FileManagerPane.tsx`：只渲染 PreviewPane + 空态。
   - 面板接线：`AnimatedSidePanePanel` 的 code-viewer/file-manager Tab 渲染新组件，
@@ -208,6 +212,50 @@
 - 面板常驻左侧后，标签栏仅在完整视图（`fullView`）承担标题栏职责时才渲染
   `DesktopWindowControls`；平时由右侧会话列的 WorkspaceHeader 承担（右上角）。
 - 锚点：`AnimatedSidePanePanel.tsx` 的 `showWindowControls && fullView` 条件。
+
+### B7. 状态行 Git 胶囊与图谱筛选（#35，未提交）
+
+- **意图**：对话过程中始终看得到当前分支和提交情况；分支、变更文件、切换、图谱一个
+  浮层到位；图谱能只看某人的提交或某个目录的历史。
+- **改动点**：
+  - 状态行（`v4/ConversationStatusPanel.tsx`）：Git 胶囊贴左，Goal / Todo / 后台活动成组
+    贴右，中间弹性留白，仍是一行。新组件 `GitStatusCapsule`（同文件）：会话目录是 Git
+    仓库且非 Office 模式时常驻，不必等出现变更。
+  - 胶囊摘要：图标 + 分支名（游离 HEAD 显示「游离 HEAD」）；有未推送提交显示 `↑N`，
+    有未提交变更显示 `+新增 −删除`。
+  - 胶囊浮层：分支行（`HostedGitBranchSwitcher`）→ 变更文件列表（点开在代码查看器看
+    diff）→「Git 图谱」直达行 → `GitActionMenu`。「查看全部变更」已移除：本分支的 Git
+    审查面板被侧面板闸门隐藏，点了没反应。
+  - `GitBranchSwitcher.tsx`：导出 `useHostedGitGraphDialogOpen`，入口不在会话宿主内时
+    返回 null。
+  - 图谱筛选（`git-graph/GitGraphDialog.tsx`、`GitGraphPane.tsx`）：作者输入（固定字符串、
+    忽略大小写）、「只看我的」开关（仓库身份 `user.email`，没有则 `user.name`）、路径输入
+    （相对仓库根）。筛选生效时切到不带泳道列的纯列表，无结果显示「没有匹配的提交」。
+    状态只存在弹窗内，关闭即丢弃；文本防抖 300ms，回车立即生效。
+  - 请求链路：`shared/src/git.ts`（`GitCommitGraphRequest` 加 `author` / `path`）→
+    `services/src/git/gitService.ts` → `repo/gitCliTypes.ts`（`GitCommitGraphFilters`）→
+    `repo/gitCliRepo.ts`（`--author=<v> --fixed-strings --regexp-ignore-case`；路径跟在
+    `--` 之后传 `:(literal)<path>`，含 `..` 段直接拒绝）。
+  - i18n 五语种 `gitGraph.filter.*`、`gitGraph.empty.filtered.*`。
+  - 规格：`docs/ui/chat-summary-panel.md`、`docs/git/git-graph.md` 的「个人定制」段。
+- **适配决策**：
+  - 筛选栏写在 `GitGraphPane.tsx` 里而不是新文件：`packages/ui/src` 下新增源文件会被
+    `unmanaged-new-file` 规则拦（ui 模块未纳管）。
+  - 已知缺口（未处理）：文件没有 patch（二进制等）时，`App.tsx` 的 `openStatusGitChange`
+    会退回打开 Git 审查面板，本分支点了没反应。
+  - 差异展示沿用上游：合并视图（`components/ui/diff-viewer.tsx`，`diffStyle: "unified"`），
+    删除行和新增行在同一列，不是左右分栏。
+  - 工作区文件不是对话改的（比如自己用编辑器改）时，胶囊的变更列表和 `+ −` 摘要最多
+    晚 60 秒更新（上游 `useGitAutoRefresh` 的防抖），浮层里没有手动刷新入口。
+- **同步策略**：上游改状态行布局时保住「Git 胶囊 + 占位 span」这一段；上游给
+  `getCommitGraph` 加参数时，`filters` 是末位可选参数，正常合并。上游 e2e
+  `conversation-session-git-review-entry` 与 `conversation-session-status-panel-inline-layout`
+  已按本分支就地适配（见 DIVERGENCE §5）。
+- **验证锚点**（2026-11-23 本地回放）：e2e `conversation-session-git-review-entry` 4/4
+  通过（分支显示与切换、图谱两条入口、新增文件与修改文件的 Diff、图谱筛选）；
+  `conversation-session-status-panel-inline-layout` 桌面用例通过，手机 Web 用例是存量分歧
+  （见 DIVERGENCE §5）。`pnpm typecheck` 与 `typecheck:e2e` 0 错误，`pnpm lint` 508 告警 /
+  0 错误（基线），`pnpm architecture:check --changed` 0 违规。
 
 ---
 

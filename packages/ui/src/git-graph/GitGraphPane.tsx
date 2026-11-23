@@ -1,17 +1,43 @@
-import { GitGraph, GitMergeIcon, RefreshCwIcon } from "lucide-react";
-import { useCallback, useMemo, useState, type UIEvent } from "react";
+import { GitGraph, GitMergeIcon, LoaderCircle, RefreshCwIcon, XIcon } from "lucide-react";
+import { useCallback, useMemo, useState, type ReactNode, type UIEvent } from "react";
 import { cn } from "@/components/lib/utils.js";
 import { Button } from "@/components/ui/button.js";
+import { Input } from "@/components/ui/input.js";
+import { Switch } from "@/components/ui/switch.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { GitGraphCommitDetail } from "./GitGraphCommitDetail.js";
 import { formatCommitTime, getRefIcon, getShortHash } from "./GitGraphDisplay.js";
 import { type GitGraphCommit, type GitGraphLayoutPath, layoutGitGraph } from "./layout.js";
+
+/** 个人定制：图谱筛选栏的受控状态，由弹窗持有；不下发时不渲染筛选栏。 */
+export interface GitGraphFilterControls {
+  author: string;
+  onAuthorChange: (value: string) => void;
+  onAuthorSubmit: () => void;
+  mineOnly: boolean;
+  onMineOnlyChange: (value: boolean) => void;
+  /** 仓库没有可用的 Git 身份时禁用「只看我的」。 */
+  mineOnlyDisabled: boolean;
+  path: string;
+  onPathChange: (value: string) => void;
+  onPathSubmit: () => void;
+  onClear: () => void;
+  clearDisabled: boolean;
+}
 
 export interface GitGraphPaneProps {
   commits: readonly GitGraphCommit[];
   hasMore?: boolean;
   loadingMore?: boolean;
   refreshing?: boolean;
+  /** 整表重载中：列表区显示加载指示，标题和筛选栏保持挂载。 */
+  loading?: boolean;
+  /** 请求失败的提示；显示在列表区，筛选栏仍可操作。 */
+  error?: ReactNode;
+  /** 个人定制：有筛选生效时不渲染泳道列，空列表改用「没有匹配的提交」。 */
+  filterActive?: boolean;
+  /** 个人定制：筛选栏；缺省不渲染。 */
+  filter?: GitGraphFilterControls;
   selectedCommitHash: string | null;
   onSelectCommit: (hash: string) => void;
   onLoadMore?: () => void;
@@ -62,6 +88,10 @@ export function GitGraphPane({
   hasMore = false,
   loadingMore = false,
   refreshing = false,
+  loading = false,
+  error,
+  filterActive = false,
+  filter,
   selectedCommitHash,
   onSelectCommit,
   onLoadMore,
@@ -93,7 +123,7 @@ export function GitGraphPane({
   return (
     <section className="flex h-full min-h-0 flex-col bg-background text-foreground">
       <div className="border-b border-border bg-surface/40 px-3 py-2">
-        <div className="flex min-w-0 items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <GitGraph className="size-3.5 text-foreground" />
@@ -102,6 +132,7 @@ export function GitGraphPane({
               </h2>
             </div>
           </div>
+          {filter ? <GitGraphFilterBar filter={filter} /> : null}
           {onRefresh ? (
             <Button
               type="button"
@@ -110,7 +141,7 @@ export function GitGraphPane({
               disabled={refreshing}
               aria-label={intl.formatMessage({ id: "gitGraph.refresh" })}
               title={intl.formatMessage({ id: "gitGraph.refresh" })}
-              className="mr-8 text-foreground-subtle hover:text-foreground"
+              className="mr-8 ml-auto text-foreground-subtle hover:text-foreground"
               onClick={onRefresh}
             >
               <RefreshCwIcon className={cn("size-3.5", refreshing && "animate-spin")} />
@@ -119,15 +150,32 @@ export function GitGraphPane({
         </div>
       </div>
 
-      {commits.length === 0 ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center p-6">
+      {loading ? (
+        <div className="flex min-h-0 flex-1 items-center justify-center bg-background text-foreground-subtle">
+          <LoaderCircle className="size-5 animate-spin" />
+        </div>
+      ) : error ? (
+        <div className="flex min-h-0 flex-1 items-center justify-center bg-background p-6">
+          {error}
+        </div>
+      ) : commits.length === 0 ? (
+        <div
+          data-testid="git-graph-empty"
+          className="flex min-h-0 flex-1 items-center justify-center p-6"
+        >
           <div className="max-w-sm text-center">
             <GitGraph className="mx-auto size-8 text-foreground-subtlest" />
             <p className="mt-3 text-ui-base font-medium text-foreground">
-              {intl.formatMessage({ id: "gitGraph.empty.title" })}
+              {intl.formatMessage({
+                id: filterActive ? "gitGraph.empty.filtered.title" : "gitGraph.empty.title",
+              })}
             </p>
             <p className="mt-1 text-ui-base text-foreground-subtle">
-              {intl.formatMessage({ id: "gitGraph.empty.description" })}
+              {intl.formatMessage({
+                id: filterActive
+                  ? "gitGraph.empty.filtered.description"
+                  : "gitGraph.empty.description",
+              })}
             </p>
           </div>
         </div>
@@ -137,12 +185,16 @@ export function GitGraphPane({
             className="grid min-h-full min-w-[760px]"
             style={{
               gridTemplateRows: "auto 1fr",
-              gridTemplateColumns: `minmax(${GRAPH_COLUMN_MIN_WIDTH_PX}px, ${layout.width + 12}px) minmax(0, 1fr)`,
+              gridTemplateColumns: filterActive
+                ? "minmax(0, 1fr)"
+                : `minmax(${GRAPH_COLUMN_MIN_WIDTH_PX}px, ${layout.width + 12}px) minmax(0, 1fr)`,
             }}
           >
-            <div className="border-b border-r border-border bg-surface/60 px-3 py-2 text-ui-base font-medium text-foreground-subtle">
-              {intl.formatMessage({ id: "gitGraph.column.graph" })}
-            </div>
+            {filterActive ? null : (
+              <div className="border-b border-r border-border bg-surface/60 px-3 py-2 text-ui-base font-medium text-foreground-subtle">
+                {intl.formatMessage({ id: "gitGraph.column.graph" })}
+              </div>
+            )}
             <div
               className="grid border-b border-border bg-surface/60 text-ui-base font-medium text-foreground-subtle"
               style={tableColumnStyle}
@@ -161,62 +213,65 @@ export function GitGraphPane({
               </div>
             </div>
 
-            <div
-              className="relative border-r border-border bg-background-alt/35"
-              // 固定内容高度会让图轨背景提前结束；列填满视口，SVG 保留实际提交高度。
-              style={{ minHeight: layout.height + layout.rowHeight }}
-            >
-              <svg
-                className="absolute inset-0 overflow-visible"
-                width={graphColumnWidth}
-                height={layout.height + layout.rowHeight}
-                viewBox={`0 0 ${graphColumnWidth} ${layout.height + layout.rowHeight}`}
-                role="img"
-                aria-label={intl.formatMessage({ id: "gitGraph.graphAriaLabel" })}
+            {filterActive ? null : (
+              <div
+                data-testid="git-graph-lane"
+                className="relative border-r border-border bg-background-alt/35"
+                // 固定内容高度会让图轨背景提前结束；列填满视口，SVG 保留实际提交高度。
+                style={{ minHeight: layout.height + layout.rowHeight }}
               >
-                {layout.paths.map((path) => (
-                  <path
-                    key={path.id}
-                    d={path.path}
-                    className={cn(
-                      "fill-none stroke-[2] opacity-55 transition-opacity",
-                      getLaneStrokeClass(path.laneIndex),
-                      highlightedHash && !isPathRelated(path, highlightedHash) && "opacity-30",
-                      isPathRelated(path, highlightedHash) && "opacity-100",
-                    )}
-                  />
-                ))}
-                {layout.rows.map((row) => {
-                  const isSelected = row.commit.hash === selectedCommitHash;
-                  const isHovered = row.commit.hash === hoveredCommitHash;
-                  return (
-                    <g key={row.commit.hash}>
-                      <circle
-                        cx={row.x}
-                        cy={row.y}
-                        r={isSelected ? SELECTED_NODE_RADIUS : NODE_RADIUS}
-                        className={cn(
-                          "stroke-background stroke-[2] transition-all",
-                          getLaneFillClass(row.laneIndex),
-                          highlightedHash && !isSelected && !isHovered && "opacity-80",
-                        )}
-                      />
-                      {isSelected ? (
+                <svg
+                  className="absolute inset-0 overflow-visible"
+                  width={graphColumnWidth}
+                  height={layout.height + layout.rowHeight}
+                  viewBox={`0 0 ${graphColumnWidth} ${layout.height + layout.rowHeight}`}
+                  role="img"
+                  aria-label={intl.formatMessage({ id: "gitGraph.graphAriaLabel" })}
+                >
+                  {layout.paths.map((path) => (
+                    <path
+                      key={path.id}
+                      d={path.path}
+                      className={cn(
+                        "fill-none stroke-[2] opacity-55 transition-opacity",
+                        getLaneStrokeClass(path.laneIndex),
+                        highlightedHash && !isPathRelated(path, highlightedHash) && "opacity-30",
+                        isPathRelated(path, highlightedHash) && "opacity-100",
+                      )}
+                    />
+                  ))}
+                  {layout.rows.map((row) => {
+                    const isSelected = row.commit.hash === selectedCommitHash;
+                    const isHovered = row.commit.hash === hoveredCommitHash;
+                    return (
+                      <g key={row.commit.hash}>
                         <circle
                           cx={row.x}
                           cy={row.y}
-                          r={SELECTED_RING_RADIUS}
+                          r={isSelected ? SELECTED_NODE_RADIUS : NODE_RADIUS}
                           className={cn(
-                            "fill-none stroke-[1] opacity-85",
-                            getLaneStrokeClass(row.laneIndex),
+                            "stroke-background stroke-[2] transition-all",
+                            getLaneFillClass(row.laneIndex),
+                            highlightedHash && !isSelected && !isHovered && "opacity-80",
                           )}
                         />
-                      ) : null}
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
+                        {isSelected ? (
+                          <circle
+                            cx={row.x}
+                            cy={row.y}
+                            r={SELECTED_RING_RADIUS}
+                            className={cn(
+                              "fill-none stroke-[1] opacity-85",
+                              getLaneStrokeClass(row.laneIndex),
+                            )}
+                          />
+                        ) : null}
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+            )}
 
             <div className="min-w-0">
               {layout.rows.map((row) => {
@@ -228,6 +283,7 @@ export function GitGraphPane({
                   <button
                     key={row.commit.hash}
                     type="button"
+                    data-testid="git-graph-row"
                     className={cn(
                       "grid w-full min-w-0 items-center border-y border-transparent text-left transition-colors",
                       "hover:bg-hover focus-visible:bg-hover focus-visible:outline-none",
@@ -332,5 +388,71 @@ export function GitGraphPane({
       )}
       {expandedCommit ? <GitGraphCommitDetail commit={expandedCommit} /> : null}
     </section>
+  );
+}
+
+function GitGraphFilterBar({ filter }: { filter: GitGraphFilterControls }) {
+  const { intl } = useZCodeIntl();
+
+  return (
+    <div className="flex min-w-80 flex-1 basis-80 items-center gap-2">
+      <Input
+        data-testid="git-graph-filter-author"
+        aria-label={intl.formatMessage({ id: "gitGraph.filter.author" })}
+        placeholder={intl.formatMessage({ id: "gitGraph.filter.authorPlaceholder" })}
+        value={filter.author}
+        disabled={filter.mineOnly}
+        className="min-w-0 flex-1"
+        onChange={(event) => filter.onAuthorChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          filter.onAuthorSubmit();
+        }}
+      />
+      {/* 原生提示挂在文字上：禁用状态的开关不响应鼠标事件。 */}
+      <label
+        className="flex shrink-0 items-center gap-1.5 text-ui-base text-foreground-subtle"
+        title={
+          filter.mineOnlyDisabled
+            ? intl.formatMessage({ id: "gitGraph.filter.mineUnavailable" })
+            : undefined
+        }
+      >
+        <Switch
+          data-testid="git-graph-filter-mine"
+          size="sm"
+          checked={filter.mineOnly}
+          disabled={filter.mineOnlyDisabled}
+          onCheckedChange={filter.onMineOnlyChange}
+        />
+        {intl.formatMessage({ id: "gitGraph.filter.mine" })}
+      </label>
+      <Input
+        data-testid="git-graph-filter-path"
+        aria-label={intl.formatMessage({ id: "gitGraph.filter.path" })}
+        placeholder={intl.formatMessage({ id: "gitGraph.filter.pathPlaceholder" })}
+        value={filter.path}
+        className="min-w-0 flex-1"
+        onChange={(event) => filter.onPathChange(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          filter.onPathSubmit();
+        }}
+      />
+      <Button
+        data-testid="git-graph-filter-clear"
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        disabled={filter.clearDisabled}
+        aria-label={intl.formatMessage({ id: "gitGraph.filter.clear" })}
+        title={intl.formatMessage({ id: "gitGraph.filter.clear" })}
+        onClick={filter.onClear}
+      >
+        <XIcon className="size-3.5" />
+      </Button>
+    </div>
   );
 }

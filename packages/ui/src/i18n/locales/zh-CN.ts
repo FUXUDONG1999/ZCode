@@ -2424,6 +2424,17 @@ const zhCN: Record<string, string> = {
   "gitGraph.refreshFailed": "刷新 Git 图谱失败：{error}",
   "gitGraph.loadMore": "加载更多提交",
   "gitGraph.loadMore.loading": "正在加载...",
+  // 个人定制：Git 图谱筛选（MYAGENT-FEATURES B7）。
+  "gitGraph.filter.author": "按作者筛选",
+  "gitGraph.filter.authorPlaceholder": "按作者名或邮箱筛选",
+  "gitGraph.filter.mine": "只看我的",
+  "gitGraph.filter.mineUnavailable":
+    "当前仓库没有配置 Git 身份（user.email 或 user.name），无法判断哪些是你的提交。",
+  "gitGraph.filter.path": "按路径筛选",
+  "gitGraph.filter.pathPlaceholder": "按路径筛选，如 src/ui",
+  "gitGraph.filter.clear": "清除筛选",
+  "gitGraph.empty.filtered.title": "没有匹配的提交",
+  "gitGraph.empty.filtered.description": "换个作者或路径，或清除筛选。",
   "fileManager.resizeNavigation": "调整文件目录宽度",
   "fileManager.title": "文件",
   "fileManager.showNavigation": "显示文件导航",

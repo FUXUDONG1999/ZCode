@@ -54,6 +54,7 @@ import {
   type GitBranchComparisonChange,
   type GitBranchComparisonSnapshot,
   type GitCliRepo,
+  type GitCommitGraphFilters,
   type GitCommitGraphSnapshot,
   type GitResolvedRepository,
   type GitStatusSnapshot,
@@ -397,6 +398,29 @@ function normalizeGitGraphSkip(skip: number | undefined): number {
   }
 
   return Math.max(0, Math.floor(skip));
+}
+
+function normalizeGitGraphAuthorFilter(author: string | undefined): string | undefined {
+  return author?.trim() || undefined;
+}
+
+function normalizeGitGraphPathFilter(path: string | undefined): string | undefined {
+  const normalized =
+    path
+      ?.replace(/\\/g, "/")
+      .trim()
+      .replace(/^\/+|\/+$/g, "") ?? "";
+  if (!normalized) {
+    return undefined;
+  }
+
+  // 个人定制：路径跟在 -- 之后，不会被当成选项；.. 会把筛选范围挪出仓库根目录，没有意义，直接拒绝。
+  if (normalized.split("/").includes("..")) {
+    throw new Error("Git graph path filter must not contain '..' segments.");
+  }
+
+  // :(literal) 让目录名里的 [ ] * 等字符按字面匹配，不当通配符。
+  return `:(literal)${normalized}`;
 }
 
 function addGitGraphRef(refs: GitCommitGraphRef[], ref: GitCommitGraphRef): void {
@@ -1010,6 +1034,7 @@ export function createGitCliRepo(options?: { commandProvider?: GitCommandProvide
       workspacePath: string,
       maxCount?: number,
       skip?: number,
+      filters?: GitCommitGraphFilters,
     ): Promise<GitCommitGraphSnapshot> {
       const resolution = await this.resolveRepository(workspacePath);
       if (!resolution.isGitAvailable || !resolution.isRepository) {
@@ -1022,6 +1047,8 @@ export function createGitCliRepo(options?: { commandProvider?: GitCommandProvide
 
       const normalizedMaxCount = normalizeGitGraphMaxCount(maxCount);
       const normalizedSkip = normalizeGitGraphSkip(skip);
+      const authorFilter = normalizeGitGraphAuthorFilter(filters?.author);
+      const pathFilter = normalizeGitGraphPathFilter(filters?.path);
       const result = await commandProvider.run({
         cwd: resolution.repoRoot,
         args: [
@@ -1034,9 +1061,14 @@ export function createGitCliRepo(options?: { commandProvider?: GitCommandProvide
           "--remotes",
           "--date-order",
           "--topo-order",
+          // 个人定制：作者按字面匹配、不区分大小写，筛选在 git 侧生效后才走 skip / max-count 分页。
+          ...(authorFilter
+            ? ["--author=" + authorFilter, "--fixed-strings", "--regexp-ignore-case"]
+            : []),
           `--skip=${normalizedSkip}`,
           `--max-count=${normalizedMaxCount + 1}`,
           "--format=%H%x00%P%x00%an%x00%at%x00%s%x00%D%x1e",
+          ...(pathFilter ? ["--", pathFilter] : []),
         ],
         timeoutMs: DEFAULT_GIT_COMMAND_TIMEOUT_MS,
         maxOutputBytes: DEFAULT_GIT_OUTPUT_BYTES,

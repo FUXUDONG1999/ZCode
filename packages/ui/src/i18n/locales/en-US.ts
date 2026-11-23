@@ -2629,6 +2629,17 @@ const enUS: Record<string, string> = {
   "gitGraph.refreshFailed": "Git Graph refresh failed: {error}",
   "gitGraph.loadMore": "Load more commits",
   "gitGraph.loadMore.loading": "Loading more...",
+  // 个人定制：Git 图谱筛选（MYAGENT-FEATURES B7）。
+  "gitGraph.filter.author": "Filter by author",
+  "gitGraph.filter.authorPlaceholder": "Filter by author name or email",
+  "gitGraph.filter.mine": "Only mine",
+  "gitGraph.filter.mineUnavailable":
+    "This repository has no Git identity configured (user.email or user.name), so your commits cannot be identified.",
+  "gitGraph.filter.path": "Filter by path",
+  "gitGraph.filter.pathPlaceholder": "Filter by path, e.g. src/ui",
+  "gitGraph.filter.clear": "Clear filters",
+  "gitGraph.empty.filtered.title": "No matching commits",
+  "gitGraph.empty.filtered.description": "Try a different author or path, or clear the filters.",
   "fileManager.resizeNavigation": "Resize file navigation",
   "fileManager.title": "Files",
   "fileManager.showNavigation": "Show file navigation",

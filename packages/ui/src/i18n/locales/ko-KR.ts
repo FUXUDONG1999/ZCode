@@ -2205,6 +2205,17 @@ const koKR: Record<string, string> = {
   "gitGraph.refreshFailed": "Git Graph를 새로고침하지 못했습니다: {error}",
   "gitGraph.loadMore": "커밋 더 불러오기",
   "gitGraph.loadMore.loading": "더 불러오는 중...",
+  // 个人定制：Git 图谱筛选（MYAGENT-FEATURES B7）。
+  "gitGraph.filter.author": "작성자로 필터",
+  "gitGraph.filter.authorPlaceholder": "작성자 이름 또는 이메일로 필터",
+  "gitGraph.filter.mine": "내 커밋만",
+  "gitGraph.filter.mineUnavailable":
+    "이 저장소에는 Git 사용자 정보(user.email 또는 user.name)가 설정되어 있지 않아 내 커밋을 판단할 수 없습니다.",
+  "gitGraph.filter.path": "경로로 필터",
+  "gitGraph.filter.pathPlaceholder": "경로로 필터(예: src/ui)",
+  "gitGraph.filter.clear": "필터 지우기",
+  "gitGraph.empty.filtered.title": "일치하는 커밋 없음",
+  "gitGraph.empty.filtered.description": "작성자나 경로를 바꾸거나 필터를 지우세요.",
   "fileManager.resizeNavigation": "파일 탐색 크기 조정",
   "fileManager.title": "파일",
   "fileManager.showNavigation": "파일 탐색 표시",

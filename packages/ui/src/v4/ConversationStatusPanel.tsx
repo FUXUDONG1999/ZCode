@@ -29,8 +29,8 @@ import {
   ChevronRightIcon,
   CircleCheckBigIcon,
   CircleIcon,
-  FileDiffIcon,
   GitBranchIcon,
+  GitGraph,
   GoalIcon,
   ListChecksIcon,
   PauseIcon,
@@ -67,7 +67,7 @@ import { useNowTicker } from "@/components/workflow-graph/use-now-ticker.js";
 import { ControlHintTooltip } from "@/ControlHintTooltip.js";
 import { formatBackgroundTaskElapsedLabel } from "@/BackgroundTaskElapsedLabel.js";
 import { GitActionMenu } from "@/GitActionMenu.js";
-import { HostedGitBranchSwitcher } from "@/GitBranchSwitcher.js";
+import { HostedGitBranchSwitcher, useHostedGitGraphDialogOpen } from "@/GitBranchSwitcher.js";
 import { resolveGitBranchTriggerLabel } from "@/git-branch-switcher/display.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import type {
@@ -208,6 +208,7 @@ export function StatusCapsule({
   tone,
   attention = false,
   dataAttributes,
+  align = "center",
 }: {
   id: string;
   label: ReactNode;
@@ -217,6 +218,8 @@ export function StatusCapsule({
   tone?: "warning" | "destructive";
   attention?: boolean;
   dataAttributes?: Record<`data-${string}`, string | number | undefined>;
+  /** 浮层相对触发器的水平对齐，缺省居中。 */
+  align?: "center" | "start" | "end";
 }) {
   const shared = useContext(StatusCapsuleContext);
   const hideLabel = shared?.hiddenLabels.includes(id) ?? false;
@@ -293,7 +296,7 @@ export function StatusCapsule({
       {open ? (
         <PopoverContent
           side="top"
-          align="center"
+          align={align}
           collisionPadding={12}
           data-status-capsule-content={id}
           className={cn(
@@ -1004,12 +1007,178 @@ function EndedActivityItem({
   );
 }
 
+interface GitStatusCapsuleProps {
+  workspacePath: string;
+  gitCwd?: string;
+  workspaceIdentity?: string;
+  gitSummary: GitRepositorySummary;
+  gitDirtyFileCount?: number;
+  gitWorktreeChangeSummary?: { added: number; removed: number } | null;
+  activeTaskChangeSummary?: ZCodeTaskChangeSummary | null;
+  onRefreshGit?: () => void;
+}
+
+// 个人定制：Git 胶囊在仓库内常驻，摘要显示分支名；浮层依次是分支、变更文件、Git 图谱、提交/推送。
+function GitStatusCapsule(props: GitStatusCapsuleProps) {
+  const { intl } = useZCodeIntl();
+  const capsuleContext = useContext(StatusCapsuleContext);
+  const repository = useContext(GitStatusRepositoryContext);
+  const openHostedGraphDialog = useHostedGitGraphDialogOpen();
+  const { workspacePath, gitCwd, gitSummary, onRefreshGit } = props;
+  const gitData = repository?.workspacePath === (gitCwd ?? workspacePath) ? repository : null;
+  const changes = gitData
+    ? ["unstaged", "staged"].flatMap((source) =>
+        gitData.state.datasets[source as "unstaged" | "staged"].sections.flatMap((section) =>
+          section.changes.map((change) => ({ change, source: source as "unstaged" | "staged" })),
+        ),
+      )
+    : [];
+  const files = [...new Set(changes.map(({ change }) => change.path))];
+  const changedFileCount = files.length || props.gitDirtyFileCount || 0;
+  const aheadCount = gitSummary.ahead ?? 0;
+  const branchLabel = resolveGitBranchTriggerLabel({
+    headRefType: gitSummary.headRefType,
+    currentBranchName: gitSummary.branchName,
+    detachedLabel: intl.formatMessage({ id: "git.head.detached" }),
+    fallbackLabel: intl.formatMessage({ id: "git.branchSwitcher.label" }),
+  });
+
+  const openChange = (changePath: string, source: "unstaged" | "staged") => {
+    // 子会话标签切换只隐藏 forceMount 内容，不会卸载；导航前关闭 Portal，避免失去锚点。
+    capsuleContext?.setOpen(null);
+    gitData?.openChange(changePath, source);
+  };
+
+  return (
+    <StatusCapsule
+      id="git"
+      align="start"
+      icon={<GitBranchIcon className="size-4" />}
+      label={branchLabel}
+      secondary={
+        aheadCount > 0 || changedFileCount > 0 ? (
+          <>
+            {aheadCount > 0 ? <span>↑{aheadCount}</span> : null}
+            {changedFileCount > 0 ? (
+              <>
+                <span className="text-diff-added">
+                  +{props.gitWorktreeChangeSummary?.added ?? 0}
+                </span>
+                <span className="text-diff-removed">
+                  −{props.gitWorktreeChangeSummary?.removed ?? 0}
+                </span>
+              </>
+            ) : null}
+          </>
+        ) : undefined
+      }
+    >
+      {onRefreshGit ? (
+        <div data-testid="status-git-current-branch">
+          <HostedGitBranchSwitcher
+            restoreFocusToTrigger
+            workspacePath={gitCwd ?? workspacePath}
+            gitSummary={gitSummary}
+            dirtyFileCount={changedFileCount}
+            onRefreshGit={onRefreshGit}
+            onModalOpen={() => capsuleContext?.setOpen(null)}
+            className="min-w-0 w-full p-0"
+            triggerClassName="h-8 w-full justify-start gap-2 rounded-lg border-0 px-2 text-left text-ui-base [&_svg]:shrink-0 [&_[data-branch-switcher-primary-icon]]:text-foreground"
+            renderTriggerLabel={(label) => (
+              <span className="min-w-0 flex-1">
+                <StatusCapsuleTitle title={label} />
+              </span>
+            )}
+          />
+        </div>
+      ) : (
+        <div
+          data-testid="status-git-current-branch"
+          title={branchLabel}
+          className="flex h-8 w-full min-w-0 items-center gap-2 px-2 text-ui-base"
+        >
+          <GitBranchIcon className="size-4 shrink-0" />
+          <StatusCapsuleTitle title={branchLabel} />
+        </div>
+      )}
+      {changes.length > 0 ? (
+        <>
+          {/* 分隔线独立留白，避免操作区单侧 padding 造成上下间距不均。 */}
+          <div aria-hidden="true" className="my-1 border-t-[0.5px] border-border/50" />
+          <div className="px-2 pb-1 text-ui-sm text-foreground-subtle">
+            {intl.formatMessage({ id: "chat.capsule.files" }, { count: changedFileCount })}
+          </div>
+          {/* 滚动视口抵达面板边缘，留白放在内容内，避免滚动条随外层 p-2 内缩。 */}
+          <ScrollFadeViewport
+            data-testid="status-git-files"
+            className="-mx-2 max-h-64 flex-none overscroll-y-contain px-2"
+          >
+            {changes.map(({ change, source }) => (
+              <button
+                key={source + ":" + change.path}
+                type="button"
+                title={`${change.workspaceRelativePath || change.path} · ${intl.formatMessage({ id: "chat.capsule." + source })}`}
+                aria-label={`${change.workspaceRelativePath || change.path} ${intl.formatMessage({ id: "chat.capsule." + source })} ${change.added + change.removed > 0 ? `+${change.added} -${change.removed}` : intl.formatMessage({ id: "chat.capsule.fileChanged" })}`}
+                className="flex w-full items-center gap-2 rounded-lg p-2 text-left text-ui-base hover:bg-hover"
+                onClick={() => openChange(change.path, source)}
+              >
+                <FileDisplayIcon
+                  src={resolveFileDisplayDescriptor(change.path).fileIconSrc}
+                  size={16}
+                  className="shrink-0"
+                />
+                <span className="min-w-0 flex-1 truncate">
+                  {resolveFileDisplayDescriptor(change.path).fileName}
+                </span>
+                {change.added + change.removed > 0 ? (
+                  <span className="shrink-0">
+                    <span className="text-diff-added">+{change.added}</span>{" "}
+                    <span className="text-diff-removed">-{change.removed}</span>
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </ScrollFadeViewport>
+        </>
+      ) : null}
+      {openHostedGraphDialog ? (
+        <>
+          {changes.length > 0 ? (
+            <div aria-hidden="true" className="my-1 border-t-[0.5px] border-border/50" />
+          ) : null}
+          <Button
+            data-testid="status-git-open-graph"
+            type="button"
+            variant="ghost"
+            className="h-8 w-full justify-start gap-2 rounded-lg border-0 px-2 text-left text-ui-base"
+            onClick={openHostedGraphDialog}
+          >
+            <GitGraph className="size-4 text-foreground" />
+            <span className="min-w-0 flex-1 text-left">
+              {intl.formatMessage({ id: "gitGraph.menuAction" })}
+            </span>
+          </Button>
+        </>
+      ) : null}
+      {onRefreshGit ? (
+        <GitActionMenu
+          workspacePath={gitCwd ?? workspacePath}
+          workspaceIdentity={props.workspaceIdentity}
+          gitSummary={gitSummary}
+          activeTaskChangeSummary={props.activeTaskChangeSummary ?? null}
+          onRefreshGit={onRefreshGit}
+          triggerLayout="status-row"
+        />
+      ) : null}
+    </StatusCapsule>
+  );
+}
+
 function ConversationStatusPanelImpl(props: ConversationStatusPanelProps) {
   const { intl } = useZCodeIntl();
   const presentation = useToolPresentationCapabilities();
   const capsuleContext = useContext(StatusCapsuleContext);
   const isOfficeMode = useIsOfficeMode();
-  const repository = useContext(GitStatusRepositoryContext);
   const {
     workspacePath,
     gitCwd,
@@ -1030,7 +1199,6 @@ function ConversationStatusPanelImpl(props: ConversationStatusPanelProps) {
           action(...args);
         }
       : undefined;
-  const onOpenGitReview = closeOnNavigate(props.onOpenGitReview);
   const onOpenBackgroundBash = closeOnNavigate(props.onOpenBackgroundBash);
   const onOpenWorkflowRun = closeOnNavigate(props.onOpenWorkflowRun);
   const onOpenSubagentSession = closeOnNavigate(props.onOpenSubagentSession);
@@ -1073,28 +1241,8 @@ function ConversationStatusPanelImpl(props: ConversationStatusPanelProps) {
       (model.runningBashWorks.length + model.runningWorkflowRuns.length > 0 ||
         (model.goal?.status === "active" && model.goal.activeRunStartedAtMs != null)),
   );
-  const gitData = repository?.workspacePath === (gitCwd ?? workspacePath) ? repository : null;
-  const changes = gitData
-    ? ["unstaged", "staged"].flatMap((source) =>
-        gitData.state.datasets[source as "unstaged" | "staged"].sections.flatMap((section) =>
-          section.changes.map((change) => ({ change, source: source as "unstaged" | "staged" })),
-        ),
-      )
-    : [];
-  const files = [...new Set(changes.map(({ change }) => change.path))];
-  const branchLabel = gitSummary
-    ? resolveGitBranchTriggerLabel({
-        headRefType: gitSummary.headRefType,
-        currentBranchName: gitSummary.branchName,
-        detachedLabel: intl.formatMessage({ id: "git.head.detached" }),
-        fallbackLabel: intl.formatMessage({ id: "git.branchSwitcher.label" }),
-      })
-    : "";
-  const canGit = Boolean(
-    !isOfficeMode &&
-    gitSummary?.isRepository &&
-    (files.length || (props.gitDirtyFileCount ?? 0) > 0),
-  );
+  // 个人定制：Git 胶囊在仓库内常驻，不再以「有未提交变更」为门槛。
+  const canGit = Boolean(!isOfficeMode && gitSummary?.isRepository);
   // 运行与已结束项来自权威投影；已结束摘要保留到下次成功发送边界。
   const activities = [
     ...model.runningBashWorks.map((work) => ({
@@ -1412,6 +1560,22 @@ function ConversationStatusPanelImpl(props: ConversationStatusPanelProps) {
       : "pending";
   return (
     <>
+      {canGit && gitSummary ? (
+        <>
+          <GitStatusCapsule
+            workspacePath={workspacePath}
+            gitCwd={gitCwd}
+            workspaceIdentity={workspaceIdentity}
+            gitDirtyFileCount={props.gitDirtyFileCount}
+            gitWorktreeChangeSummary={props.gitWorktreeChangeSummary}
+            activeTaskChangeSummary={props.activeTaskChangeSummary}
+            gitSummary={gitSummary}
+            onRefreshGit={onRefreshGit}
+          />
+          {/* 个人定制：Git 胶囊贴左，其余状态胶囊成组贴右；负外边距抵消两侧的行内间距。 */}
+          <span aria-hidden="true" className="-mx-2 min-w-0 flex-1 @max-[640px]:-mx-1" />
+        </>
+      ) : null}
       {goal ? (
         <StatusCapsule
           id="goal"
@@ -1452,117 +1616,6 @@ function ConversationStatusPanelImpl(props: ConversationStatusPanelProps) {
           secondary={`${model.plan.completedCount}/${model.plan.totalCount}`}
         >
           <PlanStatusSection model={model} />
-        </StatusCapsule>
-      ) : null}
-      {canGit ? (
-        <StatusCapsule
-          id="git"
-          icon={<FileDiffIcon className="size-4" />}
-          label={intl.formatMessage(
-            { id: "chat.capsule.files" },
-            { count: files.length || props.gitDirtyFileCount || 0 },
-          )}
-          secondary={
-            <>
-              <span className="text-diff-added">+{props.gitWorktreeChangeSummary?.added ?? 0}</span>
-              <span className="text-diff-removed">
-                −{props.gitWorktreeChangeSummary?.removed ?? 0}
-              </span>
-            </>
-          }
-        >
-          {/* 滚动视口抵达面板边缘，留白放在内容内，避免滚动条随外层 p-2 内缩。 */}
-          <ScrollFadeViewport
-            data-testid="status-git-files"
-            className="-mx-2 max-h-64 flex-none overscroll-y-contain px-2"
-          >
-            {changes.map(({ change, source }) => (
-              <button
-                key={source + ":" + change.path}
-                type="button"
-                title={`${change.workspaceRelativePath || change.path} · ${intl.formatMessage({ id: "chat.capsule." + source })}`}
-                aria-label={`${change.workspaceRelativePath || change.path} ${intl.formatMessage({ id: "chat.capsule." + source })} ${change.added + change.removed > 0 ? `+${change.added} -${change.removed}` : intl.formatMessage({ id: "chat.capsule.fileChanged" })}`}
-                className="flex w-full items-center gap-2 rounded-lg p-2 text-left text-ui-base hover:bg-hover"
-                onClick={closeOnNavigate(() => gitData?.openChange(change.path, source))}
-              >
-                <FileDisplayIcon
-                  src={resolveFileDisplayDescriptor(change.path).fileIconSrc}
-                  size={16}
-                  className="shrink-0"
-                />
-                <span className="min-w-0 flex-1 truncate">
-                  {resolveFileDisplayDescriptor(change.path).fileName}
-                </span>
-                {change.added + change.removed > 0 ? (
-                  <span className="shrink-0">
-                    <span className="text-diff-added">+{change.added}</span>{" "}
-                    <span className="text-diff-removed">-{change.removed}</span>
-                  </span>
-                ) : null}
-              </button>
-            ))}
-          </ScrollFadeViewport>
-          {gitSummary ? (
-            <div>
-              {/* 分隔线独立留白，避免操作区单侧 padding 造成上下间距不均。 */}
-              {changes.length > 0 ? (
-                <div aria-hidden="true" className="my-1 border-t-[0.5px] border-border/50" />
-              ) : null}
-              <Button
-                data-testid="status-git-view-all"
-                variant="ghost"
-                className="h-8 w-full justify-start gap-2 rounded-lg border-0 px-2 text-left text-ui-base"
-                disabled={!onOpenGitReview}
-                onClick={() => onOpenGitReview?.(props.gitWorktreeReviewSourceId ?? undefined)}
-              >
-                <FileDiffIcon className="size-4" />
-                <span className="min-w-0 flex-1 text-left">
-                  {intl.formatMessage({ id: "chat.statusPanel.viewAllChanges" })}
-                </span>
-                <span className="shrink-0 text-ui-sm text-foreground-subtle">
-                  {files.length || props.gitDirtyFileCount || 0}
-                </span>
-              </Button>
-              {onRefreshGit ? (
-                <div data-testid="status-git-current-branch">
-                  <HostedGitBranchSwitcher
-                    restoreFocusToTrigger
-                    workspacePath={gitCwd ?? workspacePath}
-                    gitSummary={gitSummary}
-                    dirtyFileCount={files.length || props.gitDirtyFileCount || 0}
-                    onRefreshGit={onRefreshGit}
-                    onModalOpen={() => capsuleContext?.setOpen(null)}
-                    className="min-w-0 w-full p-0"
-                    triggerClassName="h-8 w-full justify-start gap-2 rounded-lg border-0 px-2 text-left text-ui-base [&_svg]:shrink-0 [&_[data-branch-switcher-primary-icon]]:text-foreground"
-                    renderTriggerLabel={(label) => (
-                      <span className="min-w-0 flex-1">
-                        <StatusCapsuleTitle title={label} />
-                      </span>
-                    )}
-                  />
-                </div>
-              ) : (
-                <div
-                  data-testid="status-git-current-branch"
-                  title={branchLabel}
-                  className="flex h-8 w-full min-w-0 items-center gap-2 px-2 text-ui-base"
-                >
-                  <GitBranchIcon className="size-4 shrink-0" />
-                  <StatusCapsuleTitle title={branchLabel} />
-                </div>
-              )}
-              {onRefreshGit ? (
-                <GitActionMenu
-                  workspacePath={gitCwd ?? workspacePath}
-                  workspaceIdentity={workspaceIdentity}
-                  gitSummary={gitSummary}
-                  activeTaskChangeSummary={props.activeTaskChangeSummary ?? null}
-                  onRefreshGit={onRefreshGit}
-                  triggerLayout="status-row"
-                />
-              ) : null}
-            </div>
-          ) : null}
         </StatusCapsule>
       ) : null}
       {activities.length > 0 || endedActivities.length > 0 || hasHistoryEntry ? (

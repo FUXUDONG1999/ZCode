@@ -2243,6 +2243,17 @@ const ruRU: Record<string, string> = {
   "gitGraph.refreshFailed": "Не удалось обновить Git Graph: {error}",
   "gitGraph.loadMore": "Загрузить ещё коммиты",
   "gitGraph.loadMore.loading": "Загрузка...",
+  // 个人定制：Git 图谱筛选（MYAGENT-FEATURES B7）。
+  "gitGraph.filter.author": "Фильтр по автору",
+  "gitGraph.filter.authorPlaceholder": "Фильтр по имени или почте автора",
+  "gitGraph.filter.mine": "Только мои",
+  "gitGraph.filter.mineUnavailable":
+    "В репозитории не настроен пользователь Git (user.email или user.name), поэтому ваши коммиты определить нельзя.",
+  "gitGraph.filter.path": "Фильтр по пути",
+  "gitGraph.filter.pathPlaceholder": "Фильтр по пути, например src/ui",
+  "gitGraph.filter.clear": "Сбросить фильтры",
+  "gitGraph.empty.filtered.title": "Подходящих коммитов нет",
+  "gitGraph.empty.filtered.description": "Измените автора или путь либо сбросьте фильтры.",
   "fileManager.resizeNavigation": "Изменить ширину навигации по файлам",
   "fileManager.title": "Файлы",
   "fileManager.showNavigation": "Показать навигацию по файлам",

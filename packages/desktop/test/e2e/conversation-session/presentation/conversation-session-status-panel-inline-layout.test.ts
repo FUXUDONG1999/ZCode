@@ -1,12 +1,14 @@
 import { openStatusCapsule } from "#e2e/helpers/status-capsule";
+import { execFile } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { promisify } from "node:util";
 import { setRendererViewport, clearRendererViewport } from "#e2e/helpers/renderer-viewport";
 import { chromium } from "playwright-core";
 import { openMobilePairingPage, seedMobileFixtureLogin } from "#e2e/helpers/mobile-pairing";
 import { obtainUnreadPairingUrl, showMobileTaskHome } from "#e2e/helpers/web-remote-unread";
 import { TID_TASK_ITEM, TID_TASK_NEW_BUTTON, testId } from "@zcode/shared/test-ids";
-import { clearAppData } from "#e2e/helpers/desktop-app";
+import { DEFAULT_WORKSPACE, clearAppData } from "#e2e/helpers/desktop-app";
 import {
   E2E_REPLY_TOKEN,
   getV4ConversationState,
@@ -26,6 +28,10 @@ let completedTaskId: string;
 const WIDE_VIEWPORT = { width: 1800, height: 1000 };
 const NARROW_VIEWPORT = { width: 1200, height: 900 };
 const DRAFT_WIDTH_CLASS = "max-w-2xl";
+// 个人定制：Git 胶囊在仓库内常驻并贴左，其余状态胶囊贴右（MYAGENT-FEATURES B7）。
+const GIT_BINARY = process.env.ZCODE_GIT_BINARY?.trim() || "git";
+const GIT_ANCHOR_FILE_NAME = "status-layout-git-anchor.txt";
+const runGit = promisify(execFile);
 
 describe("会话区 status panel inline layout E2E", () => {
   after(async () => {
@@ -40,6 +46,8 @@ describe("会话区 status panel inline layout E2E", () => {
     await setRendererViewport(WIDE_VIEWPORT.width, WIDE_VIEWPORT.height);
     await prepareV4ConversationE2E();
     await setRendererViewport(WIDE_VIEWPORT.width, WIDE_VIEWPORT.height);
+    // 个人定制：左右分组的断言需要 Git 胶囊；单独跑本用例时工作区还不是 Git 仓库。
+    await ensureWorkspaceGitRepository();
 
     const draftLayout = await waitForChatLayoutSnapshot(
       (snapshot) =>
@@ -159,6 +167,8 @@ describe("会话区 status panel inline layout E2E", () => {
     for (const viewport of [WIDE_VIEWPORT, NARROW_VIEWPORT, WIDE_VIEWPORT]) {
       await setRendererViewport(viewport.width, viewport.height);
       await expectCapsuleLayout("状态胶囊出现后消息列或输入区发生横向偏移");
+      // 个人定制：Git 胶囊贴左，Goal 等其余胶囊成组贴右，中间是弹性留白。
+      await expectStatusRowAnchors();
       await openStatusCapsule("goal");
       await expectCapsuleLayout("打开浮层后消息列或输入区发生横向偏移");
       // 本例验证布局；用同一触发器关闭，避免悬停提示先消费 Escape。
@@ -370,9 +380,101 @@ function getChatLayoutSnapshot(): Promise<ChatLayoutSnapshot> {
         dockRect && dockParentRect
           ? dockRect.x + dockRect.width / 2 - dockParentRect.x - dockParentRect.width / 2
           : Number.MAX_VALUE,
-      panelState: panel?.querySelector("[data-status-capsule]") ? "capsules" : null,
+      // 个人定制：Git 胶囊在仓库内常驻，不代表「有 status 内容」。
+      panelState: [...(panel?.querySelectorAll<HTMLElement>("[data-status-capsule]") ?? [])].some(
+        (capsule) => capsule.dataset.statusCapsule !== "git",
+      )
+        ? "capsules"
+        : null,
     };
   });
+}
+
+interface StatusRowAnchors {
+  gitLeftOffset: number | null;
+  rightOffset: number | null;
+  gitBeforeOthers: boolean;
+}
+
+function readStatusRowAnchors(): Promise<StatusRowAnchors> {
+  return browser.execute(() => {
+    const row = document.querySelector<HTMLElement>('[data-testid="composer-status-row"]');
+    if (!row) return { gitLeftOffset: null, rightOffset: null, gitBeforeOthers: false };
+    const rowRect = row.getBoundingClientRect();
+    const capsules = [...row.querySelectorAll<HTMLElement>("[data-status-capsule]")].map(
+      (capsule) => ({
+        kind: capsule.dataset.statusCapsule ?? "",
+        rect: capsule.getBoundingClientRect(),
+      }),
+    );
+    const git = capsules.find((capsule) => capsule.kind === "git");
+    const others = capsules.filter((capsule) => capsule.kind !== "git");
+    return {
+      gitLeftOffset: git ? git.rect.left - rowRect.left : null,
+      rightOffset: others.length
+        ? rowRect.right - Math.max(...others.map((capsule) => capsule.rect.right))
+        : null,
+      gitBeforeOthers: git ? others.every((capsule) => git.rect.right <= capsule.rect.left) : false,
+    };
+  });
+}
+
+async function expectStatusRowAnchors() {
+  let latest: StatusRowAnchors | null = null;
+  try {
+    await browser.waitUntil(
+      async () => {
+        latest = await readStatusRowAnchors();
+        return (
+          latest.gitLeftOffset !== null &&
+          Math.abs(latest.gitLeftOffset) <= 1 &&
+          latest.rightOffset !== null &&
+          Math.abs(latest.rightOffset) <= 1 &&
+          latest.gitBeforeOthers
+        );
+      },
+      { timeout: 15_000, interval: 200 },
+    );
+  } catch (error) {
+    throw new Error(`状态栏左右分组不成立; latest=${JSON.stringify(latest)}`, { cause: error });
+  }
+}
+
+async function ensureWorkspaceGitRepository() {
+  let repositoryRoot = "";
+  try {
+    repositoryRoot = (
+      await runGit(GIT_BINARY, ["rev-parse", "--show-toplevel"], {
+        cwd: DEFAULT_WORKSPACE,
+        encoding: "utf8",
+      })
+    ).stdout.trim();
+  } catch {
+    repositoryRoot = "";
+  }
+  if (resolve(repositoryRoot) !== resolve(DEFAULT_WORKSPACE)) {
+    await runGit(GIT_BINARY, ["init"], { cwd: DEFAULT_WORKSPACE });
+  }
+  await runGit(GIT_BINARY, ["config", "user.name", "ZCode E2E"], { cwd: DEFAULT_WORKSPACE });
+  await runGit(GIT_BINARY, ["config", "user.email", "zcode-e2e@example.com"], {
+    cwd: DEFAULT_WORKSPACE,
+  });
+  await writeFile(join(DEFAULT_WORKSPACE, GIT_ANCHOR_FILE_NAME), "status row git anchor\n", "utf8");
+  await runGit(GIT_BINARY, ["add", "-f", "--", GIT_ANCHOR_FILE_NAME], { cwd: DEFAULT_WORKSPACE });
+  // 只提交这一个文件，不带上别的用例留在暂存区的内容。
+  await runGit(
+    GIT_BINARY,
+    [
+      "-c",
+      "commit.gpgsign=false",
+      "commit",
+      "-m",
+      "chore: seed status row git anchor",
+      "--",
+      GIT_ANCHOR_FILE_NAME,
+    ],
+    { cwd: DEFAULT_WORKSPACE },
+  );
 }
 
 interface LayoutTrace {

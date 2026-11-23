@@ -133,6 +133,15 @@ export function GitBranchSwitcher(props: GitBranchSwitcherProps) {
   return <GitBranchSwitcherView {...props} controller={controller} mode="all" />;
 }
 
+/** 个人定制：状态栏 Git 浮层的「Git 图谱」直达行用；入口不在会话宿主内时返回 null。 */
+export function useHostedGitGraphDialogOpen(): (() => void) | null {
+  const controller = useContext(BranchActionsContext);
+  const setGitGraphDialogOpen = controller?.setGitGraphDialogOpen;
+  const openGraphDialog = useCallback(() => setGitGraphDialogOpen?.(true), [setGitGraphDialogOpen]);
+
+  return controller ? openGraphDialog : null;
+}
+
 function GitBranchSwitcherView({
   workspacePath,
   gitSummary,

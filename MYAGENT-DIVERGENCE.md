@@ -27,7 +27,8 @@
 | `packages/ui/src/project-sidebar/ProjectSidebarNavigation.tsx` | 侧边栏只留新建任务+远控设备头，无自动化/插件入口 | 上游在此新增入口时：新功能默认保留，仅维持已有入口的移除 |
 | `packages/ui/src/project-sidebar/ProjectNodeContent.tsx`、`ProjectTaskRows.tsx` | 移除「查看文件」入口（showFiles/onOpenFileTree 不下发） | 上游 `chronological` 等新机制跟随上游 |
 | `packages/ui/src/FileManagerPane.tsx`（新增） | 侧面板文件预览仅内容、无目录树 | 上游重构 WorkspaceFileTree 时本文件不受影响；PreviewPane 的 prop 原样透传，上游给 PreviewPane 加 prop 不用改它 |
-| `packages/ui/src/app-shell/AnimatedSidePanePanel.tsx`、`WorkspaceShellLayout.tsx`、`hooks/useAppPanels.ts` | 面板按需放回（子 agent/调用轨迹/文件预览/计划详情）；不再传递 onNavigateFileManager；code-viewer tab 透传定位回执（`appliedFocusRequestId`/`onFocusRequestApplied`） | 上游新增面板类型时正常合入；新增会话联动面板类型需评估是否加入展开闸门白名单；上游在它自己的面板调用处插的 prop 展开不适用于本分支，要在自建 FileManagerPane 调用处补 |
+| `packages/ui/src/app-shell/AnimatedSidePanePanel.tsx`、`WorkspaceShellLayout.tsx`、`hooks/useAppPanels.ts` | 面板按需放回（子 agent/调用轨迹/文件预览/计划详情/后台命令输出）；不再传递 onNavigateFileManager；code-viewer tab 透传定位回执（`appliedFocusRequestId`/`onFocusRequestApplied`） | 上游新增面板类型时正常合入；新增会话联动面板类型需评估是否加入展开闸门白名单（`PERSONAL_EDITION_EXPANDABLE_SIDE_PANE_TAB_TYPES`，2026-11-23 补了 `bash-output`）；上游在它自己的面板调用处插的 prop 展开不适用于本分支，要在自建 FileManagerPane 调用处补 |
+| 状态行 Git 胶囊与图谱筛选（#35）——`ui/src/v4/ConversationStatusPanel.tsx`（Git 胶囊贴左 + 占位 span + 同文件新组件 `GitStatusCapsule`）、`ui/src/GitBranchSwitcher.tsx`（导出 `useHostedGitGraphDialogOpen`）、`ui/src/git-graph/{GitGraphDialog,GitGraphPane}.tsx`（筛选栏与筛选状态）；additive：`shared/src/git.ts`、`services/src/git/gitService.ts`、`repo/gitCliRepo.ts`、`repo/gitCliTypes.ts`（`getCommitGraph` 末位可选参数 `filters`）、i18n 五语种 `gitGraph.filter.*`；规格 `docs/ui/chat-summary-panel.md`、`docs/git/git-graph.md` 的「个人定制」段 | Git 胶囊在会话目录是 Git 仓库时常驻；图谱按作者/「只看我的」/路径筛选（档案 B7） | 上游改状态行布局时保住「Git 胶囊 + 占位 span」；上游若把图谱改成独立请求链路，`author`/`path` 两个参数跟着迁；筛选栏没有新文件，随 `GitGraphPane.tsx` 合并 |
 | `WorkspaceHeaderSections/WorkspaceHeaderActionSection.tsx` | 侧面板开关只保留面板内的折叠按钮，头部那个开关已移除——折叠后没有可点的展开开关，点文件链接才会再展开 | 上游 e2e 里「折叠侧面板再展开」的步骤在本分支跑不了。文件链接行号用例（MFL01）2026-11-23 已按本分支适配：去掉「头部开关再展开 + 确认没被拉回」，改为折叠后点同一链接重新展开并定位；上游改这段时保留适配 |
 | `packages/ui/src/SettingsPage.tsx`、账户菜单、任务页 | 移除推荐/帮助/邀请入口，One Dark Pro 配色 | 上游「职业引导」为新增功能已跟随上游保留（决策点：如不想要可移除 onOpenOnboardingDialog 一处） |
 | `desktopWindowChrome.ts`、`WindowsTopLeftLogo.tsx` | 窗口控制按钮右上角固定、品牌角标 | 持有本地 |
@@ -103,6 +104,19 @@
 - 上游 manual-review 用例依赖本分支已移除的 UI 时：改动面只有一两步、且在本分支有等价
   操作的，就地适配并留「个人定制」注释（先例：文件链接行号用例 MFL01，见 §2 头部开关
   一行与 E 的 #23）；没有等价操作的不改，按存量分歧处理，结论记进档案。
+- #35 就地适配（2026-11-23）：`conversation-session-git-review-entry`（SP13）不再断言 Git
+  审查面板，改为断言 Git 胶囊——分支名与贴左、浮层顺序、分支切换、图谱两条入口、新增文件
+  与修改文件的 Diff、图谱筛选（提交由 spec 自己造）。它的首个用例在应用启动后几秒内点击，
+  会被营销弹窗盖住，所以开胶囊前先关弹窗、被拦再重试。上游改这个用例时保留适配。
+  i18n 五个 locale 文件的 `oxfmt --check` 差异（zh-CN 6 行、en-US 15 行）在改动前就有。
+- `conversation-session-status-panel-inline-layout`：桌面用例由 spec 自己保证工作区是 Git
+  仓库，并新增状态行左右贴边断言，已通过。手机 Web 用例要点侧栏底部的「移动端远程控制」
+  按钮，本分支没有这个入口（上游挂在 `WorkspaceSidebarFooter.tsx`，本分支这个文件不再挂载
+  它），属存量分歧，未适配。
+- `conversation-session-background-bash-output` 未改动，是 B3 里 `bash-output` 白名单增补的
+  回归用例：本地回放 7/7 通过，去掉白名单那一行 7/7 失败。
+- 本地跑 e2e 是真实的桌面窗口：窗口被点关闭（右上角 × 或标题栏菜单）时用例会以
+  `invalid session id` 失败，重跑即可。
 - 存量环境问题（2026-11-23 实测）：官方后台会向新 profile 下发营销弹窗
   `cloud-content-dialog`（「全新登场…」，`marketing-touch`，上游 e2e 注释记为 2026-11 的
   版本介绍投放），出现时机不定，出现后盖住整个窗口。上游 helper
