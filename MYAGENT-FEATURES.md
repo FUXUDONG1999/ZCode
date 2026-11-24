@@ -257,7 +257,7 @@
   `conversation-session-git-review-entry` 与 `conversation-session-status-panel-inline-layout`
   已按本分支就地适配（见 DIVERGENCE §5）。
 - **验证锚点**：
-  - 2026-11-24（非 Git 贴右修复，本地回放）：`conversation-session-status-panel-inline-layout`
+  - 2026-11-24（非 Git 贴右修复 `d6d63e9e`，本地回放）：`conversation-session-status-panel-inline-layout`
     桌面用例补了非 Git 场景。修复前红（`desktop-e2e-20261124-020824-825`，`rightOffset` 465.78）；
     占位 span 无条件渲染的写法也红（`desktop-e2e-20261124-021858-811`，状态行高 16）；最终写法
     绿（`desktop-e2e-20261124-022512-849`）。`conversation-session-git-review-entry` 2/4，产品文件
