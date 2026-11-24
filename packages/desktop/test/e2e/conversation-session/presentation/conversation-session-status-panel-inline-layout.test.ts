@@ -1,14 +1,26 @@
 import { openStatusCapsule } from "#e2e/helpers/status-capsule";
 import { execFile } from "node:child_process";
-import { mkdir, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { setRendererViewport, clearRendererViewport } from "#e2e/helpers/renderer-viewport";
 import { chromium } from "playwright-core";
 import { openMobilePairingPage, seedMobileFixtureLogin } from "#e2e/helpers/mobile-pairing";
 import { obtainUnreadPairingUrl, showMobileTaskHome } from "#e2e/helpers/web-remote-unread";
-import { TID_TASK_ITEM, TID_TASK_NEW_BUTTON, testId } from "@zcode/shared/test-ids";
+import {
+  TID_TASK_ITEM,
+  TID_TASK_NEW_BUTTON,
+  TID_VIRTUAL_PROJECT_ADD,
+  testId,
+} from "@zcode/shared/test-ids";
 import { DEFAULT_WORKSPACE, clearAppData } from "#e2e/helpers/desktop-app";
+import {
+  selectNativeProjectDirectories,
+  startDraftFromProject,
+} from "#e2e/helpers/project-sidebar";
+import { selectUpstreamModel, selectUpstreamThoughtLevel } from "#e2e/helpers/upstream-provider";
+import { waitForActiveWorkspacePath } from "#e2e/helpers/workspace-agent-warmup";
 import {
   E2E_REPLY_TOKEN,
   getV4ConversationState,
@@ -20,10 +32,12 @@ import {
   waitForV4ConversationState,
   waitForV4ComposerText,
   waitForV4UserMessageContaining,
+  waitForV4WorkspacePresentationReady,
 } from "#e2e/helpers/v4-conversation";
 
 const artifactDir = resolve(process.env.ZCODE_E2E_ARTIFACT_DIR ?? ".e2e-artifacts/composer-width");
 let completedTaskId: string;
+let nonGitDirectory: string | undefined;
 
 const WIDE_VIEWPORT = { width: 1800, height: 1000 };
 const NARROW_VIEWPORT = { width: 1200, height: 900 };
@@ -38,6 +52,10 @@ describe("会话区 status panel inline layout E2E", () => {
     await clearRendererViewport();
     await browser.electron.restoreAllMocks();
     await clearAppData();
+    // 非 Git 项目目录建在系统临时目录，隔离 HOME 的清理覆盖不到它。
+    if (nonGitDirectory) {
+      await rm(nonGitDirectory, { recursive: true, force: true, maxRetries: 3, retryDelay: 500 });
+    }
   });
 
   it("状态胶囊与浮层在宽窄窗口均不偏移消息列和输入区", async function () {
@@ -168,7 +186,10 @@ describe("会话区 status panel inline layout E2E", () => {
       await setRendererViewport(viewport.width, viewport.height);
       await expectCapsuleLayout("状态胶囊出现后消息列或输入区发生横向偏移");
       // 个人定制：Git 胶囊贴左，Goal 等其余胶囊成组贴右，中间是弹性留白。
-      await expectStatusRowAnchors();
+      await expectStatusRowAnchors({
+        withGitCapsule: true,
+        timeoutMsg: "Git 胶囊贴左、其余胶囊贴右不成立",
+      });
       await openStatusCapsule("goal");
       await expectCapsuleLayout("打开浮层后消息列或输入区发生横向偏移");
       // 本例验证布局；用同一触发器关闭，避免悬停提示先消费 Escape。
@@ -176,6 +197,44 @@ describe("会话区 status panel inline layout E2E", () => {
       await $('[data-status-capsule-content="goal"]').waitForDisplayed({ reverse: true });
       await expectCapsuleLayout("关闭浮层后消息列或输入区发生横向偏移");
     }
+
+    // 个人定制：非 Git 工作区没有 Git 胶囊，其余胶囊仍整体贴右；一个胶囊都没有时状态栏不占高度。
+    // 隔离 HOME 在本仓库里，其下的目录都会被识别成 Git 仓库，所以项目目录建在系统临时目录。
+    await openNonGitProjectDraft();
+    const nonGitEmptyPrompt = `E2E_STATUS_PANEL_NON_GIT_EMPTY_${runId}: Reply with exactly "${E2E_REPLY_TOKEN}" and no other text.`;
+    await sendV4Prompt(nonGitEmptyPrompt);
+    await waitForV4ComposerText("", "非 Git 工作区普通首发后输入框没有清空");
+    await waitForV4UserMessageContaining(nonGitEmptyPrompt);
+    await waitForV4AssistantMessageContaining(E2E_REPLY_TOKEN);
+    await waitForV4ConversationState(
+      (snapshot) => snapshot.state === "idle" && snapshot.queueCount === 0,
+      "非 Git 工作区普通首发完成后没有回到 idle",
+      90000,
+    );
+    const noCapsuleLayout = await waitForChatLayoutSnapshot(
+      (snapshot) =>
+        snapshot.panelState === null &&
+        snapshot.statusRowHeight <= 1 &&
+        hasNormalColumnLayout(snapshot),
+      "非 Git 工作区没有任何胶囊时状态栏仍在占高度",
+    );
+    expect(noCapsuleLayout.panelState).toBeNull();
+
+    const nonGitGoalMarker = `E2E_STATUS_PANEL_NON_GIT_GOAL_${runId}`;
+    await sendV4Prompt(
+      `/goal ${nonGitGoalMarker}: Reply with exactly "${E2E_REPLY_TOKEN}" and no other text.`,
+    );
+    await waitForV4ConversationState(
+      (snapshot) =>
+        snapshot.targetObjective?.includes(nonGitGoalMarker) === true && Boolean(snapshot.taskId),
+      "非 Git 工作区 goal 首发没有形成 status panel 可展示的 target",
+      60000,
+    );
+    await expectCapsuleLayout("非 Git 工作区状态胶囊出现后消息列或输入区发生横向偏移");
+    await expectStatusRowAnchors({
+      withGitCapsule: false,
+      timeoutMsg: "非 Git 工作区没有 Git 胶囊时其余胶囊没有贴右",
+    });
   });
 
   it("手机 Web 打开历史对话和刷新时输入区无布局过渡，深浅主题均不溢出", async function () {
@@ -330,6 +389,7 @@ interface ChatLayoutSnapshot {
   bottomGap: number;
   dockBottomPadding: string;
   messageMask: string;
+  statusRowHeight: number;
 }
 
 function getChatLayoutSnapshot(): Promise<ChatLayoutSnapshot> {
@@ -386,6 +446,8 @@ function getChatLayoutSnapshot(): Promise<ChatLayoutSnapshot> {
       )
         ? "capsules"
         : null,
+      // 个人定制：非 Git 工作区可能一个胶囊都没有，此时状态栏必须不占高度。
+      statusRowHeight: panel?.getBoundingClientRect().height ?? 0,
     };
   });
 }
@@ -419,25 +481,54 @@ function readStatusRowAnchors(): Promise<StatusRowAnchors> {
   });
 }
 
-async function expectStatusRowAnchors() {
+/** 有 Git 胶囊时断言左右两组各贴一侧；没有时断言 Git 胶囊缺席、其余胶囊仍贴右。 */
+async function expectStatusRowAnchors({
+  withGitCapsule,
+  timeoutMsg,
+}: {
+  withGitCapsule: boolean;
+  timeoutMsg: string;
+}) {
   let latest: StatusRowAnchors | null = null;
   try {
     await browser.waitUntil(
       async () => {
         latest = await readStatusRowAnchors();
+        const rightAnchored = latest.rightOffset !== null && Math.abs(latest.rightOffset) <= 1;
+        if (!withGitCapsule) return latest.gitLeftOffset === null && rightAnchored;
         return (
           latest.gitLeftOffset !== null &&
           Math.abs(latest.gitLeftOffset) <= 1 &&
-          latest.rightOffset !== null &&
-          Math.abs(latest.rightOffset) <= 1 &&
+          rightAnchored &&
           latest.gitBeforeOthers
         );
       },
       { timeout: 15_000, interval: 200 },
     );
   } catch (error) {
-    throw new Error(`状态栏左右分组不成立; latest=${JSON.stringify(latest)}`, { cause: error });
+    throw new Error(`${timeoutMsg}; latest=${JSON.stringify(latest)}`, { cause: error });
   }
+}
+
+/** 在系统临时目录新建项目并进入它的空草稿；项目名取目录名，侧栏 helper 按目录名定位项目行。 */
+async function openNonGitProjectDraft() {
+  nonGitDirectory = await mkdtemp(join(tmpdir(), "zcode-status-layout-non-git-"));
+  const projectName = basename(nonGitDirectory);
+  await $('[data-testid="project-section"]').moveTo();
+  await $(`[data-testid="${TID_VIRTUAL_PROJECT_ADD}"]`).click();
+  await $('[data-testid="virtual-project-name"]').setValue(projectName);
+  await selectNativeProjectDirectories([nonGitDirectory]);
+  await $('[data-testid="virtual-project-save"]').click();
+  // 新目录保存要完成真实信任确认，否则项目还没建立。
+  await $('[data-testid="project-folder-trust-confirm"]').waitForDisplayed();
+  await $('[data-testid="project-folder-trust-confirm"]').click();
+  await $(`[data-project-name="${projectName}"]`).waitForDisplayed();
+  await startDraftFromProject(nonGitDirectory);
+  await waitForActiveWorkspacePath(nonGitDirectory);
+  // 模型和档位按项目继承，新项目要像用户一样重新选。
+  await selectUpstreamModel();
+  await selectUpstreamThoughtLevel();
+  await waitForV4WorkspacePresentationReady(nonGitDirectory);
 }
 
 async function ensureWorkspaceGitRepository() {

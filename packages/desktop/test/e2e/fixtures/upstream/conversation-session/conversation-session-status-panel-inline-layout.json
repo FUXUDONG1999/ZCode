@@ -79,6 +79,60 @@
           "text": "upstream-e2e-ok"
         }
       }
+    },
+    {
+      "id": "status-panel-inline-layout-non-git-empty-response",
+      "description": "个人定制：非 Git 工作区的普通 completed task，没有任何胶囊，验证状态栏不占高度。",
+      "metadata": {
+        "kind": "main",
+        "timingPolicy": "fast-text",
+        "source": "synthetic",
+        "syntheticReason": "同 empty-task-response：只需要稳定完成且不引入 goal/todo/running 内容。"
+      },
+      "maxMatches": 1,
+      "match": {
+        "method": "POST",
+        "pathIncludes": "/messages",
+        "bodyIncludes": ["E2E_STATUS_PANEL_NON_GIT_EMPTY"],
+        "lastUserMessageIncludes": ["E2E_STATUS_PANEL_NON_GIT_EMPTY"]
+      },
+      "response": {
+        "statusCode": 200,
+        "statusMessage": "OK",
+        "text": {
+          "id": "upstream-e2e-status-panel-non-git-empty-task",
+          "inputTokens": 96,
+          "outputTokens": 8,
+          "text": "upstream-e2e-ok"
+        }
+      }
+    },
+    {
+      "id": "status-panel-inline-layout-non-git-goal-response",
+      "description": "个人定制：非 Git 工作区的 goal target，验证没有 Git 胶囊时其余胶囊仍贴右。",
+      "metadata": {
+        "kind": "main",
+        "timingPolicy": "fast-text",
+        "source": "synthetic",
+        "syntheticReason": "同 goal-response：只需要稳定制造带 target 的 task；模型正文内容不参与断言。"
+      },
+      "maxMatches": 1,
+      "match": {
+        "method": "POST",
+        "pathIncludes": "/messages",
+        "bodyIncludes": ["E2E_STATUS_PANEL_NON_GIT_GOAL"],
+        "lastUserMessageIncludes": ["E2E_STATUS_PANEL_NON_GIT_GOAL"]
+      },
+      "response": {
+        "statusCode": 200,
+        "statusMessage": "OK",
+        "text": {
+          "id": "upstream-e2e-status-panel-non-git-goal-task",
+          "inputTokens": 128,
+          "outputTokens": 8,
+          "text": "upstream-e2e-ok"
+        }
+      }
     }
   ]
 }

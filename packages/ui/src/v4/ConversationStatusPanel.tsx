@@ -1558,25 +1558,33 @@ function ConversationStatusPanelImpl(props: ConversationStatusPanelProps) {
     : model.plan && model.plan.completedCount === model.plan.totalCount
       ? "completed"
       : "pending";
+  const plan = model.plan;
+  const showGoal = goal !== null;
+  const showTodo = plan !== null && plan.totalCount > 0;
+  const showActivity = activities.length > 0 || endedActivities.length > 0 || hasHistoryEntry;
+  // 个人定制：Git 胶囊贴左，其余状态胶囊成组贴右；负外边距抵消两侧的行内间距。
+  // 修复原因：占位 span 原先只在有 Git 胶囊的分支里渲染，非 Git 工作区的胶囊落回居中。
+  // 它跟「至少一个胶囊」走而不是无条件渲染：状态行靠 empty:hidden 收起，无条件渲染会让
+  // 没有胶囊的会话在输入框上方多出 16px 空白。
+  const showStatusSpacer = Boolean(canGit && gitSummary) || showGoal || showTodo || showActivity;
   return (
     <>
       {canGit && gitSummary ? (
-        <>
-          <GitStatusCapsule
-            workspacePath={workspacePath}
-            gitCwd={gitCwd}
-            workspaceIdentity={workspaceIdentity}
-            gitDirtyFileCount={props.gitDirtyFileCount}
-            gitWorktreeChangeSummary={props.gitWorktreeChangeSummary}
-            activeTaskChangeSummary={props.activeTaskChangeSummary}
-            gitSummary={gitSummary}
-            onRefreshGit={onRefreshGit}
-          />
-          {/* 个人定制：Git 胶囊贴左，其余状态胶囊成组贴右；负外边距抵消两侧的行内间距。 */}
-          <span aria-hidden="true" className="-mx-2 min-w-0 flex-1 @max-[640px]:-mx-1" />
-        </>
+        <GitStatusCapsule
+          workspacePath={workspacePath}
+          gitCwd={gitCwd}
+          workspaceIdentity={workspaceIdentity}
+          gitDirtyFileCount={props.gitDirtyFileCount}
+          gitWorktreeChangeSummary={props.gitWorktreeChangeSummary}
+          activeTaskChangeSummary={props.activeTaskChangeSummary}
+          gitSummary={gitSummary}
+          onRefreshGit={onRefreshGit}
+        />
       ) : null}
-      {goal ? (
+      {showStatusSpacer ? (
+        <span aria-hidden="true" className="-mx-2 min-w-0 flex-1 @max-[640px]:-mx-1" />
+      ) : null}
+      {showGoal ? (
         <StatusCapsule
           id="goal"
           icon={
@@ -1602,23 +1610,23 @@ function ConversationStatusPanelImpl(props: ConversationStatusPanelProps) {
           />
         </StatusCapsule>
       ) : null}
-      {model.plan?.totalCount ? (
+      {showTodo ? (
         <StatusCapsule
           id="todo"
           icon={
-            model.plan.completedCount === model.plan.totalCount ? (
+            plan.completedCount === plan.totalCount ? (
               <CheckCircle2Icon className="size-4 text-success" />
             ) : (
               <ListChecksIcon className="size-4" />
             )
           }
           label={intl.formatMessage({ id: "chat.capsule.todo." + todoStatus })}
-          secondary={`${model.plan.completedCount}/${model.plan.totalCount}`}
+          secondary={`${plan.completedCount}/${plan.totalCount}`}
         >
           <PlanStatusSection model={model} />
         </StatusCapsule>
       ) : null}
-      {activities.length > 0 || endedActivities.length > 0 || hasHistoryEntry ? (
+      {showActivity ? (
         <StatusCapsule
           id="activity"
           // 计数与实际渲染共用去重模型；已结束摘要不计入运行数。

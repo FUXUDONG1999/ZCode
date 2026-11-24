@@ -34,6 +34,20 @@
       "source": "synthetic",
       "timingPolicy": "fast-text",
       "syntheticReason": "该 case 只需要稳定制造带 target 的 task；模型正文内容不参与断言。"
+    },
+    {
+      "id": "status-panel-inline-layout-non-git-empty-response",
+      "kind": "main",
+      "source": "synthetic",
+      "timingPolicy": "fast-text",
+      "syntheticReason": "同 empty-task-response：只需要稳定完成且不引入 goal/todo/running 内容。"
+    },
+    {
+      "id": "status-panel-inline-layout-non-git-goal-response",
+      "kind": "main",
+      "source": "synthetic",
+      "timingPolicy": "fast-text",
+      "syntheticReason": "同 goal-response：只需要稳定制造带 target 的 task；模型正文内容不参与断言。"
     }
   ]
 }

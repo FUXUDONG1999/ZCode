@@ -221,6 +221,10 @@
   - 状态行（`v4/ConversationStatusPanel.tsx`）：Git 胶囊贴左，Goal / Todo / 后台活动成组
     贴右，中间弹性留白，仍是一行。新组件 `GitStatusCapsule`（同文件）：会话目录是 Git
     仓库且非 Office 模式时常驻，不必等出现变更。
+  - 2026-11-24 补：没有 Git 胶囊时（非 Git 工作区、Office 模式）右侧这组照样贴右。推右靠
+    一个 `flex-1` 占位 span，原先写在「有 Git 胶囊」的分支里，没有 Git 就跟着不渲染，胶囊
+    落回上游的居中。现在占位 span 独立于 Git 分支，但只在至少有一个胶囊时渲染：状态行靠
+    `empty:hidden` 在没有胶囊时收起，占位 span 无条件渲染会让输入框上方多出 16px 空白。
   - 胶囊摘要：图标 + 分支名（游离 HEAD 显示「游离 HEAD」）；有未推送提交显示 `↑N`，
     有未提交变更显示 `+新增 −删除`。
   - 胶囊浮层：分支行（`HostedGitBranchSwitcher`）→ 变更文件列表（点开在代码查看器看
@@ -247,15 +251,26 @@
     删除行和新增行在同一列，不是左右分栏。
   - 工作区文件不是对话改的（比如自己用编辑器改）时，胶囊的变更列表和 `+ −` 摘要最多
     晚 60 秒更新（上游 `useGitAutoRefresh` 的防抖），浮层里没有手动刷新入口。
-- **同步策略**：上游改状态行布局时保住「Git 胶囊 + 占位 span」这一段；上游给
+- **同步策略**：上游改状态行布局时保住「Git 胶囊贴左 + 其后的占位 span」这一段；占位 span
+  不能并回 Git 分支，也不能改成无条件渲染。上游给
   `getCommitGraph` 加参数时，`filters` 是末位可选参数，正常合并。上游 e2e
   `conversation-session-git-review-entry` 与 `conversation-session-status-panel-inline-layout`
   已按本分支就地适配（见 DIVERGENCE §5）。
-- **验证锚点**（2026-11-23 本地回放）：e2e `conversation-session-git-review-entry` 4/4
-  通过（分支显示与切换、图谱两条入口、新增文件与修改文件的 Diff、图谱筛选）；
-  `conversation-session-status-panel-inline-layout` 桌面用例通过，手机 Web 用例是存量分歧
-  （见 DIVERGENCE §5）。`pnpm typecheck` 与 `typecheck:e2e` 0 错误，`pnpm lint` 508 告警 /
-  0 错误（基线），`pnpm architecture:check --changed` 0 违规。
+- **验证锚点**：
+  - 2026-11-24（非 Git 贴右修复，本地回放）：`conversation-session-status-panel-inline-layout`
+    桌面用例补了非 Git 场景。修复前红（`desktop-e2e-20261124-020824-825`，`rightOffset` 465.78）；
+    占位 span 无条件渲染的写法也红（`desktop-e2e-20261124-021858-811`，状态行高 16）；最终写法
+    绿（`desktop-e2e-20261124-022512-849`）。`conversation-session-git-review-entry` 2/4，产品文件
+    换回 HEAD 对照同样 2/4（`desktop-e2e-20261124-023824-977`）：首个用例提交新建分支后被营销
+    弹窗盖住，是 DIVERGENCE §5 的存量环境问题，与本次修复无关，未再处理。
+  - 2026-11-23 本地回放：e2e `conversation-session-git-review-entry` 4/4
+    通过（分支显示与切换、图谱两条入口、新增文件与修改文件的 Diff、图谱筛选）；
+    `conversation-session-status-panel-inline-layout` 桌面用例通过，手机 Web 用例是存量分歧
+    （见 DIVERGENCE §5）。
+  - 静态检查（2026-11-24 在最终产品代码上复查）：`pnpm typecheck` 与 `typecheck:e2e` 0 错误，
+    `pnpm lint` 508 告警 / 0 错误（基线），`pnpm architecture:check --changed` 0 违规，
+    `e2e:fixture:check` 通过；`pnpm fmt:check` 全仓不过（基线，本档案与规格文档在 HEAD 就不过），
+    本次改动的 tsx / ts / json 格式干净。
 
 ---
 
