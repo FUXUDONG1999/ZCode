@@ -69,6 +69,7 @@
 | 33 | 流式公式组件层缓存 + CJK 浮现两字一组 + 加载 orbs 30fps | `1e350ec8` | 性能 | typecheck/lint；spec：docs/chat/assistant-streaming-text-rendering.md |
 | 34 | 滚动条着色改伪元素直接匹配 | `5b5e0558` | 性能 | typecheck/lint；spec：docs/chat/message-render-performance.md |
 | 35 | 状态行 Git 胶囊常驻（贴左）+ Git 图谱按作者/路径筛选 | `e607519f` | UI | e2e conversation-session-git-review-entry、conversation-session-status-panel-inline-layout；见 B7 |
+| 36 | 文件链接行号只在链接文字里时按文字定位 | 未提交 | 桌面能力 | e2e conversation-session-message-file-link-line-jump 的 MFL03（pending，本地回放 3/3 通过）；见 E |
 
 ---
 
@@ -359,6 +360,28 @@
     写法居中高亮、再点重新定位、同文件复用一个 tab、区间与多段高亮、无行号与超出行数停在
     开头，都走自建预览面板的定位回执链路。本地回放命令：
     `ZCODE_E2E_MANUAL_REVIEW=1 E2E_PROVIDER_HTTP_MODE=replay E2E_PROVIDER_REPLAY_FIXTURE_PATH=packages/desktop/test/e2e/fixtures/upstream/common.json,packages/desktop/test/e2e/fixtures/upstream/conversation-session/conversation-session-message-file-link-line-jump.json pnpm --filter @zcode/desktop test:e2e -- --spec <该文件>`。
+- **#36 链接文字里的行号兜底**（2026-11-24，未提交）：
+  - **意图**：模型常把行号只写在链接文字里，地址是纯路径
+    （`[token_auth.go:102](E:/…/middleware/token_auth.go)`）。上游的行号解析只看地址，
+    点开停在文件头。实测一个会话里文字带行号的 7 条链接，地址带行号的是 0 条。
+  - **改动点**：`message.tsx` 新增 `resolveLabelLineRanges`（链接文字以「地址路径的文件名 +
+    行号后缀」结尾才取行号段），`a` 渲染分支在地址解析不出行号时用它兜底；得到的
+    `lineRanges` 同时供预览定位和外部编辑器传参。`markdownFileLink.ts` 没动。
+    规格 `docs/ui/preview-pane.md`「带行号的文件链接」。
+  - **规则**：地址带行号以地址为准；文字里的文件名与地址对不上不认；只取行号，列号仍
+    只从地址解析。
+  - **同步策略**：上游若原生实现同语义（功能撞车），按「上游是超集就整体取上游」；否则
+    上游改 `a` 渲染分支时保住这一处兜底。提示词侧没动（`identity.ts` 的
+    `file_path:line_number`），上游 prompt 怎么写都不影响这里。
+  - **验证锚点**（2026-11-24 本地 Windows 回放）：用例 MFL03。修复前红
+    （`desktop-e2e-20261124135159590`：点 `[sample.ts:42]` 后预览停在开头、无高亮）；修复后绿
+    （`desktop-e2e-20261124140937230`，3/3，MFL01、MFL02 同时回归）。中间一次
+    `desktop-e2e-20261124140536376` 卡在用例自己的链接文字常量写错，与实现无关。静态检查：
+    `pnpm typecheck`、`pnpm architecture:check --changed` 通过；`pnpm lint` 508 条告警、0 错误，
+    与档案记录的基线一致。`ai-elements` 在根 lint 的忽略名单里，按
+    `docs/testing/react-hooks-lint.md` 的专项配置扫 `message.tsx`：2 条存量 `exhaustive-deps`
+    （文件链接搜索的 `useCallback`，与本次改动无关）、0 条 `rules-of-hooks`，没有新增。
+    未执行：Linux 容器回放、手机 /remote、人工 review。
 - **#24 异步日志**（`bfa51bd0`+`5b0b78ad`）：行进内存队列、setImmediate 合并、
   每-文件链式 Promise、退出同步兜底、缓冲上限 2000；`exportLogs.ts` 配套。
   上游若改日志格式/TTFT 分流，注意保留 `ensureLogDirectory` 与退出兜底链路。

@@ -59,6 +59,7 @@
 - 连续区间，三种写法效果相同：`a.ts:30-35`、`a.ts#L30-L35`、`a.ts#L30-35`。第 30～35 行整段高亮。
 - 多段：`a.ts:30,40`、`a.ts:30-35,40-42`，段之间用英文逗号分隔，每段是单行或区间。所有段都高亮，定位到第一段。`#L` 写法不支持多段。
 - 行号后缀只在路径末尾、且整体由数字、`-`、`,` 组成时才按行号解析；Windows 盘符（`C:/a.ts`）和其他含冒号的文件名照旧按路径处理。
+- 行号写在链接文字里（个人定制）：地址不带行号，而链接文字以「地址里路径的文件名 + 行号后缀」结尾时，按文字里的行号定位和高亮，后缀写法与地址相同。例如 `[a.ts:42](./src/a.ts)`、`[src/a.ts#L30-L35](./src/a.ts)`、`[a.ts:30,40](./src/a.ts)`。
 
 校验与截断（按文件实际行数，在预览侧完成）：
 
@@ -92,8 +93,11 @@
 
 - 同一文件的预览 tab 已打开时，再点同一文件的另一个行号链接，复用该 tab，并重新定位和高亮。再点同一个链接，也重新定位一次。
 - 不带行号的链接照旧从文件开头显示，不高亮任何行。
+- 地址带行号时以地址为准，不看链接文字：`[a.ts:30](./src/a.ts#L80)` 定位第 80 行。
+- 链接文字里的文件名与地址的文件名不同（`[b.ts:42](./src/a.ts)`），或文字不以「文件名 + 行号」结尾：不定位，照旧从文件开头显示。
+- 文字兜底只取行号，列号仍只从地址解析。链接右键用外部编辑器打开时，文字里的行号同样带上。
 - 只对代码视图生效。Markdown、SVG 等处于渲染预览模式时不定位；图片、PDF、Office 等非文本预览忽略行号。
-- 数据链路（唯一来源是 `lineRanges`）：`resolveMarkdownFileLink` 解析出 `lineRanges`（原样保留写法里的起止行；`lineNumber` 是首段起始行，供只关心单行的调用方使用）→ `MessageFileLinkTarget.lineRanges` → `buildFileLinkLineFocus` 丢弃起始行小于 1 的段、把结束行小于起始行的段改成单行，生成 `FileCodeViewerSource.lineRanges` 和每次点击新生成的 `focusRequestId` → `previewPaneContent` 按文件行数截断、丢弃无效段，给 `CodeViewer` 传 `focusedLineRanges`（高亮）和尚未执行过的 `focusRequestId`（定位）。`focusRequestId` 每次点击都不同，所以 tab 复用时也会触发重新定位；执行过的请求由 tab 上的 `appliedFocusRequestId` 过滤掉；不用定时器。
+- 数据链路（唯一来源是 `lineRanges`）：`resolveMarkdownFileLink` 从地址解析出 `lineRanges`（原样保留写法里的起止行；`lineNumber` 是首段起始行，供只关心单行的调用方使用），地址解析不出行号时改取链接文字里的行号段（见「写法」）→ `MessageFileLinkTarget.lineRanges` → `buildFileLinkLineFocus` 丢弃起始行小于 1 的段、把结束行小于起始行的段改成单行，生成 `FileCodeViewerSource.lineRanges` 和每次点击新生成的 `focusRequestId` → `previewPaneContent` 按文件行数截断、丢弃无效段，给 `CodeViewer` 传 `focusedLineRanges`（高亮）和尚未执行过的 `focusRequestId`（定位）。`focusRequestId` 每次点击都不同，所以 tab 复用时也会触发重新定位；执行过的请求由 tab 上的 `appliedFocusRequestId` 过滤掉；不用定时器。
 - 消息渲染前会把文件链接 href 规整一次（`formatMarkdownFileLinkTargetHref`），区间和多段统一改写成冒号写法（`#L30-L35` → `:30-35`），不丢段。
 - 范围外：工具卡片（Read、Edit 等）打开预览时的定位，外部编辑器跳行。
 

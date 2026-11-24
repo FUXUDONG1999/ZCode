@@ -1581,6 +1581,15 @@ export function buildMessageFileLinkTarget(input: {
   };
 }
 
+// 个人定制：模型常把行号只写在链接文字里（`[a.go:12](/abs/a.go)`），地址不带行号，
+// 预览停在文件头。地址解析不出行号时从文字兜底。
+function resolveLabelLineRanges(label: string, path: string): MarkdownFileLinkLineRange[] {
+  const labelTarget = parseMarkdownFileLinkTarget(label);
+
+  // 文件名对不上（时间、版本号、别的文件）不当作行号。
+  return getPathLeaf(labelTarget.path) === getPathLeaf(path) ? labelTarget.lineRanges : [];
+}
+
 export async function openMessageFileLinkInEditor({
   editorId,
   fileLink,
@@ -2194,10 +2203,13 @@ export const MessageResponse = memo(
             const descriptor = resolveFileDisplayDescriptor(fileLink.path);
             const fileName = descriptor.fileName || getPathLeaf(fileLink.path);
             const labelText = extractLinkLabelText(children) || fileName;
+            const labelLineRanges = resolveLabelLineRanges(labelText, fileLink.path);
+            // 个人定制：地址带行号以地址为准，否则取链接文字里的行号。
+            const lineRanges = fileLink.lineRanges.length ? fileLink.lineRanges : labelLineRanges;
             const fileLinkTarget = buildMessageFileLinkTarget({
               href: resolvedHref,
               path: fileLink.path,
-              lineRanges: fileLink.lineRanges,
+              lineRanges,
               label: labelText,
               workspacePath,
               workspaceIdentity,
@@ -2221,7 +2233,7 @@ export const MessageResponse = memo(
                     type: "file",
                     title: getPathLeaf(fileLink.path),
                     path: fileLink.path,
-                    ...buildFileLinkLineFocus(fileLink.lineRanges),
+                    ...buildFileLinkLineFocus(lineRanges),
                     workspacePath,
                     workspaceIdentity,
                     workspaceRemoteSessionId,

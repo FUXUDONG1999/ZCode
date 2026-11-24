@@ -11,6 +11,7 @@ import {
 } from "#e2e/helpers/v4-conversation";
 
 // 规格：docs/ui/preview-pane.md「带行号的文件链接」；用例 MFL01（单行）、MFL02（区间与多段）。
+// 个人定制：MFL03（行号只在链接文字里、地址不带行号）。
 const MARKER = "E2E_MESSAGE_FILE_LINK_LINE_JUMP";
 const CASE_RELATIVE_ROOT = "file-link-line-jump-e2e";
 const CASE_ROOT = join(DEFAULT_WORKSPACE, CASE_RELATIVE_ROOT);
@@ -39,6 +40,19 @@ const RANGE_LINKS = {
   colonMultiRange: "FLR colon 30-35,40-42",
   colonReversed: "FLR reversed 35-30",
   colonAllOutOfRange: "FLR out of range 9999-10000",
+} as const;
+
+// 个人定制：行号只在链接文字里、地址不带行号的写法，用例 MFL03。
+const LABEL_MARKER = "E2E_MESSAGE_FILE_LINK_LABEL_LINE_JUMP";
+
+/** MFL03 链接文字，与 fixture 中的 Markdown 一一对应；地址都不带行号，只有「文字行号 30」的地址带 `#L80`。 */
+const LABEL_LINKS = {
+  colonLine: "sample.ts:42",
+  hashLine: "sample.ts#L80",
+  pathRange: "file-link-line-jump-e2e/sample.ts:60-65",
+  addressWins: "sample.ts:30",
+  otherFile: "other.ts:42",
+  outOfRange: "sample.ts:9999",
 } as const;
 
 /** 区间链接的滚动断言：整体放得下就居中；放不下时起始行置顶；贴近文件末尾时只要求整段可见。 */
@@ -170,6 +184,44 @@ describe("消息正文带行号的文件链接定位", () => {
     // `:9999-10000` 所有段都超出行数：停在开头，不高亮，不报错。
     await clickBodyFileLink(RANGE_LINKS.colonAllOutOfRange);
     await waitForRangeStaysAtTop("全部段超出行数的区间链接");
+  }).timeout(240_000);
+
+  it("MFL03（个人定制）: 行号只在链接文字里时按文字定位，地址行号优先，文件名对不上或超出行数停在开头", async () => {
+    await prepareSampleFile();
+    await prepareV4ConversationE2E();
+    await sendV4Prompt(`${LABEL_MARKER}: file links to ${CASE_RELATIVE_ROOT}/sample.ts.`);
+    await waitForV4AssistantMessageContaining(`${LABEL_MARKER}_DONE`, 90_000);
+    await waitForV4Pane(
+      (pane) => !pane.canStop && pane.timelineText.includes(`${LABEL_MARKER}_DONE`),
+      "文字行号文件链接夹具回复没有完成",
+      90_000,
+    );
+
+    // 前两个用例的会话仍隐藏挂在 DOM 里，单行也用只看可见面板的区间断言。
+
+    // `[sample.ts:42](./sample.ts)`：地址不带行号，取文字里的行号。
+    await clickBodyFileLink(LABEL_LINKS.colonLine);
+    await waitForFocusedRange([42], 42, 42, "center");
+
+    // 文字里的 `#L80` 与地址写法相同。
+    await clickBodyFileLink(LABEL_LINKS.hashLine);
+    await waitForFocusedRange([80], 80, 80, "center");
+
+    // 文字是带目录的路径加区间：只要求以「地址的文件名 + 行号」结尾。
+    await clickBodyFileLink(LABEL_LINKS.pathRange);
+    await waitForFocusedRange(range(60, 65), 60, 65, "center");
+
+    // 地址带行号时以地址为准：文字写 30，地址是 `#L80`。
+    await clickBodyFileLink(LABEL_LINKS.addressWins);
+    await waitForFocusedRange([80], 80, 80, "center");
+
+    // 文字里的文件名与地址对不上：不当作行号。
+    await clickBodyFileLink(LABEL_LINKS.otherFile);
+    await waitForRangeStaysAtTop("文字文件名对不上的链接");
+
+    // 文字里的行号超出文件行数：停在开头。
+    await clickBodyFileLink(LABEL_LINKS.outOfRange);
+    await waitForRangeStaysAtTop("文字行号超出行数的链接");
   }).timeout(240_000);
 });
 
