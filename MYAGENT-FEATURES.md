@@ -69,7 +69,7 @@
 | 33 | 流式公式组件层缓存 + CJK 浮现两字一组 + 加载 orbs 30fps | `1e350ec8` | 性能 | typecheck/lint；spec：docs/chat/assistant-streaming-text-rendering.md |
 | 34 | 滚动条着色改伪元素直接匹配 | `5b5e0558` | 性能 | typecheck/lint；spec：docs/chat/message-render-performance.md |
 | 35 | 状态行 Git 胶囊常驻（贴左）+ Git 图谱按作者/路径筛选 | `e607519f` | UI | e2e conversation-session-git-review-entry、conversation-session-status-panel-inline-layout；见 B7 |
-| 36 | 文件链接行号只在链接文字里时按文字定位 | 未提交 | 桌面能力 | e2e conversation-session-message-file-link-line-jump 的 MFL03（pending，本地回放 3/3 通过）；见 E |
+| 36 | 文件链接行号只在链接文字里时按文字定位 | `d2cdcf4f` | 桌面能力 | e2e conversation-session-message-file-link-line-jump 的 MFL03（pending，本地回放 3/3 通过）；见 E |
 
 ---
 
@@ -360,7 +360,7 @@
     写法居中高亮、再点重新定位、同文件复用一个 tab、区间与多段高亮、无行号与超出行数停在
     开头，都走自建预览面板的定位回执链路。本地回放命令：
     `ZCODE_E2E_MANUAL_REVIEW=1 E2E_PROVIDER_HTTP_MODE=replay E2E_PROVIDER_REPLAY_FIXTURE_PATH=packages/desktop/test/e2e/fixtures/upstream/common.json,packages/desktop/test/e2e/fixtures/upstream/conversation-session/conversation-session-message-file-link-line-jump.json pnpm --filter @zcode/desktop test:e2e -- --spec <该文件>`。
-- **#36 链接文字里的行号兜底**（2026-11-24，未提交）：
+- **#36 链接文字里的行号兜底**（2026-11-24，`d2cdcf4f`）：
   - **意图**：模型常把行号只写在链接文字里，地址是纯路径
     （`[token_auth.go:102](E:/…/middleware/token_auth.go)`）。上游的行号解析只看地址，
     点开停在文件头。实测一个会话里文字带行号的 7 条链接，地址带行号的是 0 条。
